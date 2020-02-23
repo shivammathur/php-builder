@@ -43,7 +43,7 @@ sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
     sha256sum "$f" >"${f}".sha256sum.txt
   done
   curl \
-  --user "BINTRAY_USER":"BINTRAY_KEY" \
+  --user "$BINTRAY_USER":"$BINTRAY_KEY" \
   --header "Content-Type: application/json" \
   --data " \
 {\"name\": \"$PHP_VERSION-linux\", \
@@ -52,7 +52,7 @@ sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
 \"public_download_numbers\": true, \
 \"public_stats\": true \
 }" \
-  https://api.bintray.com/packages/"BINTRAY_USER"/"BINTRAY_REPO" || true
+  https://api.bintray.com/packages/"$BINTRAY_USER"/"$BINTRAY_REPO" || true
   curl --user "$BINTRAY_USER":"$BINTRAY_KEY" -X DELETE https://api.bintray.com/content/"$BINTRAY_USER"/"$BINTRAY_REPO"/php_"$PHP_VERSION"+ubuntu"$release".tar.xz || true
   curl --user "$BINTRAY_USER":"$BINTRAY_KEY" -T php_"$PHP_VERSION"+ubuntu"$release".tar.xz https://api.bintray.com/content/shivammathur/php/"$PHP_VERSION"-linux/"$PHP_VERSION"+ubuntu"$release"/php_"$PHP_VERSION"+ubuntu"$release".tar.xz || true
   curl --user "$BINTRAY_USER":"$BINTRAY_KEY" -X POST https://api.bintray.com/content/"$BINTRAY_USER"/"$BINTRAY_REPO"/"$PHP_VERSION"-linux/"$PHP_VERSION"+ubuntu"$release"/publish || true
