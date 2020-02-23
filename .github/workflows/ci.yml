@@ -1,0 +1,53 @@
+name: Build PHP
+on:
+  push:
+  pull_request:
+  repository_dispatch:  
+  schedule:
+    - cron: '0 0 * * *'
+jobs:
+  build:
+    name: Build PHP on ${{ matrix.operating-system }})
+    runs-on: ${{ matrix.operating-system }}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-latest, ubuntu-16.04]
+        php-version: ['8.0']
+    steps:        
+      - name: Checkout
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 1      
+      - name: Install required packages
+        run: |
+          sudo DEBIAN_FRONTEND=noninteractive apt-fast -y update
+          sudo DEBIAN_FRONTEND=noninteractive apt-fast -y install expect locales language-pack-de re2c ccache mysql-server libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libfreetype6-dev libgccjit-6-dev libgmp-dev libicu-dev libjpeg-dev libkrb5-dev libonig-dev libmcrypt-dev libpng-dev libpq-dev libreadline-dev libpspell-dev libsasl2-dev libssl-dev libsqlite3-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
+          sudo DEBIAN_FRONTEND=noninteractive apt-fast -y remove libicu64
+      - name: Build and ship
+        run: chmod a+x .github/scripts/build.sh && .github/scripts/build.sh
+        env:
+          GITHUB_USER: 'shivammathur'
+          GITHUB_NAME: 'Shivam Mathur'
+          GITHUB_EMAIL: ${{ secrets.email }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          BINTRAY_KEY: ${{ secrets.bintray_key }}
+          BINTRAY_USER: shivammathur
+          BINTRAY_REPO: php
+          PHP_VERSION: ${{ matrix.php-version }}
+      - name: Test versions
+        run: |
+          php -v | head -n 1
+          php-cgi -v | head -n 1
+          phpdbg -V | head -n 1
+          pecl -V
+          php-config --version
+          phpize -v
+      - name: Benchmark
+        run: |
+          printf "Benchmark with PHP7.3\n"
+          sudo phpdismod -v 7.3 xdebug
+          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php7.3
+          printf "Benchmark with PHP${{ matrix.php-version }}\n"
+          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php

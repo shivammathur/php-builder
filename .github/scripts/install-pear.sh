@@ -1,0 +1,27 @@
+#!/usr/bin/env expect
+
+set send_slow {1 .1}
+set timeout -1
+set path [lindex $argv 0];
+
+spawn "$path/bin/php" go-pear.phar
+
+expect -re "1-\[0-9]+, 'all' or Enter to continue:"
+sleep .1
+send -s -- "1\r"
+
+expect -re "Installation base (.*):"
+send -s -- "$path\r"
+
+expect -re "1-\[0-9]+, 'all' or Enter to continue:"
+sleep .1
+send -s -- "\r"
+
+expect -re "Would you like to alter php.ini(.*):"
+sleep .1
+send -s -- "\r"
+
+expect "Press Enter to continue:"
+sleep .1
+send -s -- "\r"
+expect EOF
