@@ -11,7 +11,7 @@ action_dir=$(pwd)
   git clone git://github.com/php-build/php-build
   cd php-build || exit
   sudo ./install.sh
-  cp -rf "$action_dir"/.github/scripts/default_configure_options ./share/php-build/default_configure_options
+  sudo cp -rf "$action_dir"/.github/scripts/master /usr/local/share/php-build/definitions/master
 )
 sudo mkdir -p ~/php
 sudo chmod -R 777 ~/php
