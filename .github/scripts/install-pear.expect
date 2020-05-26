@@ -11,6 +11,7 @@ sleep .1
 send -s -- "1\r"
 
 expect -re "Installation base (.*):"
+sleep .1
 send -s -- "$path\r"
 
 expect -re "1-\[0-9]+, 'all' or Enter to continue:"
