@@ -12,59 +12,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        operating-system: [ubuntu-18.04, ubuntu-16.04]
+        operating-system: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04]
         php-version: ['8.0']
+        include:
+          - operating-system: ubuntu-20.04
+            libs: "libgccjit-10-dev"
+          - operating-system: ubuntu-18.04
+            libs: "libgccjit-8-dev"
+          - operating-system: ubuntu-16.04
+            libs: "libgccjit-6-dev"
     steps:
       - name: Install required packages
         run: |
           sudo DEBIAN_FRONTEND=noninteractive apt-fast -y update
-          sudo DEBIAN_FRONTEND=noninteractive apt-fast -y install expect locales language-pack-de re2c mysql-server postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev libgccjit-6-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build and ship
-        run: chmod a+x .github/scripts/build.sh && .github/scripts/build.sh
-        env:
-          GITHUB_USER: 'shivammathur'
-          GITHUB_NAME: 'Shivam Mathur'
-          GITHUB_EMAIL: ${{ secrets.email }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          BINTRAY_KEY: ${{ secrets.bintray_key }}
-          BINTRAY_USER: shivammathur
-          BINTRAY_REPO: php
-          PHP_VERSION: ${{ matrix.php-version }}
-      - name: Test versions
-        run: |
-          php -v | head -n 1
-          php-cgi -v | head -n 1
-          phpdbg -V | head -n 1
-          pecl -V
-          php-config --version
-          phpize -v
-          php -m
-      - name: Benchmark
-        run: |
-          printf "Benchmark with PHP7.4\n"
-          sudo phpdismod -v 7.4 xdebug
-          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php7.4
-          printf "Benchmark with PHP${{ matrix.php-version }}\n"
-          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php
-  focal:
-    name: Build PHP on ubuntu-20.04
-    runs-on: ${{ matrix.operating-system }}
-    container: ubuntu:focal
-    strategy:
-      matrix:
-        operating-system: [ubuntu-latest]
-        php-version: ['8.0']
-    steps:
-      - name: Install required packages
-        run: |
-          DEBIAN_FRONTEND=noninteractive apt-get -y update
-          DEBIAN_FRONTEND=noninteractive apt-get -y install sudo software-properties-common lsb-release
-          sudo DEBIAN_FRONTEND=noninteractive add-apt-repository ppa:ondrej/php -y
-          sudo DEBIAN_FRONTEND=noninteractive apt-get mysql-server || true
-          sudo DEBIAN_FRONTEND=noninteractive apt-get -y install autoconf curl gcc-7 g++-7 git expect locales language-pack-de llvm re2c make php7.4 postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev libgccjit-10-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
+          sudo DEBIAN_FRONTEND=noninteractive apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libgmp-dev libicu-dev libjpeg-dev libwebp-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
       - name: Checkout
