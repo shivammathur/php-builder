@@ -21,7 +21,12 @@ setup_pear() {
   rm go-pear.phar
   sudo "$install_dir"/bin/pear config-set php_ini "$install_dir"/etc/php.ini system
   sudo "$install_dir"/bin/pear channel-update pear.php.net
+}
+
+setup_coverage() {
   sudo "$install_dir"/bin/pecl install -f pcov
+  sudo chmod a+x .github/scripts/install-xdebug-master.sh
+  .github/scripts/install-xdebug-master.sh "$install_dir"
 }
 
 build_php() {
@@ -38,6 +43,7 @@ build_php() {
     echo "pcre.jit=1"
   ) >>"$install_dir"/etc/php.ini
   setup_pear
+  setup_coverage
   sudo ln -sv "$install_dir"/sbin/php-fpm "$install_dir"/bin/php-fpm
   sudo ln -sf "$install_dir"/bin/* /usr/bin/
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
@@ -63,6 +69,7 @@ build_and_ship() {
     curl -sSLO http://archive.ubuntu.com/ubuntu/pool/main/g/gcc-10/libgcc-s1_10-20200411-0ubuntu1_amd64.deb
     curl -sSLO http://archive.ubuntu.com/ubuntu/pool/universe/libz/libzstd/zstd_1.4.4+dfsg-3_amd64.deb
     sudo DEBIAN_FRONTEND=noninteractive dpkg -i --force-conflicts ./*.deb
+    rm -rf ./*.deb
     zstd -V
     cd "$install_dir"/.. || exit
     sudo XZ_OPT=-e9 tar cfJ php_"$PHP_VERSION"+ubuntu"$release".tar.xz "$PHP_VERSION"

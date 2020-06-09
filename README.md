@@ -42,7 +42,8 @@ The code in this project is licensed under the [MIT license](LICENSE). This proj
 
 ## Dependencies
 
-- [PEAR](https://github.com/pear/pear-core)
-- [PCOV](https://github.com/krakjoe/pcov)
-- [PHP](https://github.com/php/php-src)
+- [PEAR](https://github.com/pear/pear-core "PEAR PHP extension installer")
+- [PCOV](https://github.com/krakjoe/pcov "PCOV PHP Extension")
+- [PHP](https://github.com/php/php-src "PHP Upstream project")
 - [php-build](https://github.com/php-build/php-build "php-build")
+- [Xdebug](https://github.com/xdebug/xdebug "Xdebug PHP Extension")
