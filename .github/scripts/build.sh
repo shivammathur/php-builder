@@ -39,6 +39,7 @@ build_php() {
   sudo chmod 777 "$install_dir"/etc/php.ini
   (
     echo "date.timezone=UTC"
+    echo "memory_limit=-1"
     echo "opcache.jit_buffer_size=256M"
     echo "opcache.jit=1235"
     echo "pcre.jit=1"
@@ -84,15 +85,15 @@ build_and_ship() {
 }
 
 push_log() {
-git config --local user.email "$GITHUB_EMAIL"
-git config --local user.name "$GITHUB_NAME"
-git stash
-git pull -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master
-git stash apply
-build_log "ubuntu$release build updated"
-git add .
-git commit -m "ubuntu$release build updated"
-git push -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master --follow-tags
+  git config --local user.email "$GITHUB_EMAIL"
+  git config --local user.name "$GITHUB_NAME"
+  git stash
+  git pull -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master
+  git stash apply
+  build_log "ubuntu$release build updated"
+  git add .
+  git commit -m "ubuntu$release build updated"
+  git push -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master --follow-tags
 }
 
 sudo mkdir -m777 -p /home/runner/php /usr/local/ssl
