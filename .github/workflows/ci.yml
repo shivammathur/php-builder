@@ -46,6 +46,13 @@ jobs:
           BINTRAY_USER: shivammathur
           BINTRAY_REPO: php
           PHP_VERSION: ${{ matrix.php-version }}
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: php_${{ matrix.php-version }}+${{ matrix.operating-system }}
+          path: |
+            /home/runner/php/*.xz
+            /home/runner/php/*.zst
       - name: Test versions
         run: |
           php -v | head -n 1
