@@ -96,9 +96,9 @@ push_log() {
   git push -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master --follow-tags
 }
 
-sudo mkdir -m777 -p /home/runner/php /usr/local/ssl
+sudo mkdir -m777 -p /usr/local/php /usr/local/ssl
 release=$(lsb_release -r -s)
-install_dir=/home/runner/php/"$PHP_VERSION"
+install_dir=/usr/local/php/"$PHP_VERSION"
 action_dir=$(pwd)
 tries=10
 
