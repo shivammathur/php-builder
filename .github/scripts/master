@@ -48,5 +48,7 @@ configure_option "--without-pear"
 configure_option "--disable-debug"
 configure_option "--enable-opcache"
 
+configure_option -D "--with-xmlrpc"
+
 install_package_from_github master
 enable_builtin_opcache
