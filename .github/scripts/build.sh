@@ -9,7 +9,7 @@ setup_phpbuild() {
     git clone git://github.com/php-build/php-build
     cd php-build || exit
     sudo ./install.sh
-    sudo cp -rf "$action_dir"/.github/scripts/master /usr/local/share/php-build/definitions/master
+    sudo cp "$action_dir"/.github/scripts/$PHP_VERSION /usr/local/share/php-build/definitions/
   )
 }
 
@@ -31,7 +31,7 @@ setup_coverage() {
 }
 
 build_php() {
-  if ! php-build -v -i production master "$install_dir"; then
+  if ! php-build -v -i production "$PHP_VERSION" "$install_dir"; then
     echo 'Failed to build PHP'
     exit 1
   fi

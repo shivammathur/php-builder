@@ -2,12 +2,20 @@
 
 <a href="https://github.com/shivammathur/php-builder" title="PHP Builder"><img alt="Build status" src="https://github.com/shivammathur/php-builder/workflows/Build%20PHP/badge.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/blob/master/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/tree/master/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-%3E%3D%208.0.0-8892BF.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/tree/master/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
 
 > Build PHP nightly using GitHub Actions for Ubuntu.
 
 
 ## Builds
+
+### PHP 8.0.0-dev
+
+- [Ubuntu 16.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu16.04.tar.xz)
+- [Ubuntu 18.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu18.04.tar.xz)
+- [Ubuntu 20.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu20.04.tar.xz)
+
+### PHP 8.1.0-dev
 
 - [Ubuntu 16.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu18.04.tar.xz)
@@ -26,7 +34,12 @@ apt-get install -y curl sudo
 ```bash
 curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
 chmod a+x ./install.sh
-./install.sh
+
+# Install PHP 8.0.0-dev
+./install.sh local 8.0
+
+# Install PHP 8.1.0-dev
+./install.sh local 8.1 
 ```
 
 - Test PHP

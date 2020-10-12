@@ -7,14 +7,14 @@ on:
     - cron: '0 0 * * *'
 jobs:
   build:
-    name: Build PHP on ${{ matrix.operating-system }}
+    name: Build PHP ${{ matrix.php-version }} on ${{ matrix.operating-system }}
     if: "!contains(github.event.head_commit.message, 'skip-build')"
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
       matrix:
         operating-system: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04]
-        php-version: ['8.0']
+        php-version: ['8.0', '8.1']
         include:
           - operating-system: ubuntu-20.04
             libs: "libgccjit-10-dev"
