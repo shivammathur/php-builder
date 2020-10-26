@@ -11,15 +11,15 @@
 
 ### PHP 8.0.0-dev
 
-- [Ubuntu 16.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu16.04.tar.xz)
-- [Ubuntu 18.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu18.04.tar.xz)
-- [Ubuntu 20.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.0%2Bubuntu20.04.tar.xz)
+- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu16.04.tar.xz)
+- [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu18.04.tar.xz)
+- [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu20.04.tar.xz)
 
 ### PHP 8.1.0-dev (master)
 
-- [Ubuntu 16.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.1%2Bubuntu16.04.tar.xz)
-- [Ubuntu 18.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.1%2Bubuntu18.04.tar.xz)
-- [Ubuntu 20.04](https://bintray.com/shivammathur/php/download_file?file_path=php_8.1%2Bubuntu20.04.tar.xz)
+- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu16.04.tar.xz)
+- [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
+- [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu20.04.tar.xz)
 
 
 ## Install
