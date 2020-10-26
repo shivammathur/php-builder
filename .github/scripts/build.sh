@@ -106,4 +106,4 @@ setup_phpbuild
 build_php
 bintray_create_package
 build_and_ship
-push_log
+push_log || true

@@ -70,3 +70,26 @@ jobs:
           curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php7.4
           printf "Benchmark with PHP${{ matrix.php-version }}\n"
           curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - run: mkdir builds
+      - uses: actions/download-artifact@v2
+        with:
+          path: builds
+      - name: Release
+        run: |
+          set -x
+          curl -sLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
+          assets=()
+          for asset in ./builds/*/*; do
+            assets+=("-a" "$asset")
+          done
+          assets+=("-a" "./install.sh")
+          git push -f origin :builds || true
+          hub release delete "builds" || true
+          hub release create "${assets[@]}" -m "builds" "builds"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
