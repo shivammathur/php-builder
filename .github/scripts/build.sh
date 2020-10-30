@@ -26,8 +26,9 @@ setup_pear() {
 setup_coverage() {
   sudo "$install_dir"/bin/pecl install -f pcov
   sudo sed -i "/pcov/d" "$install_dir"/etc/php.ini
-  sudo chmod a+x .github/scripts/install-xdebug-master.sh
-  .github/scripts/install-xdebug-master.sh "$install_dir"
+  sudo chmod a+x .github/scripts/install-ext-master.sh
+  .github/scripts/install-ext-master.sh xdebug xdebug/xdebug "$install_dir" --enable-xdebug
+  .github/scripts/install-ext-master.sh imagick Imagick/imagick "$install_dir"
 }
 
 build_php() {
