@@ -82,14 +82,13 @@ jobs:
       - name: Release
         run: |
           set -x
-          curl -sLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
+          curl -o ./install.sh -sL https://dl.bintray.com/shivammathur/php/php-builder.sh
           assets=()
           for asset in ./builds/*/*; do
-            assets+=("-a" "$asset")
+            assets+=("$asset")
           done
-          assets+=("-a" "./install.sh")
-          git push -f origin :builds || true
-          hub release delete "builds" || true
-          hub release create "${assets[@]}" -m "builds" "builds"
+          assets+=("./install.sh")
+          gh release delete "builds" -y || true
+          gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
