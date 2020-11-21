@@ -9,7 +9,7 @@ setup_phpbuild() {
     git clone git://github.com/php-build/php-build
     cd php-build || exit
     sudo ./install.sh
-    sudo cp "$action_dir"/.github/scripts/$PHP_VERSION /usr/local/share/php-build/definitions/
+    sudo cp "$action_dir"/.github/scripts/"$PHP_VERSION" /usr/local/share/php-build/definitions/
   )
 }
 
@@ -41,9 +41,6 @@ build_php() {
   (
     echo "date.timezone=UTC"
     echo "memory_limit=-1"
-    echo "opcache.jit_buffer_size=256M"
-    echo "opcache.jit=1235"
-    echo "pcre.jit=1"
   ) >>"$install_dir"/etc/php.ini
   setup_pear
   setup_coverage
