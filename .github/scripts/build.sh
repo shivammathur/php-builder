@@ -1,15 +1,15 @@
-build_log() {
-  time=$(date '+%Y-%m-%d %H:%M:%S')
-  echo "$time"" > ""$1" >>build.log
-}
-
 setup_phpbuild() {
   (
     cd ~ || exit
     git clone git://github.com/php-build/php-build
     cd php-build || exit
     sudo ./install.sh
-    sudo cp "$action_dir"/.github/scripts/"$PHP_VERSION" /usr/local/share/php-build/definitions/
+    if [ "$new_version" != "nightly" ]; then
+      sudo cp "$action_dir"/.github/scripts/stable /usr/local/share/php-build/definitions/"$PHP_VERSION"
+      sudo sed -i "s/phpsrctag/$new_version/" /usr/local/share/php-build/definitions/"$PHP_VERSION"
+    else
+      sudo cp "$action_dir"/.github/scripts/"$PHP_VERSION" /usr/local/share/php-build/definitions/
+    fi
   )
 }
 
@@ -82,26 +82,32 @@ build_and_ship() {
   )
 }
 
-push_log() {
-  git config --local user.email "$GITHUB_EMAIL"
-  git config --local user.name "$GITHUB_NAME"
-  git stash
-  git pull -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master
-  git stash apply
-  build_log "ubuntu$release build updated"
-  git add .
-  git commit -m "ubuntu$release build updated"
-  git push -f https://"$GITHUB_USER":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git HEAD:master --follow-tags
+check_stable() {
+  if [ "$new_version" = "$existing_version" ]; then
+    (
+      cd "$install_dir"/.. || exit
+      sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.xz
+      sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.zst
+      ls -la
+    )
+    echo "$new_version" exists
+    exit 0
+  fi
+  if [ "$new_version" = "" ]; then
+    new_version='nightly'
+  fi
 }
 
-sudo mkdir -m777 -p /usr/local/php /usr/local/ssl
 release=$(lsb_release -r -s)
 install_dir=/usr/local/php/"$PHP_VERSION"
 action_dir=$(pwd)
 tries=10
-
+existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php"$PHP_VERSION".log)
+new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-$PHP_VERSION.[0-9]+" | tail -n 1)
+sudo mkdir -p "$install_dir" /usr/local/ssl
+sudo chmod -R 777 /usr/local/php /usr/local/ssl
+check_stable
 setup_phpbuild
 build_php
 bintray_create_package
 build_and_ship
-push_log || true

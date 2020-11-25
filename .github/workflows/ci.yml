@@ -25,26 +25,32 @@ jobs:
     steps:
       - name: Install required packages
         run: |
-          debconf_fix="DEBIAN_FRONTEND=noninteractive"
-          if ! apt-cache policy | grep -q ondrej/php; then
-            LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
+          existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php${{ matrix.php-version }}.log)
+          new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-${{ matrix.php-version }}.[0-9]+" | tail -n 1)
+
+          if [ "$new_version" != "$existing_version" ]; then
+            debconf_fix="DEBIAN_FRONTEND=noninteractive"
+            if ! apt-cache policy | grep -q ondrej/php; then
+              LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
+            fi
+            sudo "$debconf_fix" apt-get update || true
+            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
+            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
+            sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
           fi
-          sudo "$debconf_fix" apt-get update || true
-          sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build and ship
         run: chmod a+x .github/scripts/build.sh && .github/scripts/build.sh
         env:
-          GITHUB_USER: 'shivammathur'
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
           GITHUB_NAME: 'Shivam Mathur'
           GITHUB_EMAIL: ${{ secrets.email }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           BINTRAY_KEY: ${{ secrets.bintray_key }}
-          BINTRAY_USER: shivammathur
+          BINTRAY_USER: ${{ github.repository_owner }}
           BINTRAY_REPO: php
           PHP_VERSION: ${{ matrix.php-version }}
       - name: Upload Artifact
@@ -80,15 +86,6 @@ jobs:
         with:
           path: builds
       - name: Release
-        run: |
-          set -x
-          curl -o ./install.sh -sL https://dl.bintray.com/shivammathur/php/php-builder.sh
-          assets=()
-          for asset in ./builds/*/*; do
-            assets+=("$asset")
-          done
-          assets+=("./install.sh")
-          gh release delete "builds" -y || true
-          gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
+        run: chmod a+x .github/scripts/release.sh && .github/scripts/release.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
