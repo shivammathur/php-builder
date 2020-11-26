@@ -27,8 +27,8 @@ setup_coverage() {
   sudo "$install_dir"/bin/pecl install -f pcov
   sudo sed -i "/pcov/d" "$install_dir"/etc/php.ini
   sudo chmod a+x .github/scripts/install-ext-master.sh
-  .github/scripts/install-ext-master.sh xdebug xdebug/xdebug "$install_dir" --enable-xdebug
-  .github/scripts/install-ext-master.sh imagick Imagick/imagick "$install_dir"
+  .github/scripts/install-ext.sh xdebug xdebug/xdebug 3.0.0 "$install_dir" --enable-xdebug
+  .github/scripts/install-ext.sh imagick Imagick/imagick master "$install_dir"
 }
 
 build_php() {
@@ -83,15 +83,17 @@ build_and_ship() {
 }
 
 check_stable() {
-  if [ "$new_version" = "$existing_version" ]; then
-    (
-      cd "$install_dir"/.. || exit
-      sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.xz
-      sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.zst
-      ls -la
-    )
-    echo "$new_version" exists
-    exit 0
+  if [[ "$GITHUB_MESSAGE" != *build-all* ]]; then
+    if [ "$new_version" = "$existing_version" ]; then
+      (
+        cd "$install_dir"/.. || exit
+        sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.xz
+        sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.zst
+        ls -la
+      )
+      echo "$new_version" exists
+      exit 0
+    fi
   fi
   if [ "$new_version" = "" ]; then
     new_version='nightly'

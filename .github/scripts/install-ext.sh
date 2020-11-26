@@ -1,8 +1,9 @@
 extension=$1
 repo=$2
-install_dir=$3
-params=${4:-}
-curl -o "/tmp/$extension.tar.gz" -sSL "https://github.com/$repo/archive/master.tar.gz"
+tag=${3:-master}
+install_dir=$4
+params=${5:-}
+curl -o "/tmp/$extension.tar.gz" -sSL "https://github.com/$repo/archive/$tag.tar.gz"
 tar xf "/tmp/$extension.tar.gz" -C /tmp
 (
   cd "/tmp/$extension-master" || exit 1

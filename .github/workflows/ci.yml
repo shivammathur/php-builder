@@ -27,8 +27,7 @@ jobs:
         run: |
           existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php${{ matrix.php-version }}.log)
           new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-${{ matrix.php-version }}.[0-9]+" | tail -n 1)
-
-          if [ "$new_version" != "$existing_version" ]; then
+          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "$new_version" != "$existing_version" ]; then
             debconf_fix="DEBIAN_FRONTEND=noninteractive"
             if ! apt-cache policy | grep -q ondrej/php; then
               LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
