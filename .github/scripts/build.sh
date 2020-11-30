@@ -25,8 +25,11 @@ setup_pear() {
 
 setup_coverage() {
   sudo "$install_dir"/bin/pecl install -f pcov
+  sudo "$install_dir"/bin/pecl install -f sqlsrv-5.9.0preview1
+  sudo "$install_dir"/bin/pecl install -f pdo_sqlsrv-5.9.0preview1
   sudo sed -i "/pcov/d" "$install_dir"/etc/php.ini
-  sudo chmod a+x .github/scripts/install-ext-master.sh
+  sudo sed -i "/sqlsrv/d" "$install_dir"/etc/php.ini
+  sudo chmod a+x .github/scripts/install-ext.sh
   .github/scripts/install-ext.sh xdebug xdebug/xdebug 3.0.0 "$install_dir" --enable-xdebug
   .github/scripts/install-ext.sh imagick Imagick/imagick master "$install_dir"
 }
