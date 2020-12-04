@@ -50,6 +50,17 @@ build_php() {
   sudo ln -sv "$install_dir"/sbin/php-fpm "$install_dir"/bin/php-fpm
   sudo ln -sf "$install_dir"/bin/* /usr/bin/
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
+  sudo sed -Ei "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" "$install_dir"/etc/php-fpm.d/www.conf
+  sudo sed -Ei 's|;listen.owner.*|listen.owner = www-data|' "$install_dir"/etc/php-fpm.d/www.conf
+  sudo sed -Ei 's|;listen.group.*|listen.group = www-data|' "$install_dir"/etc/php-fpm.d/www.conf
+  sudo sed -Ei 's|;listen.mode.*|listen.mode = 0660|' "$install_dir"/etc/php-fpm.d/www.conf
+  sudo sed -i "s/PHP_VERSION/$PHP_VERSION/g" .github/scripts/fpm.service
+  sudo sed -i "s/NO_DOT/${PHP_VERSION/./}/g" .github/scripts/fpm.service
+  sudo cp -fp .github/scripts/fpm.service "$install_dir"/etc/systemd/system/php-fpm.service
+  sudo cp -fp .github/scripts/php-fpm-socket-helper "$install_dir"/bin/
+  sudo chmod a+x "$install_dir"/bin/php-fpm-socket-helper
+  sudo sed -Ei "s|;pid.*|pid = /run/php/php$PHP_VERSION-fpm.pid|" "$install_dir"/etc/php-fpm.conf
+  sudo sed -Ei "s|;error_log.*|error_log = /var/log/php$PHP_VERSION-fpm.log|" "$install_dir"/etc/php-fpm.conf
 }
 
 bintray_create_package() {

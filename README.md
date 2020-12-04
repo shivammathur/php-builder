@@ -146,6 +146,7 @@ The code in this project is licensed under the [MIT license](LICENSE). This proj
 
 ## Dependencies
 
+- [deb.sury.org](https://github.com/oerdnj/deb.sury.org)
 - [Imagick](https://github.com/Imagick/imagick "Imagick PHP Extension")
 - [PEAR](https://github.com/pear/pear-core "PEAR PHP extension installer")
 - [PCOV](https://github.com/krakjoe/pcov "PCOV PHP Extension")

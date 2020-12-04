@@ -1,5 +1,7 @@
 configure_option "--enable-phpdbg"
 configure_option "--enable-fpm"
+configure_option "--with-fpm-user=www-data"
+configure_option "--with-fpm-group=www-data"
 configure_option "--with-pdo-mysql=mysqlnd"
 configure_option "--with-mysqli=mysqlnd"
 configure_option "--with-pgsql"
