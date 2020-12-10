@@ -33,7 +33,7 @@ jobs:
               LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
             fi
             sudo "$debconf_fix" apt-get update || true
-            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
+            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config apache2 apache2-dev libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libkrb5-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
             sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
             sudo mkdir -p /usr/c-client/
             sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
@@ -62,22 +62,30 @@ jobs:
           path: |
             /usr/local/php/*.xz
             /usr/local/php/*.zst
-      - name: Test versions
+      - name: Check php-cli version
+        run: php -v
+      - name: Check php-cgi version
+        run: php-cgi -v
+      - name: Check php-fpm version
         run: |
-          php -v | head -n 1
-          php-cgi -v | head -n 1
-          phpdbg -V | head -n 1
-          pecl -V
-          php-config --version
-          phpize -v
-          php -m
-      - name: Benchmark
+          php-fpm -v
+          sudo service php${{ matrix.php-version }}-fpm status
+      - name: Check apache service
         run: |
-          printf "Benchmark with PHP7.4\n"
-          sudo phpdismod -v 7.4 xdebug
-          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php7.4
-          printf "Benchmark with PHP${{ matrix.php-version }}\n"
-          curl https://raw.githubusercontent.com/php/php-src/master/Zend/bench.php | php
+          sudo a2dismod mpm_event
+          sudo a2enmod mpm_prefork php${{ matrix.php-version }}
+          sudo service apache2 restart
+          sudo service apache2 status
+      - name: Check phpdbg version
+        run: phpdbg -V
+      - name: Check pecl version
+        run: pecl -V
+      - name: Check php-config version
+        run: php-config --version
+      - name: Check phpize version
+        run: phpize -v
+      - name: Check php extensions
+        run: php -m
   release:
     runs-on: ubuntu-latest
     needs: build
@@ -90,4 +98,5 @@ jobs:
       - name: Release
         run: chmod a+x .github/scripts/release.sh && .github/scripts/release.sh
         env:
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
