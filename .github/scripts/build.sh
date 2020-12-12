@@ -1,3 +1,7 @@
+create_env() {
+  sudo mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available /usr/local/ssl
+  sudo chmod -R 777 /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
+}
 configure_phpbuild() {
   if [ "$new_version" != "nightly" ]; then
     sudo cp "$action_dir"/.github/scripts/stable /usr/local/share/php-build/definitions/"$PHP_VERSION"
@@ -120,6 +124,7 @@ check_stable() {
   if [[ "$GITHUB_MESSAGE" != *build-all* ]]; then
     if [ "$new_version" = "$existing_version" ]; then
       (
+        sudo mkdir -p "$install_dir"
         cd "$install_dir"/.. || exit
         sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.xz
         sudo curl -fSL --retry "$tries" -O https://dl.bintray.com/shivammathur/php/php_"$PHP_VERSION"+ubuntu"$release".tar.zst
@@ -140,9 +145,8 @@ action_dir=$(pwd)
 tries=10
 existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php"$PHP_VERSION".log)
 new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-$PHP_VERSION.[0-9]+" | tail -n 1)
-sudo mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available /usr/local/ssl
-sudo chmod -R 777 /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
 check_stable
+create_env
 setup_phpbuild
 build_php
 bintray_create_package

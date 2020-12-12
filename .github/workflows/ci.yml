@@ -23,11 +23,19 @@ jobs:
           - operating-system: ubuntu-16.04
             libs: "libgccjit-6-dev"
     steps:
-      - name: Install required packages
+      - name: Check release
+        id: check
         run: |
           existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php${{ matrix.php-version }}.log)
           new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-${{ matrix.php-version }}.[0-9]+" | tail -n 1)
-          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "$new_version" != "$existing_version" ]; then
+          if [ "$new_version" != "$existing_version" ]; then
+            echo "::set-output name=build::yes"
+          else
+            echo "::set-output name=build::no"
+          fi
+      - name: Install required packages
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "${{ steps.check.outputs.build }}" != "no" ]; then
             debconf_fix="DEBIAN_FRONTEND=noninteractive"
             if ! apt-cache policy | grep -q ondrej/php; then
               LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
@@ -63,28 +71,37 @@ jobs:
             /usr/local/php/*.xz
             /usr/local/php/*.zst
       - name: Check php-cli version
+        if: steps.check.outputs.build != 'no'
         run: php -v
       - name: Check php-cgi version
+        if: steps.check.outputs.build != 'no'
         run: php-cgi -v
       - name: Check php-fpm version
+        if: steps.check.outputs.build != 'no'
         run: |
           php-fpm -v
           sudo service php${{ matrix.php-version }}-fpm status
       - name: Check apache service
+        if: steps.check.outputs.build != 'no'
         run: |
           sudo a2dismod mpm_event
           sudo a2enmod mpm_prefork php${{ matrix.php-version }}
           sudo service apache2 restart
           sudo service apache2 status
       - name: Check phpdbg version
+        if: steps.check.outputs.build != 'no'
         run: phpdbg -V
       - name: Check pecl version
+        if: steps.check.outputs.build != 'no'
         run: pecl -V
       - name: Check php-config version
+        if: steps.check.outputs.build != 'no'
         run: php-config --version
       - name: Check phpize version
+        if: steps.check.outputs.build != 'no'
         run: phpize -v
       - name: Check php extensions
+        if: steps.check.outputs.build != 'no'
         run: php -m
   release:
     runs-on: ubuntu-latest
