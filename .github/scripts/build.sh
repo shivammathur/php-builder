@@ -144,7 +144,7 @@ install_dir=/usr/local/php/"$PHP_VERSION"
 action_dir=$(pwd)
 tries=10
 existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php"$PHP_VERSION".log)
-new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-$PHP_VERSION.[0-9]+" | tail -n 1)
+new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "(php-$PHP_VERSION.[0-9]+)\"" | tail -n 1 | cut -d '"' -f 1)
 check_stable
 create_env
 setup_phpbuild

@@ -27,7 +27,7 @@ jobs:
         id: check
         run: |
           existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php${{ matrix.php-version }}.log)
-          new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "php-${{ matrix.php-version }}.[0-9]+" | tail -n 1)
+          new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "(php-${{ matrix.php-version }}.[0-9]+)\"" | tail -n 1 |cut -d '"' -f 1)
           if [ "$new_version" != "$existing_version" ]; then
             echo "::set-output name=build::yes"
           else
