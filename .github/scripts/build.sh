@@ -1,8 +1,5 @@
-create_env() {
-  sudo mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available /usr/local/ssl
-  sudo chmod -R 777 /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
-}
 configure_phpbuild() {
+  sudo cp /usr/local/share/php-build/default_configure_options /usr/local/share/php-build/default_configure_options.bak
   if [ "$new_version" != "nightly" ]; then
     sudo cp "$action_dir"/.github/scripts/stable /usr/local/share/php-build/definitions/"$PHP_VERSION"
     sudo sed -i "s/phpsrctag/$new_version/" /usr/local/share/php-build/definitions/"$PHP_VERSION"
@@ -46,22 +43,37 @@ setup_extensions() {
 build_php() {
   export CFLAGS="-Wno-missing-field-initializers $CFLAGS"
   export CXXFLAGS="-Wno-missing-field-initializers $CXXFLAGS"
-  export PHP_BUILD_APXS="/usr/bin/apxs2"
   if ! php-build -v -i production "$PHP_VERSION" "$install_dir"; then
     echo 'Failed to build PHP'
     exit 1
   fi
+}
 
-  sudo chmod 777 "$install_dir"/etc/php.ini
-  (
-    echo "date.timezone=UTC"
-    echo "memory_limit=-1"
-  ) >>"$install_dir"/etc/php.ini
-  setup_pear
-  setup_extensions
+build_embed() {
+  sudo mkdir -p "$install_dir"
+  sudo chmod -R 777 "$install_dir"
+  sudo cp /usr/local/share/php-build/default_configure_options.bak /usr/local/share/php-build/default_configure_options
+  sudo sed -i "/apxs2/d" /usr/local/share/php-build/definitions/"$PHP_VERSION" || true
+  sudo sed -i "/fpm/d" /usr/local/share/php-build/default_configure_options || true
+  sudo sed -i "/cgi/d" /usr/local/share/php-build/default_configure_options || true
+  echo "--enable-embed=shared" | sudo tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
+  build_php
+  sudo mv "$install_dir" "$install_dir-embed"
+}
+
+build_apache_fpm() {
+  sudo cp /usr/local/share/php-build/default_configure_options.bak /usr/local/share/php-build/default_configure_options
+  sudo mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available /usr/local/ssl /lib/systemd/system
+  sudo chmod -R 777 "$install_dir" /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
+  export PHP_BUILD_APXS="/usr/bin/apxs2"
+  sudo sed -i "/cgi/d" /usr/local/share/php-build/default_configure_options
+  sudo sed -i '1iconfigure_option "--with-apxs2" "/usr/bin/apxs2"' /usr/local/share/php-build/definitions/"$PHP_VERSION"
+  echo "--enable-cgi" | sudo tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
+  echo "--enable-fpm" | sudo tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
+  echo "--with-fpm-user=www-data" | sudo tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
+  echo "--with-fpm-group=www-data" | sudo tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
+  build_php
   sudo ln -sv "$install_dir"/sbin/php-fpm "$install_dir"/bin/php-fpm
-  sudo ln -sf "$install_dir"/bin/* /usr/bin/
-  sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
   sudo sed -Ei "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" "$install_dir"/etc/php-fpm.d/www.conf
   sudo sed -Ei 's|;listen.owner.*|listen.owner = www-data|' "$install_dir"/etc/php-fpm.d/www.conf
   sudo sed -Ei 's|;listen.group.*|listen.group = www-data|' "$install_dir"/etc/php-fpm.d/www.conf
@@ -73,16 +85,36 @@ build_php() {
   sudo chmod a+x "$install_dir"/bin/php-fpm-socket-helper
   sudo sed -Ei "s|;pid.*|pid = /run/php/php$PHP_VERSION-fpm.pid|" "$install_dir"/etc/php-fpm.conf
   sudo sed -Ei "s|;error_log.*|error_log = /var/log/php$PHP_VERSION-fpm.log|" "$install_dir"/etc/php-fpm.conf
-  sudo a2dismod php
   sudo mv /etc/apache2/mods-available/php.load /etc/apache2/mods-available/php"$PHP_VERSION".load
   sudo cp -fp /etc/apache2/mods-available/php"$PHP_VERSION".load "$install_dir"/etc/apache2/mods-available/
-  sudo cp -fp .github/scripts/apache.conf /etc/apache2/mods-available/php"$PHP_VERSION".conf
   sudo cp -fp .github/scripts/apache.conf "$install_dir"/etc/apache2/mods-available/php"$PHP_VERSION".conf
+  sudo mv "$install_dir" "$install_dir-fpm"
+}
 
-  sudo mkdir -p /lib/systemd/system
+merge_sapi() {
+  sudo mv "$install_dir-fpm" "$install_dir"
+  sudo cp "$install_dir-embed/lib/libphp.so" "$install_dir/usr/lib/libphp$PHP_VERSION.so"
+  sudo sed -i 's/php_sapis=" apache2handler cli fpm phpdbg cgi"/php_sapis=" apache2handler cli fpm phpdbg cgi embed"/' "$install_dir"/bin/php-config
+  sudo cp -a "$install_dir-embed/include/php/sapi" "$install_dir/include/php"
+}
+
+configure_php() {
+  sudo ln -sf "$install_dir"/bin/* /usr/bin/
+  sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
+  sudo chmod 777 "$install_dir"/etc/php.ini
+  (
+    echo "date.timezone=UTC"
+    echo "memory_limit=-1"
+  ) >>"$install_dir"/etc/php.ini
   sudo cp -f "$install_dir"/etc/init.d/php-fpm /etc/init.d/php"$PHP_VERSION"-fpm
   sudo cp -f "$install_dir"/etc/systemd/system/php-fpm.service /lib/systemd/system/php"$PHP_VERSION"-fpm.service
-  sudo service php"$PHP_VERSION"-fpm start
+  sudo cp -fp .github/scripts/apache.conf /etc/apache2/mods-available/php"$PHP_VERSION".conf
+  sudo a2dismod php
+  if ! sudo service php"$PHP_VERSION"-fpm start; then
+    journalctl -xe
+  fi
+  setup_pear
+  setup_extensions
 }
 
 bintray_create_package() {
@@ -144,10 +176,12 @@ install_dir=/usr/local/php/"$PHP_VERSION"
 action_dir=$(pwd)
 tries=10
 existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php"$PHP_VERSION".log)
-new_version=$(curl -sL https://api.github.com/repos/php/php-src/git/refs/tags | grep -Po "(php-$PHP_VERSION.[0-9]+)\"" | tail -n 1 | cut -d '"' -f 1)
+new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
 check_stable
-create_env
 setup_phpbuild
-build_php
+build_embed
+build_apache_fpm
+merge_sapi
+configure_php
 bintray_create_package
 build_and_ship
