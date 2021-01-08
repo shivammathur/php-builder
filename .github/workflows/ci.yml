@@ -41,7 +41,7 @@ jobs:
               LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
             fi
             sudo "$debconf_fix" apt-get update || true
-            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config apache2 apache2-dev libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libkrb5-dev libldb-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
+            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config apache2 apache2-dev libapache2-mod-fcgid libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libkrb5-dev libldb-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
             sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
             sudo mkdir -p /usr/c-client/
             sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
@@ -85,13 +85,23 @@ jobs:
         run: |
           php-fpm -v
           sudo service php${{ matrix.php-version }}-fpm status
-      - name: Check apache service
+      - name: Check apache-fpm service
         if: steps.check.outputs.build != 'no'
         run: |
-          sudo a2dismod mpm_event
+          sudo a2enmod proxy_fcgi
+          sudo a2enconf php${{ matrix.php-version }}-fpm
+          sudo service apache2 restart
+          sudo service apache2 status
+          sudo apachectl -M | grep 'mpm'
+          sudo apachectl -M | grep 'proxy'
+      - name: Check apache sapi service
+        if: steps.check.outputs.build != 'no'
+        run: |
+          sudo a2dismod proxy_fcgi proxy mpm_event
           sudo a2enmod mpm_prefork php${{ matrix.php-version }}
           sudo service apache2 restart
           sudo service apache2 status
+          sudo apachectl -M | grep 'php'
       - name: Check phpdbg version
         if: steps.check.outputs.build != 'no'
         run: phpdbg -V

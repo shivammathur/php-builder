@@ -4,11 +4,22 @@
 <a href="https://github.com/shivammathur/php-builder/blob/master/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/tree/master/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
 
-> Build PHP nightly using GitHub Actions for Ubuntu.
+> Build PHP 8.0 and above for Ubuntu.
 
-- This projects builds PHP nightly for [setup-php](https://github.com/shivammathur/php-builder) on `Ubuntu`.
+- This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/php-builder) on `Ubuntu`.
 - To install a build follow the instructions in the [install](#Install) section. To download a build refer to the [builds](#Builds) section.
-- If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `.github` directory.  
+- If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `.github` directory.
+
+## SAPI support
+
+PHP is built with following SAPIs.
+
+- apache2-handler
+- cli
+- cgi
+- embed
+- fpm
+- phpdbg
 
 ## Install
 
@@ -24,7 +35,7 @@ curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/
 chmod a+x ./install.sh
 ```
 
--  Install PHP 8.0
+-  Install PHP 8.0.x
 ```bash
 ./install.sh local 8.0
 ```
