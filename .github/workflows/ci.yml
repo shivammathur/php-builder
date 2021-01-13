@@ -85,23 +85,6 @@ jobs:
         run: |
           php-fpm -v
           sudo service php${{ matrix.php-version }}-fpm status
-      - name: Check apache-fpm service
-        if: steps.check.outputs.build != 'no'
-        run: |
-          sudo a2enmod proxy_fcgi
-          sudo a2enconf php${{ matrix.php-version }}-fpm
-          sudo service apache2 restart
-          sudo service apache2 status
-          sudo apachectl -M | grep 'mpm'
-          sudo apachectl -M | grep 'proxy'
-      - name: Check apache sapi service
-        if: steps.check.outputs.build != 'no'
-        run: |
-          sudo a2dismod proxy_fcgi proxy mpm_event
-          sudo a2enmod mpm_prefork php${{ matrix.php-version }}
-          sudo service apache2 restart
-          sudo service apache2 status
-          sudo apachectl -M | grep 'php'
       - name: Check phpdbg version
         if: steps.check.outputs.build != 'no'
         run: phpdbg -V
@@ -117,8 +100,21 @@ jobs:
       - name: Check php extensions
         if: steps.check.outputs.build != 'no'
         run: php -m
+      - name: Check SAPI
+        if: steps.check.outputs.build != 'no'
+        run: |
+          sudo rm -rf /var/www/html/index.html
+          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
+          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
+            echo "::group::Test $sapi"
+            sudo switch_sapi $sapi >/dev/null 2>&1
+            curl -s http://localhost
+            [ "$(curl -s http://localhost)" != "$sapi" ] && exit 1
+            echo "::endgroup::"
+          done
   release:
     runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-release')"
     needs: build
     steps:
       - uses: actions/checkout@v2
@@ -130,4 +126,4 @@ jobs:
         run: chmod a+x .github/scripts/release.sh && .github/scripts/release.sh
         env:
           GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}

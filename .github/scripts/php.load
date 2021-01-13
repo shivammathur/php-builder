@@ -1,0 +1,1 @@
+LoadModule php_module /usr/lib/apache2/modules/libphpPHP_VERSION.so
