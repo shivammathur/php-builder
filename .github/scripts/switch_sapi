@@ -57,7 +57,7 @@ case $sapi in
   apache*)
     sudo service apache2 restart
     ;;
-  fpm|embed|cgi) ;;
+  fpm|embed|cgi|phpdbg) ;;
 esac
 
 exit 0
