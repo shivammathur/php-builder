@@ -31,8 +31,8 @@ setup_pear() {
 
 setup_extensions() {
   sudo "$install_dir"/bin/pecl install -f pcov
-  sudo "$install_dir"/bin/pecl install -f sqlsrv-5.9.0beta2
-  sudo "$install_dir"/bin/pecl install -f pdo_sqlsrv-5.9.0beta2
+  sudo "$install_dir"/bin/pecl install -f sqlsrv
+  sudo "$install_dir"/bin/pecl install -f pdo_sqlsrv
   sudo sed -i "/pcov/d" "$install_dir"/etc/php.ini
   sudo sed -i "/sqlsrv/d" "$install_dir"/etc/php.ini
   sudo chmod a+x .github/scripts/install-ext.sh
