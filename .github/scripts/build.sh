@@ -3,6 +3,7 @@ configure_phpbuild() {
   if [ "$new_version" != "nightly" ]; then
     sudo cp "$action_dir"/.github/scripts/stable /usr/local/share/php-build/definitions/"$PHP_VERSION"
     sudo sed -i "s/phpsrctag/$new_version/" /usr/local/share/php-build/definitions/"$PHP_VERSION"
+    branch="$new_version"
   else
     sudo cp "$action_dir"/.github/scripts/"$PHP_VERSION" /usr/local/share/php-build/definitions/
   fi
@@ -84,6 +85,7 @@ build_apache_fpm() {
   sudo cp /usr/local/share/php-build/default_configure_options.bak /usr/local/share/php-build/default_configure_options
   sudo mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available "$install_dir"/"$(apxs -q SYSCONFDIR)"/sites-available "$install_dir"/etc/nginx/sites-available "$install_dir"/"$(apxs -q SYSCONFDIR)"/conf-available "$install_dir"/usr/lib/cgi-bin /usr/local/ssl /lib/systemd/system /usr/lib/cgi-bin
   sudo chmod -R 777 "$install_dir" /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
+  basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"$branch" | jq -r .commit.url)" | sudo tee "$install_dir/COMMIT"
   export PHP_BUILD_APXS="/usr/bin/apxs2"
   configure_apache_fpm_opts
   build_php
@@ -188,6 +190,7 @@ release=$(lsb_release -r -s)
 install_dir=/usr/local/php/"$PHP_VERSION"
 action_dir=$(pwd)
 tries=10
+branch=master
 existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php"$PHP_VERSION".log)
 new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
 check_stable
