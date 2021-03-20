@@ -23,39 +23,23 @@ jobs:
           - operating-system: ubuntu-16.04
             libs: "libgccjit-6-dev"
     steps:
-      - name: Check release
-        id: check
-        run: |
-          existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/latest/download/php${{ matrix.php-version }}.log)
-          new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${{ matrix.php-version }}.[0-9]+)" | head -n 1)
-          if [ "$new_version" != "$existing_version" ] || [[ "${{ github.event.head_commit.message }}" = *build-all* ]]; then
-            echo "::set-output name=build::yes"
-          else
-            echo "::set-output name=build::no"
-          fi
-      - name: Install required packages
-        run: |
-          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "${{ steps.check.outputs.build }}" != "no" ]; then
-            debconf_fix="DEBIAN_FRONTEND=noninteractive"
-            if ! apt-cache policy | grep -q ondrej/php; then
-              LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y || true
-            fi
-            sudo "$debconf_fix" apt-get update || true
-            sudo "$debconf_fix" apt-fast -y install gcc-7 g++-7 expect locales language-pack-de re2c mysql-server postgresql pkg-config apache2 apache2-dev libapache2-mod-fcgid libaspell-dev libbz2-dev libbison-dev libedit-dev libcurl4-gnutls-dev libenchant-dev libffi-dev libfreetype6-dev ${{ matrix.libs }} libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libkrb5-dev libldb-dev libldap-dev libonig-dev libmcrypt-dev libpng-dev libpq5 libpq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev
-            sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
-            sudo mkdir -p /usr/c-client/
-            sudo ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
-            if [ "${{ matrix.operating-system }}" = "ubuntu-20.04" ]; then
-              sudo ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
-              sudo ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
-            fi
-            sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 7
-            sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 7
-          fi
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Build and ship
-        run: chmod a+x .github/scripts/build.sh && .github/scripts/build.sh
+      - name: Check release
+        id: check
+        run: bash scripts/check_version.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+          COMMIT: ${{ github.event.head_commit.message }}
+      - name: Install required packages
+        env:
+          libs: ${{ matrix.libs }}
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "${{ steps.check.outputs.build }}" != "no" ]; then
+            bash scripts/install-requirements.sh
+          fi
+      - name: Build and package
+        run: bash scripts/build.sh
         env:
           GITHUB_USER: ${{ github.repository_owner }}
           GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
@@ -63,9 +47,6 @@ jobs:
           GITHUB_EMAIL: ${{ secrets.email }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          BINTRAY_KEY: ${{ secrets.bintray_key }}
-          BINTRAY_USER: ${{ github.repository_owner }}
-          BINTRAY_REPO: php
           PHP_VERSION: ${{ matrix.php-version }}
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
@@ -123,7 +104,7 @@ jobs:
         with:
           path: builds
       - name: Release
-        run: chmod a+x .github/scripts/release.sh && .github/scripts/release.sh
+        run: bash scripts/release.sh
         env:
           GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
           GITHUB_TOKEN: ${{ secrets.TOKEN }}

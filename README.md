@@ -8,7 +8,7 @@
 
 - This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/php-builder) on `Ubuntu`.
 - To install a build follow the instructions in the [install](#Install) section. To download a build refer to the [builds](#Builds) section.
-- If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `.github` directory.
+- If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `scripts` directory and the CI workflows.
 
 ## SAPI support
 
@@ -80,8 +80,11 @@ The code in this project is licensed under the [MIT license](LICENSE). This proj
 
 ## Dependencies
 
+- [Amqp](https://github.com/php-amqp/php-amqp "Amqp PHP Extension")
 - [deb.sury.org](https://github.com/oerdnj/deb.sury.org)
+- [igbinary](https://github.com/igbinary/igbinary "Igbinary PHP Extension")
 - [Imagick](https://github.com/Imagick/imagick "Imagick PHP Extension")
+- [Msgpack](https://github.com/msgpack/msgpack-php "Msgpack PHP Extension")
 - [PEAR](https://github.com/pear/pear-core "PEAR PHP extension installer")
 - [PCOV](https://github.com/krakjoe/pcov "PCOV PHP Extension")
 - [PHP](https://github.com/php/php-src "PHP Upstream project")
