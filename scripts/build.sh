@@ -36,9 +36,7 @@ setup_extensions() {
   done
   sudo bash scripts/install-ext.sh imagick extension Imagick/imagick master "$install_dir"
   sudo bash scripts/install-ext.sh memcached extension php-memcached-dev/php-memcached master "$install_dir"
-
-  redis_args=(--enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-zstd --enable-redis-lz4 --with-libzstd=/usr --with-liblz4=/usr)
-  sudo bash scripts/install-ext.sh redis extension phpredis/phpredis develop "$install_dir" "${redis_args[@]}"
+  sudo bash scripts/install-ext.sh redis extension phpredis/phpredis develop "$install_dir" --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-zstd --enable-redis-lz4 --with-libzstd=/usr --with-liblz4=/usr
 }
 
 build_php() {
