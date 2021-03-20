@@ -17,11 +17,11 @@ jobs:
         php-version: ['8.0', '8.1']
         include:
           - operating-system: ubuntu-20.04
-            libs: "libgccjit-10-dev"
+            libs: "libgccjit-10-dev libenchant-2-dev"
           - operating-system: ubuntu-18.04
-            libs: "libgccjit-8-dev"
+            libs: "libgccjit-8-dev libenchant-dev"
           - operating-system: ubuntu-16.04
-            libs: "libgccjit-6-dev"
+            libs: "libgccjit-6-dev libenchant-dev"
     steps:
       - name: Checkout
         uses: actions/checkout@v2

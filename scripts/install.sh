@@ -20,9 +20,6 @@ local_deps() {
 github_deps() {
   if [ "$VERSION_ID" = "16.04" ]; then
     sudo "$debconf_fix" apt-fast install -y --no-upgrade libwebp[0-9]
-  elif [ "$VERSION_ID" = "20.04" ]; then
-    add_ppa
-    sudo "$debconf_fix" apt-fast install -y --no-upgrade libaspell-dev libenchant-dev libtidy-dev
   fi
 }
 
