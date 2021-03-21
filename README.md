@@ -6,7 +6,7 @@
 
 > Build PHP 8.0 and above for Ubuntu.
 
-- This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/php-builder) on `Ubuntu`.
+- This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/setup-php) on `Ubuntu`.
 - To install a build follow the instructions in the [install](#Install) section. To download a build refer to the [builds](#Builds) section.
 - If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `scripts` directory and the CI workflows.
 
