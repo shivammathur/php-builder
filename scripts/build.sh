@@ -52,6 +52,9 @@ setup_extensions() {
   sudo bash scripts/install-ext.sh imagick extension Imagick/imagick master "$install_dir"
   sudo bash scripts/install-ext.sh memcached extension php-memcached-dev/php-memcached master "$install_dir"
   sudo bash scripts/install-ext.sh redis extension phpredis/phpredis develop "$install_dir" --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-zstd --enable-redis-lz4 --with-libzstd=/usr --with-liblz4=/usr
+
+  # Disable pcov by default as it conflicts with JIT.
+  sudo rm "$install_dir"/etc/conf.d/20-pcov.ini
 }
 
 build_php() {

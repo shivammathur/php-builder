@@ -14,7 +14,12 @@ local_deps() {
   sudo "$debconf_fix" apt-get update
   sudo "$debconf_fix" apt-fast install -y curl software-properties-common zstd
   add_ppa
-  sudo "$debconf_fix" apt-fast install -f -y libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libenchant-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev
+  sudo "$debconf_fix" apt-fast install -f -y libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
+  if [ "$VERSION_ID" = "20.04" ]; then
+    sudo "$debconf_fix" apt-fast install -f -y libenchant-2-dev
+  else
+    sudo "$debconf_fix" apt-fast install -f -y libenchant-dev
+  fi
 }
 
 github_deps() {
@@ -70,7 +75,7 @@ install() {
   to_wait=$!
   tar_file=php_"$version"%2Bubuntu"$VERSION_ID".tar.zst
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file" "https://dl.bintray.com/shivammathur/php/$tar_file"
-  sudo mkdir -m 777 -p /etc/php/"$version" /usr/local/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
+  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php
 }
@@ -90,7 +95,8 @@ configure() {
   sudo chmod a+x "$install_dir"/bin/php-fpm-socket-helper
   sudo ln -sf "$install_dir"/include/php /usr/include/php/"$(php-config --extension-dir | grep -Eo -m 1 "[0-9]{8}")"
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
-  sudo service php"$version"-fpm start
+  sudo ln -sf "$install_dir"/etc/php.ini /etc/php/"$version"/php.ini
+  sudo service php"$version"-fpm start || true
 }
 
 runner=${1:-local}

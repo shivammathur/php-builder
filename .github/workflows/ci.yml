@@ -57,7 +57,9 @@ jobs:
             /usr/local/php/*.zst
       - name: Check php-cli version
         if: steps.check.outputs.build != 'no'
-        run: php -v
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
       - name: Check php-cgi version
         if: steps.check.outputs.build != 'no'
         run: php-cgi -v
@@ -93,10 +95,31 @@ jobs:
             [ "$(curl -s http://localhost)" != "$sapi" ] && exit 1
             echo "::endgroup::"
           done
+  local-test:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-local-test')"
+    container: ubuntu:${{ matrix.container }}
+    strategy:
+      matrix:
+        container: [20.04, 18.04, 16.04]
+        php-version: ['8.0', '8.1']
+    needs: build
+    steps:
+      - name: Install sudo and curl
+        run: apt-get update && apt-get install curl sudo -y
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install PHP
+        run: bash scripts/install.sh local ${{ matrix.php-version }}
+      - name: Test
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+          php -m
   release:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-release')"
-    needs: build
+    needs: local-test
     steps:
       - uses: actions/checkout@v2
       - run: mkdir builds
