@@ -130,4 +130,4 @@ jobs:
         run: bash scripts/release.sh
         env:
           GITHUB_MESSAGE: ${{ github.event.head_commit.message }}
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
