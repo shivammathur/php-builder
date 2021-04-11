@@ -109,8 +109,14 @@ jobs:
         run: apt-get update && apt-get install curl sudo -y
       - name: Checkout
         uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          path: /tmp
       - name: Install PHP
-        run: bash scripts/install.sh local ${{ matrix.php-version }}
+        run: |
+          mv /tmp/*/*.zst /tmp && ls /tmp
+          sed -i '/download/d' scripts/install.sh
+          bash scripts/install.sh local ${{ matrix.php-version }}
       - name: Test
         run: |
           php -v

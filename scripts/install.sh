@@ -73,7 +73,7 @@ install() {
     github_deps &
   fi
   to_wait=$!
-  tar_file=php_"$version"%2Bubuntu"$VERSION_ID".tar.zst
+  tar_file=php_"$version"+ubuntu"$VERSION_ID".tar.zst
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file" "https://dl.bintray.com/shivammathur/php/$tar_file"
   sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
