@@ -1,8 +1,8 @@
 # PHP Builder
 
 <a href="https://github.com/shivammathur/php-builder" title="PHP Builder"><img alt="Build status" src="https://github.com/shivammathur/php-builder/workflows/Build%20PHP/badge.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/blob/master/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/tree/master/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/blob/main/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
 
 > Build PHP 8.0 and above for Ubuntu.
 
