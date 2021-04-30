@@ -7,6 +7,7 @@ configure_phpbuild() {
   else
     sudo cp "$action_dir"/config/definitions/"$PHP_VERSION" /usr/local/share/php-build/definitions/
   fi
+  sudo cp "$action_dir"/config/patches/* /usr/local/share/php-build/patches/
   sudo sed -i "s|PREFIX|$install_dir|" /usr/local/share/php-build/definitions/"$PHP_VERSION"
 }
 

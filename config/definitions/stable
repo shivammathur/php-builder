@@ -54,6 +54,8 @@ configure_option "--sysconfdir=PREFIX/etc"
 
 configure_option -D "--with-xmlrpc"
 
+patch_file "php-8.0.5-imap-add-parenthesis.patch"
+
 install_package "https://www.php.net/distributions/phpsrctag.tar.bz2"
 
 enable_builtin_opcache

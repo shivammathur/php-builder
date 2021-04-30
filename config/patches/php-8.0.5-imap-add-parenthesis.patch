@@ -1,0 +1,23 @@
+From 310c0561a9e5ec9a0414654cc96fb2b3c7e1abc7 Mon Sep 17 00:00:00 2001
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Tue, 27 Apr 2021 10:10:22 +0200
+Subject: [PATCH] Fix build warning
+
+This causes the build to fail on PHP-8.0 and higher.
+---
+ ext/imap/php_imap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/imap/php_imap.c b/ext/imap/php_imap.c
+index 6a822ba1687c..8e6a3cc77b35 100644
+--- a/ext/imap/php_imap.c
++++ b/ext/imap/php_imap.c
+@@ -3560,7 +3560,7 @@ static zend_bool header_injection(zend_string *str, zend_bool adrlist)
+ 		 /* adrlists do not support folding, but swallow trailing line breaks */
+ 		 && !((adrlist && p[1] == '\0')
+ 		  /* other headers support folding */
+-		  || !adrlist && (p[1] == ' ' || p[1] == '\t'))) {
++		  || (!adrlist && (p[1] == ' ' || p[1] == '\t')))) {
+ 			return 1;
+ 		}
+ 		p++;
