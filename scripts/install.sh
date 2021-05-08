@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 
 add_ppa() {
-  if ! apt-cache policy | grep -q ondrej/php; then
+  if [ "$VERSION_ID" = "16.04" ]; then
+    LC_ALL=C.UTF-8 sudo apt-add-repository --remove ppa:ondrej/php -y || true
+    LC_ALL=C.UTF-8 sudo apt-add-repository https://setup-php.com/ondrej/php/ubuntu -y
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 4f4ea0aae5267a6c
+    sudo "$debconf_fix" apt-get update
+  elif ! apt-cache policy | grep -q "ondrej/php"; then
     LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y
-    if [ "$VERSION_ID" = "16.04" ]; then
-      sudo "$debconf_fix" apt-get update >/dev/null 2>&1
-    fi
   fi
 }
 
 local_deps() {
   if ! command -v apt-fast >/dev/null; then sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast; fi
   sudo "$debconf_fix" apt-get update
-  sudo "$debconf_fix" apt-fast install -y curl software-properties-common zstd
+  sudo "$debconf_fix" apt-fast install -y apt-transport-https curl software-properties-common zstd
   add_ppa
   sudo "$debconf_fix" apt-fast install -f -y libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
   if [ "$VERSION_ID" = "20.04" ]; then
@@ -24,7 +26,11 @@ local_deps() {
 
 github_deps() {
   if [ "$VERSION_ID" = "16.04" ]; then
-    sudo "$debconf_fix" apt-fast install -y --no-upgrade libwebp[0-9]
+    get /tmp/webp.deb http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
+    sudo dpkg -i /tmp/webp.deb
+  elif [ "$VERSION_ID" = "18.04" ]; then
+    get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
+    sudo dpkg -i /tmp/libsodium.deb
   fi
 }
 
