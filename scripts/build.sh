@@ -22,8 +22,8 @@ setup_phpbuild() {
 }
 
 setup_pear() {
-  sudo curl -fsSL --retry "$tries" -o /usr/local/ssl/cert.pem https://curl.haxx.se/ca/cacert.pem
-  sudo curl -fsSL --retry "$tries" -O https://pear.php.net/go-pear.phar
+  sudo curl -fsSL --retry "$tries" -o /usr/local/ssl/cert.pem https://curl.se/ca/cacert.pem
+  sudo curl -fsSL --retry "$tries" -O https://raw.githubusercontent.com/pear/pearweb_phars/master/go-pear.phar
   sudo chmod a+x scripts/install-pear.expect
   scripts/install-pear.expect "$install_dir"
   rm go-pear.phar
