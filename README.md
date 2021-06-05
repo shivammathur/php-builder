@@ -37,14 +37,14 @@ chmod a+x ./install.sh
 
 -  Install PHP 8.0.x
 ```bash
-./install.sh local 8.0
+./install.sh 8.0
 ```
 
 or
 
 - Install PHP 8.1.0-dev
 ```bash
-./install.sh local 8.1 
+./install.sh 8.1
 ```
 
 - Test PHP

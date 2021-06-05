@@ -6,38 +6,31 @@ on:
   schedule:
     - cron: '0 0 * * *'
 jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get matrix
+        id: set-matrix
+        env:
+          COMMIT: ${{ github.event.head_commit.message }}
+          OS_VERSIONS: "16.04 18.04 20.04"
+          PHP_VERSIONS: "8.0 8.1"
+        run: bash scripts/get-matrix.sh
   build:
-    name: Build PHP ${{ matrix.php-version }} on ${{ matrix.operating-system }}
+    needs: get-matrix
     if: "!contains(github.event.head_commit.message, 'skip-build')"
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
-      matrix:
-        operating-system: [ubuntu-20.04, ubuntu-18.04, ubuntu-16.04]
-        php-version: ['8.0', '8.1']
-        include:
-          - operating-system: ubuntu-20.04
-            libs: "libgccjit-10-dev libenchant-2-dev"
-          - operating-system: ubuntu-18.04
-            libs: "libgccjit-8-dev libenchant-dev"
-          - operating-system: ubuntu-16.04
-            libs: "libgccjit-6-dev libenchant-dev"
+      matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Check release
-        id: check
-        run: bash scripts/check_version.sh
-        env:
-          PHP_VERSION: ${{ matrix.php-version }}
-          COMMIT: ${{ github.event.head_commit.message }}
       - name: Install required packages
-        env:
-          libs: ${{ matrix.libs }}
-        run: |
-          if [[ "${{ github.event.head_commit.message }}" = *build-all* ]] || [ "${{ steps.check.outputs.build }}" != "no" ]; then
-            bash scripts/install-requirements.sh
-          fi
+        run: bash scripts/install-requirements.sh
       - name: Build and package
         run: bash scripts/build.sh
         env:
@@ -56,35 +49,32 @@ jobs:
             /usr/local/php/*.xz
             /usr/local/php/*.zst
       - name: Check php-cli version
-        if: steps.check.outputs.build != 'no'
         run: |
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
       - name: Check php-cgi version
-        if: steps.check.outputs.build != 'no'
         run: php-cgi -v
       - name: Check php-fpm version
-        if: steps.check.outputs.build != 'no'
         run: |
           php-fpm -v
           sudo service php${{ matrix.php-version }}-fpm status
       - name: Check phpdbg version
-        if: steps.check.outputs.build != 'no'
         run: phpdbg -V
       - name: Check pecl version
-        if: steps.check.outputs.build != 'no'
         run: pecl -V
       - name: Check php-config version
-        if: steps.check.outputs.build != 'no'
         run: php-config --version
       - name: Check phpize version
-        if: steps.check.outputs.build != 'no'
         run: phpize -v
       - name: Check php extensions
-        if: steps.check.outputs.build != 'no'
-        run: php -m
+        run: |
+          php -m
+          echo "extension=pcov.so" | sudo tee /usr/local/php/${{ matrix.php-version }}/etc/conf.d/20-pcov.ini
+          for extension in amqp apcu igbinary imagick memcache memcached msgpack pcov redis xdebug sqlsrv pdo_sqlsrv; do
+            if [ "${{ matrix.php-version }}" = "8.1" ] && [[ "$extension" =~ ^(pdo_)?sqlsrv$ ]]; then continue; fi
+            php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
+          done
       - name: Check SAPI
-        if: steps.check.outputs.build != 'no'
         run: |
           sudo rm -rf /var/www/html/index.html
           echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
@@ -96,14 +86,12 @@ jobs:
             echo "::endgroup::"
           done
   local-test:
+    needs: [build, get-matrix]
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-local-test')"
     container: ubuntu:${{ matrix.container }}
     strategy:
-      matrix:
-        container: [20.04, 18.04, 16.04]
-        php-version: ['8.0', '8.1']
-    needs: build
+      matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     steps:
       - name: Install sudo and curl
         run: apt-get update && apt-get install curl sudo -y
@@ -116,16 +104,16 @@ jobs:
         run: |
           mv /tmp/*/*.zst /tmp && ls /tmp
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh local ${{ matrix.php-version }}
+          bash scripts/install.sh ${{ matrix.php-version }}
       - name: Test
         run: |
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
           php -m
   release:
+    needs: local-test
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-release')"
-    needs: local-test
     steps:
       - uses: actions/checkout@v2
       - run: mkdir builds

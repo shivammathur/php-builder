@@ -105,8 +105,21 @@ configure() {
   sudo service php"$version"-fpm start || true
 }
 
-runner=${1:-local}
-version=${2:-8.0}
+# Read version correctly
+if [ "$1" = "github" ]; then
+  runner="github"
+  version=${2:-8.1}
+elif [[ "$1" =~ local|self-hosted ]]; then
+  runner="local"
+  version="$2"
+elif [[ "$2" =~ local|self-hosted|github ]]; then
+  runner="$2"
+  version="$1"
+else
+  runner="local"
+  version="$1"
+fi
+
 debconf_fix="DEBIAN_FRONTEND=noninteractive"
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
