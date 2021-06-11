@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 add_ppa() {
+  sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
   if [ "$VERSION_ID" = "16.04" ]; then
     LC_ALL=C.UTF-8 sudo apt-add-repository --remove ppa:ondrej/php -y || true
     LC_ALL=C.UTF-8 sudo apt-add-repository https://setup-php.com/ondrej/php/ubuntu -y
@@ -16,7 +17,7 @@ local_deps() {
   sudo "$debconf_fix" apt-get update
   sudo "$debconf_fix" apt-fast install -y apt-transport-https curl software-properties-common zstd
   add_ppa
-  sudo "$debconf_fix" apt-fast install -f -y libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
+  sudo "$debconf_fix" apt-fast install -f -y gcc-9 g++-9 libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
   if [ "$VERSION_ID" = "20.04" ]; then
     sudo "$debconf_fix" apt-fast install -f -y libenchant-2-dev
   else
@@ -81,7 +82,7 @@ install() {
   to_wait=$!
   tar_file=php_"$version"+ubuntu"$VERSION_ID".tar.zst
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file" "https://dl.bintray.com/shivammathur/php/$tar_file"
-  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
+  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php
 }
