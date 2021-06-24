@@ -84,7 +84,7 @@ install() {
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file" "https://dl.bintray.com/shivammathur/php/$tar_file"
   sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
-  sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php
+  sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
 }
 
 configure() {
