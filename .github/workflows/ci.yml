@@ -71,7 +71,6 @@ jobs:
           php -m
           echo "extension=pcov.so" | sudo tee /usr/local/php/${{ matrix.php-version }}/etc/conf.d/20-pcov.ini
           for extension in amqp apcu igbinary imagick memcache memcached msgpack pcov redis xdebug sqlsrv pdo_sqlsrv; do
-            if [ "${{ matrix.php-version }}" = "8.1" ] && [[ "$extension" =~ ^(pdo_)?sqlsrv$ ]]; then continue; fi
             php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
           done
       - name: Check SAPI

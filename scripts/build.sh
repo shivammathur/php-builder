@@ -34,27 +34,30 @@ setup_pear() {
 
 enable_extension() {
   extension=$1
-  if [ "$extension" = "xdebug" ]; then
-    echo "zend_extension=$extension.so" | sudo tee -a "$install_dir"/etc/conf.d/20-"$extension".ini
-  else
-    echo "extension=$extension.so" | sudo tee -a "$install_dir"/etc/conf.d/20-"$extension".ini
+  prefix=$2
+  sudo sed -i "/$extension/d" "$install_dir"/etc/php.ini
+  if [ -e "$ext_dir/$extension.so" ]; then
+    echo "$prefix=$extension.so" | sudo tee -a "$install_dir"/etc/conf.d/20-"$extension".ini
   fi
 }
 
 setup_extensions() {
   ext_dir="$("$install_dir"/bin/php -i | grep "extension_dir => /" | sed -e "s|.*=> s*||")"
-  for package in amqp-1.11.0beta apcu igbinary memcache msgpack pcov sqlsrv pdo_sqlsrv xdebug; do
-    extension=${package%-*}
-    yes '' 2>/dev/null | sudo "$install_dir"/bin/pecl install -f "$package"
-    sudo sed -i "/$extension/d" "$install_dir"/etc/php.ini
-    if [ -e "$ext_dir/$extension.so" ]; then
-      enable_extension "$extension"
+  while read -r extension_config; do
+    type=$(echo "$extension_config" | cut -d ' ' -f 1)
+    extension=$(echo "$extension_config" | cut -d ' ' -f 2)
+    prefix=$(echo "$extension_config" | cut -d ' ' -f 3)
+    if [ "$type" = "pecl" ]; then
+      yes '' 2>/dev/null | sudo "$install_dir"/bin/pecl install -f "$extension"
+    elif [ "$type" = "git" ]; then
+      repo=$(echo "$extension_config" | cut -d ' ' -f 4)
+      tag=$(echo "$extension_config" | cut -d ' ' -f 5)
+      IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 6-)"
+      sudo bash scripts/install-ext.sh "$extension" "$repo" "$tag" "$install_dir" "${args[@]}"
     fi
-  done
-  sudo bash scripts/install-ext.sh imagick extension Imagick/imagick master "$install_dir"
-  sudo bash scripts/install-ext.sh memcached extension php-memcached-dev/php-memcached master "$install_dir"
-  sudo bash scripts/install-ext.sh redis extension phpredis/phpredis develop "$install_dir" --enable-redis --enable-redis-igbinary --enable-redis-msgpack --enable-redis-zstd --enable-redis-lz4 --with-libzstd=/usr --with-liblz4=/usr
-  enable_extension intl
+    enable_extension "$extension" "$prefix"
+  done < "$action_dir"/config/extensions/"$PHP_VERSION"
+  enable_extension intl extension
 
   # Disable pcov by default as it conflicts with JIT.
   sudo rm "$install_dir"/etc/conf.d/20-pcov.ini
