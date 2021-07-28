@@ -24,8 +24,8 @@ tar xf "/tmp/$extension.tar.gz" -C /tmp
 (
   cd /tmp/"$(basename "$repo")"-"$tag" || exit 1
   patch_"${extension}" 2>/dev/null || true
-  sudo "$install_dir"/bin/phpize
-  sudo ./configure "--with-php-config=$install_dir/bin/php-config" "${params[@]}"
-  sudo make -j"$(nproc)"
-  sudo make install
+  "$install_dir"/bin/phpize
+  ./configure "--with-php-config=$install_dir/bin/php-config" "${params[@]}"
+  make -j"$(nproc)"
+  make install
 )

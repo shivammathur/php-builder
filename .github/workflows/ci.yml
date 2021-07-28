@@ -16,13 +16,14 @@ jobs:
         id: set-matrix
         env:
           COMMIT: ${{ github.event.head_commit.message }}
-          OS_VERSIONS: "16.04 18.04 20.04"
+          OS_VERSIONS: "ubuntu:xenial ubuntu:bionic ubuntu:focal debian:stretch debian:buster debian:bullseye"
           PHP_VERSIONS: "8.0 8.1"
         run: bash scripts/get-matrix.sh
   build:
     needs: get-matrix
     if: "!contains(github.event.head_commit.message, 'skip-build')"
     runs-on: ${{ matrix.operating-system }}
+    container: ${{ matrix.container }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
@@ -44,7 +45,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: php_${{ matrix.php-version }}+${{ matrix.operating-system }}
+          name: php_${{ matrix.php-version }}+${{ matrix.dist }}
           path: |
             /usr/local/php/*.xz
             /usr/local/php/*.zst
@@ -73,22 +74,11 @@ jobs:
           for extension in amqp apcu igbinary imagick memcache memcached msgpack pcov redis xdebug sqlsrv pdo_sqlsrv; do
             php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
           done
-      - name: Check SAPI
-        run: |
-          sudo rm -rf /var/www/html/index.html
-          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
-          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-            echo "::group::Test $sapi"
-            sudo switch_sapi $sapi >/dev/null 2>&1
-            curl -s http://localhost
-            [ "$(curl -s http://localhost)" != "$sapi" ] && exit 1
-            echo "::endgroup::"
-          done
   local-test:
     needs: [build, get-matrix]
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-local-test')"
-    container: ubuntu:${{ matrix.container }}
+    container: ${{ matrix.container }}
     strategy:
       matrix: ${{fromJson(needs.get-matrix.outputs.matrix)}}
     steps:
@@ -109,8 +99,42 @@ jobs:
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
           php -m
+  github-test:
+    needs: [build]
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'skip-github-test')"
+    strategy:
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: actions/download-artifact@v2
+        with:
+          path: /tmp
+      - name: Install PHP
+        run: |
+          mv /tmp/*/*.zst /tmp && ls /tmp
+          sed -i '/download/d' scripts/install.sh
+          bash scripts/install.sh ${{ matrix.php-version }} github
+      - name: Test
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+          php -m
+      - name: Check SAPI
+        run: |
+          sudo rm -rf /var/www/html/index.html
+          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
+          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
+            echo "::group::Test $sapi"
+            switch_sapi $sapi >/dev/null 2>&1
+            curl -s http://localhost
+            [ "$(curl -s http://localhost)" != "$sapi" ] && exit 1
+            echo "::endgroup::"
+          done
   release:
-    needs: local-test
+    needs: [local-test, github-test]
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, 'skip-release')"
     steps:

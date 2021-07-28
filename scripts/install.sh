@@ -1,28 +1,36 @@
 #!/usr/bin/env bash
 
 add_ppa() {
-  sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
-  if [ "$VERSION_ID" = "16.04" ]; then
-    LC_ALL=C.UTF-8 sudo apt-add-repository --remove ppa:ondrej/php -y || true
-    LC_ALL=C.UTF-8 sudo apt-add-repository https://setup-php.com/ondrej/php/ubuntu -y
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 4f4ea0aae5267a6c
-    sudo "$debconf_fix" apt-get update
-  elif ! apt-cache policy | grep -q "ondrej/php"; then
-    LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y
+  if [ "$ID" = "ubuntu" ]; then
+    sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
+    if [ "$VERSION_ID" = "16.04" ]; then
+      LC_ALL=C.UTF-8 sudo apt-add-repository --remove ppa:ondrej/php -y || true
+      LC_ALL=C.UTF-8 sudo apt-add-repository https://setup-php.com/ondrej/php/ubuntu -y
+      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 4f4ea0aae5267a6c
+      sudo apt-get update
+    elif ! apt-cache policy | grep -q "ondrej/php"; then
+      LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y
+    fi
+  elif [ "$ID" = "debian" ]; then
+    get /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+    echo "deb https://packages.sury.org/php/ $VERSION_CODENAME main" > /etc/apt/sources.list.d/ondrej.list
+    echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list
+    sudo apt-get update
   fi
 }
 
 local_deps() {
-  if ! command -v apt-fast >/dev/null; then sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast; fi
-  sudo "$debconf_fix" apt-get update
-  sudo "$debconf_fix" apt-fast install -y apt-transport-https curl software-properties-common zstd
-  add_ppa
-  sudo "$debconf_fix" apt-fast install -f -y gcc-9 g++-9 libargon2-dev libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
-  if [ "$VERSION_ID" = "20.04" ]; then
-    sudo "$debconf_fix" apt-fast install -f -y libenchant-2-dev
-  else
-    sudo "$debconf_fix" apt-fast install -f -y libenchant-dev
+  if ! command -v sudo >/dev/null; then apt-get install -y sudo; fi
+  if ! command -v apt-fast >/dev/null; then
+    sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast
+    trap "sudo rm -f /usr/bin/apt-fast 2>/dev/null" exit
   fi
+  sudo apt-get update
+  sudo DEBIAN_FRONTEND=noninteractive apt-fast install -y apt-transport-https curl software-properties-common zstd gnupg systemd
+  add_ppa
+  enchant=libenchant-dev
+  [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "11" ] && enchant=libenchant-2-dev
+  sudo DEBIAN_FRONTEND=noninteractive apt-fast install -f -y gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
 }
 
 github_deps() {
@@ -80,8 +88,8 @@ install() {
     github_deps &
   fi
   to_wait=$!
-  tar_file=php_"$version"+ubuntu"$VERSION_ID".tar.zst
-  get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file" "https://dl.bintray.com/shivammathur/php/$tar_file"
+  tar_file="php_$version+$ID$VERSION_ID.tar.zst"
+  get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file"
   sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
@@ -121,7 +129,6 @@ else
   version="$1"
 fi
 
-debconf_fix="DEBIAN_FRONTEND=noninteractive"
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
 . /etc/os-release
