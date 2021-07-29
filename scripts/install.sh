@@ -1,36 +1,114 @@
 #!/usr/bin/env bash
 
-add_ppa() {
-  if [ "$ID" = "ubuntu" ]; then
-    sudo apt-add-repository ppa:ubuntu-toolchain-r/test -y
-    if [ "$VERSION_ID" = "16.04" ]; then
-      LC_ALL=C.UTF-8 sudo apt-add-repository --remove ppa:ondrej/php -y || true
-      LC_ALL=C.UTF-8 sudo apt-add-repository https://setup-php.com/ondrej/php/ubuntu -y
-      sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 4f4ea0aae5267a6c
-      sudo apt-get update
-    elif ! apt-cache policy | grep -q "ondrej/php"; then
-      LC_ALL=C.UTF-8 sudo apt-add-repository ppa:ondrej/php -y
-    fi
-  elif [ "$ID" = "debian" ]; then
-    get /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
-    echo "deb https://packages.sury.org/php/ $VERSION_CODENAME main" > /etc/apt/sources.list.d/ondrej.list
-    echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list
-    sudo apt-get update
+get() {
+  file_path=$1
+  shift
+  links=("$@")
+  for link in "${links[@]}"; do
+    status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
+    [ "$status_code" = "200" ] && break
+  done
+}
+
+cleanup_lists() {
+  ppa=${1:-ondrej/php}
+  rm -rf /etc/apt/sources.list.d.save
+  sudo mv /etc/apt/sources.list.d /etc/apt/sources.list.d.save
+  sudo mkdir /etc/apt/sources.list.d
+  sudo mv /etc/apt/sources.list.d.save/*"${ppa%/*}"*.list /etc/apt/sources.list.d/ 2>/dev/null || true
+}
+
+restore_lists() {
+  sudo mv /etc/apt/sources.list.d.save/*.list /etc/apt/sources.list.d/ 2>/dev/null || true
+}
+
+update_lists_helper() {
+  ppa=$1
+  list="$(basename "$(grep -r "$ppa" /etc/apt/sources.list.d | cut -d ':' -f 1)")"
+  if [ "x$ppa" != "x" ] && [ "x$list" != "x" ]; then
+    sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+  else
+    cleanup_lists 'ondrej/php' && sudo apt-get update && restore_lists
   fi
 }
 
-local_deps() {
-  if ! command -v sudo >/dev/null; then apt-get install -y sudo; fi
+update_lists() {
+  force=$1
+  ppa=$2
+  if [ ! -e /tmp/setup_php ] || [ "$force" = "--force" ]; then
+    update_lists_helper "$ppa"
+    echo '' | sudo tee /tmp/setup_php >/dev/null 2>&1
+  fi
+}
+
+function get_ppa_key() {
+  ppa=${1-ondrej/php}
+  curl -sL https://api.launchpad.net/1.0/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
+}
+
+function add_list () {
+  ppa=${1-ondrej/php}
+  url=${2:-"http://ppa.launchpad.net/$ppa/ubuntu"}
+  key_url=$3
+  os_version=${4:-$VERSION_CODENAME}
+  branch=${5:-main}
+  arch=${6:-}
+  if [ "$(grep -r "$ppa" /etc/apt/sources.list.d | wc -l)" = "0" ]; then
+    echo "deb $arch $url $os_version $branch" > /etc/apt/sources.list.d/"${ppa%/*}".list
+    if [[ -n "${key_url// /}" ]]; then
+      get /etc/apt/trusted.gpg.d/"${ppa%/*}".gpg "$key_url"
+    elif [[ "$url" =~ launchpad.net|setup-php.com ]]; then
+      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$(get_ppa_key "$ppa")"
+    fi
+    update_lists --force "$ppa"
+  else
+    echo "PPA $ppa found in APT sources"
+  fi
+}
+
+function remove_list () {
+  ppa=${1-ondrej/php}
+  find /etc/apt/sources.list.d -name "$ppa" -exec rm -f {} \;
+  apt-key del "$(get_ppa_key "$ppa")" || true
+}
+
+add_ppa() {
+  if [ "$ID" = "ubuntu" ]; then
+    add_list ubuntu-toolchain-r/test
+    if [ "$VERSION_ID" = "16.04" ]; then
+      remove_list ondrej/php
+      add_list ondrej/php https://setup-php.com/ondrej/php/ubuntu
+    else
+      add_list ondrej/php
+    fi
+  elif [ "$ID" = "debian" ]; then
+    add_list php/ https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
+    add_list debian http://deb.debian.org/debian '' testing main
+  fi
+}
+
+install_packages() {
+  packages=("$@")
+  $apt_install "${packages[@]}" || (update_lists && $apt_install "${packages[@]}")
+}
+
+local_prerequisites() {
+  if ! command -v sudo >/dev/null; then
+    apt-get update && apt-get install -y sudo;
+    echo '' | sudo tee /tmp/setup_php >/dev/null 2>&1
+  fi
   if ! command -v apt-fast >/dev/null; then
     sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast
     trap "sudo rm -f /usr/bin/apt-fast 2>/dev/null" exit
   fi
-  sudo apt-get update
-  sudo DEBIAN_FRONTEND=noninteractive apt-fast install -y apt-transport-https curl software-properties-common zstd gnupg systemd
+}
+
+local_deps() {
+  install_packages apt-transport-https ca-certificates curl gnupg jq systemd zstd
   add_ppa
   enchant=libenchant-dev
   [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "11" ] && enchant=libenchant-2-dev
-  sudo DEBIAN_FRONTEND=noninteractive apt-fast install -f -y gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
+  install_packages gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
 }
 
 github_deps() {
@@ -41,16 +119,6 @@ github_deps() {
     get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
     sudo dpkg -i /tmp/libsodium.deb
   fi
-}
-
-get() {
-  file_path=$1
-  shift
-  links=("$@")
-  for link in "${links[@]}"; do
-    status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
-    [ "$status_code" = "200" ] && break
-  done
 }
 
 switch_version() {
@@ -83,6 +151,7 @@ link_prefix() {
 
 install() {
   if [ "$1" != "github" ]; then
+    local_prerequisites
     local_deps &
   else
     github_deps &
@@ -133,6 +202,8 @@ fi
 
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
+debconf_fix="DEBIAN_FRONTEND=noninteractive"
+apt_install="sudo $debconf_fix apt-fast install -y --no-install-recommends"
 . /etc/os-release
 install "$runner"
 link_prefix
