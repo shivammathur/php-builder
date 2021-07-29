@@ -104,7 +104,7 @@ local_prerequisites() {
 }
 
 local_deps() {
-  install_packages apt-transport-https ca-certificates curl gnupg jq systemd zstd
+  install_packages apt-transport-https ca-certificates curl gnupg jq zstd
   add_ppa
   enchant=libenchant-dev
   [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "11" ] && enchant=libenchant-2-dev
@@ -180,7 +180,7 @@ configure() {
   sudo ln -sf "$install_dir"/include/php /usr/include/php/"$(php-config --extension-dir | grep -Eo -m 1 "[0-9]{8}")"
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php/"$version"/php.ini
-  if ! sudo grep -Eq '(lxc|docker)' /proc/1/cgroup; then
+  if ! sudo grep -Eq '(actions_job|containerd|docker|lxc)' /proc/1/cgroup && [ ! -e .dockerenv ] && [ ! -e /run/.dockerenv ] && [ ! -e /run/.containerenv ]; then
     sudo service php"$version"-fpm start || true
   fi
 }
