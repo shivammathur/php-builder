@@ -8,21 +8,20 @@ configure_phpbuild() {
     cp "$action_dir"/config/definitions/"$PHP_VERSION" /usr/local/share/php-build/definitions/
   fi
   patches_dir="$action_dir"/config/patches
-  [[ -d "$patches_dir" && -n "$(ls -A "$patches_dir")" ]] && cp "$patches_dir"/* /usr/local/share/php-build/patches/
+  [ -d "$patches_dir" ] && find "$patches_dir" -name '*' -exec cp "{}" /usr/local/share/php-build/patches \;
   sed -i "s|PREFIX|$install_dir|" /usr/local/share/php-build/definitions/"$PHP_VERSION"
 }
 
 setup_phpbuild() {
-  (
-    cd ~ || exit
-    git clone git://github.com/php-build/php-build
-    cd php-build || exit
-    ./install.sh
-    configure_phpbuild
-  )
+  echo "::group::php-build"
+  git clone git://github.com/php-build/php-build ~/php-build
+  ~/php-build/install.sh
+  configure_phpbuild
+  echo "::endgroup::"
 }
 
 setup_pear() {
+  echo "::group::pear"
   curl -fsSL --retry "$tries" -o /usr/local/ssl/cert.pem https://curl.se/ca/cacert.pem
   curl -fsSL --retry "$tries" -O https://raw.githubusercontent.com/pear/pearweb_phars/master/go-pear.phar
   chmod a+x scripts/install-pear.expect
@@ -30,6 +29,7 @@ setup_pear() {
   rm go-pear.phar
   "$install_dir"/bin/pear config-set php_ini "$install_dir"/etc/php.ini system
   "$install_dir"/bin/pear channel-update pear.php.net
+  echo "::endgroup::"
 }
 
 enable_extension() {
@@ -37,7 +37,7 @@ enable_extension() {
   prefix=$2
   sed -i "/$extension/d" "$install_dir"/etc/php.ini
   if [ -e "$ext_dir/$extension.so" ]; then
-    echo "$prefix=$extension.so" | tee -a "$install_dir"/etc/conf.d/20-"$extension".ini
+    echo "$prefix=$extension.so" | tee -a "$install_dir"/etc/conf.d/20-"$extension".ini >/dev/null 2>&1
   fi
 }
 
@@ -47,6 +47,7 @@ setup_extensions() {
     type=$(echo "$extension_config" | cut -d ' ' -f 1)
     extension=$(echo "$extension_config" | cut -d ' ' -f 2)
     prefix=$(echo "$extension_config" | cut -d ' ' -f 3)
+    echo "::group::$extension"
     if [ "$type" = "pecl" ]; then
       yes '' 2>/dev/null | "$install_dir"/bin/pecl install -f "$extension"
     elif [ "$type" = "git" ]; then
@@ -56,6 +57,7 @@ setup_extensions() {
       bash scripts/install-ext.sh "$extension" "$repo" "$tag" "$install_dir" "${args[@]}"
     fi
     enable_extension "$extension" "$prefix"
+    echo "::endgroup::"
   done < "$action_dir"/config/extensions/"$PHP_VERSION"
   enable_extension intl extension
 
@@ -64,12 +66,14 @@ setup_extensions() {
 }
 
 build_php() {
+  echo "::group::$1"
   export CFLAGS="-Wno-missing-field-initializers $CFLAGS"
   export CXXFLAGS="-Wno-missing-field-initializers $CXXFLAGS"
   if ! php-build -v -i production "$PHP_VERSION" "$install_dir"; then
     echo 'Failed to build PHP'
     exit 1
   fi
+  echo "::endgroup::"
 }
 
 configure_apache_fpm_opts() {
@@ -82,8 +86,8 @@ configure_apache_fpm_opts() {
 }
 
 configure_apache_fpm() {
-  ln -sv "$install_dir"/sbin/php-fpm "$install_dir"/bin/php-fpm
-  ln -sv "$install_dir"/bin/php-cgi "$install_dir"/usr/lib/cgi-bin/php"$PHP_VERSION"
+  ln -s "$install_dir"/sbin/php-fpm "$install_dir"/bin/php-fpm
+  ln -s "$install_dir"/bin/php-cgi "$install_dir"/usr/lib/cgi-bin/php"$PHP_VERSION"
   mv "$install_dir"/etc/init.d/php-fpm "$install_dir"/etc/init.d/php"$PHP_VERSION"-fpm
   mv "$install_dir"/usr/lib/apache2/modules/libphp.so "$install_dir"/usr/lib/apache2/modules/libphp"$PHP_VERSION".so
   sed -Ei -e "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" -e 's|;listen.owner.*|listen.owner = www-data|' -e 's|;listen.group.*|listen.group = www-data|' -e 's|;listen.mode.*|listen.mode = 0660|' "$install_dir"/etc/php-fpm.d/www.conf
@@ -93,7 +97,6 @@ configure_apache_fpm() {
   done
   sed -i "s/NO_DOT/${PHP_VERSION/./}/g" config/fpm.service
   sed -i "s/PHP_VERSION/$PHP_VERSION/g" scripts/switch_sapi
-
   cp -fp config/fpm.service "$install_dir"/etc/systemd/system/php"$PHP_VERSION"-fpm.service
   cp -fp scripts/php-fpm-socket-helper scripts/switch_sapi "$install_dir"/bin/ && chmod -R a+x "$install_dir"/bin
   sed -Ei -e "s|;pid.*|pid = /run/php/php$PHP_VERSION-fpm.pid|" -e "s|;error_log.*|error_log = /var/log/php$PHP_VERSION-fpm.log|" "$install_dir"/etc/php-fpm.conf
@@ -109,10 +112,10 @@ build_apache_fpm() {
   cp /usr/local/share/php-build/default_configure_options.bak /usr/local/share/php-build/default_configure_options
   mkdir -p "$install_dir" "$install_dir"/"$(apxs -q SYSCONFDIR)"/mods-available "$install_dir"/"$(apxs -q SYSCONFDIR)"/sites-available "$install_dir"/etc/nginx/sites-available "$install_dir"/"$(apxs -q SYSCONFDIR)"/conf-available "$install_dir"/usr/lib/cgi-bin /usr/local/ssl /lib/systemd/system /usr/lib/cgi-bin
   chmod -R 777 "$install_dir" /usr/local/php /usr/local/ssl /usr/include/apache2 /usr/lib/apache2 /etc/apache2/ /var/lib/apache2 /var/log/apache2
-  basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"$branch" | jq -r .commit.url)" | tee "$install_dir/COMMIT"
+  basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"$branch" | jq -r .commit.url)" | tee "$install_dir/COMMIT" >/dev/null 2>&1
   export PHP_BUILD_APXS="/usr/bin/apxs2"
   configure_apache_fpm_opts
-  build_php
+  build_php apache-fpm
   configure_apache_fpm
   mv "$install_dir" "$install_dir-fpm"
 }
@@ -125,7 +128,7 @@ build_embed() {
   sed -i "/fpm/d" /usr/local/share/php-build/default_configure_options || true
   sed -i "/cgi/d" /usr/local/share/php-build/default_configure_options || true
   echo "--enable-embed=shared" | tee -a /usr/local/share/php-build/default_configure_options >/dev/null 2>&1
-  build_php
+  build_php embed
   mv "$install_dir" "$install_dir-embed"
 }
 
@@ -153,17 +156,19 @@ configure_php() {
   cp -fp "$install_dir"/etc/apache2/mods-available/php"$PHP_VERSION".load /etc/apache2/mods-available/php"$PHP_VERSION".load
   cp -fp "$install_dir"/etc/apache2/mods-available/php"$PHP_VERSION".conf /etc/apache2/mods-available/
   cp -fp "$install_dir"/etc/apache2/conf-available/php"$PHP_VERSION"-*.conf /etc/apache2/conf-available/
-  a2dismod php
+  a2dismod php >/dev/null 2>&1
 }
 
 package() {
   (
+    echo "::group::package"
     zstd -V
     cd "$install_dir"/.. || exit
     echo "Creating Package using XZ"
     XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION+$ID$VERSION_ID.tar.xz" "$PHP_VERSION"
     echo "Creating Package using ZSTD"
     tar cf - "$PHP_VERSION" | zstd -22 -T0 --ultra > "php_$PHP_VERSION+$ID$VERSION_ID.tar.zst"
+    echo "::endgroup::"
   )
 }
 

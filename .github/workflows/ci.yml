@@ -56,9 +56,7 @@ jobs:
       - name: Check php-cgi version
         run: php-cgi -v
       - name: Check php-fpm version
-        run: |
-          php-fpm -v
-          sudo service php${{ matrix.php-version }}-fpm status
+        run: php-fpm -v
       - name: Check phpdbg version
         run: phpdbg -V
       - name: Check pecl version

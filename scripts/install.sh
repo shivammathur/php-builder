@@ -111,7 +111,9 @@ configure() {
   sudo ln -sf "$install_dir"/include/php /usr/include/php/"$(php-config --extension-dir | grep -Eo -m 1 "[0-9]{8}")"
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php/"$version"/php.ini
-  sudo service php"$version"-fpm start || true
+  if ! sudo grep -Eq '(lxc|docker)' /proc/1/cgroup; then
+    sudo service php"$version"-fpm start || true
+  fi
 }
 
 # Read version correctly
