@@ -41,12 +41,12 @@ update_lists() {
   fi
 }
 
-function get_ppa_key() {
+get_ppa_key() {
   ppa=${1-ondrej/php}
   curl -sL https://api.launchpad.net/1.0/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
 }
 
-function add_list () {
+add_list () {
   ppa=${1-ondrej/php}
   url=${2:-"http://ppa.launchpad.net/$ppa/ubuntu"}
   key_url=$3
@@ -66,7 +66,7 @@ function add_list () {
   fi
 }
 
-function remove_list () {
+remove_list () {
   ppa=${1-ondrej/php}
   find /etc/apt/sources.list.d -name "$ppa" -exec rm -f {} \;
   apt-key del "$(get_ppa_key "$ppa")" || true
@@ -88,7 +88,10 @@ add_ppa() {
 }
 
 install_packages() {
+  apt_tool=$1
+  shift 1
   packages=("$@")
+  apt_install="sudo $debconf_fix $apt_tool install -y --no-install-recommends"
   $apt_install "${packages[@]}" || (update_lists && $apt_install "${packages[@]}")
 }
 
@@ -98,17 +101,21 @@ local_prerequisites() {
     echo '' | sudo tee /tmp/setup_php >/dev/null 2>&1
   fi
   if ! command -v apt-fast >/dev/null; then
-    sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast
-    trap "sudo rm -f /usr/bin/apt-fast 2>/dev/null" exit
+    get /usr/local/bin/apt-fast https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast && sudo chmod a+x /usr/local/bin/apt-fast
+    get /etc/apt-fast.conf https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast.conf
+    if ! command -v apt-fast >/dev/null; then
+      sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast
+      trap "sudo rm -f /usr/bin/apt-fast 2>/dev/null" exit
+    fi
   fi
 }
 
 local_deps() {
-  install_packages apt-transport-https ca-certificates curl gnupg jq zstd
+  install_packages apt-get apt-transport-https aria2 ca-certificates curl gnupg jq zstd
   add_ppa
   enchant=libenchant-dev
   [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "11" ] && enchant=libenchant-2-dev
-  install_packages gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
+  install_packages apt-fast gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
 }
 
 github_deps() {
@@ -203,7 +210,6 @@ fi
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
 debconf_fix="DEBIAN_FRONTEND=noninteractive"
-apt_install="sudo $debconf_fix apt-fast install -y --no-install-recommends"
 . /etc/os-release
 install "$runner"
 link_prefix
