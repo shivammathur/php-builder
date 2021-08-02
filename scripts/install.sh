@@ -4,72 +4,114 @@ get() {
   file_path=$1
   shift
   links=("$@")
+  command -v sudo >/dev/null && SUDO=sudo
   for link in "${links[@]}"; do
-    status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
+    status_code=$(${SUDO} curl -w "%{http_code}" -o "$file_path" -sL "$link")
     [ "$status_code" = "200" ] && break
   done
 }
 
-cleanup_lists() {
-  ppa=${1:-ondrej/php}
-  rm -rf /etc/apt/sources.list.d.save
-  sudo mv /etc/apt/sources.list.d /etc/apt/sources.list.d.save
-  sudo mkdir /etc/apt/sources.list.d
-  sudo mv /etc/apt/sources.list.d.save/*"${ppa%/*}"*.list /etc/apt/sources.list.d/ 2>/dev/null || true
+set_base_version_id() {
+  [[ "$ID" =~ ubuntu|debian ]] && return;
+  for base in ubuntu debian; do
+    [[ "$ID_LIKE" =~ $base ]] && ID="$base" && VERSION_ID="$(grep "$VERSION_CODENAME" /tmp/os_releases.json | grep -Eo '[0-9]+(\.[0-9]+(\.[0-9]+)?)?')" && break
+  done
 }
 
-restore_lists() {
-  sudo mv /etc/apt/sources.list.d.save/*.list /etc/apt/sources.list.d/ 2>/dev/null || true
+set_base_version_codename() {
+  [[ "$ID" =~ ubuntu|debian ]] && return;
+  get /tmp/os_releases.json https://raw.githubusercontent.com/shivammathur/php-builder/main/config/os_releases.json
+  if [[ "$ID_LIKE" =~ ubuntu ]]; then
+    [[ -n "$UBUNTU_CODENAME" ]] && VERSION_CODENAME="$UBUNTU_CODENAME" && return;
+    [ -e "$upstream_lsb" ] && VERSION_CODENAME=$(grep 'CODENAME' "$upstream_lsb" | cut -d '=' -f 2) && return;
+    VERSION_CODENAME=$(grep -E 'deb.*ubuntu.com' "$list_file" | head -n 1 | cut -d ' ' -f 3) && VERSION_CODENAME=${VERSION_CODENAME%-*}
+  elif [[ "$ID_LIKE" =~ debian ]] || command -v apt >/dev/null; then
+    ID_LIKE=debian
+    [[ -n "$DEBIAN_CODENAME" ]] && VERSION_CODENAME="$DEBIAN_CODENAME" && return;
+    update_lists && VERSION_CODENAME=$(apt-cache show tzdata | grep Provides | head -n 1 | cut -f2 -d '-')
+  fi
+}
+
+set_base_version() {
+  if [ -e /tmp/os-release ]; then
+    . /tmp/os-release
+  else
+    set_base_version_codename
+    set_base_version_id
+    printf "ID=%s\nVERSION_ID=%s\nVERSION_CODENAME=%s\n" "$ID" "$VERSION_ID" "$VERSION_CODENAME" | tee /tmp/os-release >/dev/null 2>&1
+  fi
 }
 
 update_lists_helper() {
-  ppa=$1
-  list="$(basename "$(grep -r "$ppa" /etc/apt/sources.list.d | cut -d ':' -f 1)")"
-  if [ "x$ppa" != "x" ] && [ "x$list" != "x" ]; then
-    sudo apt-get update -o Dir::Etc::sourcelist="sources.list.d/$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+  list=$1
+  command -v sudo >/dev/null && SUDO=sudo
+  if [[ -n "$list" ]]; then
+    ${SUDO} apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
   else
-    cleanup_lists 'ondrej/php' && sudo apt-get update && restore_lists
+    ${SUDO} apt-get update
   fi
 }
 
 update_lists() {
-  force=$1
-  ppa=$2
-  if [ ! -e /tmp/setup_php ] || [ "$force" = "--force" ]; then
-    update_lists_helper "$ppa"
-    echo '' | sudo tee /tmp/setup_php >/dev/null 2>&1
-  fi
-}
-
-get_ppa_key() {
-  ppa=${1-ondrej/php}
-  curl -sL https://api.launchpad.net/1.0/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
-}
-
-add_list () {
-  ppa=${1-ondrej/php}
-  url=${2:-"http://ppa.launchpad.net/$ppa/ubuntu"}
-  key_url=$3
-  os_version=${4:-$VERSION_CODENAME}
-  branch=${5:-main}
-  arch=${6:-}
-  if [ "$(grep -r "$ppa" /etc/apt/sources.list.d | wc -l)" = "0" ]; then
-    echo "deb $arch $url $os_version $branch" > /etc/apt/sources.list.d/"${ppa%/*}".list
-    if [[ -n "${key_url// /}" ]]; then
-      get /etc/apt/trusted.gpg.d/"${ppa%/*}".gpg "$key_url"
-    elif [[ "$url" =~ launchpad.net|setup-php.com ]]; then
-      apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$(get_ppa_key "$ppa")"
+  local ppa=${1:-}
+  local ppa_search=${2:-}
+  if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
+    if [[ -n "$ppa" && -n "$ppa_search" ]]; then
+      list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
+    elif grep -Eq '^deb ' "$list_file"; then
+      list="$list_file"
     fi
-    update_lists --force "$ppa"
-  else
-    echo "PPA $ppa found in APT sources"
+    update_lists_helper "$list"
+    echo '' | tee /tmp/setup_php >/dev/null 2>&1
   fi
 }
 
-remove_list () {
+ubuntu_fingerprint() {
+  curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
+}
+
+debian_fingerprint() {
+  release_pub=/tmp/"${ppa/\//-}".gpg
+  get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
+  gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
+}
+
+add_key() {
+  ppa=${1:-ondrej/php}
+  package_dist=$2
+  key_source=$3
+  key_file=$4
+  key_urls=("$key_source")
+  if [[ "$key_source" =~ launchpad.net|debian.org|setup-php.com ]]; then
+    fp=$("${ID}"_fingerprint) && key_urls=("$ubuntu_sks/$sks_uri=0x$fp" "$mit_sks/$sks_uri=0x$fp")
+  fi
+  [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
+  if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
+    sudo gpg --batch --yes --dearmor "$key_file" && sudo rm -f "$key_file" >/dev/null 2>&1
+    sudo mv "$key_file".gpg "$key_file"
+  fi
+}
+
+add_list() {
   ppa=${1-ondrej/php}
-  find /etc/apt/sources.list.d -name "$ppa" -exec rm -f {} \;
-  apt-key del "$(get_ppa_key "$ppa")" || true
+  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  key_source=${3:-"$ppa_url"}
+  package_dist=${4:-"$VERSION_CODENAME"}
+  branches=${5:-main}
+  ppa_search="deb .*$ppa_url $package_dist .*$branches"
+  grep -Eqr "$ppa_search" "$list_dir" && echo "Repository $ppa already exists" && return;
+  arch=$(dpkg --print-architecture)
+  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
+  add_key "$ppa" "$package_dist" "$key_source" "$key_file"
+  echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
+  update_lists "$ppa" "$ppa_search"
+}
+
+remove_list() {
+  ppa=${1-ondrej/php}
+  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
+  sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
 }
 
 add_ppa() {
@@ -82,8 +124,8 @@ add_ppa() {
       add_list ondrej/php
     fi
   elif [ "$ID" = "debian" ]; then
-    add_list php/ https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
-    add_list debian http://deb.debian.org/debian '' testing main
+    add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
+    add_list debian/testing http://deb.debian.org/debian '' testing main
   fi
 }
 
@@ -95,11 +137,14 @@ install_packages() {
   $apt_install "${packages[@]}" || (update_lists && $apt_install "${packages[@]}")
 }
 
-local_prerequisites() {
-  if ! command -v sudo >/dev/null; then
-    apt-get update && apt-get install -y sudo;
-    echo '' | sudo tee /tmp/setup_php >/dev/null 2>&1
-  fi
+add_prerequisites() {
+  prerequisites=()
+  command -v sudo >/dev/null && SUDO=sudo || prerequisites+=('sudo')
+  command -v curl >/dev/null || prerequisites+=('curl')
+  update_lists && ${SUDO} apt-get install -y "${prerequisites[@]}"
+}
+
+add_apt_fast() {
   if ! command -v apt-fast >/dev/null; then
     get /usr/local/bin/apt-fast https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast && sudo chmod a+x /usr/local/bin/apt-fast
     get /etc/apt-fast.conf https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast.conf
@@ -111,10 +156,10 @@ local_prerequisites() {
 }
 
 local_deps() {
-  install_packages apt-get apt-transport-https aria2 ca-certificates curl gnupg jq zstd
+  install_packages apt-get apt-transport-https aria2 ca-certificates file gnupg jq zstd
+  enchant=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
+  add_apt_fast
   add_ppa
-  enchant=libenchant-dev
-  [ "$VERSION_ID" = "20.04" ] || [ "$VERSION_ID" = "11" ] && enchant=libenchant-2-dev
   install_packages apt-fast gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
 }
 
@@ -158,7 +203,8 @@ link_prefix() {
 
 install() {
   if [ "$1" != "github" ]; then
-    local_prerequisites
+    add_prerequisites
+    set_base_version
     local_deps &
   else
     github_deps &
@@ -169,6 +215,7 @@ install() {
   sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
   wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
+  . /etc/os-release
 }
 
 configure() {
@@ -209,7 +256,16 @@ fi
 
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
-debconf_fix="DEBIAN_FRONTEND=noninteractive"
+list_file='/etc/apt/sources.list'
+list_dir="$list_file.d"
+debconf_fix='DEBIAN_FRONTEND=noninteractive'
+upstream_lsb='/etc/upstream-release/lsb-release'
+lp_api='https://api.launchpad.net/1.0'
+lp_ppa='http://ppa.launchpad.net'
+key_dir='/usr/share/keyrings'
+mit_sks='http://pgp.mit.edu'
+ubuntu_sks='https://keyserver.ubuntu.com'
+sks_uri='pks/lookup?op=get&options=mr&exact=on&search'
 . /etc/os-release
 install "$runner"
 link_prefix
