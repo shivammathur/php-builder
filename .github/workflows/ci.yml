@@ -16,7 +16,7 @@ jobs:
         id: set-matrix
         env:
           COMMIT: ${{ github.event.head_commit.message }}
-          OS_VERSIONS: "ubuntu:xenial ubuntu:bionic ubuntu:focal debian:stretch debian:buster debian:bullseye"
+          OS_VERSIONS: "ubuntu:xenial ubuntu:bionic ubuntu:focal ubuntu:hirsute debian:stretch debian:buster debian:bullseye"
           PHP_VERSIONS: "8.0 8.1"
         run: bash scripts/get-matrix.sh
   build:
