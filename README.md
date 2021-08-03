@@ -4,15 +4,15 @@
 <a href="https://github.com/shivammathur/php-builder/blob/main/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
 
-> Build PHP 8.0 and above for Ubuntu.
+> Build PHP 8.0 and above for Ubuntu and other Debian distributions.
 
-- This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/setup-php) on `Ubuntu`.
+- This projects builds PHP 8.0 and above (including a nightly build from php master) for [setup-php](https://github.com/shivammathur/setup-php) on `Ubuntu` or other `Debian` based distributions.
 - To install a build follow the instructions in the [install](#Install) section. To download a build refer to the [builds](#Builds) section.
 - If you want to build PHP for any other linux distribution, you may refer to the build scripts in the `scripts` directory and the CI workflows.
 
 ## SAPI support
 
-PHP is built with following SAPIs.
+The builds have the following SAPIs.
 
 - apache2-handler
 - cli
@@ -23,10 +23,10 @@ PHP is built with following SAPIs.
 
 ## Install
 
-- Make sure sudo and curl are installed.
+- Make sure sudo is installed.
 ```bash
 apt-get update
-apt-get install -y curl sudo
+apt-get install -y sudo
 ```
 
 - Fetch the script
@@ -52,7 +52,7 @@ or
 php -v
 ```
 
-- **Note:** PHP builds are installed at `/usr/local/php/`.
+- **Note:** PHP would be installed at `/usr/local/php/<PHP VERSION>`.
 
 ## Builds
 
@@ -61,12 +61,20 @@ php -v
 - [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu20.04.tar.xz)
+- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu21.04.tar.xz)
+- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian9.tar.xz)
+- [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian10.tar.xz)
+- [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian11.tar.xz)
 
 ### PHP 8.1.0-dev (master)
 
 - [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu20.04.tar.xz)
+- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu21.04.tar.xz)
+- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian9.tar.xz)
+- [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian10.tar.xz)
+- [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian11.tar.xz)
 
 
 ## Related Projects
@@ -76,17 +84,22 @@ php -v
 
 ## License
 
-The code in this project is licensed under the [MIT license](LICENSE). This project has multiple [dependencies](#dependencies). Their licenses can be found in their respective repositories.
+The scripts and documentation in this project are under the [MIT license](LICENSE). This project has multiple [dependencies](#dependencies). Their licenses can be found in their respective repositories.
 
 ## Dependencies
 
-- [Amqp](https://github.com/php-amqp/php-amqp "Amqp PHP Extension")
-- [deb.sury.org](https://github.com/oerdnj/deb.sury.org)
+- [AMQP](https://github.com/php-amqp/php-amqp "AMQP PHP Extension")
+- [APCU](https://github.com/krakjoe/apcu "APCU PHP Extension")
+- [Deb.sury.org](https://github.com/oerdnj/deb.sury.org "PHP packaging for Ubuntu and Debian")
 - [igbinary](https://github.com/igbinary/igbinary "Igbinary PHP Extension")
 - [Imagick](https://github.com/Imagick/imagick "Imagick PHP Extension")
+- [Memcache](https://github.com/websupport-sk/pecl-memcache "Memcache PHP Extension")
+- [Memcached](https://github.com/php-memcached-dev/php-memcached "Memcached PHP Extension")
 - [Msgpack](https://github.com/msgpack/msgpack-php "Msgpack PHP Extension")
+- [Msphpsql](https://github.com/microsoft/msphpsql "Sqlsrv and pdo_sqlsrv extensions")
 - [PEAR](https://github.com/pear/pear-core "PEAR PHP extension installer")
 - [PCOV](https://github.com/krakjoe/pcov "PCOV PHP Extension")
 - [PHP](https://github.com/php/php-src "PHP Upstream project")
-- [php-build](https://github.com/php-build/php-build "php-build")
+- [php-build](https://github.com/php-build/php-build "php-build project")
+- [PhpRedis](https://github.com/phpredis/phpredis "Redis PHP Extension")
 - [Xdebug](https://github.com/xdebug/xdebug "Xdebug PHP Extension")
