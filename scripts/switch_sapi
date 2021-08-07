@@ -4,14 +4,21 @@ sapi=$1
 php=PHP_VERSION
 install_dir=/usr/local/php/PHP_VERSION
 debconf_fix=DEBIAN_FRONTEND=noninteractive
-apt_install="sudo $debconf_fix apt-fast -y -o Dpkg::Options::=--force-confdef --no-install-recommends install"
+apt_mgr='apt-get'
+command -v apt-fast >/dev/null && apt_mgr='apt-fast'
+apt_install="sudo $debconf_fix $apt_mgr -y -o Dpkg::Options::=--force-confdef --no-install-recommends install"
 
 check_installed() {
   sudo dpkg-query --show --showformat='${db:Status-Status}' "$1" 2>/dev/null
 }
 
-restart_service() {
-  sudo service "$1" restart || sudo service "$1" restart || sudo service "$1" start
+service_restart() {
+  services=("$@")
+  for service in "${services[@]}"; do
+    sudo service "$service" restart >/dev/null 2>&1 ||
+    sudo service "$service" restart >/dev/null 2>&1 ||
+    sudo service "$service" start >/dev/null 2>&1
+  done
 }
 
 install_apache2() {
@@ -19,7 +26,7 @@ install_apache2() {
   if ! check_installed apache2; then
     $apt_install apache2-bin apache2 libapache2-mod-fcgid
   else
-    if ! [[ "$(apache2 -v 2>/dev/null | grep -Eo "([0-9]+\.[0-9]+)")" =~ 2.[4-9] ]]; then
+    if ! [[ "$(apache2 -v 2>/dev/null | grep -Eo "([0-9]+\.[0-9]+)")" =~ 2.[4-9]+|2.[1-9][0-9]+ ]]; then
       sudo "$debconf_fix" apt-get purge apache* apache-* >/dev/null
       $apt_install apache2-bin apache2 libapache2-mod-fcgid
     fi
@@ -39,48 +46,60 @@ install_nginx() {
   sudo cp "$install_dir"/etc/nginx/sites-available/default /etc/nginx/sites-available/
 }
 
-if ! command -v apt-fast >/dev/null; then sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast; fi
+setup_apache_apache() {
+  install_apache2
+  sudo a2disconf php"$php"-fpm || true
+  sudo a2dismod mpm_event proxy_fcgi 2>/dev/null || true
+  sudo a2enmod mpm_prefork php"$php"
+  service_restart apache2
+}
+
+setup_fpm_apache() {
+  install_apache2
+  sudo a2dismod php"$php" 2>/dev/null || true
+  sudo a2enmod proxy_fcgi
+  sudo a2enconf php"$php"-fpm
+  service_restart php"$php"-fpm apache2
+}
+
+setup_cgi_apache() {
+  install_apache2
+  sudo a2dismod php"$php" mpm_event 2>/dev/null || true
+  sudo a2enmod mpm_prefork actions cgi
+  sudo a2disconf php"$php"-fpm 2>/dev/null || true
+  sudo a2enconf php"$php"-cgi
+  service_restart apache2
+}
+
+setup_fpm_nginx() {
+  install_nginx
+  service_restart php"$php"-fpm nginx
+}
 
 case $sapi in
-  apache*:apache*)
-    install_apache2
-    sudo a2disconf php"$php"-fpm || true
-    sudo a2dismod mpm_event proxy_fcgi 2>/dev/null || true
-    sudo a2enmod mpm_prefork php"$php"
-    restart_service apache2
-    ;;
-  fpm:apache*)
-    install_apache2
-    sudo a2dismod php"$php" 2>/dev/null || true
-    sudo a2enmod proxy_fcgi
-    sudo a2enconf php"$php"-fpm
-    restart_service php"$php"-fpm
-    restart_service apache2
-    ;;
-  cgi:apache*)
-    install_apache2
-    sudo a2dismod php"$php" mpm_event 2>/dev/null || true
-    sudo a2enmod mpm_prefork actions cgi
-    sudo a2disconf php"$php"-fpm 2>/dev/null || true
-    sudo a2enconf php"$php"-cgi
-    restart_service apache2
-    ;;
-  fpm:nginx)
-    install_nginx
-    restart_service php"$php"-fpm
-    sudo service nginx restart
-    ;;
-  apache*)
-    restart_service apache2
-    ;;
-  fpm)
-    restart_service php"$php"-fpm
-    ;;
-  embed|cgi|phpdbg) ;;
-  *)
-    echo "Usage: switch_sapi {apache*:apache|fpm:apache|cgi:apache|fpm:nginx|apache|fpm|embed|cgi|phpdbg}"
-    exit 0
-    ;;
+apache*:apache*)
+  setup_apache_apache >/dev/null 2>&1
+  ;;
+fpm:apache*)
+  setup_fpm_apache >/dev/null 2>&1
+  ;;
+cgi:apache*)
+  setup_cgi_apache >/dev/null 2>&1
+  ;;
+fpm:nginx)
+  setup_fpm_nginx >/dev/null 2>&1
+  ;;
+apache*)
+  service_restart apache2 >/dev/null 2>&1
+  ;;
+fpm)
+  service_restart php"$php"-fpm >/dev/null 2>&1
+  ;;
+embed|cgi|phpdbg) ;;
+*)
+  echo "Usage: switch_sapi {apache*:apache|fpm:apache|cgi:apache|fpm:nginx|apache|fpm|embed|cgi|phpdbg}"
+  exit 0
+  ;;
 esac
 
 exit 0

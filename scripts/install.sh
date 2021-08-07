@@ -130,10 +130,10 @@ add_ppa() {
 }
 
 install_packages() {
-  apt_tool=$1
-  shift 1
   packages=("$@")
-  apt_install="sudo $debconf_fix $apt_tool install -y --no-install-recommends"
+  apt_mgr='apt-get'
+  command -v apt-fast >/dev/null && apt_mgr='apt-fast'
+  apt_install="sudo $debconf_fix $apt_mgr install -y --no-install-recommends"
   $apt_install "${packages[@]}" || (update_lists && $apt_install "${packages[@]}")
 }
 
@@ -141,26 +141,15 @@ add_prerequisites() {
   prerequisites=()
   command -v sudo >/dev/null && SUDO=sudo || prerequisites+=('sudo')
   command -v curl >/dev/null || prerequisites+=('curl')
+  command -v zstd >/dev/null || prerequisites+=('zstd')
   update_lists && ${SUDO} apt-get install -y "${prerequisites[@]}"
 }
 
-add_apt_fast() {
-  if ! command -v apt-fast >/dev/null; then
-    get /usr/local/bin/apt-fast https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast && sudo chmod a+x /usr/local/bin/apt-fast
-    get /etc/apt-fast.conf https://raw.githubusercontent.com/ilikenwf/apt-fast/master/apt-fast.conf
-    if ! command -v apt-fast >/dev/null; then
-      sudo ln -sf /usr/bin/apt-get /usr/bin/apt-fast
-      trap "sudo rm -f /usr/bin/apt-fast 2>/dev/null" exit
-    fi
-  fi
-}
-
 local_deps() {
-  install_packages apt-get apt-transport-https aria2 ca-certificates file gnupg jq zstd
+  install_packages apt-transport-https ca-certificates file gnupg jq zstd
   enchant=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
-  add_apt_fast
   add_ppa
-  install_packages apt-fast gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev systemd unixodbc-dev
+  install_packages gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev systemd unixodbc-dev
 }
 
 github_deps() {
@@ -216,8 +205,8 @@ install() {
   tar_file="php_$version+$ID$VERSION_ID.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file"
   sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
-  wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
+  wait "$to_wait"
   . /etc/os-release
 }
 
