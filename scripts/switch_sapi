@@ -77,6 +77,10 @@ case $sapi in
     restart_service php"$php"-fpm
     ;;
   embed|cgi|phpdbg) ;;
+  *)
+    echo "Usage: switch_sapi {apache*:apache|fpm:apache|cgi:apache|fpm:nginx|apache|fpm|embed|cgi|phpdbg}"
+    exit 0
+    ;;
 esac
 
 exit 0
