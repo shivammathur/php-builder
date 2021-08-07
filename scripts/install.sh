@@ -160,7 +160,7 @@ local_deps() {
   enchant=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
   add_apt_fast
   add_ppa
-  install_packages apt-fast gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev unixodbc-dev
+  install_packages apt-fast gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev systemd unixodbc-dev
 }
 
 github_deps() {
@@ -195,10 +195,13 @@ switch_version() {
 link_prefix() {
   sudo cp -f "$install_dir"/COMMIT /etc/php/"$version"/COMMIT
   sudo cp -f "$install_dir"/etc/init.d/php"$version"-fpm /etc/init.d/
+  sudo cp -f "$install_dir"/usr/lib/tmpfiles.d/php"$version"-fpm.conf /usr/lib/tmpfiles.d/
   sudo cp -f "$install_dir"/etc/systemd/system/php"$version"-fpm.service /lib/systemd/system/
   sudo cp -f "$install_dir"/usr/lib/apache2/modules/libphp"$version".so /usr/lib/apache2/modules/
   sudo cp -f "$install_dir"/etc/apache2/mods-available/* /etc/apache2/mods-available/
   sudo cp -f "$install_dir"/etc/apache2/conf-available/* /etc/apache2/conf-available/
+  sudo cp -f "$install_dir"/etc/apache2/sites-available/* /etc/apache2/sites-available/
+  sudo cp -f "$install_dir"/etc/nginx/sites-available/* /etc/nginx/sites-available/
 }
 
 install() {
@@ -212,7 +215,7 @@ install() {
   to_wait=$!
   tar_file="php_$version+$ID$VERSION_ID.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file"
-  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /etc/apache2/mods-available /etc/apache2/conf-available /usr/lib/apache2/modules
+  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   wait "$to_wait"
   sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
   . /etc/os-release
@@ -234,9 +237,7 @@ configure() {
   sudo ln -sf "$install_dir"/include/php /usr/include/php/"$(php-config --extension-dir | grep -Eo -m 1 "[0-9]{8}")"
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
   sudo ln -sf "$install_dir"/etc/php.ini /etc/php/"$version"/php.ini
-  if ! sudo grep -Eq '(actions_job|containerd|docker|lxc)' /proc/1/cgroup && [ ! -e .dockerenv ] && [ ! -e /run/.dockerenv ] && [ ! -e /run/.containerenv ]; then
-    sudo service php"$version"-fpm start || true
-  fi
+  sudo service php"$version"-fpm start || true
 }
 
 # Read version correctly

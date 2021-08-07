@@ -97,6 +97,18 @@ jobs:
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
           php -m
+      - name: Check SAPI
+        run: |
+          sudo mkdir -p /var/www/html
+          sudo rm -rf /var/www/html/index.html
+          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
+          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
+            echo "::group::Test $sapi"
+            switch_sapi $sapi >/dev/null 2>&1
+            curl -s http://localhost
+            [ "$(curl -s http://localhost)" != "$sapi" ] && exit 1
+            echo "::endgroup::"
+          done
   github-test:
     needs: [build]
     runs-on: ${{ matrix.os }}
@@ -123,6 +135,7 @@ jobs:
           php -m
       - name: Check SAPI
         run: |
+          sudo mkdir -p /var/www/html
           sudo rm -rf /var/www/html/index.html
           echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
           for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
