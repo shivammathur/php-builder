@@ -13,19 +13,22 @@ get() {
 
 set_base_version_id() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
+  if ! [ -d "$dist_info_dir" ]; then
+    sudo mkdir -p "$dist_info_dir"
+    get "$dist_info_dir"/os_releases.csv https://raw.githubusercontent.com/shivammathur/setup-php/develop/src/configs/os_releases.csv
+  fi
   for base in ubuntu debian; do
-    [[ "$ID_LIKE" =~ $base ]] && ID="$base" && VERSION_ID="$(grep "$VERSION_CODENAME" /tmp/os_releases.json | grep -Eo '[0-9]+(\.[0-9]+(\.[0-9]+)?)?')" && break
+    [[ "$ID_LIKE" =~ $base ]] && ID="$base" && VERSION_ID="$(grep -hr -m 1 "$VERSION_CODENAME" /usr/share/distro-info | cut -d ',' -f 1 | cut -d ' ' -f 1)" && break
   done
 }
 
 set_base_version_codename() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
-  get /tmp/os_releases.json https://raw.githubusercontent.com/shivammathur/php-builder/main/config/os_releases.json
   if [[ "$ID_LIKE" =~ ubuntu ]]; then
     [[ -n "$UBUNTU_CODENAME" ]] && VERSION_CODENAME="$UBUNTU_CODENAME" && return;
     [ -e "$upstream_lsb" ] && VERSION_CODENAME=$(grep 'CODENAME' "$upstream_lsb" | cut -d '=' -f 2) && return;
-    VERSION_CODENAME=$(grep -E 'deb.*ubuntu.com' "$list_file" | head -n 1 | cut -d ' ' -f 3) && VERSION_CODENAME=${VERSION_CODENAME%-*}
-  elif [[ "$ID_LIKE" =~ debian ]] || command -v apt >/dev/null; then
+    VERSION_CODENAME=$(grep -E -m1 'deb .*ubuntu.com' "$list_file" | cut -d ' ' -f 3) && VERSION_CODENAME=${VERSION_CODENAME%-*}
+  elif [[ "$ID_LIKE" =~ debian ]] || command -v dpkg >/dev/null; then
     ID_LIKE=debian
     [[ -n "$DEBIAN_CODENAME" ]] && VERSION_CODENAME="$DEBIAN_CODENAME" && return;
     update_lists && VERSION_CODENAME=$(apt-cache show tzdata | grep Provides | head -n 1 | cut -f2 -d '-')
@@ -67,27 +70,34 @@ update_lists() {
 }
 
 ubuntu_fingerprint() {
+  ppa=$1
   curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
 }
 
 debian_fingerprint() {
+  ppa=$1
+  ppa_url=$2
+  package_dist=$3
   release_pub=/tmp/"${ppa/\//-}".gpg
   get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
-  gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
+  gpg --homedir /tmp --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
 }
 
 add_key() {
   ppa=${1:-ondrej/php}
-  package_dist=$2
-  key_source=$3
-  key_file=$4
+  ppa_url=$2
+  package_dist=$3
+  key_source=$4
+  key_file=$5
   key_urls=("$key_source")
   if [[ "$key_source" =~ launchpad.net|debian.org|setup-php.com ]]; then
-    fp=$("${ID}"_fingerprint) && key_urls=("$ubuntu_sks/$sks_uri=0x$fp" "$mit_sks/$sks_uri=0x$fp")
+    fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
+    sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
+    key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
   [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
-    sudo gpg --batch --yes --dearmor "$key_file" && sudo rm -f "$key_file" >/dev/null 2>&1
+    sudo gpg --homedir /tmp --batch --yes --dearmor "$key_file" && sudo rm -f "$key_file" >/dev/null 2>&1
     sudo mv "$key_file".gpg "$key_file"
   fi
 }
@@ -102,7 +112,7 @@ add_list() {
   grep -Eqr "$ppa_search" "$list_dir" && echo "Repository $ppa already exists" && return;
   arch=$(dpkg --print-architecture)
   [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
-  add_key "$ppa" "$package_dist" "$key_source" "$key_file"
+  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
   echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
   update_lists "$ppa" "$ppa_search"
 }
@@ -244,6 +254,7 @@ else
   version="$1"
 fi
 
+dist_info_dir='/usr/share/distro-info'
 install_dir="/usr/local/php/$version"
 pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
 list_file='/etc/apt/sources.list'
@@ -253,9 +264,11 @@ upstream_lsb='/etc/upstream-release/lsb-release'
 lp_api='https://api.launchpad.net/1.0'
 lp_ppa='http://ppa.launchpad.net'
 key_dir='/usr/share/keyrings'
-mit_sks='http://pgp.mit.edu'
-ubuntu_sks='https://keyserver.ubuntu.com'
-sks_uri='pks/lookup?op=get&options=mr&exact=on&search'
+sks=(
+  'https://keyserver.ubuntu.com'
+  'https://pgp.mit.edu'
+  'https://keys.openpgp.org'
+)
 . /etc/os-release
 install "$runner"
 link_prefix
