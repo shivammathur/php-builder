@@ -31,11 +31,12 @@ set_base_version_codename() {
   elif [[ "$ID_LIKE" =~ debian ]] || command -v dpkg >/dev/null; then
     ID_LIKE=debian
     [[ -n "$DEBIAN_CODENAME" ]] && VERSION_CODENAME="$DEBIAN_CODENAME" && return;
-    update_lists && VERSION_CODENAME=$(apt-cache show tzdata | grep Provides | head -n 1 | cut -f2 -d '-')
+    update_lists && VERSION_CODENAME=$(apt-cache show tzdata | grep -m 1 Provides | cut -d '-' -f 2)
   fi
 }
 
 set_base_version() {
+  DIST_ID="$ID"
   if [ -e /tmp/os-release ]; then
     . /tmp/os-release
   else
@@ -80,7 +81,7 @@ debian_fingerprint() {
   package_dist=$3
   release_pub=/tmp/"${ppa/\//-}".gpg
   get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
-  gpg --homedir /tmp --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
+  gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
 }
 
 add_key() {
@@ -97,8 +98,7 @@ add_key() {
   fi
   [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
-    sudo gpg --homedir /tmp --batch --yes --dearmor "$key_file" && sudo rm -f "$key_file" >/dev/null 2>&1
-    sudo mv "$key_file".gpg "$key_file"
+    sudo gpg --batch --yes --dearmor "$key_file" >/dev/null 2>&1 && sudo mv "$key_file".gpg "$key_file"
   fi
 }
 
@@ -133,7 +133,7 @@ add_ppa() {
       add_list ondrej/php
     fi
   elif [ "$ID" = "debian" ]; then
-    add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
+    add_list ondrej/php "$sury"/php/ "$sury"/php/apt.gpg
   fi
 }
 
@@ -164,7 +164,7 @@ local_deps() {
   install_packages apt-transport-https ca-certificates file gnupg jq zstd gcc g++
   libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
   add_ppa
-  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev make php-common shtool systemd unixodbc-dev
+  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev make php-common shtool systemd tzdata unixodbc-dev
 }
 
 github_deps() {
@@ -194,6 +194,26 @@ switch_version() {
   wait "${to_wait_arr[@]}"
 }
 
+relocate_build() {
+  build_dir=$1
+  if [ -d "$build_dir"/lib ] && [ -h /lib ]; then
+    sudo cp -rf "$build_dir"/lib/* "$build_dir"/usr/lib/
+    sudo rm -rf "${build_dir:?}"/lib
+  fi
+  sudo cp -rf "$build_dir"/* /
+}
+
+extract_build() {
+  tar_file=$1
+  build_dir=$2
+  if [[ "$DIST_ID" =~ ubuntu|debian ]]; then
+    sudo tar -I zstd -xf "/tmp/$tar_file" -C / --no-same-owner
+  else
+    sudo tar -I zstd -xf "/tmp/$tar_file" -C "$build_dir" --no-same-owner
+    relocate_build "$build_dir"
+  fi
+}
+
 install() {
   if [ "$1" != "github" ]; then
     add_prerequisites
@@ -205,9 +225,9 @@ install() {
   to_wait=$!
   tar_file="php_$version+$ID$VERSION_ID.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/builds/$tar_file"
-  sudo rm -rf /etc/php/"$version"
-  sudo mkdir -m 777 -p /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
-  sudo tar -I zstd -xf "/tmp/$tar_file" -C / --no-same-owner
+  sudo rm -rf /etc/php/"$version" /tmp/php"$version"
+  sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
+  extract_build "$tar_file" /tmp/php"$version"
   wait "$to_wait"
   . /etc/os-release
 }
@@ -216,7 +236,7 @@ configure() {
   sudo chmod 777 "$pecl_file"
   echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
   sudo pear update-channels
-  echo '' | sudo tee /tmp/pecl_config
+  echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
   (
     echo "opcache.enable=1"
     echo "opcache.jit_buffer_size=256M"
@@ -305,7 +325,6 @@ else
   version="$1"
 fi
 
-dist_info_dir='/usr/share/distro-info'
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
 if [ "$runner" = "github" ]; then
   sudo rm -f "$pecl_file"
@@ -322,6 +341,8 @@ upstream_lsb='/etc/upstream-release/lsb-release'
 lp_api='https://api.launchpad.net/1.0'
 lp_ppa='http://ppa.launchpad.net'
 key_dir='/usr/share/keyrings'
+dist_info_dir='/usr/share/distro-info'
+sury='https://packages.sury.org'
 sks=(
   'https://keyserver.ubuntu.com'
   'https://pgp.mit.edu'
