@@ -81,9 +81,11 @@ php -v
 
 - You can switch to `pcov` by disabling Xdebug using `phpdismod` and enabling pcov using `phpenmod`.
 
+For example, to enable pcov on PHP 8.1:
+
 ```bash
-phpdismod -v ALL xdebug
-phpenmod -v ALL pcov
+phpdismod -p 8.1 -s ALL xdebug
+phpenmod -p 8.1 -s ALL pcov
 ```
 
 - `PECL` is also installed along with PHP, so you can install compatible extensions using that. Extensions installed using `pecl` are enabled using the `pecl.ini` module which is linked to all SAPIs.
