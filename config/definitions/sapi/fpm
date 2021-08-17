@@ -1,0 +1,10 @@
+--enable-cli
+--enable-fpm
+--disable-cgi
+--disable-phpdbg
+--with-fpm-user=www-data
+--with-fpm-group=www-data
+--with-fpm-acl
+--with-fpm-apparmor
+--with-fpm-systemd
+--with-libevent-dir=/usr

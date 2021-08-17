@@ -126,7 +126,6 @@ remove_list() {
 
 add_ppa() {
   if [ "$ID" = "ubuntu" ]; then
-    add_list ubuntu-toolchain-r/test
     if [ "$VERSION_ID" = "16.04" ]; then
       remove_list ondrej/php
       add_list ondrej/php https://setup-php.com/ondrej/php/ubuntu
@@ -135,7 +134,6 @@ add_ppa() {
     fi
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
-    add_list debian/testing http://deb.debian.org/debian '' testing main
   fi
 }
 
@@ -144,7 +142,7 @@ install_packages() {
   apt_mgr='apt-get'
   command -v apt-fast >/dev/null && apt_mgr='apt-fast'
   apt_install="sudo $debconf_fix $apt_mgr install -y --no-install-recommends"
-  $apt_install "${packages[@]}" || (update_lists && $apt_install "${packages[@]}")
+  $apt_install "${packages[@]}" 2>/dev/null || (update_lists && $apt_install "${packages[@]}")
 }
 
 add_prerequisites() {
@@ -155,11 +153,18 @@ add_prerequisites() {
   update_lists && ${SUDO} apt-get install -y "${prerequisites[@]}"
 }
 
+add_pear() {
+  if ! [ -e /usr/bin/pear ]; then
+    sudo curl -o /tmp/pear.phar -sL https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar
+    sudo php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
+  fi
+}
+
 local_deps() {
-  install_packages apt-transport-https ca-certificates file gnupg jq zstd
-  enchant=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
+  install_packages apt-transport-https ca-certificates file gnupg jq zstd gcc g++
+  libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
   add_ppa
-  install_packages gcc-9 g++-9 libargon2-dev "$enchant" libmagickwand-dev libpq-dev libfreetype6-dev libicu-dev libjpeg-dev libpng-dev libonig-dev libxslt1-dev libaspell-dev libcurl4-gnutls-dev libc-client2007e-dev libkrb5-dev libldap-dev liblz4-dev libmemcached-dev libgomp1 librabbitmq-dev libsodium-dev libtidy-dev libwebp-dev libxpm-dev libzip-dev libzstd-dev systemd unixodbc-dev
+  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev make php-common shtool systemd unixodbc-dev
 }
 
 github_deps() {
@@ -173,34 +178,20 @@ github_deps() {
 }
 
 switch_version() {
-  sudo rm -rf /usr/bin/php*"$version" /usr/bin/pecl /usr/bin/pear* 2>/dev/null || true
-  sudo cp -f "$install_dir"/usr/lib/cgi-bin/php"$version" /usr/lib/cgi-bin/
-  sudo update-alternatives --install /usr/lib/libphp"${version/%.*}".so libphp"${version/%.*}" "$install_dir"/usr/lib/libphp"$version".so 50 && sudo ldconfig
-  sudo update-alternatives --install /usr/lib/cgi-bin/php php-cgi-bin /usr/lib/cgi-bin/php"$version" 50
+  sudo update-alternatives --install /usr/lib/libphp"${version/%.*}".so libphp"${version/%.*}" /usr/lib/libphp"$version".so "${version/./}" && sudo ldconfig
+  sudo update-alternatives --install /usr/lib/cgi-bin/php php-cgi-bin /usr/lib/cgi-bin/php"$version" "${version/./}"
+  sudo update-alternatives --install /usr/sbin/php-fpm php-fpm /usr/sbin/php-fpm"$version" "${version/./}"
   sudo update-alternatives --set php-cgi-bin /usr/lib/cgi-bin/php"$version"
+  sudo update-alternatives --set php-fpm /usr/sbin/php-fpm"$version"
   to_wait_arr=()
-  for tool_path in "$install_dir"/bin/*; do
+  for tool in phar phar.phar php-config phpize php php-cgi phpdbg switch_sapi; do
     (
-      tool=$(basename "$tool_path")
-      sudo cp "$tool_path" /usr/bin/"$tool$version"
-      sudo update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$version" 50
+      sudo update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$version" "${version/./}"
       sudo update-alternatives --set "$tool" /usr/bin/"$tool$version"
     ) &
     to_wait_arr+=( $! )
   done
   wait "${to_wait_arr[@]}"
-}
-
-link_prefix() {
-  sudo cp -f "$install_dir"/COMMIT /etc/php/"$version"/COMMIT
-  sudo cp -f "$install_dir"/etc/init.d/php"$version"-fpm /etc/init.d/
-  sudo cp -f "$install_dir"/usr/lib/tmpfiles.d/php"$version"-fpm.conf /usr/lib/tmpfiles.d/
-  sudo cp -f "$install_dir"/etc/systemd/system/php"$version"-fpm.service /lib/systemd/system/
-  sudo cp -f "$install_dir"/usr/lib/apache2/modules/libphp"$version".so /usr/lib/apache2/modules/
-  sudo cp -f "$install_dir"/etc/apache2/mods-available/* /etc/apache2/mods-available/
-  sudo cp -f "$install_dir"/etc/apache2/conf-available/* /etc/apache2/conf-available/
-  sudo cp -f "$install_dir"/etc/apache2/sites-available/* /etc/apache2/sites-available/
-  sudo cp -f "$install_dir"/etc/nginx/sites-available/* /etc/nginx/sites-available/
 }
 
 install() {
@@ -213,33 +204,93 @@ install() {
   fi
   to_wait=$!
   tar_file="php_$version+$ID$VERSION_ID.tar.zst"
-  get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/latest/download/$tar_file"
-  sudo mkdir -m 777 -p /var/run /run/php /etc/php/"$version" /usr/local/php /usr/lib/cgi-bin/ /usr/include/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
-  sudo tar -I zstd -xf "/tmp/$tar_file" -C /usr/local/php --no-same-owner
+  get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/builds/$tar_file"
+  sudo rm -rf /etc/php/"$version"
+  sudo mkdir -m 777 -p /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
+  sudo tar -I zstd -xf "/tmp/$tar_file" -C / --no-same-owner
   wait "$to_wait"
   . /etc/os-release
 }
 
 configure() {
-  echo '' | sudo tee "$pecl_file"
-  for script in pear pecl; do
-    sudo "$script" config-set php_ini "$pecl_file"
-    sudo "$script" channel-update "$script".php.net
-  done
+  sudo chmod 777 "$pecl_file"
+  echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
+  sudo pear update-channels
   echo '' | sudo tee /tmp/pecl_config
   (
     echo "opcache.enable=1"
     echo "opcache.jit_buffer_size=256M"
     echo "opcache.jit=1235"
-  ) >>"$install_dir"/etc/php.ini
-  sudo chmod a+x "$install_dir"/bin/php-fpm-socket-helper
-  sudo ln -sf "$install_dir"/include/php /usr/include/php/"$(php-config --extension-dir | grep -Eo -m 1 "[0-9]{8}")"
-  sudo ln -sf "$install_dir"/etc/php.ini /etc/php.ini
-  sudo ln -sf "$install_dir"/etc/php.ini /etc/php/"$version"/php.ini
-  sudo service php"$version"-fpm start || true
+  ) >> "$pecl_file"
+  if [ -d /run/systemd/system ]; then
+    sudo systemctl daemon-reload 2>/dev/null || true
+    sudo systemctl enable php"$version"-fpm 2>/dev/null || true
+  fi
+  sudo service php"$version"-fpm restart || true
 }
 
-# Read version correctly
+get_api_version_from_repo() {
+  php_header="https://raw.githubusercontent.com/php/php-src/PHP-$version/main/php.h"
+  status_code=$(curl -sSL -o /tmp/php.h -w "%{http_code}" "$php_header")
+  if [ "$status_code" != "200" ]; then
+    curl -sL "${php_header/PHP-$version/master}" | grep "PHP_API_VERSION" | cut -d' ' -f 3
+  else
+    grep "PHP_API_VERSION" /tmp/php.h | cut -d' ' -f 3
+  fi
+}
+
+remove() {
+  if ! [ -e /usr/bin/php"${version:?}" ]; then
+    echo "Error: PHP $version is not installed"
+    exit 1;
+  else
+    phpapi="$(get_api_version_from_repo)"
+  fi
+  command -v sudo >/dev/null || (update_lists && apt-get install -y sudo)
+  if [ -e /etc/init.d/php"$version"-fpm ]; then
+    sudo service php"$version"-fpm stop || true
+    if [ -d /run/systemd/system ]; then
+      sudo systemctl disable php"$version"-fpm
+      sudo systemctl daemon-reload
+      sudo systemctl reset-failed
+    fi
+  fi
+  [ -e /usr/lib/libphp"$version".so ] && sudo update-alternatives --remove libphp"${version/%.*}" /usr/lib/libphp"$version".so && sudo ldconfig
+  [ -e /usr/lib/cgi-bin/php"$version" ] && sudo update-alternatives --remove php-cgi-bin /usr/lib/cgi-bin/php"$version"
+  [ -e /usr/sbin/php-fpm"$version" ] && sudo update-alternatives --remove php-fpm /usr/sbin/php-fpm"$version"
+  for tool in phar phar.phar php-config phpize php php-cgi phpdbg switch_sapi; do
+    if [ -e /usr/bin/"$tool$version" ]; then
+      sudo update-alternatives --remove "$tool" /usr/bin/"$tool$version"
+      sudo rm -f /usr/bin/"$tool$version"
+    fi
+  done
+  sudo find /etc /usr/share/man -name "php$version*" -delete
+  sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
+              /usr/lib/systemd/system/php"$version"-fpm.service \
+              /etc/logrotate.d/php"$version"-fpm \
+              /etc/php/"$version" \
+              /usr/include/php/"$phpapi" \
+              /usr/lib/libphp"$version".so \
+              /usr/lib/apache2/modules/libphp"$version".so \
+              /usr/lib/cgi-bin/php"$version" \
+              /usr/lib/php/php"$version"-fpm-reopenlogs \
+              /usr/lib/php/"$version" \
+              /usr/lib/php/"${phpapi:?}" \
+              /usr/lib/tmpfiles.d/php"$version"-fpm.conf \
+              /usr/lib/libphp"$version".so \
+              /usr/sbin/php-fpm"$version" \
+              /usr/share/php/"$version"
+  exit 0;
+}
+
+if [[ "$1" =~ remove ]]; then
+  version=$2
+  remove
+elif [[ "$2" =~ remove ]]; then
+  version=$1
+  remove
+fi
+
 if [ "$1" = "github" ]; then
   runner="github"
   version=${2:-8.1}
@@ -255,8 +306,15 @@ else
 fi
 
 dist_info_dir='/usr/share/distro-info'
-install_dir="/usr/local/php/$version"
-pecl_file="$install_dir/etc/conf.d/99-pecl.ini"
+pecl_file="/etc/php/$version/mods-available/pecl.ini"
+if [ "$runner" = "github" ]; then
+  sudo rm -f "$pecl_file"
+  pecl_file="/etc/php/$version/cli/conf.d/99-pecl.ini"
+  sudo touch "$pecl_file"
+  for sapi in $(php-config"$version" --php-sapis | sed -E -e 's/cli |handler//g'); do
+    sudo ln -sf "$pecl_file" /etc/php/"$version"/"$sapi"/conf.d/99-pecl.ini
+  done
+fi
 list_file='/etc/apt/sources.list'
 list_dir="$list_file.d"
 debconf_fix='DEBIAN_FRONTEND=noninteractive'
@@ -271,6 +329,6 @@ sks=(
 )
 . /etc/os-release
 install "$runner"
-link_prefix
 switch_version
+add_pear
 configure

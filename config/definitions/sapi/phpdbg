@@ -1,0 +1,5 @@
+--enable-phpdbg
+--enable-cli
+--disable-cgi
+--with-libedit=shared,/usr
+--enable-pcntl

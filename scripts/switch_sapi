@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sapi=$1
 php=PHP_VERSION
-install_dir=/usr/local/php/PHP_VERSION
 debconf_fix=DEBIAN_FRONTEND=noninteractive
+
 apt_mgr='apt-get'
 command -v apt-fast >/dev/null && apt_mgr='apt-fast'
 apt_install="sudo $debconf_fix $apt_mgr -y -o Dpkg::Options::=--force-confdef --no-install-recommends install"
@@ -33,8 +33,6 @@ install_apache2() {
   fi
   sudo sed -i -e 's/60/5/' -e 's/20/5/' /etc/init.d/apache2
   . /etc/apache2/envvars
-  sudo cp "$install_dir"/etc/apache2/conf-available/*.conf /etc/apache2/conf-available/
-  sudo cp "$install_dir"/etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/
   echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf >/dev/null 2>&1
 }
 
@@ -43,7 +41,6 @@ install_nginx() {
   if ! check_installed nginx; then
     $apt_install nginx
   fi
-  sudo cp "$install_dir"/etc/nginx/sites-available/default /etc/nginx/sites-available/
 }
 
 setup_apache_apache() {

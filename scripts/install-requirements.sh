@@ -1,45 +1,269 @@
-. /etc/os-release
-apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install -y apt-transport-https curl git gnupg jq software-properties-common sudo systemd wget
-mysql='mysql-server'
-if [ "$ID" = "debian" ]; then
-  mysql=default-"$mysql"
-  curl -o /etc/apt/trusted.gpg.d/php.gpg -sL https://packages.sury.org/php/apt.gpg
-  echo "deb https://packages.sury.org/php/ $VERSION_CODENAME main" > /etc/apt/sources.list.d/ondrej.list
-  echo "deb http://deb.debian.org/debian testing main" > /etc/apt/sources.list.d/testing.list
-elif [ "$ID" = "ubuntu" ]; then
-  apt-add-repository ppa:ubuntu-toolchain-r/test -y
-  if [ "$VERSION_ID" = "16.04" ]; then
-    LC_ALL=C.UTF-8 apt-add-repository --remove ppa:ondrej/php -y || true
-    LC_ALL=C.UTF-8 apt-add-repository http://setup-php.com/ondrej/php/ubuntu -y
-    apt-key adv --keyserver keyserver.ubuntu.com --recv 4f4ea0aae5267a6c
+#!/usr/bin/env bash
+
+# Function to cURL.
+get() {
+  file_path=$1
+  shift
+  links=("$@")
+  command -v sudo >/dev/null && SUDO=sudo
+  for link in "${links[@]}"; do
+    status_code=$(${SUDO} curl -w "%{http_code}" -o "$file_path" -sL "$link")
+    [ "$status_code" = "200" ] && break
+  done
+}
+
+# Helper function to update the package list(s).
+update_lists_helper() {
+  list=$1
+  if [[ -n "$list" ]]; then
+    apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
   else
-    LC_ALL=C.UTF-8 apt-add-repository ppa:ondrej/php -y
+    apt-get update
   fi
-fi
+}
 
-apt-get update
-lib_enchant=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y autoconf gcc-9 g++-9 expect libaio1 locales re2c "$mysql" postgresql pkg-config apache2 apache2-dev libapache2-mod-fcgid libaspell-dev libbz2-dev libbison-dev libedit-dev "$lib_enchant" libcurl4-gnutls-dev libffi-dev libfreetype6-dev libargon2-dev libmagickwand-dev libgmp-dev libicu-dev libjpeg-dev libwebp-dev libc-client2007e-dev libgccjit-9-dev libkrb5-dev libldb-dev libldap-dev liblz4-dev libonig-dev libmcrypt-dev libmemcached-dev libpng-dev libpq5 libpq-dev librabbitmq-dev libreadline-dev libpspell-dev libsasl2-dev libsnmp-dev libssl-dev libsqlite3-dev libsodium-dev libsystemd-dev libtidy-dev libwebp-dev libxml2-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev zlib1g liblzma-dev liblz4-dev systemd unixodbc-dev
-ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
-mkdir -p /usr/c-client/ /usr
-ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
-ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so
-ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
-if [ -d /usr/lib64 ]; then
-  ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
-  ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
-fi
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
+# Function to update the package list(s).
+update_lists() {
+  local ppa=${1:-}
+  local ppa_search=${2:-}
+  if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
+    if [[ -n "$ppa" && -n "$ppa_search" ]]; then
+      list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
+    elif grep -Eq '^deb ' "$list_file"; then
+      list="$list_file"
+    fi
+    update_lists_helper "$list"
+    echo '' | tee /tmp/setup_php >/dev/null 2>&1
+  fi
+}
 
-mkdir -p /opt/zstd
-ZSTD_DIR=zstd-$(curl -sL https://github.com/facebook/zstd/releases/latest | grep -Po "tree/v(\d+\.\d+\.\d+)" | cut -d'v' -f 2 | head -n 1)
-curl -o /tmp/zstd.tar.gz -sL https://github.com/facebook/zstd/releases/latest/download/"$ZSTD_DIR".tar.gz
-tar -xzf /tmp/zstd.tar.gz -C /tmp
-(
-  cd /tmp/"$ZSTD_DIR" || exit 1
-  make install -j"$(nproc)" PREFIX=/opt/zstd
+# Function to get the fingerprint from a Ubuntu repository.
+ubuntu_fingerprint() {
+  ppa=$1
+  curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
+}
+
+# Function to get the fingerprint from a Debian repository.
+debian_fingerprint() {
+  ppa=$1
+  ppa_url=$2
+  package_dist=$3
+  release_pub=/tmp/"${ppa/\//-}".gpg
+  get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
+  gpg --homedir /tmp --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
+}
+
+# Function to add the keyring for a repository.
+add_key() {
+  ppa=${1:-ondrej/php}
+  ppa_url=$2
+  package_dist=$3
+  key_source=$4
+  key_file=$5
+  key_urls=("$key_source")
+  if [[ "$key_source" =~ launchpad.net|debian.org|setup-php.com ]]; then
+    fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
+    sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
+    key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
+  fi
+  [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
+  if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
+    gpg --homedir /tmp --batch --yes --dearmor "$key_file" && rm -f "$key_file" >/dev/null 2>&1
+    mv "$key_file".gpg "$key_file"
+  fi
+}
+
+# Function to add a package list.
+add_list() {
+  ppa=${1-ondrej/php}
+  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  key_source=${3:-"$ppa_url"}
+  package_dist=${4:-"$VERSION_CODENAME"}
+  branches=${5:-main}
+  ppa_search="deb .*$ppa_url $package_dist .*$branches"
+  grep -Eqr "$ppa_search" "$list_dir" && echo "Repository $ppa already exists" && return
+  arch=$(dpkg --print-architecture)
+  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
+  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
+  echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | tee "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
+  update_lists "$ppa" "$ppa_search"
+}
+
+# Function to remove a package list.
+remove_list() {
+  ppa=${1-ondrej/php}
+  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  grep -lr "$ppa_url" "$list_dir" | xargs -n1 rm -f
+  rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
+}
+
+# Function to add a package repository.
+add_ppa() {
+  if [ "$ID" = "ubuntu" ]; then
+    if [ "$VERSION_ID" = "16.04" ]; then
+      remove_list ondrej/php
+      add_list ondrej/php https://setup-php.com/ondrej/php/ubuntu
+    else
+      add_list ondrej/php
+    fi
+  elif [ "$ID" = "debian" ]; then
+    add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
+  fi
+}
+
+# Function to install packages.
+install_packages() {
+  packages=("$@")
+  apt_mgr='apt-get'
+  command -v apt-fast >/dev/null && apt_mgr='apt-fast'
+  apt_install="$apt_mgr install -yq --no-install-recommends"
+  $apt_install "${packages[@]}" 2>/dev/null || (update_lists && $apt_install "${packages[@]}")
+}
+
+# Function to configure the build requirements for PHP.
+configure_requirements() {
+  ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
+  mkdir -p /usr/c-client/ /usr
+  ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
+  ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so
+  ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
+  if [ -d /usr/lib64 ]; then
+    ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
+    ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
+  fi
+}
+
+# Function to get mysql package.
+get_libmysql() {
+  mysql='libmysqlclient-dev'
+  if [ "$ID" = "debian" ]; then
+    mysql=default-"$mysql"
+  fi
+  echo "$mysql"
+}
+
+# Constants.
+list_file='/etc/apt/sources.list'
+list_dir="$list_file.d"
+lp_api='https://api.launchpad.net/1.0'
+lp_ppa='http://ppa.launchpad.net'
+key_dir='/usr/share/keyrings'
+sks=(
+  'https://keyserver.ubuntu.com'
+  'https://pgp.mit.edu'
+  'https://keys.openpgp.org'
 )
-ln -sf /opt/zstd/bin/* /usr/local/bin
-rm -rf /tmp/zstd*
+
+# Add OS information to the environment.
+. /etc/os-release
+
+# Set frontend to noninteractive
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+# Install the build requirements for PHP
+install_packages apt-transport-https \
+                 ca-certificates \
+                 curl \
+                 file \
+                 gcc \
+                 g++ \
+                 git \
+                 gnupg \
+                 jq \
+                 sudo \
+                 wget \
+                 zstd
+
+# Set library versions
+libmysql_dev=$(get_libmysql)
+libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
+gcc_version=$(gcc --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d '.' -f 1)
+libgcc_dev="libgcc-$gcc_version-dev"
+libgccjit_dev="libgccjit-$gcc_version-dev"
+
+# Add required package repositories.
+add_ppa
+
+# Install PHP build requirements.
+install_packages apache2-dev \
+                 autoconf \
+                 automake \
+                 bison \
+                 dpkg-dev \
+                 firebird-dev \
+                 freetds-dev \
+                 libapparmor-dev \
+                 libacl1-dev \
+                 libaio-dev \
+                 libapr1-dev \
+                 libargon2-dev \
+                 libapache2-mod-fcgid \
+                 libaspell-dev \
+                 libbz2-dev \
+                 libc-client2007e-dev \
+                 libcurl4-openssl-dev \
+                 libdb-dev \
+                 libedit-dev \
+                 "$libenchant_dev" \
+                 libevent-dev \
+                 libexpat1-dev \
+                 libffi-dev \
+                 libfreetype6-dev \
+                 "$libgcc_dev" \
+                 "$libgccjit_dev" \
+                 libgcrypt20-dev \
+                 libgd-dev \
+                 libglib2.0-dev \
+                 libgmp3-dev \
+                 libicu-dev \
+                 libjpeg-dev \
+                 libkrb5-dev \
+                 libldb-dev \
+                 libldap2-dev \
+                 liblmdb-dev \
+                 liblz4-dev \
+                 liblzma-dev \
+                 libmagic-dev \
+                 libmagickwand-dev \
+                 libmcrypt-dev \
+                 libmemcached-dev \
+                 libmhash-dev \
+                 "$libmysql_dev" \
+                 libnss-myhostname \
+                 libonig-dev \
+                 libonig-dev \
+                 libpam0g-dev \
+                 libpcre2-dev \
+                 libpng-dev \
+                 libpq-dev \
+                 libpspell-dev \
+                 libqdbm-dev \
+                 librabbitmq-dev \
+                 libreadline-dev \
+                 libsasl2-dev \
+                 libsodium-dev \
+                 libsqlite3-dev \
+                 libssl-dev \
+                 libsystemd-dev \
+                 libtidy-dev \
+                 libtool \
+                 libwebp-dev \
+                 libwrap0-dev \
+                 libxml2-dev \
+                 libxmltok1-dev \
+                 libxslt1-dev \
+                 libzip-dev \
+                 libzstd-dev \
+                 locales-all \
+                 netbase \
+                 netcat-openbsd \
+                 pkg-config \
+                 re2c \
+                 shtool \
+                 systemtap-sdt-dev \
+                 tzdata \
+                 unixodbc-dev \
+                 zlib1g-dev
+
+# Configure PHP build requirements.
+configure_requirements

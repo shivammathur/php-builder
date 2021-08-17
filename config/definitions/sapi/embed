@@ -1,0 +1,6 @@
+--enable-embed=shared
+--enable-cli
+--disable-cgi
+--disable-phpdbg
+--without-mm
+--enable-pcntl

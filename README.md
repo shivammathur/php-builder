@@ -12,22 +12,31 @@
 
 - [OS Support](#os-support)
 - [Install](#install)
+- [Extensions](#extensions)
 - [SAPI Support](#sapi-support)
 - [Builds](#builds)
+- [Uninstall](#uninstall)
 - [Related Projects](#related-projects)
 - [License](#license)
 - [Dependencies](#dependencies)
 
 ## OS Support
 
-- Ubuntu 16.04 (Xenial) and above.
-- Debian 9 (Stretch) and above.
+- Ubuntu 16.04 (Xenial) amd64
+- Ubuntu 18.04 (Bionic) amd64
+- Ubuntu 20.04 (Focal) amd64
+- Ubuntu 21.04 (Hirsute) amd64
+- Debian 9 (Stretch) amd64
+- Debian 10 (Buster) amd64
+- Debian 11 (Bullseye) amd64
 
 All other distributions based on the above operating systems will also be supported on best effort basis.
 
 ## Install
 
-- Fetch the installer:
+- If you have the PHP version you want already installed from any other distribution, please remove it before installing using this to avoid any conflicts.
+
+- Then, fetch the installer:
 
 ```bash
 curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
@@ -54,20 +63,45 @@ php -v
 
 **Notes:**
 
-- The requested PHP version would be installed at `/usr/local/php/<PHP VERSION>`.
-- All the binaries for the PHP version would be linked in `/usr/bin`.
+- All PHP versions have prefix `/usr` and the directory structure will be same as that of Debian builds.
+- Any pre-existing extensions INI configuration for the PHP version will be removed upon installation.
 - The installer will switch to the PHP version you installed.
+
+## Extensions
+
+<ul><li><details>
+  <summary>Expand to check the extensions available in both <code>PHP 8.0</code> and <code>PHP 8.1.0-dev</code></summary>
+  <br>
+
+`amqp`, `apcu`, `ast`, `bcmath`, `bz2`, `calendar`, `Core`, `ctype`, `curl`, `date`, `dba`, `dom`, `enchant`, `exif`, `FFI`, `fileinfo`, `filter`, `ftp`, `gd`, `gettext`, `gmp`, `hash`, `iconv`, `igbinary`, `imagick`, `imap`, `intl`, `json`, `ldap`, `libxml`, `mbstring`, `memcache`, `memcached`, `msgpack`, `mysqli`, `mysqlnd`, `odbc`, `openssl`, `pcntl`, `pcov`, `pcre`, `PDO`, `pdo_dblib`, `PDO_Firebird`, `pdo_mysql`, `PDO_ODBC`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, `pgsql`, `Phar`, `posix`, `pspell`, `readline`, `redis`, `Reflection`, `session`, `shmop`, `SimpleXML`, `soap`, `sockets`, `sodium`, `SPL`, `sqlite3`, `sqlsrv`, `standard`, `sysvmsg`, `sysvsem`, `sysvshm`, `tidy`, `tokenizer`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `xsl`, `zip`, `zlib`, `Xdebug`, `Zend OPcache`
+
+</details></li></ul>
+
+- Extension `pcov` is disabled by default as Xdebug is enabled.
+
+- You can switch to `pcov` by disabling Xdebug using `phpdismod` and enabling pcov using `phpenmod`.
+
+```bash
+phpdismod -v ALL xdebug
+phpenmod -v ALL pcov
+```
+
+- `PECL` is also installed along with PHP, so you can install compatible extensions using that. Extensions installed using `pecl` are enabled using the `pecl.ini` module which is linked to all SAPIs.
+
+```bash
+pecl install <extension>
+```
 
 ## SAPI support
 
 These SAPIs are installed by default:
 
-- apache2-handler
-- cli
-- cgi
-- embed
-- fpm
-- phpdbg
+- `apache2-handler`
+- `cli`
+- `cgi`
+- `embed`
+- `fpm`
+- `phpdbg`
 
 These SAPI-server configurations can be set up with the `switch_sapi` script:
 
@@ -106,6 +140,27 @@ switch_sapi fpm:nginx
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian11.tar.xz)
 
+## Uninstall
+
+- Fetch the installer:
+
+```bash
+curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
+chmod a+x ./install.sh
+```
+
+- Then, to remove `PHP 8.0`:
+
+```bash
+./install.sh --remove 8.0
+```
+
+or, to remove `PHP 8.1.0-dev`:
+
+```bash
+./install.sh --remove 8.1
+```
+
 ## Related Projects
 - [shivammathur/homebrew-php](https://github.com/shivammathur/homebrew-php)
 - [shivammathur/php-builder-windows](https://github.com/shivammathur/php-builder-windows)
@@ -119,6 +174,7 @@ The scripts and documentation in this project are under the [MIT license](LICENS
 
 - [AMQP](https://github.com/php-amqp/php-amqp "AMQP PHP Extension")
 - [APCU](https://github.com/krakjoe/apcu "APCU PHP Extension")
+- [AST](https://github.com/nikic/php-ast "AST PHP Extension")
 - [Deb.sury.org](https://github.com/oerdnj/deb.sury.org "PHP packaging for Ubuntu and Debian")
 - [igbinary](https://github.com/igbinary/igbinary "Igbinary PHP Extension")
 - [Imagick](https://github.com/Imagick/imagick "Imagick PHP Extension")

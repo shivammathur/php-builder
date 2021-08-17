@@ -1,9 +1,13 @@
+#!/usr/bin/env bash
+
+# Function to update the build log
 log_build() {
   gh release download -p "build.log" || true
   date '+%Y.%m.%d' | sudo tee -a build.log
   assets+=("./build.log")
 }
 
+# Function to update the PHP version log
 log_version() {
   assets+=("scripts/install.sh")
   for version in 8.0 8.1; do
@@ -16,17 +20,25 @@ log_version() {
   done
 }
 
-if [[ "$GITHUB_MESSAGE" != *skip-release* ]]; then
-  set -x
-  assets=()
-  for asset in ./builds/*/*; do
-    assets+=("$asset")
-  done
-  log_version
-  log_build
-  if ! gh release view builds; then
-    gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
-  else
-    gh release upload "builds" "${assets[@]}" --clobber
-  fi
+# Exit if commit message has skip-release.
+[[ "$GITHUB_MESSAGE" = *skip-release* ]] && exit 0;
+
+# Remove SAPI builds.
+rm -rf ./builds/php-sapi*
+
+# Build assets array with builds.
+assets=()
+for asset in ./builds/*/*; do
+  assets+=("$asset")
+done
+
+# Update logs.
+log_version
+log_build
+
+# Create or update release.
+if ! gh release view builds; then
+  gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
+else
+  gh release upload "builds" "${assets[@]}" --clobber
 fi

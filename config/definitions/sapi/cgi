@@ -1,0 +1,4 @@
+--enable-cli
+--enable-cgi
+--disable-phpdbg
+--enable-pcntl

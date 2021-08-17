@@ -1,0 +1,3 @@
+; configuration for php redis module
+; priority=20
+extension=redis.so
