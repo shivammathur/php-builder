@@ -1,11 +1,9 @@
 # Function to configure pear.
 configure_pear() {
   echo "::group::configure_pear"
-  # Set default php.ini for pear to pecl_file which is a mod linked in all SAPI.
-  "${INSTALL_ROOT:?}"/usr/bin/pear config-set php_ini "${pecl_file:?}" system
 
   # Set pear channel.
-  "$INSTALL_ROOT"/usr/bin/pear channel-update pear.php.net
+  "$INSTALL_ROOT"/usr/bin/pear update-channels
   echo "::endgroup::"
 }
 

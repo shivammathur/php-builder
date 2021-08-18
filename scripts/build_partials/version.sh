@@ -7,7 +7,7 @@ check_stable() {
   # then, check if a build of the stable PHP version exists
   # If yes, then fetch it and exit, or continue.
   if [[ "$GITHUB_MESSAGE" != *build-all* ]]; then
-    if [ "$new_version" = "$(curl -sL "${github:?}"/php"$PHP_VERSION".log)" ]; then
+    if [ "$new_version" = "$(curl -sL "$RELEASE"/php"$PHP_VERSION".log)" ]; then
       (
         mkdir -p "${INSTALL_ROOT:?}"
         cd "$INSTALL_ROOT"/.. || exit
