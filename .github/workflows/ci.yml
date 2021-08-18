@@ -5,6 +5,11 @@ on:
   pull_request:
   repository_dispatch:
   workflow_dispatch:
+    inputs:
+      build-mode:
+        description: 'Build mode: --build-all or --build--new'
+        default: '--build-new'
+        required: false
   schedule:
     - cron: '0 0 * * *'
 
@@ -29,7 +34,7 @@ jobs:
       - name: Get matrix
         id: set-matrix
         env:
-          COMMIT: ${{ github.event.head_commit.message }}
+          COMMIT: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           CONTAINER_OS_LIST: ${{ env.CONTAINER_OS_LIST }}
           RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
           PHP_LIST: ${{ env.PHP_LIST }}
