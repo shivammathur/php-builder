@@ -29,7 +29,6 @@ configure_fpm() {
   # Patch the scripts.
   sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" scripts/php-fpm.init
   sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" scripts/php-fpm-reopenlogs
-  sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" scripts/switch_sapi
 
   # Copy the config files to INSTALL_ROOT.
   cp -fp config/php-fpm.logrotate "$INSTALL_ROOT"/etc/logrotate.d/php"$PHP_VERSION"-fpm
@@ -40,7 +39,6 @@ configure_fpm() {
   # Copy the scripts to INSTALL_ROOT.
   cp -fp scripts/php-fpm.init "$INSTALL_ROOT"/etc/init.d/php"$PHP_VERSION"-fpm
   cp -fp scripts/php-fpm-reopenlogs "$INSTALL_ROOT"/usr/lib/php/php"$PHP_VERSION"-fpm-reopenlogs
-  cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/bin/switch_sapi"$PHP_VERSION"
   chmod -R a+x "$INSTALL_ROOT"/etc/init.d/php"$PHP_VERSION"-fpm
 
   # Remove the defaults.

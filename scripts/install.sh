@@ -237,11 +237,6 @@ configure() {
   echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
   sudo pear update-channels
   echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
-  (
-    echo "opcache.enable=1"
-    echo "opcache.jit_buffer_size=256M"
-    echo "opcache.jit=1235"
-  ) >> "$pecl_file"
   if [ -d /run/systemd/system ]; then
     sudo systemctl daemon-reload 2>/dev/null || true
     sudo systemctl enable php"$version"-fpm 2>/dev/null || true

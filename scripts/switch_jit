@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+#
+# MIT License
+#
+# Copyright (c) Shivam Mathur <contact@shivammathur.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+ACTION_REGEX='^(en|dis)able$'
+BUFFER_REGEX='^([1-9][0-9]*[KkMmgG]?)$'
+JIT_VERSION_REGEX='[8-9]\.[0-9]+|[0-9]{2,}\.[0-9]+'
+MODE_REGEX='^(tracing|function|[0-1][0-2][0-5]{2})$'
+
+# Function to print usage.
+usage() {
+  read -r -d '' USAGE << EOM
+Usage: switch_jit [OPTION]... [ACTION]
+Enables or disables PHP's JIT (Just-In-Time) compiler.
+
+OPTIONS:
+  -v=[ ALL|PHP_VERSION ]         ALL or PHP version 8.0 or newer.
+  -s=[ ALL|SAPI_NAME   ]         ALL or SAPI installed in the php versions.
+  -m=[ tracing|JIT_MODE  ]       tracing, function or 4 digit JIT mode (CRTO).
+  -b=[ 128M|JIT_BUFFER_SIZE ]    JIT buffer size in bytes or shorthand notation with K, M or G suffix.
+
+ACTION:
+  enable     Enable JIT
+  disable    Disable JIT
+
+EXAMPLES:
+  switch_jit -v ALL -s ALL -m tracing -b 128M enable
+  switch_jit -v ALL -s ALL disable
+  switch_jit -v 8.0 -v 8.1 -s cli -s fpm -m 1235 -b 1G enable
+  switch_jit -v 8.0 -s cli disable
+EOM
+  echo "$USAGE"
+  exit 1;
+}
+
+# Function to print a warning.
+warning() {
+  [ -n "$1" ] && echo "WARNING: $1"
+  exit 1
+}
+
+# Function to print a warning for wrong mode.
+mode_warning() {
+  warning "Please either specify a JIT mode in CRTO format or tracing, or function."
+}
+
+# Function to print a warning for wrong jit_buffer_mode.
+buffer_warning() {
+  warning "Please either specify a JIT buffer size in bytes or in shorthand notation with K/M/G suffix."
+}
+
+# Function to print a warning for wrong jit_buffer_mode.
+get_extension_dir() {
+  version=$1
+  if command -v php-config"$version" >/dev/null; then
+    php-config"$version" --extension-dir
+  elif command -v php"$version" >/dev/null; then
+    php"$version" -i | grep "extension_dir => /" | sed -e "s|.*=> s*||"
+  else
+    echo "PHP $version is not installed"
+    exit 1
+  fi
+}
+
+get_sapi_binary() {
+  version=$1
+  sapi=$2
+  [ "$sapi" = "cli" ] && echo "/usr/bin/php$version" && return;
+  [ "$sapi" = "cgi" ] && echo "/usr/bin/php-cgi$version" && return;
+  [ "$sapi" = "fpm" ] && echo "/usr/sbin/php-fpm$version" && return;
+}
+
+# Function to check conflicting extensions.
+check_conflicts() {
+  version=$1
+  sapi=$2
+  sapi_binary="$(get_sapi_binary "$version" "$sapi")";
+  if [[ -n $sapi_binary ]]; then
+    # Try to load the binary with JIT and check if it fails to load.
+    if $sapi_binary -d 'error_reporting=E_ALL' -d 'opcache.jit_buffer_size=1M' -d 'opcache.enable_cli=1' -v 2>&1 | grep -q 'JIT disabled'; then
+      echo "PHP $version: Third-party extension(s) found in SAPI $sapi which are not compatible with JIT."
+      error=yes
+    fi
+  fi
+}
+
+# Function to enable a module.
+enable_module() {
+  module=$1
+  version=$2
+  sapi=$3
+  required=$4
+  if ! phpquery -q -v "$version" -s "$sapi" -m "$module"; then
+    ext_dir=$(get_extension_dir "$version")
+    if [ -f "$ext_dir"/"$module".so ]; then
+      phpenmod -v "$version" -s "$sapi" "$module"
+    elif [ "$required" = 'yes' ]; then
+      warning "Extension $module is not installed for PHP $version."
+    fi
+  fi
+  if ! phpquery -q -v "$version" -s "$sapi" -m "$module"; then
+    warning "Could not enable $module on PHP $version with SAPI $sapi"
+  fi
+}
+
+# Function to create JIT module.
+create_jit_module() {
+  version=$1
+  mode=$2
+  buffer=$3
+  (
+    echo "opcache.enable=1"
+    echo "opcache.enable_cli=1"
+    echo "opcache.jit_buffer_size=$buffer"
+    echo "opcache.jit=$mode"
+  ) | tee /etc/php/"$version"/mods-available/jit.ini >/dev/null 2>&1
+}
+
+# Read inputs
+while getopts 'v:s:m:b:h' opt; do
+  case $opt in
+  v)
+    if [[ "$version_list" == "ALL" || "$OPTARG" == "ALL" && -n "$version_list" ]]; then
+      warning "Please specify ALL or valid PHP versions."
+    fi
+    version_list="${version_list}${version_list:+ }$OPTARG"
+    ;;
+  s)
+    if [[ "$sapi_list" == "ALL" || "$OPTARG" == "ALL" && -n "$sapi_list" ]]; then
+      warning "Please specify ALL or valid SAPIs."
+    fi
+    sapi_list="${sapi_list}${sapi_list:+ }$OPTARG"
+    ;;
+  m)
+    if [[ "$mode" =~ $MODE_REGEX || "$OPTARG" =~ $MODE_REGEX && -n "$mode" ]]; then
+      mode_warning
+    fi
+    mode="$OPTARG"
+    ;;
+  b)
+    if [[ "$buffer" =~ $BUFFER_REGEX || "$OPTARG" =~ $BUFFER_REGEX && -n "$buffer" ]]; then
+      buffer_warning
+    fi
+    buffer="$OPTARG"
+    ;;
+  \?|h) usage ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+action=$1
+if [[ -z "$action" || ! $action =~ $ACTION_REGEX ]]; then
+  warning "Please specify enable or disable action."
+fi
+
+if [ "$action" = "enable" ]; then
+  [[ -z "$mode" ]] && mode=tracing
+  if ! [[ "$mode" =~ $MODE_REGEX ]]; then
+    mode_warning
+  fi
+
+  [[ -z "$buffer" ]] && buffer=128M
+  if ! [[ "$buffer" =~ $BUFFER_REGEX ]]; then
+    buffer_warning
+  fi
+fi
+
+# Get versions with JIT support if -v is ALL.
+if [[ -z "$version_list" || "$version_list" =~ all|ALL ]]; then
+  version_list=$(phpquery -V | grep -Eo "$JIT_VERSION_REGEX")
+# Else filter out versions without JIT support.
+else
+  version_list=$(echo "$version_list" | grep -Eo "$JIT_VERSION_REGEX")
+  # If no version with JIT support is specified.
+  if [[ -z "$version_list" ]]; then
+    warning "Please specify ALL or valid PHP versions with JIT support."
+  fi
+fi
+
+error=no
+for version in $version_list; do
+  # Get SAPI for a version
+  if [[ "$sapi_list" =~ all|ALL ]]; then
+    version_sapi_list=$(phpquery -S -v "$version")
+  fi
+
+  # Enable JIT.
+  if [ "$action" = "enable" ]; then
+    # Create JIT module for the PHP version.
+    create_jit_module "$version" "$mode" "$buffer"
+    for sapi in $version_sapi_list; do
+      # Make sure the scan directory for the SAPI exists
+      mkdir -p /etc/php/"$version"/"$sapi"/conf.d
+
+      # Check if there are conflicting extensions.
+      check_conflicts "$version" "$sapi"
+      if [ "$error" = "yes" ]; then
+        continue
+      fi
+
+      # Enable Opcache for the input SAPI and PHP version.
+      enable_module opcache "$version" "$sapi" yes
+
+      # Enable JIT for the input SAPI and PHP version.
+      phpenmod -v "$version" -s "$sapi" jit
+    done
+  # Disable JIT
+  elif [ "$action" = "disable" ]; then
+    for sapi in $version_sapi_list; do
+      # Disable JIT for the input SAPI and PHP version.
+      phpdismod -v "$version" -s "$sapi" jit
+    done
+  fi
+done
+
+if [ "$error" = "yes" ]; then
+  exit 1;
+fi

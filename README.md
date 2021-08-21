@@ -13,6 +13,7 @@
 - [OS Support](#os-support)
 - [Install](#install)
 - [Extensions](#extensions)
+- [JIT](#jit)
 - [SAPI Support](#sapi-support)
 - [Builds](#builds)
 - [Uninstall](#uninstall)
@@ -77,21 +78,48 @@ php -v
 
 </details></li></ul>
 
-- Extension `pcov` is disabled by default as Xdebug is enabled.
+- Extension PCOV is disabled by default as Xdebug is enabled.
 
-- You can switch to `pcov` by disabling Xdebug using `phpdismod` and enabling pcov using `phpenmod`.
-
-For example, to enable pcov on PHP 8.1:
+- You can switch to PCOV by disabling Xdebug using `phpdismod` and enabling it using `phpenmod`.
 
 ```bash
-phpdismod -p 8.1 -s ALL xdebug
-phpenmod -p 8.1 -s ALL pcov
+phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug
+phpenmod -v <ALL|php-version> -s <ALL|sapi-name> pcov
 ```
 
 - `PECL` is also installed along with PHP, so you can install compatible extensions using that. Extensions installed using `pecl` are enabled using the `pecl.ini` module which is linked to all SAPIs.
 
 ```bash
 pecl install <extension>
+```
+
+## JIT
+
+PHP 8.0 and above versions have a JIT(Just-In-Time) compiler.
+
+It is disabled by default, and can be enabled by the following steps:
+
+- First, disable Xdebug and PCOV as they are not compatible with JIT.
+
+```bash
+phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug
+phpenmod -v <ALL|php-version> -s <ALL|sapi-name> pcov
+```
+
+- Then enable JIT using the `switch_jit` script for the same PHP versions and SAPIs.
+
+```bash
+switch_jit -v <ALL|php-version> -s <ALL|sapi-name> enable -m <jit_mode> -b <jit_buffer_size>
+```
+
+If you do not specify `-m` or `-b`, the default for JIT mode is `tracing`, and for JIT buffer size it is `128M`.
+
+- If you get a warning about incompatible extensions, check if you installed any other third-party extensions which are incompatible with JIT.
+
+To disable JIT:
+
+```bash
+switch_jit -v <php-version> -s <ALL|sapi-name> disable
 ```
 
 ## SAPI support

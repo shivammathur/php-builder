@@ -95,13 +95,18 @@ merge_sapi() {
     rm -rf "${INSTALL_ROOT:?}"/lib
   fi
 
-  # Make sure php-cli is from cli build.
+  # Make sure php-cli and php-config is from cli build.
   cp -f "$INSTALL_ROOT-cli/usr/bin/php$PHP_VERSION" "$INSTALL_ROOT"/usr/bin
 
   # Fix phar.phar binary and docs version suffix.
   mv "$INSTALL_ROOT"/usr/bin/phar"$PHP_VERSION".phar "$INSTALL_ROOT"/usr/bin/phar.phar"$PHP_VERSION"
   ln -sf /usr/bin/phar.phar"$PHP_VERSION" "$INSTALL_ROOT"/usr/bin/phar"$PHP_VERSION"
   mv "$INSTALL_ROOT"/usr/share/man/man1/phar"$PHP_VERSION".phar.1 "$INSTALL_ROOT"/usr/share/man/man1/phar.phar"$PHP_VERSION".1
+
+  # Copy switch_sapi and switch_jit scripts
+  sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" scripts/switch_sapi
+  cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/bin/switch_sapi"$PHP_VERSION"
+  cp -fp scripts/jit "$INSTALL_ROOT"/usr/bin/switch_jit"$PHP_VERSION"
 
   # Make sure the binaries are executable.
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
