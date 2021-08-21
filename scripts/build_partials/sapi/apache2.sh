@@ -15,6 +15,12 @@ configure_apache2() {
 
   # Copy the minimal apache configuration to the INSTALL_ROOT.
   cp -fp config/default_apache "$INSTALL_ROOT"/etc/apache2/sites-available/000-default.conf
+
+  # Remove any php binaries in the apache build.
+  rm -rf "${INSTALL_ROOT:?}"/usr/bin
+
+  # Remove libtool files and extensions.
+  find "${INSTALL_ROOT:?}" -name '*.la' -name '*.so' -delete
 }
 
 # Function to build PHP apache2 sapi.

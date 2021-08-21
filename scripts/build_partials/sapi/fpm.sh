@@ -45,6 +45,12 @@ configure_fpm() {
   rm -f "$INSTALL_ROOT"/etc/init.d/php-fpm \
         "$INSTALL_ROOT"/etc/php-fpm.conf.default \
         "$FPM_CONF_DIR"/pool.d/www.conf.default
+
+  # Remove all binaries on fpm build in bin as php-fpm is in sbin.
+  rm -rf "${INSTALL_ROOT:?}"/usr/bin
+
+  # Remove libtool files and extensions.
+  find "${INSTALL_ROOT:?}" -name '*.la' -name '*.so' -delete
 }
 
 # Function to build PHP fpm sapi.

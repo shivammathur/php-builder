@@ -234,6 +234,14 @@ install() {
 }
 
 configure() {
+  if [ "$runner" = "github" ]; then
+    sudo rm -f "$pecl_file"
+    pecl_file="/etc/php/$version/cli/conf.d/99-pecl.ini"
+    sudo touch "$pecl_file"
+    for sapi in $(php-config"$version" --php-sapis | sed -E -e 's/cli |handler//g'); do
+      sudo ln -sf "$pecl_file" /etc/php/"$version"/"$sapi"/conf.d/99-pecl.ini
+    done
+  fi
   sudo chmod 777 "$pecl_file"
   echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
   sudo pear update-channels
@@ -322,14 +330,6 @@ else
 fi
 
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
-if [ "$runner" = "github" ]; then
-  sudo rm -f "$pecl_file"
-  pecl_file="/etc/php/$version/cli/conf.d/99-pecl.ini"
-  sudo touch "$pecl_file"
-  for sapi in $(php-config"$version" --php-sapis | sed -E -e 's/cli |handler//g'); do
-    sudo ln -sf "$pecl_file" /etc/php/"$version"/"$sapi"/conf.d/99-pecl.ini
-  done
-fi
 list_file='/etc/apt/sources.list'
 list_dir="$list_file.d"
 debconf_fix='DEBIAN_FRONTEND=noninteractive'

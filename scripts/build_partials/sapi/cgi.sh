@@ -6,6 +6,12 @@ configure_cgi() {
   # Patch and copy php-cgi config to the INSTALL_ROOT.
   sed -i "s/PHP_VERSION/$PHP_VERSION/g" config/php-cgi.conf
   cp -fp config/php-cgi.conf "$INSTALL_ROOT"/etc/apache2/conf-available/php"$PHP_VERSION"-cgi.conf
+
+  # Remove all binaries except php-cgi.
+  find "${INSTALL_ROOT:?}/usr/bin" -name "*$PHP_VERSION*" ! -name "php-cgi$PHP_VERSION" -delete
+
+  # Remove libtool files and extensions.
+  find "${INSTALL_ROOT:?}" -name '*.la' -name '*.so' -delete
 }
 
 # Function to build PHP cgi sapi.

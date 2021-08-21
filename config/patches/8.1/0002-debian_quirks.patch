@@ -70,17 +70,17 @@ Subject: debian_quirks
  .SH FILES
  .TP 15
 -.B php\-cli.ini
-+.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cli/php.ini
++.B /etc/php/8.1/cli/php.ini
  The configuration file for the CLI version of PHP.
  .TP
 -.B php.ini
 -The standard configuration file will only be used when
 -.B php\-cli.ini
 -cannot be found.
-++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cgi/php.ini
+++.B /etc/php/8.1/cgi/php.ini
 ++The configuration file for the CGI version of PHP.
 ++.TP
-++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/apache2/php.ini
+++.B /etc/php/8.1/apache2/php.ini
 ++The configuration file for the version of PHP that apache2 uses.
  .SH EXAMPLES
  .TP 5

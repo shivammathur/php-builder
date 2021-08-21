@@ -1,7 +1,6 @@
 # Function to cleanup files not required in the build
 cleanup() {
   # Cleanup
-  find "${INSTALL_ROOT:?}" -name '*.la' -delete
   PHP_API="$(php-config"$PHP_VERSION" --phpapi)"
   rm -rf "$INSTALL_ROOT"/etc/pear.conf \
          "$INSTALL_ROOT"/usr/bin/pear* \
