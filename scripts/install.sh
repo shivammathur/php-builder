@@ -184,9 +184,10 @@ switch_version() {
   sudo update-alternatives --set php-cgi-bin /usr/lib/cgi-bin/php"$version"
   sudo update-alternatives --set php-fpm /usr/sbin/php-fpm"$version"
   to_wait_arr=()
-  for tool in phar phar.phar php-config phpize php php-cgi phpdbg switch_sapi; do
+  for tool in phar phar.phar php-config phpize php php-cgi phpdbg; do
     (
-      sudo update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$version" "${version/./}"
+      sudo update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$version" "${version/./}" \
+                               --slave /usr/share/man/man1/"$tool".1 "$tool".1 /usr/share/man/man1/"$tool$version".1
       sudo update-alternatives --set "$tool" /usr/bin/"$tool$version"
     ) &
     to_wait_arr+=( $! )
@@ -273,7 +274,7 @@ remove() {
   [ -e /usr/lib/libphp"$version".so ] && sudo update-alternatives --remove libphp"${version/%.*}" /usr/lib/libphp"$version".so && sudo ldconfig
   [ -e /usr/lib/cgi-bin/php"$version" ] && sudo update-alternatives --remove php-cgi-bin /usr/lib/cgi-bin/php"$version"
   [ -e /usr/sbin/php-fpm"$version" ] && sudo update-alternatives --remove php-fpm /usr/sbin/php-fpm"$version"
-  for tool in phar phar.phar php-config phpize php php-cgi phpdbg switch_sapi; do
+  for tool in phar phar.phar php-config phpize php php-cgi phpdbg; do
     if [ -e /usr/bin/"$tool$version" ]; then
       sudo update-alternatives --remove "$tool" /usr/bin/"$tool$version"
       sudo rm -f /usr/bin/"$tool$version"

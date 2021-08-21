@@ -102,8 +102,7 @@ It is disabled by default, and can be enabled by the following steps:
 - First, disable Xdebug and PCOV as they are not compatible with JIT.
 
 ```bash
-phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug
-phpenmod -v <ALL|php-version> -s <ALL|sapi-name> pcov
+phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug pcov
 ```
 
 - Then enable JIT using the `switch_jit` script for the same PHP versions and SAPIs.
@@ -133,17 +132,15 @@ These SAPIs are installed by default:
 - `fpm`
 - `phpdbg`
 
-These SAPI-server configurations can be set up with the `switch_sapi` script:
+These SAPI:server configurations can be set up with the `switch_sapi` script:
 
 - `apache:apache` (apache2-handler with Apache)
 - `fpm:apache` (php-fpm with Apache)
 - `cgi:apache` (php-cgi with Apache)
 - `fpm:nginx` (php-fpm with Nginx)
 
-For example, to set up `php-fpm` with `Nginx`, run:
-
 ```bash
-switch_sapi fpm:nginx
+switch_sapi -v <php-version> -s <sapi|sapi:server>
 ```
 
 **Note:** When you run `switch_sapi`, the servers will have the default document root `/var/www/html`.

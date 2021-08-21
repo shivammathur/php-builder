@@ -38,6 +38,7 @@ OPTIONS:
   -s=[ ALL|SAPI_NAME   ]         ALL or SAPI installed in the php versions.
   -m=[ tracing|JIT_MODE  ]       tracing, function or 4 digit JIT mode (CRTO).
   -b=[ 128M|JIT_BUFFER_SIZE ]    JIT buffer size in bytes or shorthand notation with K, M or G suffix.
+  -h                             Print this help message.
 
 ACTION:
   enable     Enable JIT
@@ -57,6 +58,10 @@ EOM
 warning() {
   [ -n "$1" ] && echo "WARNING: $1"
   exit 1
+}
+
+permission_warning() {
+  warning "Current user does not have the permission to perform this action"
 }
 
 # Function to print a warning for wrong mode.
@@ -133,7 +138,7 @@ create_jit_module() {
     echo "opcache.enable_cli=1"
     echo "opcache.jit_buffer_size=$buffer"
     echo "opcache.jit=$mode"
-  ) | tee /etc/php/"$version"/mods-available/jit.ini >/dev/null 2>&1
+  ) | tee /etc/php/"$version"/mods-available/jit.ini >/dev/null 2>&1 || permission_warning
 }
 
 # Read inputs
@@ -210,7 +215,7 @@ for version in $version_list; do
     create_jit_module "$version" "$mode" "$buffer"
     for sapi in $version_sapi_list; do
       # Make sure the scan directory for the SAPI exists
-      mkdir -p /etc/php/"$version"/"$sapi"/conf.d
+      mkdir -p /etc/php/"$version"/"$sapi"/conf.d || permission_warning
 
       # Check if there are conflicting extensions.
       check_conflicts "$version" "$sapi"

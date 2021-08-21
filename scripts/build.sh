@@ -104,9 +104,8 @@ merge_sapi() {
   mv "$INSTALL_ROOT"/usr/share/man/man1/phar"$PHP_VERSION".phar.1 "$INSTALL_ROOT"/usr/share/man/man1/phar.phar"$PHP_VERSION".1
 
   # Copy switch_sapi and switch_jit scripts
-  sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" scripts/switch_sapi
-  cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/bin/switch_sapi"$PHP_VERSION"
-  cp -fp scripts/jit "$INSTALL_ROOT"/usr/bin/switch_jit"$PHP_VERSION"
+  cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/sbin/switch_sapi
+  cp -fp scripts/switch_jit "$INSTALL_ROOT"/usr/sbin/switch_jit
 
   # Make sure the binaries are executable.
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
@@ -176,9 +175,10 @@ switch_version() {
 
   # Install and set other PHP binaries.
   to_wait_arr=()
-  for tool in phar phar.phar php-config phpize php php-cgi phpdbg switch_sapi; do
+  for tool in phar phar.phar php-config phpize php php-cgi phpdbg; do
     (
-      update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$PHP_VERSION" "${PHP_VERSION/./}"
+      update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$PHP_VERSION" "${PHP_VERSION/./}" \
+                          --slave /usr/share/man/man1/"$tool".1 "$tool".1 /usr/share/man/man1/"$tool$PHP_VERSION".1
       update-alternatives --set "$tool" /usr/bin/"$tool$PHP_VERSION"
     ) &
     to_wait_arr+=( $! )

@@ -191,7 +191,7 @@ jobs:
           sudo rm -rf /var/www/html/index.html
           echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
           for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-            switch_sapi $sapi
+            switch_sapi -v ${{ matrix.php-version }} -s $sapi
             resp="$(curl -s http://localhost)"
             [ "$sapi" != "$resp" ] && exit 1 || echo "$resp"
           done
@@ -235,7 +235,7 @@ jobs:
           sudo rm -rf /var/www/html/index.html
           echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
           for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-            switch_sapi $sapi
+            sudo switch_sapi -v ${{ matrix.php-version }} -s $sapi
             resp="$(curl -s http://localhost)"
             [ "$sapi" != "$resp" ] && exit 1 || echo "$resp"
           done

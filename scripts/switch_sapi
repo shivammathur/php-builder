@@ -1,78 +1,180 @@
 #!/usr/bin/env bash
+#
+# MIT License
+#
+# Copyright (c) Shivam Mathur <contact@shivammathur.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 
-sapi=$1
-php=PHP_VERSION
-debconf_fix=DEBIAN_FRONTEND=noninteractive
+# Function to print usage.
+usage() {
+  read -r -d '' USAGE <<EOM
+Usage: switch_switch COMMANDS...
+Configure PHP SAPIs with servers.
 
-apt_mgr='apt-get'
-command -v apt-fast >/dev/null && apt_mgr='apt-fast'
-apt_install="sudo $debconf_fix $apt_mgr -y -o Dpkg::Options::=--force-confdef --no-install-recommends install"
+COMMANDS:
+  -v=PHP_VERSION         PHP version
+  -s=SAPI|SAPI:SERVER    SAPI or SAPI:SERVER {apache:apache|fpm:apache|cgi:apache|fpm:nginx|apache|fpm|embed|cgi|phpdbg}
+  -h                     Print this help message.
 
-check_installed() {
-  sudo dpkg-query --show --showformat='${db:Status-Status}' "$1" 2>/dev/null
+EXAMPLES:
+  switch_sapi -v 8.0 -s cgi:apache
+  switch_sapi -v 8.1 -s fpm:nginx
+EOM
+  echo "$USAGE"
+  exit 1
 }
 
+# Function to print a warning.
+warning() {
+  [ -n "$1" ] && echo "WARNING: $1"
+  exit 1
+}
+
+# Function to check if a package is installed.
+check_installed() {
+  dpkg --get-selections "$1" 2>&1 | grep -q '\sinstall'
+}
+
+# Function to check if there is a package with input name.
+check_package() {
+  ! dpkg --get-selections "$1" 2>&1 | grep -q 'no package'
+}
+
+# Function to restart the server.
 service_restart() {
   services=("$@")
   for service in "${services[@]}"; do
-    sudo service "$service" restart >/dev/null 2>&1 ||
-    sudo service "$service" restart >/dev/null 2>&1 ||
-    sudo service "$service" start >/dev/null 2>&1
+    service "$service" restart >/dev/null 2>&1 ||
+      service "$service" restart >/dev/null 2>&1 ||
+      service "$service" start >/dev/null 2>&1
   done
 }
 
+# Function to install apache2.
 install_apache2() {
-  sudo service nginx stop 2>/dev/null || true
+  service nginx stop 2>/dev/null || true
   if ! check_installed apache2; then
     $apt_install apache2-bin apache2 libapache2-mod-fcgid
   else
     if ! [[ "$(apache2 -v 2>/dev/null | grep -Eo "([0-9]+\.[0-9]+)")" =~ 2.[4-9]+|2.[1-9][0-9]+ ]]; then
-      sudo "$debconf_fix" apt-get purge apache* apache-* >/dev/null
+      apt-get purge apache* apache-* >/dev/null
       $apt_install apache2-bin apache2 libapache2-mod-fcgid
     fi
   fi
-  sudo sed -i -e 's/60/5/' -e 's/20/5/' /etc/init.d/apache2
+  sed -i -e 's/60/5/' -e 's/20/5/' /etc/init.d/apache2
   . /etc/apache2/envvars
-  echo "ServerName localhost" | sudo tee -a /etc/apache2/apache2.conf >/dev/null 2>&1
+  echo "ServerName localhost" | tee -a /etc/apache2/apache2.conf >/dev/null 2>&1
 }
 
+# Function to install nginx.
 install_nginx() {
-  sudo service apache2 stop 2>/dev/null || true
+  service apache2 stop 2>/dev/null || true
   if ! check_installed nginx; then
     $apt_install nginx
   fi
 }
 
+# Function to install a PHP SAPI package.
+install_php_sapi() {
+  local sapi=$1
+  phpquery -S -v "$php" | grep -q "$sapi" && return
+  package="php$php-$sapi"
+  if [ "$sapi" = "apache" ]; then
+    package="libapache2-mod-php$php"
+  elif [ "$sapi" = "embed" ]; then
+    package="libphp$php-embed"
+  fi
+
+  if check_package "$package" && ! check_installed "$package"; then
+    $apt_install "$package"
+  fi
+}
+
+# Function to set up apache2handler SAPI with Apache2.
 setup_apache_apache() {
   install_apache2
-  sudo a2disconf php"$php"-fpm || true
-  sudo a2dismod mpm_event proxy_fcgi 2>/dev/null || true
-  sudo a2enmod mpm_prefork php"$php"
+  install_php_sapi apache
+  a2disconf php"$php"-fpm || true
+  a2dismod mpm_event proxy_fcgi 2>/dev/null || true
+  a2enmod mpm_prefork php"$php"
   service_restart apache2
 }
 
+# Function to set up fpm SAPI with Apache2.
 setup_fpm_apache() {
   install_apache2
-  sudo a2dismod php"$php" 2>/dev/null || true
-  sudo a2enmod proxy_fcgi
-  sudo a2enconf php"$php"-fpm
+  install_php_sapi fpm
+  a2dismod php"$php" 2>/dev/null || true
+  a2enmod proxy_fcgi
+  a2enconf php"$php"-fpm
   service_restart php"$php"-fpm apache2
 }
 
+# Function to set up cgi SAPI with Apache2.
 setup_cgi_apache() {
   install_apache2
-  sudo a2dismod php"$php" mpm_event 2>/dev/null || true
-  sudo a2enmod mpm_prefork actions cgi
-  sudo a2disconf php"$php"-fpm 2>/dev/null || true
-  sudo a2enconf php"$php"-cgi
+  install_php_sapi cgi
+  a2dismod php"$php" mpm_event 2>/dev/null || true
+  a2enmod mpm_prefork actions cgi
+  a2disconf php"$php"-fpm 2>/dev/null || true
+  a2enconf php"$php"-cgi
   service_restart apache2
 }
 
+# Function to set up fpm SAPI with Nginx.
 setup_fpm_nginx() {
   install_nginx
+  install_php_sapi fpm
   service_restart php"$php"-fpm nginx
 }
 
+apt_mgr='apt-get'
+command -v apt-fast >/dev/null && apt_mgr='apt-fast'
+apt_install="$apt_mgr -y -o Dpkg::Options::=--force-confdef --no-install-recommends install"
+echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections 2>/dev/null ||
+  warning "Current user does not have the permission to perform this action"
+
+# Read inputs
+while getopts 'v:s:h' opt; do
+  case $opt in
+  v)
+    if [[ -n "$version" ]]; then
+      warning "Please specify a single valid PHP versions."
+    fi
+    php="$OPTARG"
+    ;;
+  s)
+    if [[ -n "$sapi" ]]; then
+      warning "Please specify a single valid SAPI or SAPI:SERVER."
+    fi
+    sapi="$OPTARG"
+    ;;
+  \? | h) usage ;;
+  esac
+done
+
+# Exit on no input.
+[[ -z "$php" ]] && warning "Please specify a valid PHP versions."
+[[ -z "$sapi" ]] && warning "Please specify a valid SAPI or SAPI:SERVER."
+
+# Invoke functions based on input.
 case $sapi in
 apache*:apache*)
   setup_apache_apache >/dev/null 2>&1
@@ -87,15 +189,19 @@ fpm:nginx)
   setup_fpm_nginx >/dev/null 2>&1
   ;;
 apache*)
+  install_php_sapi apache
   service_restart apache2 >/dev/null 2>&1
   ;;
 fpm)
+  install_php_sapi fpm
   service_restart php"$php"-fpm >/dev/null 2>&1
   ;;
-embed|cgi|phpdbg) ;;
+embed | cgi | phpdbg)
+  install_php_sapi "$sapi"
+  ;;
 *)
-  echo "Usage: switch_sapi {apache*:apache|fpm:apache|cgi:apache|fpm:nginx|apache|fpm|embed|cgi|phpdbg}"
-  exit 0
+  echo "Invalid sapi/sapi:server."
+  usage
   ;;
 esac
 
