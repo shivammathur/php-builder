@@ -7,4 +7,3 @@
 --with-fpm-acl
 --with-fpm-apparmor
 --with-fpm-systemd
---with-libevent-dir=/usr
