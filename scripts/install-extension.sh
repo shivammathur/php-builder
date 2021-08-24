@@ -3,6 +3,7 @@
 # Function to patch imagick source.
 patch_imagick() {
   sed -i 's/spl_ce_Countable/zend_ce_countable/' imagick.c util/checkSymbols.php
+  sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' package.xml)/" php_imagick.h
 }
 
 # Function to patch sqlsrv source.
