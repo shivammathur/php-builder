@@ -8,9 +8,11 @@ Subject: php-fpm-do-reload-on-SIGHUP
  sapi/fpm/php-fpm.8.in      | 2 +-
  3 files changed, 9 insertions(+), 1 deletion(-)
 
+diff --git a/sapi/fpm/fpm/fpm_events.c b/sapi/fpm/fpm/fpm_events.c
+index dfbd5bd..e625315 100644
 --- a/sapi/fpm/fpm/fpm_events.c
 +++ b/sapi/fpm/fpm/fpm_events.c
-@@ -124,6 +124,11 @@ static void fpm_got_signal(struct fpm_ev
+@@ -124,6 +124,11 @@ static void fpm_got_signal(struct fpm_event_s *ev, short which, void *arg) /* {{
  				zlog(ZLOG_NOTICE, "Reloading in progress ...");
  				fpm_pctl(FPM_PCTL_STATE_RELOADING, FPM_PCTL_ACTION_SET);
  				break;
@@ -22,9 +24,11 @@ Subject: php-fpm-do-reload-on-SIGHUP
  		}
  
  		if (fpm_globals.is_child) {
+diff --git a/sapi/fpm/fpm/fpm_signals.c b/sapi/fpm/fpm/fpm_signals.c
+index f5a5ae5..db1f18e 100644
 --- a/sapi/fpm/fpm/fpm_signals.c
 +++ b/sapi/fpm/fpm/fpm_signals.c
-@@ -160,6 +160,7 @@ static void sig_handler(int signo) /* {{
+@@ -160,6 +160,7 @@ static void sig_handler(int signo) /* {{{ */
  		[SIGINT]  = 'I',
  		[SIGUSR1] = '1',
  		[SIGUSR2] = '2',
@@ -48,9 +52,11 @@ Subject: php-fpm-do-reload-on-SIGHUP
  	    0 > sigaction(SIGCHLD,  &act_dfl,  0) ||
  	    0 > sigaction(SIGQUIT,  &act,      0)) {
  
+diff --git a/sapi/fpm/php-fpm.8.in b/sapi/fpm/php-fpm.8.in
+index a4cf632..8e3dd51 100644
 --- a/sapi/fpm/php-fpm.8.in
 +++ b/sapi/fpm/php-fpm.8.in
-@@ -150,7 +150,7 @@ Once started, php-fpm then responds to s
+@@ -150,7 +150,7 @@ Once started, php-fpm then responds to several POSIX signals:
  .TP
  .B SIGUSR1 			\fPre-open log file
  .TP

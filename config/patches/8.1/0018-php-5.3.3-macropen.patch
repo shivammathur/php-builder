@@ -8,6 +8,8 @@ Subject: php-5.3.3-macropen
  ext/dba/dba_db4.c | 4 ++--
  3 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/ext/dba/dba.c b/ext/dba/dba.c
+index 2bfc368..6face3d 100644
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
 @@ -890,7 +890,7 @@ restart:
@@ -19,6 +21,8 @@ Subject: php-5.3.3-macropen
  		dba_close(info);
  		php_error_docref2(NULL, Z_STRVAL(args[0]), Z_STRVAL(args[1]), E_WARNING, "Driver initialization failed for handler: %s%s%s", hptr->name, error?": ":"", error?error:"");
  		FREENOW;
+diff --git a/ext/dba/dba_db3.c b/ext/dba/dba_db3.c
+index 2f05901..f440d34 100644
 --- a/ext/dba/dba_db3.c
 +++ b/ext/dba/dba_db3.c
 @@ -91,9 +91,9 @@ DBA_OPEN_FUNC(db3)
@@ -33,6 +37,8 @@ Subject: php-5.3.3-macropen
  #endif
  			dba_db3_data *data;
  
+diff --git a/ext/dba/dba_db4.c b/ext/dba/dba_db4.c
+index 93dd36d..41e8f23 100644
 --- a/ext/dba/dba_db4.c
 +++ b/ext/dba/dba_db4.c
 @@ -120,9 +120,9 @@ DBA_OPEN_FUNC(db4)

@@ -6,9 +6,11 @@ Subject: Include all libtool files from phpize.m4
  scripts/phpize.m4 | 4 ++++
  1 file changed, 4 insertions(+)
 
+diff --git a/scripts/phpize.m4 b/scripts/phpize.m4
+index 1f0cbd7..42cef5e 100644
 --- a/scripts/phpize.m4
 +++ b/scripts/phpize.m4
-@@ -5,6 +5,10 @@ dnl comments starting with # and empty n
+@@ -5,6 +5,10 @@ dnl comments starting with # and empty newlines from the included files.
  m4_include([build/ax_check_compile_flag.m4])
  m4_include([build/ax_gcc_func_attribute.m4])
  m4_include([build/libtool.m4])

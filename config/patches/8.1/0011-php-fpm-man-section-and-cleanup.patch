@@ -6,9 +6,11 @@ Subject: php-fpm-man-section-and-cleanup
  sapi/fpm/php-fpm.8.in | 22 ++--------------------
  1 file changed, 2 insertions(+), 20 deletions(-)
 
+diff --git a/sapi/fpm/php-fpm.8.in b/sapi/fpm/php-fpm.8.in
+index 905946e..a4cf632 100644
 --- a/sapi/fpm/php-fpm.8.in
 +++ b/sapi/fpm/php-fpm.8.in
-@@ -139,22 +139,8 @@ The configuration file for the php-fpm d
+@@ -139,22 +139,8 @@ The configuration file for the php-fpm daemon.
  .TP
  .B php.ini
  The standard php configuration file.
@@ -33,7 +35,7 @@ Subject: php-fpm-man-section-and-cleanup
  .P
  .PD 0
  .RS
-@@ -168,10 +154,6 @@ If your installation has no appropriate
+@@ -168,10 +154,6 @@ If your installation has no appropriate init script, launch php-fpm with no argu
  .RE
  .PD 1
  .P

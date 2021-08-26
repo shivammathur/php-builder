@@ -6,9 +6,11 @@ Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
  configure.ac | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index b9db001..22ece44 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1361,9 +1361,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $local
+@@ -1366,9 +1366,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $localstatedir`
  EXPANDED_BINDIR=`eval echo $bindir`
  EXPANDED_SBINDIR=`eval echo $sbindir`
  EXPANDED_MANDIR=`eval echo $mandir`

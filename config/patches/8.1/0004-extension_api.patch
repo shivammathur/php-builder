@@ -7,9 +7,11 @@ Subject: extension_api
  scripts/php-config.in | 4 ++++
  2 files changed, 8 insertions(+), 1 deletion(-)
 
+diff --git a/configure.ac b/configure.ac
+index fac749e..e55b32c 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1314,8 +1314,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND
+@@ -1319,8 +1319,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
@@ -21,7 +23,7 @@ Subject: extension_api
    if test "$oldstyleextdir" = "yes"; then
      if test "$PHP_DEBUG" = "1"; then
        part1=debug
-@@ -1449,6 +1451,7 @@ PHP_SUBST(CXX)
+@@ -1454,6 +1456,7 @@ PHP_SUBST(CXX)
  PHP_SUBST(CXXFLAGS)
  PHP_SUBST(CXXFLAGS_CLEAN)
  PHP_SUBST_OLD(DEBUG_CFLAGS)
@@ -29,6 +31,8 @@ Subject: extension_api
  PHP_SUBST_OLD(EXTENSION_DIR)
  PHP_SUBST_OLD(EXTRA_LDFLAGS)
  PHP_SUBST_OLD(EXTRA_LDFLAGS_PROGRAM)
+diff --git a/scripts/php-config.in b/scripts/php-config.in
+index 355be04..cac95ac 100644
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
 @@ -19,6 +19,7 @@ php_cli_binary=NONE

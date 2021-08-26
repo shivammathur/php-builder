@@ -10,6 +10,8 @@ This patch solves the build error:
  ext/standard/hrtime.h | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
+diff --git a/ext/standard/hrtime.h b/ext/standard/hrtime.h
+index 0aa39f0..89bf810 100644
 --- a/ext/standard/hrtime.h
 +++ b/ext/standard/hrtime.h
 @@ -24,7 +24,10 @@
