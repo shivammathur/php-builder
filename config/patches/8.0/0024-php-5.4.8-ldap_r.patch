@@ -7,11 +7,9 @@ Use -lldap_r by default.
  ext/ldap/config.m4 | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
-index 2c3b524..ecf5341 100644
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
-@@ -65,7 +65,10 @@ if test "$PHP_LDAP" != "no"; then
+@@ -65,7 +65,10 @@
      AC_MSG_ERROR(Cannot find ldap.h)
    fi
  

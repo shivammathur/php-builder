@@ -7,11 +7,9 @@ Subject: In phpize, also copy config.guess, config.sub,
  scripts/phpize.in | 12 ++++++++++--
  1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/scripts/phpize.in b/scripts/phpize.in
-index 7a71167..0dcfe21 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
-@@ -9,11 +9,18 @@ includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+@@ -9,11 +9,18 @@
  builddir="`pwd`"
  SED="@SED@"
  
@@ -32,7 +30,7 @@ index 7a71167..0dcfe21 100644
  CLEAN_FILES="$FILES *.o *.lo *.la .libs/ build/ modules/ \
  	config.nice configure configure.ac \
  	config.h config.h.in conftest* libtool config.cache autom4te.cache/ \
-@@ -149,6 +156,7 @@ phpize_copy_files()
+@@ -149,6 +156,7 @@
  
    (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
    (cd "$aclocaldir" && cp $LIBTOOL_FILES "$builddir"/build)

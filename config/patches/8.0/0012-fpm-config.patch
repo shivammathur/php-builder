@@ -6,8 +6,6 @@ Subject: fpm-config
  sapi/fpm/php-fpm.conf.in | 8 +++++---
  1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/sapi/fpm/php-fpm.conf.in b/sapi/fpm/php-fpm.conf.in
-index 7f21aaa..7c1f24d 100644
 --- a/sapi/fpm/php-fpm.conf.in
 +++ b/sapi/fpm/php-fpm.conf.in
 @@ -14,14 +14,16 @@

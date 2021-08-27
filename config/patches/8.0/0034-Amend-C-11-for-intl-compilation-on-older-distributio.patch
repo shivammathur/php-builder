@@ -6,11 +6,9 @@ Subject: Amend C++11 for intl compilation on older distributions
  ext/intl/config.m4 | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
-index b511f00..acfad5d 100644
 --- a/ext/intl/config.m4
 +++ b/ext/intl/config.m4
-@@ -84,7 +84,7 @@ if test "$PHP_INTL" != "no"; then
+@@ -84,7 +84,7 @@
  
    PHP_REQUIRE_CXX()
    PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)

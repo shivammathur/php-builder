@@ -6,11 +6,9 @@ Subject: Add patch to install php7 module directly to APXS_LIBEXEC
  sapi/apache2handler/config.m4 | 15 +++------------
  1 file changed, 3 insertions(+), 12 deletions(-)
 
-diff --git a/sapi/apache2handler/config.m4 b/sapi/apache2handler/config.m4
-index bcdb188..c295f04 100644
 --- a/sapi/apache2handler/config.m4
 +++ b/sapi/apache2handler/config.m4
-@@ -64,18 +64,9 @@ if test "$PHP_APXS2" != "no"; then
+@@ -64,18 +64,9 @@
    fi
  
    APXS_LIBEXECDIR='$(INSTALL_ROOT)'`$APXS -q LIBEXECDIR`

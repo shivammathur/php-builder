@@ -6,11 +6,9 @@ Subject: libtool2.2
  scripts/phpize.in | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/scripts/phpize.in b/scripts/phpize.in
-index 0846bf2..7a71167 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
-@@ -9,9 +9,11 @@ includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+@@ -9,9 +9,11 @@
  builddir="`pwd`"
  SED="@SED@"
  
@@ -23,7 +21,7 @@ index 0846bf2..7a71167 100644
  CLEAN_FILES="$FILES *.o *.lo *.la .libs/ build/ modules/ \
  	config.nice configure configure.ac \
  	config.h config.h.in conftest* libtool config.cache autom4te.cache/ \
-@@ -146,6 +148,7 @@ phpize_copy_files()
+@@ -146,6 +148,7 @@
    test -d build || mkdir build
  
    (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
