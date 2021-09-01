@@ -2,7 +2,7 @@
 
 <a href="https://github.com/shivammathur/php-builder" title="PHP Builder"><img alt="Build status" src="https://github.com/shivammathur/php-builder/workflows/Build%20PHP/badge.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/blob/main/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 and 8.1-8892BF.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 to 8.2-8892BF.svg"></a>
 
 - This projects builds PHP 8.0 and above (including a nightly build from the master branch of PHP) on `Ubuntu` and `Debian`.
 - To install PHP, follow the instructions in the [install](#install) section.
@@ -50,7 +50,7 @@ chmod a+x ./install.sh
 ./install.sh 8.0
 ```
 
-or, to install `PHP 8.1.0-dev`:
+or, to install `PHP 8.1`:
 
 ```bash
 ./install.sh 8.1
@@ -71,7 +71,7 @@ php -v
 ## Extensions
 
 <ul><li><details>
-  <summary>Expand to check the extensions available in both <code>PHP 8.0</code> and <code>PHP 8.1.0-dev</code></summary>
+  <summary>Expand to check the available extensions.</summary>
   <br>
 
 `amqp`, `apcu`, `ast`, `bcmath`, `bz2`, `calendar`, `Core`, `ctype`, `curl`, `date`, `dba`, `dom`, `enchant`, `exif`, `FFI`, `fileinfo`, `filter`, `ftp`, `gd`, `gettext`, `gmp`, `hash`, `iconv`, `igbinary`, `imagick`, `imap`, `intl`, `json`, `ldap`, `libxml`, `mbstring`, `memcache`, `memcached`, `msgpack`, `mysqli`, `mysqlnd`, `odbc`, `openssl`, `pcntl`, `pcov`, `pcre`, `PDO`, `pdo_dblib`, `PDO_Firebird`, `pdo_mysql`, `PDO_ODBC`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, `pgsql`, `Phar`, `posix`, `pspell`, `readline`, `redis`, `Reflection`, `session`, `shmop`, `SimpleXML`, `soap`, `sockets`, `sodium`, `SPL`, `sqlite3`, `sqlsrv`, `standard`, `sysvmsg`, `sysvsem`, `sysvshm`, `tidy`, `tokenizer`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `xsl`, `zip`, `zlib`, `Xdebug`, `Zend OPcache`
@@ -157,7 +157,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian11.tar.xz)
 
-### PHP 8.1.0-dev (master)
+### PHP 8.1.0-rc
 
 - [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
@@ -166,6 +166,16 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 - [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian9.tar.xz)
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian11.tar.xz)
+
+### PHP 8.2.0-dev (master)
+
+- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu16.04.tar.xz)
+- [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu18.04.tar.xz)
+- [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu20.04.tar.xz)
+- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu21.04.tar.xz)
+- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian9.tar.xz)
+- [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian10.tar.xz)
+- [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian11.tar.xz)
 
 ## Uninstall
 
@@ -182,7 +192,7 @@ chmod a+x ./install.sh
 ./install.sh --remove 8.0
 ```
 
-or, to remove `PHP 8.1.0-dev`:
+or, to remove `PHP 8.1`:
 
 ```bash
 ./install.sh --remove 8.1
