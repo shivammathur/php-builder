@@ -18,6 +18,10 @@ patch_pdo_sqlsrv() {
   cp -rf ../shared ./
 }
 
+patch_xdebug() {
+  sed -i 's/80200/80300/g' config.m4
+}
+
 extension=$1
 repo=$2
 tag=$3

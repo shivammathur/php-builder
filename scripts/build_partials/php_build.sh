@@ -12,6 +12,8 @@ configure_phpbuild() {
   # Set install command based on PHP version.
   if [ "${new_version:?}" = "nightly" ]; then
     install_command="install_package_from_github master"
+  elif [ "${new_version:?}" = "rc" ]; then
+    install_command="install_package_from_github PHP-$PHP_VERSION"
   else
     install_command="install_package \"https://www.php.net/distributions/$new_version.tar.gz\""
   fi

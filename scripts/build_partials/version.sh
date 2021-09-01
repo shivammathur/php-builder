@@ -25,9 +25,12 @@ check_stable() {
 get_version() {
   new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
   if [ "$new_version" = "" ]; then
-    new_version='nightly'
-    export branch="$new_version"
-  else
-    check_stable
+    new_version=$(curl -sL https://github.com/php/php-src/releases.atom | grep -Po -m1 "php-$PHP_VERSION.[0-9]+-?\K(rc|RC)" | head -n 1 | tr '[:upper:]' '[:lower:]')
+    if [ "$new_version" = "" ]; then
+      new_version='nightly'
+      export branch="$new_version"
+    else
+      check_stable
+    fi
   fi
 }
