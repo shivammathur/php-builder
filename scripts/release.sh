@@ -13,7 +13,7 @@ log_version() {
   for version in 8.0 8.1 8.2; do
     tag=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($version.[0-9]+)" | head -n 1)
     if [ "x$tag" = "x" ]; then
-      tag=$(curl -sL https://github.com/php/php-src/releases.atom | grep -Po -m1 "php-$PHP_VERSION.[0-9]+-?\K(rc|RC)" | head -n 1 | tr '[:upper:]' '[:lower:]')
+      tag=$(curl -sL https://github.com/php/php-src/releases.atom | grep -Po -m1 "php-$version.[0-9]+-?\K(rc|RC)" | head -n 1 | tr '[:upper:]' '[:lower:]')
       if [ "x$tag" = "x" ]; then
         tag='nightly';
       fi
