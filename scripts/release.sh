@@ -7,19 +7,23 @@ log_build() {
   assets+=("./build.log")
 }
 
+get_version_from_branch() {
+  curl -sL https://raw.githubusercontent.com/php/php-src/"$1"/main/php_version.h | grep -Po 'PHP_VERSION "\K[0-9]+\.[0-9]+\.[0-9][0-9a-zA-Z-]*' 2>/dev/null || true
+}
+
 # Function to update the PHP version log
 log_version() {
   assets+=("scripts/install.sh")
-  for version in 8.0 8.1 8.2; do
-    tag=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($version.[0-9]+)" | head -n 1)
-    if [ "x$tag" = "x" ]; then
-      tag=$(curl -sL https://github.com/php/php-src/releases.atom | grep -Po -m1 "php-$version.[0-9]+-?\K(rc|RC)" | head -n 1 | tr '[:upper:]' '[:lower:]')
-      if [ "x$tag" = "x" ]; then
-        tag='nightly';
+  for PHP_VERSION in 8.0 8.1 8.2; do
+    new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
+    if [ "$new_version" = "" ]; then
+      new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
+      if [ "$new_version" = "" ]; then
+        new_version=$(get_version_from_branch master)
       fi
     fi
-    echo "$tag" > "php$version.log"
-    assets+=("./php$version.log")
+    echo "$new_version" > "php$PHP_VERSION.log"
+    assets+=("./php$PHP_VERSION.log")
   done
 }
 

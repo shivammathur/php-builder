@@ -10,12 +10,10 @@ patch_config_file() {
 # Function to configure php-build.
 configure_phpbuild() {
   # Set install command based on PHP version.
-  if [ "${new_version:?}" = "nightly" ]; then
-    install_command="install_package_from_github master"
-  elif [ "${new_version:?}" = "rc" ]; then
-    install_command="install_package_from_github PHP-$PHP_VERSION"
+  if [[ "${branch:?}" =~ ^(master|PHP-"$PHP_VERSION")$ ]]; then
+    install_command="install_package_from_github $branch"
   else
-    install_command="install_package \"https://www.php.net/distributions/$new_version.tar.gz\""
+    install_command="install_package \"https://www.php.net/distributions/${new_version:?}.tar.gz\""
   fi
 
   # Copy all the custom definitions to php-build definitions directory.

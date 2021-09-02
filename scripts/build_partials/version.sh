@@ -21,16 +21,28 @@ check_stable() {
   fi
 }
 
+# Function to get the PHP version from a branch.
+get_version_from_branch() {
+  curl -sL https://raw.githubusercontent.com/php/php-src/"$1"/main/php_version.h | grep -Po 'PHP_VERSION "\K[0-9]+\.[0-9]+\.[0-9][0-9a-zA-Z-]*' 2>/dev/null || true
+}
+
 # Function to get new version from php.net releases and set PHP branch if nightly.
 get_version() {
   new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
   if [ "$new_version" = "" ]; then
-    new_version=$(curl -sL https://github.com/php/php-src/releases.atom | grep -Po -m1 "php-$PHP_VERSION.[0-9]+-?\K(rc|RC)" | head -n 1 | tr '[:upper:]' '[:lower:]')
+    # Since the version is not in stable releases, it has to be nightly or RC
+    # Checking if there is a PHP-$PHP_VERSION branch and we can parse the version from it
+    # Otherwise for sane inputs, the version should be in master.
+    new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
     if [ "$new_version" = "" ]; then
-      new_version='nightly'
-      export branch="$new_version"
+      new_version=$(get_version_from_branch master)
+      export branch="master"
     else
-      check_stable
+      export branch="PHP-$PHP_VERSION"
     fi
+  else
+    export branch="$new_version"
+    # Only run check_stable for stable versions in the feed.
+    check_stable
   fi
 }
