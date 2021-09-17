@@ -35,9 +35,7 @@ All other distributions based on the above operating systems will also be suppor
 
 ## Install
 
-- If you have the PHP version you want already installed from any other distribution, please remove it before installing using this to avoid any conflicts.
-
-- Then, fetch the installer:
+- Fetch the installer:
 
 ```bash
 curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/install.sh
@@ -71,7 +69,7 @@ php -v
 ## Extensions
 
 <ul><li><details>
-  <summary>Expand to check the available extensions.</summary>
+  <summary>Expand to check the extensions installed along with PHP.</summary>
   <br>
 
 `amqp`, `apcu`, `ast`, `bcmath`, `bz2`, `calendar`, `Core`, `ctype`, `curl`, `date`, `dba`, `dom`, `enchant`, `exif`, `FFI`, `fileinfo`, `filter`, `ftp`, `gd`, `gettext`, `gmp`, `hash`, `iconv`, `igbinary`, `imagick`, `imap`, `intl`, `json`, `ldap`, `libxml`, `mbstring`, `memcache`, `memcached`, `msgpack`, `mysqli`, `mysqlnd`, `odbc`, `openssl`, `pcntl`, `pcov`, `pcre`, `PDO`, `pdo_dblib`, `PDO_Firebird`, `pdo_mysql`, `PDO_ODBC`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, `pgsql`, `Phar`, `posix`, `pspell`, `readline`, `redis`, `Reflection`, `session`, `shmop`, `SimpleXML`, `soap`, `sockets`, `sodium`, `SPL`, `sqlite3`, `sqlsrv`, `standard`, `sysvmsg`, `sysvsem`, `sysvshm`, `tidy`, `tokenizer`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `xsl`, `zip`, `zlib`, `Xdebug`, `Zend OPcache`
@@ -87,7 +85,9 @@ phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug
 phpenmod -v <ALL|php-version> -s <ALL|sapi-name> pcov
 ```
 
-- `PECL` is also installed along with PHP, so you can install compatible extensions using that. Extensions installed using `pecl` are enabled using the `pecl.ini` module which is linked to all SAPIs.
+- More extensions can also be installed from [`ppa:ondrej/php`](https://launchpad.net/~ondrej/+archive/ubuntu/php)
+
+- `PECL` is also installed along with PHP, so compatible extensions can also be installed using it. These will be enabled using the `pecl.ini` module which is linked to all SAPIs.
 
 ```bash
 pecl install <extension>
