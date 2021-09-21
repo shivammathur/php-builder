@@ -100,12 +100,7 @@ remove_list() {
 # Function to add a package repository.
 add_ppa() {
   if [ "$ID" = "ubuntu" ]; then
-    if [ "$VERSION_ID" = "16.04" ]; then
-      remove_list ondrej/php
-      add_list ondrej/php https://setup-php.com/ondrej/php/ubuntu
-    else
-      add_list ondrej/php
-    fi
+    add_list ondrej/php
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
   fi

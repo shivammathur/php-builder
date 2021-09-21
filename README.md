@@ -23,7 +23,6 @@
 
 ## OS Support
 
-- Ubuntu 16.04 (Xenial) amd64
 - Ubuntu 18.04 (Bionic) amd64
 - Ubuntu 20.04 (Focal) amd64
 - Ubuntu 21.04 (Hirsute) amd64
@@ -149,7 +148,6 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 ### PHP 8.0
 
-- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu20.04.tar.xz)
 - [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu21.04.tar.xz)
@@ -159,7 +157,6 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 ### PHP 8.1.0-dev
 
-- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu20.04.tar.xz)
 - [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu21.04.tar.xz)
@@ -169,7 +166,6 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 ### PHP 8.2.0-dev (master)
 
-- [Ubuntu 16.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu16.04.tar.xz)
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu20.04.tar.xz)
 - [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu21.04.tar.xz)

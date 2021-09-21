@@ -126,12 +126,7 @@ remove_list() {
 
 add_ppa() {
   if [ "$ID" = "ubuntu" ]; then
-    if [ "$VERSION_ID" = "16.04" ]; then
-      remove_list ondrej/php
-      add_list ondrej/php https://setup-php.com/ondrej/php/ubuntu
-    else
-      add_list ondrej/php
-    fi
+    add_list ondrej/php
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php "$sury"/php/ "$sury"/php/apt.gpg
   fi
@@ -168,10 +163,7 @@ local_deps() {
 }
 
 github_deps() {
-  if [ "$VERSION_ID" = "16.04" ]; then
-    get /tmp/webp.deb http://archive.ubuntu.com/ubuntu/pool/main/libw/libwebp/libwebp6_0.6.1-2_amd64.deb
-    sudo dpkg -i /tmp/webp.deb
-  elif [ "$VERSION_ID" = "18.04" ]; then
+  if [ "$VERSION_ID" = "18.04" ]; then
     get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
     sudo dpkg -i /tmp/libsodium.deb
   fi
