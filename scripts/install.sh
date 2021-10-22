@@ -171,6 +171,10 @@ github_deps() {
     get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
     sudo dpkg -i /tmp/libsodium.deb
   fi
+  if [ "$VERSION_ID" = "20.04" ]; then
+    add_ppa
+    install_packages libpcre2-dev
+  fi
 }
 
 switch_version() {
