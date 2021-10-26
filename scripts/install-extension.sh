@@ -30,12 +30,12 @@ shift 4
 params=("$@")
 
 # Fetch the extension source.
-curl -o "/tmp/$extension.tar.gz" -sSL "$repo/archive/$tag.tar.gz"
+curl -o "/tmp/$extension.tar.gz" -sSL "$repo/archive/${tag/\//%2f}.tar.gz"
 
 # Extract it to /tmp and build the extension in INSTALL_ROOT
 tar xf "/tmp/$extension.tar.gz" -C /tmp
 (
-  cd /tmp/"$(basename "$repo")"-"$tag" || exit 1
+  cd /tmp/"$(basename "$repo")"-"${tag/\//-}" || exit 1
   patch_"${extension}" 2>/dev/null || true
   phpize
   ./configure "--with-php-config=/usr/bin/php-config" "${params[@]}"
