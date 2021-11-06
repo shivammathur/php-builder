@@ -147,7 +147,7 @@ jobs:
         run: |
           php -m
           ln -sf /etc/php/${{ matrix.php-version }}/mods-available/pcov.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/20-pcov.ini
-          for extension in amqp apcu igbinary imagick memcache memcached mongodb msgpack pcov redis xdebug sqlsrv pdo_sqlsrv; do
+          for extension in amqp apcu igbinary imagick memcache memcached msgpack pcov redis xdebug sqlsrv pdo_sqlsrv; do
             php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
           done
 
