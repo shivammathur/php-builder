@@ -222,7 +222,6 @@ elif [ "$action" = "merge" ]; then
   . scripts/build_partials/package.sh
   . scripts/build_partials/pear.sh
   merge_sapi
-  save_commit
   configure_ini
   configure_shared_extensions
   setup_pear
