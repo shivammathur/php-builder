@@ -165,7 +165,6 @@ install_packages apt-transport-https \
                  git \
                  gnupg \
                  jq \
-                 libpcre2-dev \
                  sudo \
                  wget \
                  zstd
@@ -176,7 +175,6 @@ libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head 
 gcc_version=$(gcc --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d '.' -f 1)
 libgcc_dev="libgcc-$gcc_version-dev"
 libgccjit_dev="libgccjit-$gcc_version-dev"
-[ "$ID" = "debian" ] && libpcre2_dev=libpcre2-dev
 
 # Add required package repositories.
 add_ppa
@@ -230,7 +228,7 @@ install_packages apache2-dev \
                  libonig-dev \
                  libonig-dev \
                  libpam0g-dev \
-                 "$libpcre2_dev" \
+                 libpcre2-dev \
                  libpng-dev \
                  libpq-dev \
                  libpspell-dev \

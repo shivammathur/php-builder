@@ -170,6 +170,9 @@ github_deps() {
   if [ "$VERSION_ID" = "18.04" ]; then
     get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
     sudo dpkg -i /tmp/libsodium.deb
+  elif [ "$VERSION_ID" = "20.04" ]; then
+    get /tmp/libpcre2-8-0.deb http://ppa.launchpad.net/ondrej/php/ubuntu/pool/main/p/pcre2/libpcre2-8-0_10.39-2+ubuntu20.04.1+deb.sury.org+1_amd64.deb
+    sudo dpkg -i /tmp/libpcre2-8-0.deb
   fi
 }
 

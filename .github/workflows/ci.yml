@@ -215,7 +215,7 @@ jobs:
 
       - name: Install PHP
         run: |
-          sed -i '/builds/d' scripts/install.sh
+          sed -i '/builds\/$tar_file/d' scripts/install.sh
           bash scripts/install.sh ${{ matrix.php-version }} github
 
       - name: Test
