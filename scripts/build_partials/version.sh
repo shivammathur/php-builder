@@ -21,6 +21,16 @@ check_stable() {
   fi
 }
 
+# Function to get the latest stable release tag for a PHP version.
+get_stable_release_tag() {
+  source=$1
+  if [ "$source" = "web-php" ]; then
+    curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1
+  else
+    curl -sL https://api.github.com/repos/php/php-src/tags | jq -r '.[].name' | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)$" | head -n 1
+  fi
+}
+
 # Function to get the PHP version from a branch.
 get_version_from_branch() {
   curl -sL https://raw.githubusercontent.com/php/php-src/"$1"/main/php_version.h | grep -Po 'PHP_VERSION "\K[0-9]+\.[0-9]+\.[0-9][0-9a-zA-Z-]*' 2>/dev/null || true
@@ -28,7 +38,7 @@ get_version_from_branch() {
 
 # Function to get new version from php.net releases and set PHP branch if nightly.
 get_version() {
-  new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
+  new_version=$(get_stable_release_tag "$PHP_SOURCE")
   if [ "$new_version" = "" ]; then
     # Since the version is not in stable releases, it has to be nightly or RC
     # Checking if there is a PHP-$PHP_VERSION branch and we can parse the version from it

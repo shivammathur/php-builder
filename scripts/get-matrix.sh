@@ -11,7 +11,7 @@ sapi_json_array=()
 IFS=' ' read -r -a container_os_array <<<"${CONTAINER_OS_LIST:?}"
 IFS=' ' read -r -a runner_os_array <<<"${RUNNER_OS_LIST:?}"
 IFS=' ' read -r -a sapi_array <<<"${SAPI_LIST:?}"
-IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST:?}" "${COMMIT:-'--build-new'}")"
+IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST:?}" "${COMMIT:-'--build-new'}" "${PHP_SOURCE:-'--web-php'}")"
 
 # Build a matrix array with container, distribution, distribution version and php-version and OS
 for os in "${container_os_array[@]}"; do

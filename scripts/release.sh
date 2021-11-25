@@ -7,6 +7,17 @@ log_build() {
   assets+=("./build.log")
 }
 
+# Function to get the latest stable release tag for a PHP version.
+get_stable_release_tag() {
+  source=$1
+  if [ "$source" = "web-php" ]; then
+    curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1
+  else
+    curl -sL https://api.github.com/repos/php/php-src/tags | jq -r '.[].name' | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)$" | head -n 1
+  fi
+}
+
+# Function to get the PHP version from a branch.
 get_version_from_branch() {
   curl -sL https://raw.githubusercontent.com/php/php-src/"$1"/main/php_version.h | grep -Po 'PHP_VERSION "\K[0-9]+\.[0-9]+\.[0-9][0-9a-zA-Z-]*' 2>/dev/null || true
 }
@@ -15,7 +26,7 @@ get_version_from_branch() {
 log_version() {
   assets+=("scripts/install.sh")
   for PHP_VERSION in 8.0 8.1 8.2; do
-    new_version=$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1)
+    new_version=$(get_stable_release_tag "$PHP_SOURCE")
     if [ "$new_version" = "" ]; then
       new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
       if [ "$new_version" = "" ]; then
