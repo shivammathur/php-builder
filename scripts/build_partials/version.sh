@@ -50,8 +50,10 @@ get_version() {
     else
       export branch="PHP-$PHP_VERSION"
     fi
+    export stable="false"
   else
     export branch="$new_version"
+    export stable="true"
     # Only run check_stable for stable versions in the feed.
     check_stable
   fi

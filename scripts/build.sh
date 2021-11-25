@@ -65,7 +65,10 @@ build_php() {
 
 # Function to save the commit hash to the INSTALL_ROOT.
 save_commit() {
-  basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"${branch:?}" | jq -r .commit.url)" | tee "$INSTALL_ROOT/etc/php/$PHP_VERSION/COMMIT" >/dev/null 2>&1
+  # Only store commit for unstable versions
+  if [ "${stable:?}" = "false" ]; then
+    basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"${branch:?}" | jq -r .commit.url)" | tee "$INSTALL_ROOT/etc/php/$PHP_VERSION/COMMIT" >/dev/null 2>&1
+  fi  
 }
 
 # Function to copy PHP from INSTALL_ROOT to the system root.
