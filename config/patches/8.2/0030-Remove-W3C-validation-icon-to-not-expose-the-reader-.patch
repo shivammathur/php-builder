@@ -4,11 +4,9 @@ Subject: Remove W3C validation icon to not expose the reader's IP address to
  potential tracking.
 
 ---
- sapi/fpm/status.html.in | 5 -----
+ sapi/fpm/status.html.in |    5 -----
  1 file changed, 5 deletions(-)
 
-diff --git a/sapi/fpm/status.html.in b/sapi/fpm/status.html.in
-index d3b6d5e..f71d486 100644
 --- a/sapi/fpm/status.html.in
 +++ b/sapi/fpm/status.html.in
 @@ -70,11 +70,6 @@

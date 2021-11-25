@@ -3,14 +3,12 @@ Date: Sat, 2 May 2015 10:26:57 +0200
 Subject: hack-phpdbg-to-explicitly-link-with-libedit
 
 ---
- sapi/phpdbg/config.m4 | 4 +++-
+ sapi/phpdbg/config.m4 |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/sapi/phpdbg/config.m4 b/sapi/phpdbg/config.m4
-index 2f9a5e4..53f8b30 100644
 --- a/sapi/phpdbg/config.m4
 +++ b/sapi/phpdbg/config.m4
-@@ -36,7 +36,9 @@ if test "$BUILD_PHPDBG" = "" && test "$PHP_PHPDBG" != "no"; then
+@@ -36,7 +36,9 @@ if test "$BUILD_PHPDBG" = "" && test "$P
    if test "$PHP_PHPDBG_READLINE" = "yes"; then
      if test "$PHP_READLINE" != "no" -o  "$PHP_LIBEDIT" != "no"; then
    	  AC_DEFINE(HAVE_PHPDBG_READLINE, 1, [ ])

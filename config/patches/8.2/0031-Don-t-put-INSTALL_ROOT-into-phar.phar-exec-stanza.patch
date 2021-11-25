@@ -3,11 +3,9 @@ Date: Fri, 4 Dec 2015 15:53:50 +0100
 Subject: Don't put $(INSTALL_ROOT) into phar.phar exec stanza
 
 ---
- ext/phar/Makefile.frag | 2 +-
+ ext/phar/Makefile.frag |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/ext/phar/Makefile.frag b/ext/phar/Makefile.frag
-index 58789ca..f246c88 100644
 --- a/ext/phar/Makefile.frag
 +++ b/ext/phar/Makefile.frag
 @@ -23,7 +23,7 @@ PHP_PHARCMD_EXECUTABLE = ` \

@@ -3,11 +3,9 @@ Date: Sat, 2 May 2015 10:26:52 +0200
 Subject: php.ini_securitynotes
 
 ---
- php.ini-development | 8 +++++++-
+ php.ini-development |    8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/php.ini-development b/php.ini-development
-index 83a06e1..2566c5f 100644
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -315,6 +315,12 @@ serialize_precision = -1
@@ -23,12 +21,12 @@ index 83a06e1..2566c5f 100644
  ;open_basedir =
  
  ; This directive allows you to disable certain functions.
-@@ -1350,7 +1356,7 @@ session.save_handler = files
+@@ -1357,7 +1363,7 @@ session.save_handler = files
  ; where MODE is the octal representation of the mode. Note that this
  ; does not overwrite the process's umask.
  ; https://php.net/session.save-path
 -;session.save_path = "/tmp"
 +;session.save_path = "/var/lib/php/sessions"
-
+ 
  ; Whether to use strict session mode.
  ; Strict session mode does not accept an uninitialized session ID, and

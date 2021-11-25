@@ -4,14 +4,12 @@ Subject: In phpize, also copy config.guess, config.sub,
  ltmain.sh and shtool from their respective packages
 
 ---
- scripts/phpize.in | 12 ++++++++++--
+ scripts/phpize.in |   12 ++++++++++--
  1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/scripts/phpize.in b/scripts/phpize.in
-index 7a71167..0dcfe21 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
-@@ -9,11 +9,18 @@ includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+@@ -9,11 +9,18 @@ includedir="$prefix/include/php/@DEBIAN_
  builddir="`pwd`"
  SED="@SED@"
  

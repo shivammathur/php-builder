@@ -3,11 +3,9 @@ Date: Sat, 2 May 2015 10:26:54 +0200
 Subject: fpm-config
 
 ---
- sapi/fpm/php-fpm.conf.in | 8 +++++---
+ sapi/fpm/php-fpm.conf.in |    8 +++++---
  1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/sapi/fpm/php-fpm.conf.in b/sapi/fpm/php-fpm.conf.in
-index 4818f20..4997748 100644
 --- a/sapi/fpm/php-fpm.conf.in
 +++ b/sapi/fpm/php-fpm.conf.in
 @@ -14,14 +14,16 @@

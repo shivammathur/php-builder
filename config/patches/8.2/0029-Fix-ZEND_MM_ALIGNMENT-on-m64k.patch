@@ -3,11 +3,9 @@ Date: Mon, 14 Jul 2014 10:45:30 +0200
 Subject: Fix ZEND_MM_ALIGNMENT on m64k
 
 ---
- Zend/Zend.m4 | 4 ++--
+ Zend/Zend.m4 |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/Zend/Zend.m4 b/Zend/Zend.m4
-index d4dcd54..28be955 100644
 --- a/Zend/Zend.m4
 +++ b/Zend/Zend.m4
 @@ -256,7 +256,7 @@ typedef union _mm_align_test {

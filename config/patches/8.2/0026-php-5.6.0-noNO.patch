@@ -3,14 +3,12 @@ Date: Sat, 2 May 2015 10:26:56 +0200
 Subject: php-5.6.0-noNO
 
 ---
- ext/standard/tests/strings/setlocale_variation2.phpt | 11 ++++++++---
+ ext/standard/tests/strings/setlocale_variation2.phpt |   11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/ext/standard/tests/strings/setlocale_variation2.phpt b/ext/standard/tests/strings/setlocale_variation2.phpt
-index 6f62f71..d8666ba 100644
 --- a/ext/standard/tests/strings/setlocale_variation2.phpt
 +++ b/ext/standard/tests/strings/setlocale_variation2.phpt
-@@ -47,6 +47,7 @@ $all_system_locales = list_system_locales();
+@@ -47,6 +47,7 @@ $all_system_locales = list_system_locale
  //try different locale names
  $failure_locale = array();
  $success_count = 0;

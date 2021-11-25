@@ -3,11 +3,9 @@ Date: Sat, 2 May 2015 10:26:55 +0200
 Subject: php-5.2.4-embed
 
 ---
- sapi/embed/config.m4 | 2 +-
+ sapi/embed/config.m4 |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sapi/embed/config.m4 b/sapi/embed/config.m4
-index 39d7dcf..e648f97 100644
 --- a/sapi/embed/config.m4
 +++ b/sapi/embed/config.m4
 @@ -12,7 +12,7 @@ if test "$PHP_EMBED" != "no"; then

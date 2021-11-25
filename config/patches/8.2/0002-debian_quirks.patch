@@ -3,20 +3,18 @@ Date: Sat, 2 May 2015 10:26:51 +0200
 Subject: debian_quirks
 
 ---
- configure.ac          |  6 +++++-
- php.ini-development   |  2 +-
- php.ini-production    |  2 +-
- sapi/cli/php.1.in     | 11 ++++++-----
- scripts/Makefile.frag |  4 ++--
- scripts/php-config.in |  8 ++++----
- scripts/phpize.in     |  4 ++--
+ configure.ac          |    6 +++++-
+ php.ini-development   |    2 +-
+ php.ini-production    |    2 +-
+ sapi/cli/php.1.in     |   11 ++++++-----
+ scripts/Makefile.frag |    4 ++--
+ scripts/php-config.in |    8 ++++----
+ scripts/phpize.in     |    4 ++--
  7 files changed, 21 insertions(+), 16 deletions(-)
 
-diff --git a/configure.ac b/configure.ac
-index 2e4df7b..fac749e 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1155,7 +1155,7 @@ fi
+@@ -1159,7 +1159,7 @@ fi
  PHP_ARG_WITH([pear],
    [whether to install PEAR],
    [AS_HELP_STRING([[--with-pear[=DIR]]],
@@ -25,7 +23,7 @@ index 2e4df7b..fac749e 100644
    [no],
    [yes])
  
-@@ -1186,6 +1186,8 @@ if test "$PHP_PEAR" != "no"; then
+@@ -1190,6 +1190,8 @@ if test "$PHP_PEAR" != "no"; then
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -34,7 +32,7 @@ index 2e4df7b..fac749e 100644
  dnl Configuring Zend and TSRM.
  dnl ----------------------------------------------------------------------------
  
-@@ -1315,6 +1317,8 @@ datadir=`eval eval echo $datadir`
+@@ -1319,6 +1321,8 @@ datadir=`eval eval echo $datadir`
  dnl Build extension directory path.
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|"${SED}" 's/#define ZEND_MODULE_API_NO //'`
  
@@ -43,8 +41,6 @@ index 2e4df7b..fac749e 100644
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
-diff --git a/php.ini-development b/php.ini-development
-index 84c0832..83a06e1 100644
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -735,7 +735,7 @@ default_charset = "UTF-8"
@@ -56,8 +52,6 @@ index 84c0832..83a06e1 100644
  ;
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
-diff --git a/php.ini-production b/php.ini-production
-index c9cacae..c729c6a 100644
 --- a/php.ini-production
 +++ b/php.ini-production
 @@ -737,7 +737,7 @@ default_charset = "UTF-8"
@@ -69,8 +63,6 @@ index c9cacae..c729c6a 100644
  ;
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
-diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
-index 98c8dc7..0c5e920 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
 @@ -365,13 +365,14 @@ Shows configuration for extension
@@ -93,8 +85,6 @@ index 98c8dc7..0c5e920 100644
  .SH EXAMPLES
  .TP 5
  \fI@program_prefix@php \-r 'echo "Hello World\\n";'\fP
-diff --git a/scripts/Makefile.frag b/scripts/Makefile.frag
-index 1049832..e543263 100644
 --- a/scripts/Makefile.frag
 +++ b/scripts/Makefile.frag
 @@ -2,8 +2,8 @@
@@ -108,8 +98,6 @@ index 1049832..e543263 100644
  
  BUILD_FILES = \
  	scripts/phpize.m4 \
-diff --git a/scripts/php-config.in b/scripts/php-config.in
-index 9271e87..355be04 100644
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
 @@ -6,11 +6,11 @@ datarootdir="@datarootdir@"
@@ -128,8 +116,6 @@ index 9271e87..355be04 100644
  man_dir=`eval echo @mandir@`
  program_prefix="@program_prefix@"
  program_suffix="@program_suffix@"
-diff --git a/scripts/phpize.in b/scripts/phpize.in
-index 7d9c1df..0846bf2 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
 @@ -4,8 +4,8 @@
