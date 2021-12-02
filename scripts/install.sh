@@ -170,10 +170,6 @@ github_deps() {
   if [ "$VERSION_ID" = "18.04" ]; then
     get /tmp/libsodium.deb http://archive.ubuntu.com/ubuntu/pool/main/libs/libsodium/libsodium23_1.0.18-1_amd64.deb
     sudo dpkg -i /tmp/libsodium.deb
-  elif [ "$VERSION_ID" = "20.04" ]; then
-    get /tmp/pcre2.zstd https://github.com/shivammathur/php-builder/releases/download/builds/pcre2-10.39.zstd
-    sudo tar -I zstd -xf /tmp/pcre2.zstd -C /tmp
-    sudo dpkg -i /tmp/pcre2*.deb
   fi
 }
 
