@@ -211,6 +211,7 @@ extract_build() {
 }
 
 install() {
+  to_wait=()
   if [ "$1" != "github" ]; then
     add_prerequisites
     set_base_version
@@ -222,7 +223,7 @@ install() {
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version"
-  wait "$to_wait"
+  [[ -n ${to_wait[@]// } ]] && wait "$to_wait"
   . /etc/os-release
 }
 
