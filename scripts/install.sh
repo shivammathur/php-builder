@@ -156,6 +156,12 @@ add_pear() {
   if ! [ -e /usr/bin/pear ]; then
     sudo curl -o /tmp/pear.phar -sL https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar
     sudo php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
+    to_wait=()
+    for script in pear pecl; do
+      sudo "$script" channel-update "$script".php.net &
+      to_wait+=("$!")
+    done
+    wait "${to_wait[@]}"
   fi
 }
 
@@ -231,7 +237,6 @@ configure() {
   fi
   sudo chmod 777 "$pecl_file"
   echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
-  sudo pear update-channels
   echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
   if [ -d /run/systemd/system ]; then
     sudo systemctl daemon-reload 2>/dev/null || true
