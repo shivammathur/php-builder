@@ -71,7 +71,7 @@ php -v
   <summary>Expand to check the extensions installed along with PHP.</summary>
   <br>
 
-`amqp`, `apcu`, `ast`, `bcmath`, `bz2`, `calendar`, `Core`, `ctype`, `curl`, `date`, `dba`, `dom`, `ds`, `enchant`, `exif`, `FFI`, `fileinfo`, `filter`, `ftp`, `gd`, `gettext`, `gmp`, `hash`, `iconv`, `igbinary`, `imagick`, `imap`, `intl`, `json`, `ldap`, `libxml`, `mbstring`, `memcache`, `memcached`, `msgpack`, `mysqli`, `mysqlnd`, `odbc`, `openssl`, `pcntl`, `pcov`, `pcre`, `PDO`, `pdo_dblib`, `PDO_Firebird`, `pdo_mysql`, `PDO_ODBC`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, `pgsql`, `Phar`, `posix`, `pspell`, `readline`, `redis`, `Reflection`, `session`, `shmop`, `SimpleXML`, `soap`, `sockets`, `sodium`, `SPL`, `sqlite3`, `sqlsrv`, `standard`, `sysvmsg`, `sysvsem`, `sysvshm`, `tidy`, `tokenizer`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `xsl`, `zip`, `zlib`, `Xdebug`, `Zend OPcache`
+`amqp`, `apcu`, `ast`, `bcmath`, `bz2`, `calendar`, `Core`, `ctype`, `curl`, `date`, `dba`, `dom`, `ds`, `enchant`, `exif`, `FFI`, `fileinfo`, `filter`, `ftp`, `gd`, `gettext`, `gmp`, `hash`, `iconv`, `igbinary`, `imagick`, `imap`, `intl`, `json`, `ldap`, `libxml`, `mbstring`, `memcache`, `memcached`, `mongodb`, `msgpack`, `mysqli`, `mysqlnd`, `odbc`, `openssl`, `pcntl`, `pcov`, `pcre`, `PDO`, `pdo_dblib`, `PDO_Firebird`, `pdo_mysql`, `PDO_ODBC`, `pdo_pgsql`, `pdo_sqlite`, `pdo_sqlsrv`, `pgsql`, `Phar`, `posix`, `pspell`, `readline`, `redis`, `Reflection`, `session`, `shmop`, `SimpleXML`, `soap`, `sockets`, `sodium`, `SPL`, `sqlite3`, `sqlsrv`, `standard`, `sysvmsg`, `sysvsem`, `sysvshm`, `tidy`, `tokenizer`, `xdebug`, `xml`, `xmlreader`, `xmlwriter`, `xsl`, `zip`, `zlib`, `Xdebug`, `Zend OPcache`
 
 </details></li></ul>
 
