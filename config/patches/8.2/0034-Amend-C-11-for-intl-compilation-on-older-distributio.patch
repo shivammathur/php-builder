@@ -14,6 +14,6 @@ Subject: Amend C++11 for intl compilation on older distributions
    PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)
 -  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS"
 +  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS -std=c++11"
-   if test "$ext_shared" = "no"; then
-     PHP_ADD_SOURCES(PHP_EXT_DIR(intl), $PHP_INTL_CXX_SOURCES, $PHP_INTL_CXX_FLAGS)
-   else
+   case $host_alias in
+   *cygwin*) PHP_INTL_CXX_FLAGS="$PHP_INTL_CXX_FLAGS -D_POSIX_C_SOURCE=200809L"
+   esac
