@@ -12,8 +12,8 @@ Subject: Fix ZEND_MM_ALIGNMENT on m64k
  
  int main()
  {
--  int i = ZEND_MM_ALIGNMENT;
-+  int i = ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT;
+-  size_t i = ZEND_MM_ALIGNMENT;
++  size_t i = ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT;
    int zeros = 0;
    FILE *fp;
  
@@ -21,8 +21,8 @@ Subject: Fix ZEND_MM_ALIGNMENT on m64k
    }
  
    fp = fopen("conftest.zend", "w");
--  fprintf(fp, "%d %d\n", ZEND_MM_ALIGNMENT, zeros);
-+  fprintf(fp, "%d %d\n", ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros);  
+-  fprintf(fp, "(size_t)%zu (size_t)%d %d\n", ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
++  fprintf(fp, "(size_t)%zu (size_t)%d %d\n", ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
    fclose(fp);
  
    return 0;
