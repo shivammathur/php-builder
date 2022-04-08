@@ -25,8 +25,7 @@
 
 - Ubuntu 18.04 (Bionic) amd64
 - Ubuntu 20.04 (Focal) amd64
-- Ubuntu 21.04 (Hirsute) amd64
-- Debian 9 (Stretch) amd64
+- Ubuntu 22.04 (Jammy) amd64
 - Debian 10 (Buster) amd64
 - Debian 11 (Bullseye) amd64
 
