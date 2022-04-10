@@ -149,8 +149,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu20.04.tar.xz)
-- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu21.04.tar.xz)
-- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian9.tar.xz)
+- [Ubuntu 22.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bubuntu22.04.tar.xz)
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian11.tar.xz)
 
@@ -158,8 +157,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu20.04.tar.xz)
-- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu21.04.tar.xz)
-- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian9.tar.xz)
+- [Ubuntu 22.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu22.04.tar.xz)
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian11.tar.xz)
 
@@ -167,8 +165,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu20.04.tar.xz)
-- [Ubuntu 21.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu21.04.tar.xz)
-- [Debian 9](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian9.tar.xz)
+- [Ubuntu 22.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu22.04.tar.xz)
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian11.tar.xz)
 
