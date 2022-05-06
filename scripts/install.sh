@@ -172,6 +172,12 @@ local_deps() {
   install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev make php-common shtool systemd tzdata unixodbc-dev
 }
 
+github_deps() {
+  if [ "$VERSION_ID" = "22.04" ]; then
+    install_packages unixodbc
+  fi
+}
+
 switch_version() {
   sudo update-alternatives --install /usr/lib/libphp"${version/%.*}".so libphp"${version/%.*}" /usr/lib/libphp"$version".so "${version/./}" && sudo ldconfig
   sudo update-alternatives --install /usr/lib/cgi-bin/php php-cgi-bin /usr/lib/cgi-bin/php"$version" "${version/./}"
@@ -216,6 +222,9 @@ install() {
     add_prerequisites
     set_base_version
     local_deps &
+    to_wait=$!
+  else
+    github_deps &
     to_wait=$!
   fi  
   tar_file="php_$version+$ID$VERSION_ID.tar.zst"
