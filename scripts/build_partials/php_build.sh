@@ -13,7 +13,7 @@ configure_phpbuild() {
   if [[ "${branch:?}" =~ ^(master|PHP-"$PHP_VERSION")$ ]]; then
     install_command="install_package_from_github $branch"
   else
-    install_command="install_package \"https://www.php.net/distributions/${new_version:?}.tar.gz\""
+    install_command="install_package \"https://github.com/php/web-php-distributions/raw/master/${new_version:?}.tar.gz\""
   fi
 
   # Copy all the custom definitions to php-build definitions directory.
