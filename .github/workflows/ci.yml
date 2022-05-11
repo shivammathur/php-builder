@@ -19,7 +19,7 @@ on:
 
 env:
   CONTAINER_OS_LIST: ubuntu:bionic ubuntu:focal ubuntu:jammy debian:buster debian:bullseye
-  RUNNER_OS_LIST: ubuntu-18.04 ubuntu-20.04
+  RUNNER_OS_LIST: ubuntu-18.04 ubuntu-20.04 ubuntu-22.04
   PHP_LIST: 8.0 8.1 8.2
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
 
