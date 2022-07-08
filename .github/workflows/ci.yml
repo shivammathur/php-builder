@@ -40,6 +40,7 @@ jobs:
         env:
           COMMIT: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           CONTAINER_OS_LIST: ${{ env.CONTAINER_OS_LIST }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
           PHP_LIST: ${{ env.PHP_LIST }}
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
@@ -68,6 +69,7 @@ jobs:
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
 
