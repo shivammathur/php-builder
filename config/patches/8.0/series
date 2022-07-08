@@ -38,3 +38,4 @@
 0038-In-phpize-also-copy-config.guess-config.sub-ltmain.s.patch
 0039-Don-t-use-hrtimers-on-GNU-Hurd.patch
 0040-openssl-3.0.patch
+0041-ax_gcc_func_attribute-Revise-the-detection-of-unknow.patch
