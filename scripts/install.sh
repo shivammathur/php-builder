@@ -207,6 +207,8 @@ github_deps() {
   if [ "$VERSION_ID" = "22.04" ]; then
     install_packages unixodbc
   fi
+  add_ppa || update_ppa
+  install_packages libgd-dev
 }
 
 switch_version() {
