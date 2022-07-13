@@ -74,6 +74,20 @@ update_lists() {
   fi
 }
 
+check_lists() {
+  ppa=$1
+  ppa_search=$2
+  if grep -Eqr "$ppa_search" "$list_dir"; then
+    list_count="$(sudo find /var/lib/apt/lists -type f -name "*${ppa/\//_}*" | wc -l)"
+    if [ "$list_count" = "0" ]; then
+      update_lists "$ppa" "$ppa_search"
+    fi
+    return 0;
+  else
+    return 1;
+  fi
+}
+
 ubuntu_fingerprint() {
   ppa=$1
   curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
@@ -113,12 +127,18 @@ add_list() {
   package_dist=${4:-"$VERSION_CODENAME"}
   branches=${5:-main}
   ppa_search="deb .*$ppa_url $package_dist .*$branches"
-  grep -Eqr "$ppa_search" "$list_dir" && echo "Repository $ppa already exists" && return;
-  arch=$(dpkg --print-architecture)
-  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
-  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
-  echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
-  update_lists "$ppa" "$ppa_search"
+  if check_lists "$ppa" "$ppa_search"; then
+    echo "Repository $ppa already exists";
+    return 1;
+  else
+    arch=$(dpkg --print-architecture)
+    [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
+    add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
+    echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee -a "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
+    update_lists "$ppa" "$ppa_search"
+    . /etc/os-release
+  fi
+  return 0;
 }
 
 remove_list() {
@@ -134,6 +154,17 @@ add_ppa() {
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php "$sury"/php/ "$sury"/php/apt.gpg
   fi
+}
+
+update_ppa() {
+  set_base_version
+  ppa=${1:-ondrej/php}
+  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  package_dist=${4:-"$VERSION_CODENAME"}
+  branches=${5:-main}
+  ppa_search="deb .*$ppa_url $package_dist .*$branches"
+  update_lists "$ppa" "$ppa_search"
+  . /etc/os-release
 }
 
 install_packages() {
