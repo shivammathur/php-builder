@@ -27,8 +27,7 @@ get_stable_release_tag() {
   if [ "$source" = "web-php" ]; then
     curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-($PHP_VERSION.[0-9]+)" | head -n 1
   else
-    tag="$(curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | jq -r .[-1].ref | cut -d '/' -f 3)"
-    [[ "$tag" =~ php-.*[a-zA-Z] ]] || echo "$tag"
+    curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | tail -1 | cut -d '"' -f 1
   fi
 }
 
