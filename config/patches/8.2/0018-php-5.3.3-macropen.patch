@@ -14,8 +14,8 @@ Subject: php-5.3.3-macropen
  		}
  	}
  
--	if (error || hptr->open(info, &error) != SUCCESS) {
-+	if (error || (hptr->open)(info, &error) != SUCCESS) {
+-	if (error || hptr->open(info, &error) == FAILURE) {
++	if (error || (hptr->open)(info, &error) == FAILURE) {
  		dba_close(info);
  		php_error_docref(NULL, E_WARNING, "Driver initialization failed for handler: %s%s%s", hptr->name, error?": ":"", error?error:"");
  		FREE_PERSISTENT_RESOURCE_KEY();
