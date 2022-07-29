@@ -153,7 +153,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.0%2Bdebian11.tar.xz)
 
-### PHP 8.1.0-dev
+### PHP 8.1
 
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bubuntu20.04.tar.xz)
