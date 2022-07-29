@@ -188,6 +188,9 @@ jobs:
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
           php -m
+          
+      - name: Check GD support
+        run: php -r "print_r(gd_info());"
 
       - name: Test pecl
         run: |
