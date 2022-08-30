@@ -19,11 +19,8 @@ patch_pdo_sqlsrv() {
 }
 
 patch_xdebug() {
-  # Patch for xdebug on PHP 8.2.
-  # Use ZEND_HASH_MAP_REVERSE_FOREACH_PTR macro instead of ZEND_HASH_REVERSE_FOREACH_PTR.
-  if [ "${PHP_VERSION:?}" = "8.2" ]; then
-    grep -rli 'ZEND_HASH_REVERSE' * | xargs -i@ sed -i 's/ZEND_HASH_REVERSE/ZEND_HASH_MAP_REVERSE/g' @
-  fi
+  # Patch for xdebug on PHP 8.3.
+  sed -i 's/80300/80400/g' config.m4
 }
 
 extension=$1

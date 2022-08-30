@@ -1,0 +1,49 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-5.3.3-macropen
+
+---
+ ext/dba/dba.c     |    2 +-
+ ext/dba/dba_db3.c |    4 ++--
+ ext/dba/dba_db4.c |    4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+--- a/ext/dba/dba.c
++++ b/ext/dba/dba.c
+@@ -843,7 +843,7 @@ restart:
+ 		}
+ 	}
+ 
+-	if (error || hptr->open(info, &error) == FAILURE) {
++	if (error || (hptr->open)(info, &error) == FAILURE) {
+ 		dba_close(info);
+ 		php_error_docref(NULL, E_WARNING, "Driver initialization failed for handler: %s%s%s", hptr->name, error?": ":"", error?error:"");
+ 		FREE_PERSISTENT_RESOURCE_KEY();
+--- a/ext/dba/dba_db3.c
++++ b/ext/dba/dba_db3.c
+@@ -81,9 +81,9 @@ DBA_OPEN_FUNC(db3)
+ 	    dbp->set_errcall(dbp, php_dba_db3_errcall_fcn);
+ 		if(
+ #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
+-			(err=dbp->open(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
+ #else
+-			(err=dbp->open(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
+ #endif
+ 			dba_db3_data *data;
+ 
+--- a/ext/dba/dba_db4.c
++++ b/ext/dba/dba_db4.c
+@@ -110,9 +110,9 @@ DBA_OPEN_FUNC(db4)
+ 	    dbp->set_errcall(dbp, php_dba_db4_errcall_fcn);
+ 	    if (
+ #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
+-			(err=dbp->open(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
+ #else
+-			(err=dbp->open(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
+ #endif
+ 			dba_db4_data *data;
+ 

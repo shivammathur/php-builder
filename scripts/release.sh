@@ -25,7 +25,7 @@ get_version_from_branch() {
 # Function to update the PHP version log
 log_version() {
   assets+=("scripts/install.sh")
-  for PHP_VERSION in 8.0 8.1 8.2; do
+  for PHP_VERSION in 8.0 8.1 8.2 8.3; do
     new_version=$(get_stable_release_tag "$PHP_SOURCE")
     if [ "$new_version" = "" ]; then
       new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
