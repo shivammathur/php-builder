@@ -2,7 +2,7 @@
 
 <a href="https://github.com/shivammathur/php-builder" title="PHP Builder"><img alt="Build status" src="https://github.com/shivammathur/php-builder/workflows/Build%20PHP/badge.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/blob/main/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 to 8.2-8892BF.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-8.0 to 8.3-8892BF.svg"></a>
 
 - This projects builds PHP 8.0 and above (including a nightly build from the master branch of PHP) on `Ubuntu` and `Debian`.
 - To install PHP, follow the instructions in the [install](#install) section.
@@ -40,10 +40,10 @@ curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/
 chmod a+x ./install.sh
 ```
 
-- Then, to install `PHP 8.0`:
+- Then, to install `PHP 8.2`:
 
 ```bash
-./install.sh 8.0
+./install.sh 8.2
 ```
 
 or, to install `PHP 8.1`:
@@ -161,13 +161,21 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.1%2Bdebian11.tar.xz)
 
-### PHP 8.2.0-dev (master)
+### PHP 8.2.0-dev (PHP-8.2)
 
 - [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu18.04.tar.xz)
 - [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu20.04.tar.xz)
 - [Ubuntu 22.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bubuntu22.04.tar.xz)
 - [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian10.tar.xz)
 - [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.2%2Bdebian11.tar.xz)
+
+### PHP 8.3.0-dev (master)
+
+- [Ubuntu 18.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.3%2Bubuntu18.04.tar.xz)
+- [Ubuntu 20.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.3%2Bubuntu20.04.tar.xz)
+- [Ubuntu 22.04](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.3%2Bubuntu22.04.tar.xz)
+- [Debian 10](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.3%2Bdebian10.tar.xz)
+- [Debian 11](https://github.com/shivammathur/php-builder/releases/latest/download/php_8.3%2Bdebian11.tar.xz)
 
 ## Uninstall
 
@@ -178,10 +186,10 @@ curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/
 chmod a+x ./install.sh
 ```
 
-- Then, to remove `PHP 8.0`:
+- Then, to remove `PHP 8.2`:
 
 ```bash
-./install.sh --remove 8.0
+./install.sh --remove 8.2
 ```
 
 or, to remove `PHP 8.1`:
