@@ -155,12 +155,6 @@ sks=(
 # Set frontend to noninteractive
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-# Install PHP build requirements.
-if [ "$VERSION_ID" = "18.04" ]; then
-  apt-get update
-  apt-get install -y --allow-downgrades libsystemd0=237-3ubuntu10.53
-fi
-
 # Install the build requirements for PHP
 install_packages apt-transport-https \
                  ca-certificates \
@@ -185,6 +179,7 @@ libgccjit_dev="libgccjit-$gcc_version-dev"
 # Add required package repositories.
 add_ppa
 
+# Install PHP build requirements.
 install_packages apache2-dev \
                  autoconf \
                  automake \
