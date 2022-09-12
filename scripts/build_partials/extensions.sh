@@ -44,7 +44,7 @@ setup_custom_extensions() {
       IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 5-)"
 
       # Compile and install the extension
-      bash scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"
+      bash scripts/retry.sh 5 5 bash $(pwd)/scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"
     fi
 
     # Enable the extension for all SAPI.

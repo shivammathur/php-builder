@@ -10,7 +10,7 @@ configure_pear() {
 # Function to setup pear.
 setup_pear() {
   echo "::group::setup_pear"
-  mkdir /usr/local/ssl
+  mkdir -p /usr/local/ssl
 
   # Fetch certificate keychain from cURL.
   curl -o /usr/local/ssl/cert.pem -sL https://curl.se/ca/cacert.pem
