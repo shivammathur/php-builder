@@ -31,9 +31,16 @@ configure_phpbuild() {
   # Patch series file to php-build syntax.
   patch_config_file patch_file "$patches_dir"/series
 
+  # Patch the definition for debug symbols.
+  debug='configure_option --disable-debug'
+  if [ "${BUILD:?}" = "debug" ]; then
+    debug='configure_option --enable-debug'
+  fi
+
   # Patch PHP version, host, build, patches and install command in the definition template.
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \
          -e "s|HOST_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_HOST_GNU_TYPE)|" \
+         -e "s|DEBUG|$debug|" \
          -e "s|INSTALL|$install_command|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \

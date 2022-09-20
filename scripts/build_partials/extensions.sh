@@ -34,18 +34,28 @@ setup_custom_extensions() {
 
     # If there is a compatible release on PECL i.e. type is pecl.
     if [ "$type" = "pecl" ]; then
-      # Install the extension using PECL
-      yes '' 2>/dev/null | "$INSTALL_ROOT"/usr/bin/pecl install -f "$extension"
+      # Fetch the extension using PECL
+      tag=
+      if [ "${extension##*-}" != "${extension%-*}" ]; then
+        tag="${extension##*-}"
+      fi
+      extension="${extension%-*}"
+      repo=pecl
     # Else install from git repository as per the config.
     elif [ "$type" = "git" ]; then
       # Get repository, tag and compile arguments from the config
       repo=$(echo "$extension_config" | cut -d ' ' -f 3)
       tag=$(echo "$extension_config" | cut -d ' ' -f 4)
       IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 5-)"
-
-      # Compile and install the extension
-      bash scripts/retry.sh 5 5 bash $(pwd)/scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"
     fi
+
+    # Add debug symbols to the extension build.
+    if [ "${BUILD:?}" = "debug" ]; then
+      args+=("--enable-debug")
+    fi
+
+    # Compile and install the extension.
+    bash scripts/retry.sh 5 5 bash "$(pwd)"/scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"
 
     # Enable the extension for all SAPI.
     enable_extension "${extension%-*}"

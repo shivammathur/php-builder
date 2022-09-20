@@ -158,10 +158,10 @@ add_ppa() {
 
 update_ppa() {
   set_base_version
-  ppa=${1:-ondrej/php}
-  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
-  package_dist=${4:-"$VERSION_CODENAME"}
-  branches=${5:-main}
+  ppa=ondrej/php
+  ppa_url=$lp_ppa/$ppa/ubuntu
+  package_dist=$VERSION_CODENAME
+  branches=main
   ppa_search="deb .*$ppa_url $package_dist .*$branches"
   update_lists "$ppa" "$ppa_search"
   . /etc/os-release
@@ -255,17 +255,17 @@ install() {
     add_prerequisites
     set_base_version
     local_deps &
-    to_wait=$!
+    to_wait=($!)
   else
     github_deps &
-    to_wait=$!
+    to_wait=($!)
   fi  
-  tar_file="php_$version+$ID$VERSION_ID.tar.zst"
+  tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/builds/$tar_file"
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version"
-  [[ -n ${to_wait[@]// } ]] && wait "$to_wait"
+  [[ -n ${to_wait[*]// } ]] && wait "$to_wait"
   . /etc/os-release
 }
 
@@ -363,6 +363,8 @@ else
   runner="local"
   version="$1"
 fi
+build=${3:-release}
+[ "${build:?}" = "debug" ] && PHP_PKG_SUFFIX=-dbgsym
 
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
 list_file='/etc/apt/sources.list'

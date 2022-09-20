@@ -204,6 +204,12 @@ definitions="$php_build_dir/definitions"
 default_options="$php_build_dir/default_configure_options"
 default_ini="production"
 
+# Set debug options.
+if [ "${BUILD:?}" = "debug" ]; then
+  export PHP_PKG_SUFFIX=-dbgsym
+  debug=true
+fi
+
 # Import OS information to the environment.
 . /etc/os-release
 

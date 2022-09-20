@@ -178,6 +178,11 @@ libgccjit_dev="libgccjit-$gcc_version-dev"
 
 # Add required package repositories.
 add_ppa
+if [ "${BUILD:?}" = "debug" ]; then
+  sed -i "h;s/^//;p;x" /etc/apt/sources.list.d/ondrej-*.list
+  sed -i '2s/main$/main\/debug/' /etc/apt/sources.list.d/ondrej-*.list
+  apt-get update
+fi
 
 # Install PHP build requirements.
 install_packages apache2-dev \

@@ -11,29 +11,36 @@ sapi_json_array=()
 IFS=' ' read -r -a container_os_array <<<"${CONTAINER_OS_LIST:?}"
 IFS=' ' read -r -a runner_os_array <<<"${RUNNER_OS_LIST:?}"
 IFS=' ' read -r -a sapi_array <<<"${SAPI_LIST:?}"
+IFS=' ' read -r -a build_array <<<"${BUILD_LIST:?}"
 IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST:?}" "${COMMIT:-'--build-new'}" "${PHP_SOURCE:-'--web-php'}")"
 
 # Build a matrix array with container, distribution, distribution version and php-version and OS
 for os in "${container_os_array[@]}"; do
- for php in "${php_array[@]}"; do
-   container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"operating-system\": \"ubuntu-latest\"}")
- done
+  for php in "${php_array[@]}"; do
+    for build in "${build_array[@]}"; do
+      container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"operating-system\": \"ubuntu-latest\", \"build\": \"$build\"}")
+    done
+  done
 done
 
 # Build a matrix array with runner os and php-version.
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
-    runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\"}")
+    for build in "${build_array[@]}"; do
+      runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\"}")
+    done
   done
 done
 
 # Build a matrix array with SAPI, container, distribution, distribution version and php-version and OS.
 for os in "${container_os_array[@]}"; do
- for php in "${php_array[@]}"; do
-   for sapi in "${sapi_array[@]}"; do
-     sapi_json_array+=("{\"sapi\": \"$sapi\", \"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"php-version\": \"$php\", \"operating-system\": \"ubuntu-latest\"}")
-   done
- done
+  for php in "${php_array[@]}"; do
+    for sapi in "${sapi_array[@]}"; do
+      for build in "${build_array[@]}"; do
+        sapi_json_array+=("{\"sapi\": \"$sapi\", \"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"php-version\": \"$php\", \"operating-system\": \"ubuntu-latest\", \"build\": \"$build\"}")
+      done
+    done
+  done
 done
 
 # Output the matrices.

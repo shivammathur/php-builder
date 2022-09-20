@@ -22,6 +22,7 @@ env:
   RUNNER_OS_LIST: ubuntu-18.04 ubuntu-20.04 ubuntu-22.04
   PHP_LIST: 8.0 8.1 8.2 8.3
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
+  BUILD_LIST: debug release
 
 jobs:
   get-matrix:
@@ -45,6 +46,7 @@ jobs:
           PHP_LIST: ${{ env.PHP_LIST }}
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
+          BUILD_LIST: ${{ env.BUILD_LIST }}
         run: bash scripts/get-matrix.sh
 
   build:
@@ -62,10 +64,13 @@ jobs:
 
       - name: Install required packages
         run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
 
       - name: Build and package
         run: bash scripts/build.sh build_sapi ${{ matrix.sapi }}
         env:
+          BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -76,7 +81,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: php-sapi${{ matrix.php-version }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/*.zst
 
   merge:
@@ -94,10 +99,12 @@ jobs:
 
       - name: Install required packages
         run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
 
       - uses: actions/download-artifact@v2
         with:
-          name: php-sapi${{ matrix.php-version }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
 
       - name: Stage builds
@@ -111,6 +118,7 @@ jobs:
       - name: Build and package
         run: bash scripts/build.sh merge
         env:
+          BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
           GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
@@ -124,7 +132,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: php${{ matrix.php-version }}+${{ matrix.dist }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
           path: |
             /tmp/*.xz
             /tmp/*.zst
@@ -175,13 +183,13 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: php${{ matrix.php-version }}+${{ matrix.dist }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/builds/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }}
+          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.build }}
 
       - name: Test
         run: |
@@ -222,13 +230,13 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: php${{ matrix.php-version }}+ubuntu
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+ubuntu
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/builds\/$tar_file/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} github
+          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.build }}
 
       - name: Test
         run: |
