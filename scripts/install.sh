@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+# Function to print usage help
+print_help() {
+  cat << HELP > /dev/stdout
+
+Usage: ${0} [--remove] <php-version>
+
+HELP
+}
+
 get() {
   file_path=$1
   shift
@@ -259,7 +268,7 @@ install() {
   else
     github_deps &
     to_wait=($!)
-  fi  
+  fi
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/builds/$tar_file"
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
@@ -342,6 +351,12 @@ remove() {
   exit 0;
 }
 
+# avoid running without arguments
+if [[ "${#}" -eq 0 ]]; then
+  print_help
+  exit 0;
+fi
+
 if [[ "$1" =~ remove ]]; then
   version=$2
   remove
@@ -365,6 +380,7 @@ else
 fi
 build=${3:-release}
 [ "${build:?}" = "debug" ] && PHP_PKG_SUFFIX=-dbgsym
+[ "${build:?}" = "thread-safe" ] && PHP_PKG_SUFFIX="-zts"
 
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
 list_file='/etc/apt/sources.list'

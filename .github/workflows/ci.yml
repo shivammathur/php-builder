@@ -22,7 +22,7 @@ env:
   RUNNER_OS_LIST: ubuntu-18.04 ubuntu-20.04 ubuntu-22.04
   PHP_LIST: 8.0 8.1 8.2 8.3
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
-  BUILD_LIST: debug release
+  BUILD_LIST: debug thread-safe release
 
 jobs:
   get-matrix:
@@ -196,7 +196,7 @@ jobs:
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
           php -m
-          
+
       - name: Check GD support
         run: php -r "print_r(gd_info());"
 

@@ -3,6 +3,27 @@
 # Set bash mode.
 set -eE -o functrace
 
+# Function to print usage help
+print_help() {
+  cat << HELP > /dev/stdout
+
+Usage: ${0} <action> [sapi]
+
+Available actions:
+ - build_sapi
+ - merge
+
+Available sapis:
+ - apache2
+ - cgi
+ - cli
+ - embed
+ - fpm
+ - phpdbg
+
+HELP
+}
+
 # Function to log error line number and message.
 log_failure() {
   echo "Failed at $1: $2"
@@ -68,7 +89,7 @@ save_commit() {
   # Only store commit for unstable versions
   if [ "${stable:?}" = "false" ]; then
     basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"${branch:?}" | jq -r .commit.url)" | tee "$INSTALL_ROOT/etc/php/$PHP_VERSION/COMMIT" >/dev/null 2>&1
-  fi  
+  fi
 }
 
 # Function to copy PHP from INSTALL_ROOT to the system root.
@@ -190,6 +211,23 @@ switch_version() {
   echo "::endgroup::"
 }
 
+
+if [[ "${#}" -eq 0 ]]; then
+  print_help
+  exit 0;
+fi
+
+# sanity checks
+if [ -z "${BUILD}" ]; then
+  echo "BUILD is not defined"
+  exit 1;
+fi
+
+if [ -z "${PHP_VERSION}" ]; then
+  echo "PHP_VERSION is not defined"
+  exit 1;
+fi
+
 # Constants
 action=$1
 prefix=/usr
@@ -208,6 +246,11 @@ default_ini="production"
 if [ "${BUILD:?}" = "debug" ]; then
   export PHP_PKG_SUFFIX=-dbgsym
   debug=true
+fi
+
+# Set thread-safe options.
+if [ "${BUILD:?}" = "thread-safe" ]; then
+  export PHP_PKG_SUFFIX=-zts
 fi
 
 # Import OS information to the environment.
