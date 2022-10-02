@@ -37,10 +37,17 @@ configure_phpbuild() {
     debug='configure_option --enable-debug'
   fi
 
+  # Path the definition for thread-safe.
+  zts=''
+  if [ "${BUILD:?}" = "thread-safe" ]; then
+    zts='configure_option --enable-zts'
+  fi
+
   # Patch PHP version, host, build, patches and install command in the definition template.
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \
          -e "s|HOST_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_HOST_GNU_TYPE)|" \
          -e "s|DEBUG|$debug|" \
+         -e "s|ZTS|$zts|" \
          -e "s|INSTALL|$install_command|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \

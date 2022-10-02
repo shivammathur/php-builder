@@ -137,6 +137,11 @@ get_libmysql() {
   echo "$mysql"
 }
 
+if [ -z "${BUILD}" ]; then
+  echo "BUILD is not defined"
+  exit 1;
+fi
+
 # Constants.
 list_file='/etc/apt/sources.list'
 list_dir="$list_file.d"
