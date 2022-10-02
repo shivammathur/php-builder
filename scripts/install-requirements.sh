@@ -190,7 +190,8 @@ if [ "${BUILD:?}" = "debug" ]; then
 fi
 
 # Install PHP build requirements.
-install_packages apache2-dev \
+install_packages apache2 \
+                 apache2-dev \
                  autoconf \
                  automake \
                  bison \

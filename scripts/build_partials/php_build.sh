@@ -27,9 +27,10 @@ configure_phpbuild() {
   if [ -d "$patches_dir" ]; then
     find "$patches_dir" -name '*' -exec cp -rf "{}" "${php_build_dir:?}"/patches \;
   fi
+  cp "$patches_dir"/series $patches_dir/~series
 
   # Patch series file to php-build syntax.
-  patch_config_file patch_file "$patches_dir"/series
+  patch_config_file patch_file "$patches_dir"/~series
 
   # Patch the definition for debug symbols.
   debug='configure_option --disable-debug'
@@ -51,7 +52,10 @@ configure_phpbuild() {
          -e "s|INSTALL|$install_command|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
-         -e "/PATCHES/{r./$patches_dir/series" -e "d}" "$definitions"/"$PHP_VERSION"
+         -e "/PATCHES/{r./$patches_dir/~series" -e "d}" "$definitions"/"$PHP_VERSION"
+
+  # Remove ~series file.
+  rm "$patches_dir"/~series
 }
 
 # Function to install php-build.

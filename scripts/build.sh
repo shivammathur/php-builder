@@ -150,7 +150,7 @@ merge_sapi() {
 configure_sapi_options() {
   sapi=$1
   sed -i "s/PHP_VERSION/$PHP_VERSION/g" "$definitions"/sapi/"$sapi"
-  mv "$definitions"/sapi/"$sapi" "$default_options"
+  cp "$definitions"/sapi/"$sapi" "$default_options"
 }
 
 # Function to link a ini file to scan directory of each SAPI.
@@ -211,6 +211,11 @@ switch_version() {
   echo "::endgroup::"
 }
 
+cleanup_environment() {
+  rm -rf ~/php-build "${INSTALL_ROOT:?}" "${php_build_dir:?}"
+  mkdir -p ~/php-build "${INSTALL_ROOT:?}" "${php_build_dir:?}"
+}
+
 
 if [[ "${#}" -eq 0 ]]; then
   print_help
@@ -264,6 +269,7 @@ if [ "$action" = "build_sapi" ]; then
   . scripts/build_partials/package.sh
   . scripts/build_partials/php_build.sh
   . scripts/build_partials/version.sh
+  cleanup_environment
   get_version
   setup_phpbuild
   build_"${sapi}"

@@ -30,7 +30,6 @@ jobs:
     outputs:
       container_os_matrix: ${{ steps.set-matrix.outputs.container_os_matrix }}
       runner_os_matrix: ${{ steps.set-matrix.outputs.runner_os_matrix }}
-      sapi_matrix: ${{ steps.set-matrix.outputs.sapi_matrix }}
 
     steps:
       - name: Checkout
@@ -56,7 +55,7 @@ jobs:
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.get-matrix.outputs.sapi_matrix)}}
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
 
     steps:
       - name: Checkout
@@ -68,7 +67,11 @@ jobs:
           BUILD: ${{ matrix.build }}
 
       - name: Build and package
-        run: bash scripts/build.sh build_sapi ${{ matrix.sapi }}
+        run: |
+          for sapi in ${{ env.SAPI_LIST }}; do
+            echo "Building $sapi ..."
+            bash scripts/build.sh build_sapi "$sapi"
+          done
         env:
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
