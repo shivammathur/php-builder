@@ -82,7 +82,7 @@ jobs:
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/*.zst
@@ -133,7 +133,7 @@ jobs:
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
           path: |
