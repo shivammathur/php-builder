@@ -1,0 +1,20 @@
+Source: phpPHP_VERSION
+Section: php
+Priority: optional
+Maintainer: Shivam Mathur <contact@shivammathur.com>
+Uploaders: Shivam Mathur <contact@shivammathur.com>,
+Build-Depends: debhelper (>= 10.0)
+Standards-Version: 4.5.0.0
+Homepage: http://www.php.net/
+
+Package: phpPHP_VERSION
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Description: server-side, HTML-embedded scripting language
+  PHP is a widely-used general-purpose scripting language that is especially
+  suited for Web development and can be embedded into HTML.
+  .
+  This package provides the PHP interpreter, as well as the CGI binary.
+  .
+  PHP is a recursive acronym for "PHP: Hypertext Preprocessor".

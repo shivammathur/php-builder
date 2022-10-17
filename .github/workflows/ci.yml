@@ -22,7 +22,7 @@ env:
   RUNNER_OS_LIST: ubuntu-18.04 ubuntu-20.04 ubuntu-22.04
   PHP_LIST: 8.0 8.1 8.2 8.3
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
-  BUILD_LIST: debug thread-safe release
+  BUILD_LIST: nts zts
 
 jobs:
   get-matrix:
@@ -56,7 +56,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
-
+    env:
+      BUILD: ${{ matrix.build }}
+      GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PHP_VERSION: ${{ matrix.php-version }}
+      PHP_SOURCE: ${{ github.event.inputs.php-source }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -66,26 +72,47 @@ jobs:
         env:
           BUILD: ${{ matrix.build }}
 
-      - name: Build and package
-        run: |
-          for sapi in ${{ env.SAPI_LIST }}; do
-            echo "Building $sapi ..."
-            bash scripts/build.sh build_sapi "$sapi"
-          done
+      - name: Build and package apache2
+        if: contains(env.SAPI_LIST, 'apache2')
+        run: bash scripts/build.sh build_sapi apache2
         env:
-          BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Build and package cgi
+        if: contains(env.SAPI_LIST, 'cgi')
+        run: bash scripts/build.sh build_sapi cgi
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package cli
+        if: contains(env.SAPI_LIST, 'cli')
+        run: bash scripts/build.sh build_sapi cli
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package embed
+        if: contains(env.SAPI_LIST, 'embed')
+        run: bash scripts/build.sh build_sapi embed
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package fpm
+        if: contains(env.SAPI_LIST, 'fpm')
+        run: bash scripts/build.sh build_sapi fpm
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package phpdbg
+        if: contains(env.SAPI_LIST, 'phpdbg')
+        run: bash scripts/build.sh build_sapi phpdbg
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
           name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
-          path: /tmp/*.zst
+          path: /tmp/debian/*.zst
 
   merge:
     needs: [get-matrix, build]
@@ -113,8 +140,9 @@ jobs:
       - name: Stage builds
         shell: bash
         run: |
+          mkdir -p /tmp/debian
           for sapi_build in /tmp/*.zst; do
-            tar -I zstd -xf "$sapi_build" -C /tmp
+            tar -I zstd -xf "$sapi_build" -C /tmp/debian
             rm -f "$sapi_build"
           done
 
@@ -129,6 +157,7 @@ jobs:
           GITHUB_EMAIL: ${{ secrets.email }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
 

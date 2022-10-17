@@ -50,9 +50,7 @@ setup_custom_extensions() {
     fi
 
     # Add debug symbols to the extension build.
-    if [ "${BUILD:?}" = "debug" ]; then
-      args+=("--enable-debug")
-    fi
+    args+=("--enable-debug")
 
     # Compile and install the extension.
     bash scripts/retry.sh 5 5 bash "$(pwd)"/scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"

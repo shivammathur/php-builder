@@ -123,9 +123,6 @@
 --with-external-pcre
 --with-system-tzdata
 
-# Placeholder for debug build.
-DEBUG
-
 # Placeholder for thread-safe build.
 ZTS
 

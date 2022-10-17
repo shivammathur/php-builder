@@ -378,9 +378,17 @@ else
   runner="local"
   version="$1"
 fi
-build=${3:-release}
-[ "${build:?}" = "debug" ] && PHP_PKG_SUFFIX=-dbgsym
-[ "${build:?}" = "thread-safe" ] && PHP_PKG_SUFFIX="-zts"
+
+debug=${4:-false}
+build=${3:-ts}
+
+PHP_PKG_SUFFIX=
+if [ "${build:?}" = "zts" ]; then
+  PHP_PKG_SUFFIX="-zts"
+fi
+if [ "$debug" = "debug" ]; then
+  PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
+fi
 
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
 list_file='/etc/apt/sources.list'

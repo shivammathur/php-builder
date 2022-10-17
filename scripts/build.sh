@@ -33,16 +33,8 @@ trap 'log_failure ${LINENO} "$BASH_COMMAND"' ERR
 # Function to get build flags
 get_buildflags() {
   type=$1
-  debug=${2:-false}
-  lto=${3:--lto}
+  lto=${2:--lto}
   flags=$(dpkg-buildflags --get "$type")
-
-  # Add or remove flag for debug symbols.
-  if [ "$debug" = "false" ]; then
-    flags=${flags/-g/}
-  else
-    flags="$flags -g"
-  fi
 
   # Add or remove lto optimization flags.
   if [ "$lto" = "-lto" ]; then
@@ -60,10 +52,10 @@ build_php() {
   SAPI=$1
 
   # Set and export FLAGS
-  CFLAGS="$(get_buildflags CFLAGS "$debug" "$lto") $(getconf LFS_CFLAGS)"
-  CPPFLAGS="$(get_buildflags CPPFLAGS "$debug" "$lto")"
-  CXXFLAGS="$(get_buildflags CXXFLAGS "$debug" "$lto")"
-  LDFLAGS="$(get_buildflags LDFLAGS "$debug" "$lto") -Wl,-z,now -Wl,--as-needed"
+  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
+  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto")"
+  CXXFLAGS="$(get_buildflags CXXFLAGS "$lto")"
+  LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
   EXTRA_CFLAGS="-Wall -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
   export CFLAGS
   export CPPFLAGS
@@ -237,9 +229,9 @@ fi
 action=$1
 prefix=/usr
 branch=master
-debug=false
 lto=-lto
-INSTALL_ROOT=/tmp/"$PHP_VERSION"
+FAKE_ROOT=/tmp
+INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"
 conf_dir=/etc/php/"$PHP_VERSION"
 mods_dir="$conf_dir"/mods-available
 php_build_dir='/usr/local/share/php-build'
@@ -247,14 +239,8 @@ definitions="$php_build_dir/definitions"
 default_options="$php_build_dir/default_configure_options"
 default_ini="production"
 
-# Set debug options.
-if [ "${BUILD:?}" = "debug" ]; then
-  export PHP_PKG_SUFFIX=-dbgsym
-  debug=true
-fi
-
 # Set thread-safe options.
-if [ "${BUILD:?}" = "thread-safe" ]; then
+if [ "${BUILD:?}" = "zts" ]; then
   export PHP_PKG_SUFFIX=-zts
 fi
 
@@ -278,6 +264,7 @@ elif [ "$action" = "merge" ]; then
   . scripts/build_partials/cleanup.sh
   . scripts/build_partials/extensions.sh
   . scripts/build_partials/package.sh
+  . scripts/build_partials/strip.sh
   . scripts/build_partials/pear.sh
   merge_sapi
   configure_ini

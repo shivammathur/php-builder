@@ -6,7 +6,7 @@ package_sapi() {
     zstd -V
     cd "${INSTALL_ROOT:?}"/.. || exit
     mv "$INSTALL_ROOT" "$INSTALL_ROOT-$sapi"
-    tar cf - "$PHP_VERSION-$sapi" | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-$sapi+$ID$VERSION_ID.tar.zst"
+    tar cf - "php$PHP_VERSION-$sapi" | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-$sapi+$ID$VERSION_ID.tar.zst"
     echo "::endgroup::"
   )
 }
@@ -14,6 +14,7 @@ package_sapi() {
 # Function to package PHP
 package_php() {
   (
+    strip_debug
     echo "::group::package_php"
     cd "$INSTALL_ROOT" || exit
     echo "Creating Package using XZ"
@@ -24,6 +25,18 @@ package_php() {
     zstd -V
     tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID.tar.zst"
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID.tar.zst" /tmp
+
+    copy_debug_symbols
+
+    echo "Creating Debug Package using XZ"
+    XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID.tar.xz" ./*
+    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID.tar.xz" /tmp
+
+    echo "Creating Debug Package using ZSTD"
+    zstd -V
+    tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID.tar.zst"
+    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID.tar.zst" /tmp
+
     echo "::endgroup::"
   )
 }
