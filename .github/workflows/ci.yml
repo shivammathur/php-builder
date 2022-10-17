@@ -132,7 +132,7 @@ jobs:
         env:
           BUILD: ${{ matrix.build }}
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
@@ -213,7 +213,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
           path: /tmp
@@ -260,7 +260,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+ubuntu
           path: /tmp
@@ -304,7 +304,7 @@ jobs:
       - name: Create builds directory
         run: mkdir builds
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           path: builds
 
