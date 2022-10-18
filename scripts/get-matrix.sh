@@ -32,6 +32,6 @@ done
 
 # Output the matrices.
 # shellcheck disable=SC2001
-echo "container_os_matrix={\"include\":[$(echo "${container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_ENV"
+echo "container_os_matrix={\"include\":[$(echo "${container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_OUTPUT"
 # shellcheck disable=SC2001
-echo "runner_os_matrix={\"include\":[$(echo "${runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_ENV"
+echo "runner_os_matrix={\"include\":[$(echo "${runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_OUTPUT"
