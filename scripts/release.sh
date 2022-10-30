@@ -56,7 +56,7 @@ log_build
 
 # Create or update release.
 if ! gh release view builds; then
-  gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
+  bash scripts/retry.sh 5 5 gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
 else
-  gh release upload "builds" "${assets[@]}" --clobber
+  bash scripts/retry.sh 5 5 gh release upload "builds" "${assets[@]}" --clobber
 fi
