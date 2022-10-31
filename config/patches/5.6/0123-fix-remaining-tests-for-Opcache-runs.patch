@@ -1,0 +1,56 @@
+From: Anatol Belski <ab@php.net>
+Date: Fri, 13 Jan 2017 17:16:15 +0100
+Subject: fix remaining tests for Opcache runs
+
+The fail reason here is the TMP change while both top and test
+run same binary with opcache enabled.
+
+(cherry picked from commit aaaef22db657953b8cec679e7a492c0c9ec7d95a)
+---
+ ext/phar/tests/tar/phar_commitwrite.phpt       | 3 ---
+ ext/phar/tests/tar/phar_setsignaturealgo2.phpt | 3 ---
+ ext/phar/tests/zip/phar_commitwrite.phpt       | 3 ---
+ 3 files changed, 9 deletions(-)
+
+diff --git a/ext/phar/tests/tar/phar_commitwrite.phpt b/ext/phar/tests/tar/phar_commitwrite.phpt
+index 262ea1d..bfbac61 100644
+--- a/ext/phar/tests/tar/phar_commitwrite.phpt
++++ b/ext/phar/tests/tar/phar_commitwrite.phpt
+@@ -5,9 +5,6 @@ Phar::setStub()/stopBuffering() tar-based
+ --INI--
+ phar.require_hash=0
+ phar.readonly=0
+---ENV--
+-TEMP=.
+-TMP=.
+ --FILE--
+ <?php
+ $p = new Phar(dirname(__FILE__) . '/brandnewphar.phar.tar', 0, 'brandnewphar.phar');
+diff --git a/ext/phar/tests/tar/phar_setsignaturealgo2.phpt b/ext/phar/tests/tar/phar_setsignaturealgo2.phpt
+index b68bbf6..c16e752 100644
+--- a/ext/phar/tests/tar/phar_setsignaturealgo2.phpt
++++ b/ext/phar/tests/tar/phar_setsignaturealgo2.phpt
+@@ -9,9 +9,6 @@ if (!in_array('SHA-256', $arr)) die("skip hash extension loaded shared"); ?>
+ --INI--
+ phar.require_hash=0
+ phar.readonly=0
+---ENV--
+-TEMP=.
+-TMP=.
+ --FILE--
+ <?php
+ $fname = dirname(__FILE__) . '/' . basename(__FILE__, '.php') . '.phar.tar';
+diff --git a/ext/phar/tests/zip/phar_commitwrite.phpt b/ext/phar/tests/zip/phar_commitwrite.phpt
+index 4e18a6b..eb3aeae 100644
+--- a/ext/phar/tests/zip/phar_commitwrite.phpt
++++ b/ext/phar/tests/zip/phar_commitwrite.phpt
+@@ -5,9 +5,6 @@ Phar::setStub()/stopBuffering() zip-based
+ --INI--
+ phar.require_hash=0
+ phar.readonly=0
+---ENV--
+-TEMP=.
+-TMP=.
+ --FILE--
+ <?php
+ $p = new Phar(dirname(__FILE__) . '/brandnewphar.phar.zip', 0, 'brandnewphar.phar');

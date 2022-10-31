@@ -1,0 +1,253 @@
+From: Allen Truong <v-altruo@microsoft.com>
+Date: Tue, 11 Jun 2019 23:40:08 +0200
+Subject: Fixes #3: Updated tests to have less fails due to the test files
+ themselves.
+
+---
+ ext/curl/tests/check_win_config.phpt               |  2 +-
+ ext/curl/tests/curl_basic_009.phpt                 |  6 +--
+ ext/pdo_mysql/tests/pdo_mysql_exec.phpt            |  2 +-
+ .../tests/pdo_mysql_stmt_getcolumnmeta.phpt        | 20 ++++----
+ .../tests/streams/stream_socket_sendto.phpt        | 58 ----------------------
+ ext/standard/tests/strings/bug65769.phpt           |  8 ++-
+ sapi/cli/tests/php_cli_server.inc                  | 10 +++-
+ 7 files changed, 29 insertions(+), 77 deletions(-)
+ delete mode 100644 ext/standard/tests/streams/stream_socket_sendto.phpt
+
+diff --git a/ext/curl/tests/check_win_config.phpt b/ext/curl/tests/check_win_config.phpt
+index 98f3e92..9e1ad98 100644
+--- a/ext/curl/tests/check_win_config.phpt
++++ b/ext/curl/tests/check_win_config.phpt
+@@ -45,7 +45,7 @@ GSSAPI => No
+ KERBEROS5 => Yes
+ UNIX_SOCKETS => No
+ PSL => No
+-Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, pop3, pop3s, rtsp, scp, sftp, smtp, smtps, telnet, tftp
++Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, ldaps, pop3, pop3s, rtsp, scp, sftp, smb, smbs, smtp, smtps, telnet, tftp
+ Host => %s-pc-win32
+ SSL Version => OpenSSL/%s
+ ZLib Version => %s
+diff --git a/ext/curl/tests/curl_basic_009.phpt b/ext/curl/tests/curl_basic_009.phpt
+index 529e590..3b36a78 100644
+--- a/ext/curl/tests/curl_basic_009.phpt
++++ b/ext/curl/tests/curl_basic_009.phpt
+@@ -18,6 +18,6 @@ curl_close($ch);
+ 
+ 
+ ?>
+---EXPECTF--
+-%unicode|string%(%d) "%Srotocol%s"
+-int(1)
++--EXPECTREGEX--
++string\(\d+\) "([^\r\n]*rotocol[^\r\n]+|Could not resolve host: .+)"
++int\(\d\)
+diff --git a/ext/pdo_mysql/tests/pdo_mysql_exec.phpt b/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
+index acd9090..9830737 100644
+--- a/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
++++ b/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
+@@ -75,7 +75,7 @@ MySQLPDOTest::skip();
+ 			exec_and_count(19, $db, 'CREATE PROCEDURE p(OUT ver_param VARCHAR(255)) BEGIN SELECT VERSION() INTO ver_param; END;', 0);
+ 			// we got this far without problems. If there's an issue from now on, its a failure
+ 			$ignore_exception = false;
+-			exec_and_count(20, $db, 'CALL p(@version)', 0);
++			exec_and_count(20, $db, 'CALL p(@version)', 1);
+ 			$stmt = $db->query('SELECT @version AS p_version');
+ 			$tmp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+ 			if (count($tmp) > 1 || !isset($tmp[0]['p_version'])) {
+diff --git a/ext/pdo_mysql/tests/pdo_mysql_stmt_getcolumnmeta.phpt b/ext/pdo_mysql/tests/pdo_mysql_stmt_getcolumnmeta.phpt
+index 72b5315..82806ce 100644
+--- a/ext/pdo_mysql/tests/pdo_mysql_stmt_getcolumnmeta.phpt
++++ b/ext/pdo_mysql/tests/pdo_mysql_stmt_getcolumnmeta.phpt
+@@ -38,7 +38,7 @@ try {
+ 	if (false !== ($tmp = @$stmt->getColumnMeta(-1)))
+ 		printf("[004] Expecting false got %s\n", var_export($tmp, true));
+ 
+-	// Warning: PDOStatement::getColumnMeta() expects parameter 1 to be integer, array given in
++	// Warning: PDOStatement::getColumnMeta() expects parameter 1 to be int, array given in
+ 	if (false !== ($tmp = @$stmt->getColumnMeta(array())))
+ 		printf("[005] Expecting false got %s\n", var_export($tmp, true));
+ 
+@@ -162,37 +162,37 @@ try {
+ 	test_meta($db, 100, 'INT', -2147483648, 'LONG', ($is_mysqlnd) ? PDO::PARAM_INT : PDO::PARAM_STR);
+ 	test_meta($db, 110, 'INT UNSIGNED', 4294967295, 'LONG', ($is_mysqlnd) ? PDO::PARAM_INT : PDO::PARAM_STR);
+ 
+-	test_meta($db, 120, 'BIGINT', -9223372036854775808, 'LONGLONG', ($is_mysqlnd) ? ((PHP_INT_SIZE == 4) ? PDO::PARAM_STR : PDO::PARAM_INT) : PDO::PARAM_STR);
+-	test_meta($db, 130, 'BIGINT UNSIGNED', 18446744073709551615, 'LONGLONG', ($is_mysqlnd) ? ((PHP_INT_SIZE == 4) ? PDO::PARAM_STR : PDO::PARAM_INT) : PDO::PARAM_STR);
++	test_meta($db, 120, 'BIGINT', '-9223372036854775808', 'LONGLONG', ($is_mysqlnd) ? ((PHP_INT_SIZE == 4) ? PDO::PARAM_STR : PDO::PARAM_INT) : PDO::PARAM_STR);
++	test_meta($db, 130, 'BIGINT UNSIGNED', '18446744073709551615', 'LONGLONG', ($is_mysqlnd) ? ((PHP_INT_SIZE == 4) ? PDO::PARAM_STR : PDO::PARAM_INT) : PDO::PARAM_STR);
+ 
+ 	test_meta($db, 130, 'REAL', -1.01, ($real_as_float) ? 'FLOAT' : 'DOUBLE', PDO::PARAM_STR);
+ 	test_meta($db, 140, 'REAL UNSIGNED', 1.01, ($real_as_float) ? 'FLOAT' : 'DOUBLE', PDO::PARAM_STR);
+-	test_meta($db, 150, 'REAL ZEROFILL', -1.01, ($real_as_float) ? 'FLOAT' : 'DOUBLE', PDO::PARAM_STR);
++	test_meta($db, 150, 'REAL ZEROFILL', 1.01, ($real_as_float) ? 'FLOAT' : 'DOUBLE', PDO::PARAM_STR);
+ 	test_meta($db, 160, 'REAL UNSIGNED ZEROFILL', 1.01, ($real_as_float) ? 'FLOAT' : 'DOUBLE', PDO::PARAM_STR);
+ 
+ 	test_meta($db, 170, 'DOUBLE', -1.01, 'DOUBLE', PDO::PARAM_STR);
+ 	test_meta($db, 180, 'DOUBLE UNSIGNED', 1.01, 'DOUBLE', PDO::PARAM_STR);
+-	test_meta($db, 190, 'DOUBLE ZEROFILL', -1.01, 'DOUBLE', PDO::PARAM_STR);
++	test_meta($db, 190, 'DOUBLE ZEROFILL', 1.01, 'DOUBLE', PDO::PARAM_STR);
+ 	test_meta($db, 200, 'DOUBLE UNSIGNED ZEROFILL', 1.01, 'DOUBLE', PDO::PARAM_STR);
+ 
+ 	test_meta($db, 210, 'FLOAT', -1.01, 'FLOAT', PDO::PARAM_STR);
+ 	test_meta($db, 220, 'FLOAT UNSIGNED', 1.01, 'FLOAT', PDO::PARAM_STR);
+-	test_meta($db, 230, 'FLOAT ZEROFILL', -1.01, 'FLOAT', PDO::PARAM_STR);
++	test_meta($db, 230, 'FLOAT ZEROFILL', 1.01, 'FLOAT', PDO::PARAM_STR);
+ 	test_meta($db, 240, 'FLOAT UNSIGNED ZEROFILL', 1.01, 'FLOAT', PDO::PARAM_STR);
+ 
+ 	test_meta($db, 250, 'DECIMAL', -1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 	test_meta($db, 260, 'DECIMAL UNSIGNED', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+-	test_meta($db, 270, 'DECIMAL ZEROFILL', -1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
++	test_meta($db, 270, 'DECIMAL ZEROFILL', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 	test_meta($db, 280, 'DECIMAL UNSIGNED ZEROFILL', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 
+ 	test_meta($db, 290, 'NUMERIC', -1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 	test_meta($db, 300, 'NUMERIC UNSIGNED', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+-	test_meta($db, 310, 'NUMERIC ZEROFILL', -1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
++	test_meta($db, 310, 'NUMERIC ZEROFILL', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 	test_meta($db, 320, 'NUMERIC UNSIGNED ZEROFILL', 1.01, array('DECIMAL', 'NEWDECIMAL'), PDO::PARAM_STR);
+ 
+ 	test_meta($db, 330, 'DATE', '2008-04-23', array('DATE', 'NEWDATE'), PDO::PARAM_STR);
+ 	test_meta($db, 340, 'TIME', '14:37:00', 'TIME', PDO::PARAM_STR);
+-	test_meta($db, 350, 'TIMESTAMP', time(), 'TIMESTAMP', PDO::PARAM_STR);
++	test_meta($db, 350, 'TIMESTAMP', '2008-03-23 14:38:00', 'TIMESTAMP', PDO::PARAM_STR);
+ 	test_meta($db, 360, 'DATETIME', '2008-03-23 14:38:00', 'DATETIME', PDO::PARAM_STR);
+ 	test_meta($db, 370, 'YEAR', '2008', 'YEAR', ($is_mysqlnd) ? PDO::PARAM_INT : PDO::PARAM_STR);
+ 
+@@ -309,6 +309,6 @@ try {
+ $db->exec('DROP TABLE IF EXISTS test');
+ print "done!";
+ ?>
+---EXPECTF--
++--EXPECT--
+ Testing native PS...
+ done!
+diff --git a/ext/standard/tests/streams/stream_socket_sendto.phpt b/ext/standard/tests/streams/stream_socket_sendto.phpt
+deleted file mode 100644
+index 62d9f6e..0000000
+--- a/ext/standard/tests/streams/stream_socket_sendto.phpt
++++ /dev/null
+@@ -1,58 +0,0 @@
+---TEST--
+-int stream_socket_sendto ( resource $socket , string $data [, int $flags = 0 [, string $address ]] );
+---CREDITS--
+-marcosptf - <marcosptf@yahoo.com.br> - @phpsp - sao paulo - br
+---SKIPIF--
+-<?php
+-if (getenv("SKIP_ONLINE_TESTS")) { die('skip: online test'); }
+-?>
+---FILE--
+-<?php
+-$serverUri = "tcp://127.0.0.1:31854";
+-$serverUrl = "http://php.net";
+-$stringSocket = "out of band data.";
+-$stringFWrite = "normal data to transmit";
+-$sock = stream_socket_server($serverUri, $errno, $errstr);
+-
+-if (is_resource($sock)) {
+-    fwrite($sock, $stringFWrite);
+-    var_dump(stream_socket_sendto());
+-    var_dump(stream_socket_sendto($sock));
+-    var_dump(stream_socket_sendto($sock, $stringSocket));
+-    var_dump(stream_socket_sendto($sock, $stringSocket, STREAM_OOB));
+-    var_dump(stream_socket_sendto($sock, $stringSocket, STREAM_OOB, $serverUri));
+-    var_dump(stream_socket_sendto($sock, $stringSocket, STREAM_OOB, $serverUrl));
+-} else {
+-    die("Test stream_socket_enable_crypto has failed; Unable to connect: {$errstr} ({$errno})");
+-}
+-?>
+---EXPECTF--
+-Notice: fwrite(): send of %i bytes failed with errno=%i Broken pipe in %s on line %i
+-
+-Warning: stream_socket_sendto() expects at least %i parameters, %i given in %s on line %i
+-bool(%s)
+-
+-Warning: stream_socket_sendto() expects at least %i parameters, %i given in %s on line %i
+-bool(%s)
+-
+-Warning: stream_socket_sendto(): Broken pipe
+- in %s on line %i
+-int(%i)
+-
+-Warning: stream_socket_sendto(): Broken pipe
+- in %s on line %i
+-int(%i)
+-
+-Warning: stream_socket_sendto(): php_network_getaddresses: getaddrinfo failed: Name or service not known in %s on line %i
+-
+-Warning: stream_socket_sendto(): Failed to resolve %s: php_network_getaddresses: getaddrinfo failed: Name or service not known in %s on line %i
+-
+-Warning: stream_socket_sendto(): Failed to parse %s into a valid network address in %s on line %i
+-bool(%s)
+-
+-Warning: stream_socket_sendto(): php_network_getaddresses: getaddrinfo failed: Name or service not known in %s on line %i
+-
+-Warning: stream_socket_sendto(): Failed to resolve %s: php_network_getaddresses: getaddrinfo failed: Name or service not known in %s on line %i
+-
+-Warning: stream_socket_sendto(): Failed to parse %s into a valid network address in %s on line %i
+-bool(%s)
+diff --git a/ext/standard/tests/strings/bug65769.phpt b/ext/standard/tests/strings/bug65769.phpt
+index 1a81d48..efe5788 100644
+--- a/ext/standard/tests/strings/bug65769.phpt
++++ b/ext/standard/tests/strings/bug65769.phpt
+@@ -26,6 +26,9 @@ foreach ($locales as $locale) {
+ 		$lconv['mon_decimal_point'],
+ 		$lconv['mon_thousands_sep']
+ 	);
++	if ($locale === 'Swedish_Sweden.1252') {
++		var_dump(in_array($lconv['mon_thousands_sep'], ['.', ' ']));
++	}
+ 	echo '++++++++++++++++++++++', "\n";
+ }
+ 
+@@ -38,7 +41,8 @@ string(1) "
+ string(3) "SEK"
+ string(2) "kr"
+ string(1) ","
+-string(1) "."
++string(1) "%c"
++bool(true)
+ ++++++++++++++++++++++
+ string(18) "French_France.1252"
+ string(1) ","
+@@ -64,7 +68,7 @@ string(1) "?"
+ string(1) ","
+ string(1) " "
+ ++++++++++++++++++++++
+-string(25) "Czech_Czech Republic.1250"
++string(%d) "Czech_Czech%s.1250"
+ string(1) ","
+ string(1) " "
+ string(3) "CZK"
+diff --git a/sapi/cli/tests/php_cli_server.inc b/sapi/cli/tests/php_cli_server.inc
+index 5ee3887..0ea90da 100644
+--- a/sapi/cli/tests/php_cli_server.inc
++++ b/sapi/cli/tests/php_cli_server.inc
+@@ -11,13 +11,14 @@ function php_cli_server_start($code = 'echo "Hello world";', $router = 'index.ph
+ 		file_put_contents($doc_root . '/' . ($router ?: 'index.php'), '<?php ' . $code . ' ?>');
+ 	}
+ 
++	if (substr(PHP_OS, 0, 3) == 'WIN') {
+ 	$descriptorspec = array(
+ 		0 => STDIN,
+ 		1 => STDOUT,
+-		2 => STDERR,
++		2 => array("pipe","w"),
+ 	);
+ 
+-	if (substr(PHP_OS, 0, 3) == 'WIN') {
++	
+ 		$cmd = "{$php_executable} -t {$doc_root} -n {$cmd_args} -S " . PHP_CLI_SERVER_ADDRESS;
+ 		if (!is_null($router)) {
+ 			$cmd .= " {$router}";
+@@ -25,6 +26,11 @@ function php_cli_server_start($code = 'echo "Hello world";', $router = 'index.ph
+ 
+ 		$handle = proc_open(addslashes($cmd), $descriptorspec, $pipes, $doc_root, NULL, array("bypass_shell" => true,  "suppress_errors" => true));
+ 	} else {
++		$descriptorspec = array(
++		0 => STDIN,
++		1 => STDOUT,
++		2 => STDERR,
++	);
+ 		$cmd = "exec {$php_executable} -t {$doc_root} -n {$cmd_args} -S " . PHP_CLI_SERVER_ADDRESS;
+ 		if (!is_null($router)) {
+ 			$cmd .= " {$router}";

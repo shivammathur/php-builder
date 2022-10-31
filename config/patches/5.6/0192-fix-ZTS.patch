@@ -1,0 +1,22 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 15 Nov 2021 11:28:17 +0100
+Subject: fix ZTS
+
+(cherry picked from commit cfad01ddc65a32fbde3110a84c61d2ac55173a9c)
+---
+ ext/libxml/libxml.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ext/libxml/libxml.c b/ext/libxml/libxml.c
+index d4a47ff..02453ff 100644
+--- a/ext/libxml/libxml.c
++++ b/ext/libxml/libxml.c
+@@ -433,6 +433,8 @@ php_libxml_output_buffer_create_filename(const char *URI,
+ 	void *context = NULL;
+ 	char *unescaped = NULL;
+ 
++	TSRMLS_FETCH();
++
+ 	if (URI == NULL)
+ 		return(NULL);
+ 

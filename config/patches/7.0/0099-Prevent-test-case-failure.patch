@@ -1,0 +1,26 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 21 May 2019 11:17:28 +0200
+Subject: Prevent test case failure
+
+If opcache.log_verbosity_level is greater than 1, opcache will raise
+warnings, which will be written to stderr in the default case.  These
+warnings are actually to be expected, but would break the test, so we
+make sure that the log_verbosity_level is 1 when running this test.
+
+(cherry picked from php/php-src@e6a191de1b73c902b631cb8f0f70ed58b81005d4)
+---
+ ext/opcache/tests/bug66461.phpt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/opcache/tests/bug66461.phpt b/ext/opcache/tests/bug66461.phpt
+index 33132ab..2d09fef 100644
+--- a/ext/opcache/tests/bug66461.phpt
++++ b/ext/opcache/tests/bug66461.phpt
+@@ -4,6 +4,7 @@ Bug #66461 (PHP crashes if opcache.interned_strings_buffer=0)
+ opcache.enable=1
+ opcache.enable_cli=1
+ opcache.optimization_level=-1
++opcache.log_verbosity_level=1
+ opcache.file_update_protection=0
+ opcache.interned_strings_buffer=0
+ --SKIPIF--

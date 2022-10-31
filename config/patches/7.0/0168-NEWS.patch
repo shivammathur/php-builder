@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 21 Oct 2021 08:30:53 +0200
+Subject: NEWS
+
+(cherry picked from commit 515df60d2d4f9e7514061aa11ad8141f35f5a44a)
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 24e5779..98e9be9 100644
+--- a/NEWS
++++ b/NEWS
+@@ -7,6 +7,12 @@ Backported from 7.4.25
+   . Fixed bug #81026 (PHP-FPM oob R/W in root process leading to privilege
+     escalation) (CVE-2021-21703). (Jakub Zelenka)
+ 
++Backported from 7.3.31
++
++- Zip:
++  . Fixed bug #81420 (ZipArchive::extractTo extracts outside of destination).
++    (CVE-2021-21706) (cmb)
++
+ Backported from 7.3.30
+ 
+ - Phar:

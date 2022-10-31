@@ -1,0 +1,82 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 17 Dec 2019 15:24:23 +0100
+Subject: Fix tests
+
+---
+ ext/bcmath/tests/bug78878.phpt | 3 +--
+ ext/exif/tests/bug76557.phpt   | 2 +-
+ ext/exif/tests/bug78910.phpt   | 8 ++++----
+ ext/spl/tests/bug54291.phpt    | 2 +-
+ ext/spl/tests/bug78863.phpt    | 2 +-
+ 5 files changed, 8 insertions(+), 9 deletions(-)
+
+diff --git a/ext/bcmath/tests/bug78878.phpt b/ext/bcmath/tests/bug78878.phpt
+index 2c9d72b..3337270 100644
+--- a/ext/bcmath/tests/bug78878.phpt
++++ b/ext/bcmath/tests/bug78878.phpt
+@@ -9,5 +9,4 @@ if (!extension_loaded('bcmath')) die('skip bcmath extension not available');
+ print @bcmul("\xB26483605105519922841849335928742092", bcpowmod(2, 65535, -4e-4));
+ ?>
+ --EXPECT--
+-bc math warning: non-zero scale in modulus
+-0
++0bc math warning: non-zero scale in modulus
+diff --git a/ext/exif/tests/bug76557.phpt b/ext/exif/tests/bug76557.phpt
+index 4553b62..8920de6 100644
+--- a/ext/exif/tests/bug76557.phpt
++++ b/ext/exif/tests/bug76557.phpt
+@@ -70,7 +70,7 @@ Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal f
+ 
+ Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal format code 0x3030, suppose BYTE in %sbug76557.php on line %d
+ 
+-Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal pointer offset(x30303030 + x30303030 = x60606060 > x00EE) in %sbug76557.php on line %d
++Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal pointer offset(x30303030 + x30303030 = x60606060 > %s) in %sbug76557.php on line %d
+ 
+ Warning: exif_read_data(bug76557.jpg): File structure corrupted in %sbug76557.php on line %d
+ 
+diff --git a/ext/exif/tests/bug78910.phpt b/ext/exif/tests/bug78910.phpt
+index f5b1c32..7e40b82 100644
+--- a/ext/exif/tests/bug78910.phpt
++++ b/ext/exif/tests/bug78910.phpt
+@@ -7,11 +7,11 @@ var_dump(exif_read_data('data:image/jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAA
+ 
+ ?>
+ --EXPECTF--
+-Notice: exif_read_data(): Read from TIFF: tag(0x927C, MakerNote  ): Illegal format code 0x2020, switching to BYTE in %s on line %d
++Notice: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Read from TIFF: tag(0x927C, MakerNote  ): Illegal format code 0x2020, switching to BYTE in %s on line %d
+ 
+-Warning: exif_read_data(): Process tag(x927C=MakerNote  ): Illegal format code 0x2020, suppose BYTE in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Process tag(x927C=MakerNote  ): Illegal format code 0x2020, suppose BYTE in %s on line %d
+ 
+-Warning: exif_read_data(): IFD data too short: 0x0000 offset 0x000C in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): IFD data too short: 0x0000 offset 0x000C in %s on line %d
+ 
+-Warning: exif_read_data(): Invalid TIFF file in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Invalid TIFF file in %s on line %d
+ bool(false)
+diff --git a/ext/spl/tests/bug54291.phpt b/ext/spl/tests/bug54291.phpt
+index 9314b6b..510963c 100644
+--- a/ext/spl/tests/bug54291.phpt
++++ b/ext/spl/tests/bug54291.phpt
+@@ -5,7 +5,7 @@ Bug #54291 (Crash iterating DirectoryIterator for dir name starting with \0)
+ $dir = new DirectoryIterator("\x00/abc");
+ $dir->isFile();
+ --EXPECTF--
+-Fatal error: Uncaught exception 'UnexpectedValueException' with message 'Failed to open directory ""' in %s:%d
++Fatal error: Uncaught exception 'UnexpectedValueException' with message 'DirectoryIterator::__construct() expects parameter 1 to be a valid path, string given' in %s:%d
+ Stack trace:
+ #0 %s(%d): DirectoryIterator->__construct('\x00/abc')
+ #1 {main}
+diff --git a/ext/spl/tests/bug78863.phpt b/ext/spl/tests/bug78863.phpt
+index dc88d98..53a1110 100644
+--- a/ext/spl/tests/bug78863.phpt
++++ b/ext/spl/tests/bug78863.phpt
+@@ -16,7 +16,7 @@ foreach ($it as $fileinfo) {
+ }
+ ?>
+ --EXPECTF--
+-Fatal error: Uncaught UnexpectedValueException: DirectoryIterator::__construct() expects parameter 1 to be a valid path, string given in %s:%d
++Fatal error: Uncaught exception 'UnexpectedValueException' with message 'DirectoryIterator::__construct() expects parameter 1 to be a valid path, string given' in %s:%d
+ Stack trace:
+ #0 %s(%d): DirectoryIterator->__construct('%s')
+ #1 {main}

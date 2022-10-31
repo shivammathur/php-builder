@@ -1,0 +1,233 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Thu, 29 Aug 2019 15:10:57 +0200
+Subject: Make use of pkg-config for libxml2
+
+---
+ acinclude.m4            | 81 ++++++++++++++++++++++++++++++++-----------------
+ ext/dom/config.m4       |  2 +-
+ ext/libxml/config0.m4   |  2 +-
+ ext/simplexml/config.m4 |  2 +-
+ ext/soap/config.m4      |  2 +-
+ ext/wddx/config.m4      |  2 +-
+ ext/xml/config.m4       |  2 +-
+ ext/xmlreader/config.m4 |  2 +-
+ ext/xmlrpc/config.m4    |  2 +-
+ ext/xmlwriter/config.m4 |  2 +-
+ 10 files changed, 62 insertions(+), 37 deletions(-)
+
+diff --git a/acinclude.m4 b/acinclude.m4
+index 6255188..733ad8b 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -2567,15 +2567,18 @@ dnl
+ dnl Common setup macro for libxml
+ dnl
+ AC_DEFUN([PHP_SETUP_LIBXML], [
+-AC_CACHE_CHECK([for xml2-config path], ac_cv_php_xml2_config_path,
+-[
+-  for i in $PHP_LIBXML_DIR /usr/local /usr; do
+-    if test -x "$i/bin/xml2-config"; then
+-      ac_cv_php_xml2_config_path="$i/bin/xml2-config"
+-      break
+-    fi
+-  done
+-])
++  found_libxml=no
++
++  dnl First try to find xml2-config
++  AC_CACHE_CHECK([for xml2-config path], ac_cv_php_xml2_config_path,
++  [
++    for i in $PHP_LIBXML_DIR /usr/local /usr; do
++      if test -x "$i/bin/xml2-config"; then
++        ac_cv_php_xml2_config_path="$i/bin/xml2-config"
++        break
++      fi
++    done
++  ])
+ 
+   if test -x "$ac_cv_php_xml2_config_path"; then
+     XML2_CONFIG="$ac_cv_php_xml2_config_path"
+@@ -2586,30 +2589,52 @@ AC_CACHE_CHECK([for xml2-config path], ac_cv_php_xml2_config_path,
+     IFS=$ac_IFS
+     LIBXML_VERSION=`expr [$]1 \* 1000000 + [$]2 \* 1000 + [$]3`
+     if test "$LIBXML_VERSION" -ge "2006011"; then
++      found_libxml=yes
+       LIBXML_LIBS=`$XML2_CONFIG --libs`
+       LIBXML_INCS=`$XML2_CONFIG --cflags`
+-      PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
+-      PHP_EVAL_INCLINE($LIBXML_INCS)
+-
+-      dnl Check that build works with given libs
+-      AC_CACHE_CHECK(whether libxml build works, php_cv_libxml_build_works, [
+-        PHP_TEST_BUILD(xmlInitParser,
+-        [
+-          php_cv_libxml_build_works=yes
+-        ], [
+-          AC_MSG_RESULT(no)
+-          AC_MSG_ERROR([build test failed.  Please check the config.log for details.])
+-        ], [
+-          [$]$1
+-        ])
+-      ])
+-      if test "$php_cv_libxml_build_works" = "yes"; then
+-        AC_DEFINE(HAVE_LIBXML, 1, [ ])
+-      fi
+-      $2
+     else
+       AC_MSG_ERROR([libxml2 version 2.6.11 or greater required.])
+     fi
++  fi
++
++  dnl If xml2-config fails, try pkg-config
++  if test "$found_libxml" = "no"; then
++    if test -z "$PKG_CONFIG"; then
++      AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
++    fi
++
++    dnl If pkg-config is found try using it
++    if test -x "$PKG_CONFIG" && $PKG_CONFIG --exists libxml-2.0; then
++      if $PKG_CONFIG --atleast-version=2.6.11 libxml-2.0; then
++        found_libxml=yes
++        LIBXML_LIBS=`$PKG_CONFIG --libs libxml-2.0`
++        LIBXML_INCS=`$PKG_CONFIG --cflags-only-I libxml-2.0`
++      else
++        AC_MSG_ERROR([libxml2 version 2.6.11 or greater required.])
++      fi
++    fi
++  fi
++
++  if test "$found_libxml" = "yes"; then
++    PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
++    PHP_EVAL_INCLINE($LIBXML_INCS)
++
++    dnl Check that build works with given libs
++    AC_CACHE_CHECK(whether libxml build works, php_cv_libxml_build_works, [
++      PHP_TEST_BUILD(xmlInitParser,
++      [
++        php_cv_libxml_build_works=yes
++      ], [
++        AC_MSG_RESULT(no)
++        AC_MSG_ERROR([build test failed.  Please check the config.log for details.])
++      ], [
++        [$]$1
++      ])
++    ])
++    if test "$php_cv_libxml_build_works" = "yes"; then
++      AC_DEFINE(HAVE_LIBXML, 1, [ ])
++    fi
++    $2
+ ifelse([$3],[],,[else $3])
+   fi
+ ])
+diff --git a/ext/dom/config.m4 b/ext/dom/config.m4
+index 7882483..5ea62ad 100644
+--- a/ext/dom/config.m4
++++ b/ext/dom/config.m4
+@@ -33,6 +33,6 @@ if test "$PHP_DOM" != "no"; then
+     PHP_INSTALL_HEADERS([ext/dom/xml_common.h])
+     PHP_ADD_EXTENSION_DEP(dom, libxml)
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+ fi
+diff --git a/ext/libxml/config0.m4 b/ext/libxml/config0.m4
+index 14f5868..e559620 100644
+--- a/ext/libxml/config0.m4
++++ b/ext/libxml/config0.m4
+@@ -20,6 +20,6 @@ if test "$PHP_LIBXML" != "no"; then
+     PHP_NEW_EXTENSION(libxml, [libxml.c], $ext_shared)
+     PHP_INSTALL_HEADERS([ext/libxml/php_libxml.h])
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+ fi
+diff --git a/ext/simplexml/config.m4 b/ext/simplexml/config.m4
+index b06f5b0..ec1b2b2 100644
+--- a/ext/simplexml/config.m4
++++ b/ext/simplexml/config.m4
+@@ -21,7 +21,7 @@ if test "$PHP_SIMPLEXML" != "no"; then
+     PHP_INSTALL_HEADERS([ext/simplexml/php_simplexml.h ext/simplexml/php_simplexml_exports.h])
+     PHP_SUBST(SIMPLEXML_SHARED_LIBADD)
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+   PHP_ADD_EXTENSION_DEP(simplexml, libxml)
+   PHP_ADD_EXTENSION_DEP(simplexml, spl, true)
+diff --git a/ext/soap/config.m4 b/ext/soap/config.m4
+index 7fa8c6f..f32215b 100644
+--- a/ext/soap/config.m4
++++ b/ext/soap/config.m4
+@@ -20,6 +20,6 @@ if test "$PHP_SOAP" != "no"; then
+     PHP_NEW_EXTENSION(soap, soap.c php_encoding.c php_http.c php_packet_soap.c php_schema.c php_sdl.c php_xml.c, $ext_shared)
+     PHP_SUBST(SOAP_SHARED_LIBADD)
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+ fi
+diff --git a/ext/wddx/config.m4 b/ext/wddx/config.m4
+index 8f933d4..96b566e 100644
+--- a/ext/wddx/config.m4
++++ b/ext/wddx/config.m4
+@@ -29,7 +29,7 @@ if test "$PHP_WDDX" != "no"; then
+         PHP_ADD_BUILD_DIR(ext/xml)
+       fi
+     ], [
+-      AC_MSG_ERROR([xml2-config not found. Use --with-libxml-dir=<DIR>])
++      AC_MSG_ERROR([libxml2 not found. Use --with-libxml-dir=<DIR>])
+     ])
+   fi
+ 
+diff --git a/ext/xml/config.m4 b/ext/xml/config.m4
+index ebfc047..29768a4 100644
+--- a/ext/xml/config.m4
++++ b/ext/xml/config.m4
+@@ -28,7 +28,7 @@ if test "$PHP_XML" != "no"; then
+       xml_extra_sources="compat.c"
+       PHP_ADD_EXTENSION_DEP(xml, libxml)
+     ], [
+-      AC_MSG_ERROR([xml2-config not found. Use --with-libxml-dir=<DIR>])
++      AC_MSG_ERROR([libxml2 not found. Use --with-libxml-dir=<DIR>])
+     ])
+   fi
+   
+diff --git a/ext/xmlreader/config.m4 b/ext/xmlreader/config.m4
+index d346b58..4ada113 100644
+--- a/ext/xmlreader/config.m4
++++ b/ext/xmlreader/config.m4
+@@ -22,6 +22,6 @@ if test "$PHP_XMLREADER" != "no"; then
+     PHP_ADD_EXTENSION_DEP(xmlreader, dom, true)
+     PHP_SUBST(XMLREADER_SHARED_LIBADD)
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+ fi
+diff --git a/ext/xmlrpc/config.m4 b/ext/xmlrpc/config.m4
+index 8b4bd5b..958a2e7 100644
+--- a/ext/xmlrpc/config.m4
++++ b/ext/xmlrpc/config.m4
+@@ -42,7 +42,7 @@ if test "$PHP_XMLRPC" != "no"; then
+         PHP_ADD_BUILD_DIR(ext/xml)
+       fi
+     ], [
+-      AC_MSG_ERROR([xml2-config not found. Use --with-libxml-dir=<DIR>])
++      AC_MSG_ERROR([libxml2 not found. Use --with-libxml-dir=<DIR>])
+     ])
+   else
+     testval=no
+diff --git a/ext/xmlwriter/config.m4 b/ext/xmlwriter/config.m4
+index b3b9801..8261e21 100644
+--- a/ext/xmlwriter/config.m4
++++ b/ext/xmlwriter/config.m4
+@@ -21,6 +21,6 @@ if test "$PHP_XMLWRITER" != "no"; then
+     PHP_NEW_EXTENSION(xmlwriter, php_xmlwriter.c, $ext_shared)
+     PHP_SUBST(XMLWRITER_SHARED_LIBADD)
+   ], [
+-    AC_MSG_ERROR([xml2-config not found. Please check your libxml2 installation.])
++    AC_MSG_ERROR([libxml2 not found. Please check your libxml2 installation.])
+   ])
+ fi

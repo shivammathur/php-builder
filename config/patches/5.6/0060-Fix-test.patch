@@ -1,0 +1,21 @@
+From: Anatol Belski <ab@php.net>
+Date: Wed, 6 Mar 2019 12:19:33 +0100
+Subject: Fix test
+
+---
+ ext/spl/tests/bug77431.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/spl/tests/bug77431.phpt b/ext/spl/tests/bug77431.phpt
+index eb1ca96..04e4ce2 100644
+--- a/ext/spl/tests/bug77431.phpt
++++ b/ext/spl/tests/bug77431.phpt
+@@ -5,5 +5,5 @@ Bug #77431 (SplFileInfo::__construct() accepts NUL bytes)
+ new SplFileInfo("bad\0good");
+ ?>
+ --EXPECTF--
+-Fatal error: Uncaught TypeError: SplFileInfo::__construct() expects parameter 1 to be a valid path, string given in %s:%d
+-Stack trace:%A
+\ No newline at end of file
++Fatal error: Uncaught exception 'RuntimeException' with message 'SplFileInfo::__construct() expects parameter 1 to be a valid path, string given' in %s:%d
++Stack trace:%A

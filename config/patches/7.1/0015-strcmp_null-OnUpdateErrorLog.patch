@@ -1,0 +1,25 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:53 +0200
+Subject: strcmp_null-OnUpdateErrorLog
+
+---
+ tests/func/null-new_val.phpt | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 tests/func/null-new_val.phpt
+
+diff --git a/tests/func/null-new_val.phpt b/tests/func/null-new_val.phpt
+new file mode 100644
+index 0000000..412da39
+--- /dev/null
++++ b/tests/func/null-new_val.phpt
+@@ -0,0 +1,10 @@
++--TEST--
++ini_restore strcmp NULL new_val
++--FILE--
++<?php
++
++ini_set('error_log','ini_set_works');
++ini_restore('error_log');
++
++?>
++--EXPECT--

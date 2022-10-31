@@ -1,0 +1,33 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Fri, 30 Sep 2022 09:22:14 +0200
+Subject: fix NEWS
+
+(cherry picked from commit 9d32d284b25f5df75780911a47b3c23cbaac1761)
+---
+ NEWS | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 23753c6..fb59252 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,14 +1,16 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
+-Backported from 7.4.31
++Backported from 7.4.32
+ 
+ - Core:
+-  . Fixed bug #81726: phar wrapper: DOS when using quine gzip file.
+-    (CVE-2022-31628). (cmb)
+   . Fixed bug #81727: Don't mangle HTTP variable names that clash with ones
+     that have a specific semantic meaning. (CVE-2022-31629). (Derick)
+ 
++- Phar:
++  . Fixed bug #81726: phar wrapper: DOS when using quine gzip file.
++    (CVE-2022-31628). (cmb)
++
+ Backported from 7.4.30
+ 
+ - mysqlnd:

@@ -1,0 +1,37 @@
+From: Nikita Popov <nikic@php.net>
+Date: Tue, 22 Nov 2016 22:43:23 +0100
+Subject: Add support for "xfail" to phpt SKIPIF sections
+
+If SKIPIF output starts with "xfail" instead of "skip", the test
+will be marked as XFAIL with the following message. Example:
+
+    --TEST--
+    Test xfailif feature
+    --SKIPIF--
+    <?php
+    if (some_cond()) die('xfail Expected to fail!');
+    ?>
+    --FILE--
+    ...
+
+(cherry picked from commit 5cee9dfe9a479c15d08f66a4baca83ed4e7ed288)
+---
+ run-tests.php | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/run-tests.php b/run-tests.php
+index 0949d50..7dab5ab 100755
+--- a/run-tests.php
++++ b/run-tests.php
+@@ -1553,6 +1553,11 @@ TEST $file
+ 					$info = " (warn: $m[1])";
+ 				}
+ 			}
++
++			if (!strncasecmp('xfail', ltrim($output), 5)) {
++				// Pretend we have an XFAIL section
++				$section_text['XFAIL'] = trim(substr(ltrim($output), 5));
++			}
+ 		}
+ 	}
+ 	

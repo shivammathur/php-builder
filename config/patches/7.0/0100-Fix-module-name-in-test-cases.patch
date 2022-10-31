@@ -1,0 +1,35 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Fri, 30 Aug 2019 16:00:52 +0200
+Subject: Fix module name in test cases
+
+---
+ ext/opcache/tests/issue0115.phpt | 2 +-
+ ext/opcache/tests/issue0149.phpt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/opcache/tests/issue0115.phpt b/ext/opcache/tests/issue0115.phpt
+index 26d9908..8794a00 100644
+--- a/ext/opcache/tests/issue0115.phpt
++++ b/ext/opcache/tests/issue0115.phpt
+@@ -32,7 +32,7 @@ $p->setStub($stub);
+ unset($p);
+ 
+ include "php_cli_server.inc";
+-php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension=phar.'.PHP_SHLIB_SUFFIX);
++php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension='.(substr(PHP_OS, 0, 3) == 'WIN' ? 'php_' : '').'phar.'.PHP_SHLIB_SUFFIX);
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0115_1.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0115_2.phar.php');
+ ?>
+diff --git a/ext/opcache/tests/issue0149.phpt b/ext/opcache/tests/issue0149.phpt
+index ba57623..f8ff972 100644
+--- a/ext/opcache/tests/issue0149.phpt
++++ b/ext/opcache/tests/issue0149.phpt
+@@ -20,7 +20,7 @@ $p->setStub($stub);
+ unset($p);
+ 
+ include "php_cli_server.inc";
+-php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension=phar.'.PHP_SHLIB_SUFFIX);
++php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension='.(substr(PHP_OS, 0, 3) == 'WIN' ? 'php_' : '').'phar.'.PHP_SHLIB_SUFFIX);
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');

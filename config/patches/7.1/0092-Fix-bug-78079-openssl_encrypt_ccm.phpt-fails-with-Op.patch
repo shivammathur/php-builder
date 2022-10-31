@@ -1,0 +1,56 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 2 Jun 2019 19:10:56 +0100
+Subject: Fix bug #78079 (openssl_encrypt_ccm.phpt fails with OpenSSL 1.1.1c)
+
+It also fixes invalid setting of tag length
+
+(cherry picked from commit 2e025794745e09f7d0c72822ad0238bf6d67b2e8)
+---
+ ext/openssl/openssl.c                      |  5 ++++-
+ ext/openssl/tests/openssl_encrypt_ccm.phpt | 12 +++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 21c5367..72db994 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -6289,7 +6289,10 @@ static int php_openssl_cipher_init(const EVP_CIPHER *cipher_type,
+ 		return FAILURE;
+ 	}
+ 	if (mode->is_single_run_aead && enc) {
+-		EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->aead_set_tag_flag, tag_len, NULL);
++		if (!EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->aead_set_tag_flag, tag_len, NULL)) {
++			php_error_docref(NULL, E_WARNING, "Setting tag length for AEAD cipher failed");
++			return FAILURE;
++		}
+ 	} else if (!enc && tag && tag_len > 0) {
+ 		if (!mode->is_aead) {
+ 			php_error_docref(NULL, E_WARNING, "The tag cannot be used because the cipher method does not support AEAD");
+diff --git a/ext/openssl/tests/openssl_encrypt_ccm.phpt b/ext/openssl/tests/openssl_encrypt_ccm.phpt
+index 64a3b75..8c4c41f 100644
+--- a/ext/openssl/tests/openssl_encrypt_ccm.phpt
++++ b/ext/openssl/tests/openssl_encrypt_ccm.phpt
+@@ -26,9 +26,12 @@ foreach ($methods as $method) {
+ // Empty IV error
+ var_dump(openssl_encrypt('data', $method, 'password', 0, NULL, $tag, ''));
+ 
+-// Test setting different IV length and unlimeted tag
+-var_dump(openssl_encrypt('data', $method, 'password', 0, str_repeat('x', 10), $tag, '', 1024));
++// Test setting different IV length and tag length
++var_dump(openssl_encrypt('data', $method, 'password', 0, str_repeat('x', 10), $tag, '', 14));
+ var_dump(strlen($tag));
++
++// Test setting invalid tag length
++var_dump(openssl_encrypt('data', $method, 'password', 0, str_repeat('x', 16), $tag, '', 1024));
+ ?>
+ --EXPECTF--
+ aes-128-ccm - TEST 0
+@@ -44,4 +47,7 @@ bool(true)
+ Warning: openssl_encrypt(): Setting of IV length for AEAD mode failed in %s on line %d
+ bool(false)
+ string(8) "p/lvgA=="
+-int(1024)
++int(14)
++
++Warning: openssl_encrypt(): Setting of IV length for AEAD mode failed in %s on line %d
++bool(false)

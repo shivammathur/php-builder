@@ -1,0 +1,34 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 19 Mar 2020 17:31:17 +0100
+Subject: Fix Bug #79296 ZipArchive::open fails on empty file
+
+---
+ ext/zip/php_zip.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/ext/zip/php_zip.c b/ext/zip/php_zip.c
+index aee355b..8815e8a 100644
+--- a/ext/zip/php_zip.c
++++ b/ext/zip/php_zip.c
+@@ -1451,6 +1451,21 @@ static ZIPARCHIVE_METHOD(open)
+ 		ze_obj->filename = NULL;
+ 	}
+ 
++#if LIBZIP_VERSION_MAJOR > 1 || LIBZIP_VERSION_MAJOR == 1 && LIBZIP_VERSION_MINOR >= 6
++	/* reduce BC break introduce in libzip 1.6.0
++	   "Do not accept empty files as valid zip archives any longer" */
++
++	/* open for write without option to empty the archive */
++	if ((flags & (ZIP_TRUNCATE | ZIP_RDONLY)) == 0) {
++		zend_stat_t st;
++
++		/* exists and is empty */
++		if (VCWD_STAT(resolved_path, &st) == 0 && st.st_size == 0) {
++			flags |= ZIP_TRUNCATE;
++		}
++	}
++#endif
++
+ 	intern = zip_open(resolved_path, flags, &err);
+ 	if (!intern || err) {
+ 		efree(resolved_path);

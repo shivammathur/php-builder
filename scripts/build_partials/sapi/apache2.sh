@@ -3,13 +3,23 @@ configure_apache2_options() {
   sed -i '1iconfigure_option "--with-apxs2" "/usr/bin/apxs2"' "${definitions:?}"/"$PHP_VERSION"
 }
 
+# Function to get major php version of apache module.
+get_php_major_version() {
+  if [[ "$PHP_VERSION" =~ 8.[0-9] ]]; then
+    echo '';
+  else
+    echo ${PHP_VERSION/%.*};
+  fi
+}
+
 # Function to configure PHP apache2 build.
 configure_apache2() {
   # Suffix the PHP version to the apache php library.
-  mv "${INSTALL_ROOT:?}"/usr/lib/apache2/modules/libphp.so "$INSTALL_ROOT"/usr/lib/apache2/modules/libphp"$PHP_VERSION".so
+  mv "${INSTALL_ROOT:?}"/usr/lib/apache2/modules/libphp*.so "$INSTALL_ROOT"/usr/lib/apache2/modules/libphp"$PHP_VERSION".so
 
   # Copy configuration files for mod-php to the INSTALL_ROOT.
-  sed -i "s/PHP_VERSION/$PHP_VERSION/g" config/php.load
+  sed -i -e "s/PHP_VERSION/$PHP_VERSION/g" \
+         -e "s/PHP_MAJOR/$(get_php_major_version)/g" config/php.load
   cp -fp config/php.conf "$INSTALL_ROOT"/etc/apache2/mods-available/php"$PHP_VERSION".conf
   cp -fp config/php.load "$INSTALL_ROOT"/etc/apache2/mods-available/php"$PHP_VERSION".load
 

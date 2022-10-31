@@ -1,0 +1,60 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 16 Aug 2015 10:32:54 +0200
+Subject: Remove warning about mysql library minor version mismatch to help
+ during transition periods
+
+---
+ ext/mysql/php_mysql.c      | 14 +++++++-------
+ ext/mysqli/mysqli_nonapi.c | 14 +++++++-------
+ 2 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/ext/mysql/php_mysql.c b/ext/mysql/php_mysql.c
+index 2d3ba60..679d417 100644
+--- a/ext/mysql/php_mysql.c
++++ b/ext/mysql/php_mysql.c
+@@ -735,13 +735,13 @@ static void php_mysql_do_connect(INTERNAL_FUNCTION_PARAMETERS, int persistent)
+                      E_DEPRECATED,
+                      "The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead");
+ 
+-#if !defined(MYSQL_USE_MYSQLND)
+-	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) {
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+-						"Headers and client library minor version mismatch. Headers:%d Library:%ld",
+-						MYSQL_VERSION_ID, mysql_get_client_version());
+-	}
+-#endif
++/* #if !defined(MYSQL_USE_MYSQLND) */
++/* 	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) { */
++/* 		php_error_docref(NULL TSRMLS_CC, E_WARNING, */
++/* 						"Headers and client library minor version mismatch. Headers:%d Library:%ld", */
++/* 						MYSQL_VERSION_ID, mysql_get_client_version()); */
++/* 	} */
++/* #endif */
+ 
+ 	connect_timeout = MySG(connect_timeout);
+ 
+diff --git a/ext/mysqli/mysqli_nonapi.c b/ext/mysqli/mysqli_nonapi.c
+index f1e805c..9ebdca1 100644
+--- a/ext/mysqli/mysqli_nonapi.c
++++ b/ext/mysqli/mysqli_nonapi.c
+@@ -74,13 +74,13 @@ void mysqli_common_connect(INTERNAL_FUNCTION_PARAMETERS, zend_bool is_real_conne
+ 	zend_bool			self_alloced = 0;
+ 
+ 
+-#if !defined(MYSQL_USE_MYSQLND)
+-	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) {
+-		php_error_docref(NULL TSRMLS_CC, E_WARNING,
+-						"Headers and client library minor version mismatch. Headers:%d Library:%ld",
+-						MYSQL_VERSION_ID, mysql_get_client_version());
+-	}
+-#endif
++/* #if !defined(MYSQL_USE_MYSQLND) */
++/* 	if ((MYSQL_VERSION_ID / 100) != (mysql_get_client_version() / 100)) { */
++/* 		php_error_docref(NULL TSRMLS_CC, E_WARNING, */
++/* 						"Headers and client library minor version mismatch. Headers:%d Library:%ld", */
++/* 						MYSQL_VERSION_ID, mysql_get_client_version()); */
++/* 	} */
++/* #endif */
+ 
+ 	if (getThis() && !ZEND_NUM_ARGS() && in_ctor) {
+ 		php_mysqli_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);

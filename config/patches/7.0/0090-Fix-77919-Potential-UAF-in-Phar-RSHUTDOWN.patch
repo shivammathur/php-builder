@@ -1,0 +1,71 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Mon, 29 Jul 2019 16:08:03 +0200
+Subject: Fix #77919: Potential UAF in Phar RSHUTDOWN
+
+We have to properly clean up in case phar_flush() is failing.
+
+We also make the expectation of the respective test case less liberal
+to avoid missing such bugs in the future.
+
+(cherry picked from commit cd1101e8c87aa175c2d5e87ddec656e50ef4ab5d)
+---
+ NEWS                         | 9 +++++++++
+ ext/phar/phar_object.c       | 4 +++-
+ ext/phar/tests/bug71488.phpt | 5 ++++-
+ 3 files changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 6e3b812..d6f0e18 100644
+--- a/NEWS
++++ b/NEWS
+@@ -3,6 +3,15 @@ PHP                                                                        NEWS
+ 
+ Backported from 7.1.31
+ 
++- EXIF:
++  . Fixed bug #78256 (heap-buffer-overflow on exif_process_user_comment).
++  (CVE-2019-11042) (Stas)
++  . Fixed bug #78222 (heap-buffer-overflow on exif_scan_thumbnail).
++  (CVE-2019-11041) (Stas)
++  
++- Phar:
++  . Fixed bug #77919 (Potential UAF in Phar RSHUTDOWN). (cmb)
++
+ - SQLite:
+   . Upgraded to SQLite 3.28.0. (cmb)
+ 
+diff --git a/ext/phar/phar_object.c b/ext/phar/phar_object.c
+index 539ef50..d4ad4e0 100644
+--- a/ext/phar/phar_object.c
++++ b/ext/phar/phar_object.c
+@@ -2064,7 +2064,7 @@ static zend_object *phar_rename_archive(phar_archive_data **sphar, char *ext, ze
+ 	char *newname = NULL, *newpath = NULL;
+ 	zval ret, arg1;
+ 	zend_class_entry *ce;
+-	char *error;
++	char *error = NULL;
+ 	const char *pcr_error;
+ 	int ext_len = ext ? strlen(ext) : 0;
+ 	size_t new_len, oldname_len;
+@@ -2232,6 +2232,8 @@ its_ok:
+ 	phar_flush(phar, 0, 0, 1, &error);
+ 
+ 	if (error) {
++		zend_hash_str_del(&(PHAR_G(phar_fname_map)), newpath, phar->fname_len);
++		*sphar = NULL;
+ 		zend_throw_exception_ex(spl_ce_BadMethodCallException, 0, "%s", error);
+ 		efree(error);
+ 		efree(oldpath);
+diff --git a/ext/phar/tests/bug71488.phpt b/ext/phar/tests/bug71488.phpt
+index 65bd7b2..7f8f6c0 100644
+--- a/ext/phar/tests/bug71488.phpt
++++ b/ext/phar/tests/bug71488.phpt
+@@ -15,4 +15,7 @@ DONE
+ ?>
+ --EXPECTF--
+ Fatal error: Uncaught BadMethodCallException: tar-based phar "%s/bug71488.test" cannot be created, link "%s" is too long for format in %sbug71488.php:%d
+-Stack trace:%A
++Stack trace:
++#0 %s(%d): PharData->decompress('test')
++#1 {main}
++  thrown in %s on line %d

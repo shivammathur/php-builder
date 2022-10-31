@@ -1,0 +1,25 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:52 +0200
+Subject: php.ini_securitynotes
+
+---
+ php.ini-development | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/php.ini-development b/php.ini-development
+index c8399c4..d7103b2 100644
+--- a/php.ini-development
++++ b/php.ini-development
+@@ -295,6 +295,12 @@ serialize_precision = 17
+ ; and below.  This directive makes most sense if used in a per-directory
+ ; or per-virtualhost web server configuration file.
+ ; http://php.net/open-basedir
++
++; NOTE: this is considered a "broken" security measure.
++;       Applications relying on this feature will not receive full
++;       support by the security team.  For more information please
++;       see /usr/share/doc/php-common/README.Debian.security
++;
+ ;open_basedir =
+ 
+ ; This directive allows you to disable certain functions for security reasons.

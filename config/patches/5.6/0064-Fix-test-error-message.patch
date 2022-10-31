@@ -1,0 +1,22 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 3 Mar 2019 19:30:14 -0800
+Subject: Fix test error message
+
+(cherry picked from commit 44f87fbf366661c22b0290e1001417fda6041be2)
+---
+ ext/exif/tests/bug77563.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/exif/tests/bug77563.phpt b/ext/exif/tests/bug77563.phpt
+index c145886..9e7ccc7 100644
+--- a/ext/exif/tests/bug77563.phpt
++++ b/ext/exif/tests/bug77563.phpt
+@@ -8,7 +8,7 @@ $s = exif_thumbnail(__DIR__."/bug77563.jpg");
+ ?>
+ DONE
+ --EXPECTF--
+-Warning: exif_thumbnail(bug77563.jpg): Illegal IFD offset in %s/bug77563.php on line %d
++Warning: exif_thumbnail(bug77563.jpg): IFD data too short: 0x0009 offset 0x0008 in %s/bug77563.php on line %d
+ 
+ Warning: exif_thumbnail(bug77563.jpg): File structure corrupted in %s/bug77563.php on line %d
+ 

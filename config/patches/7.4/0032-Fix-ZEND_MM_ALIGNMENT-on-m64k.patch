@@ -1,0 +1,30 @@
+From: Andreas Schwab <schwab@linux-m68k.org>
+Date: Mon, 14 Jul 2014 10:45:30 +0200
+Subject: Fix ZEND_MM_ALIGNMENT on m64k
+
+---
+ Zend/Zend.m4 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Zend/Zend.m4 b/Zend/Zend.m4
+index 6c33ca4..a6885d1 100644
+--- a/Zend/Zend.m4
++++ b/Zend/Zend.m4
+@@ -271,7 +271,7 @@ typedef union _mm_align_test {
+ 
+ int main()
+ {
+-  int i = ZEND_MM_ALIGNMENT;
++  int i = ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT;
+   int zeros = 0;
+   FILE *fp;
+ 
+@@ -281,7 +281,7 @@ int main()
+   }
+ 
+   fp = fopen("conftest.zend", "w");
+-  fprintf(fp, "%d %d\n", ZEND_MM_ALIGNMENT, zeros);
++  fprintf(fp, "%d %d\n", ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros);  
+   fclose(fp);
+ 
+   return 0;

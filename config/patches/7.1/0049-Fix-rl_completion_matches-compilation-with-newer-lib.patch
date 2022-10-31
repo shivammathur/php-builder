@@ -1,0 +1,45 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Fri, 15 Feb 2019 15:33:32 +0000
+Subject: Fix rl_completion_matches compilation with newer libedit
+
+---
+ ext/readline/config.m4 | 15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/ext/readline/config.m4 b/ext/readline/config.m4
+index d63df8b..62e873b 100644
+--- a/ext/readline/config.m4
++++ b/ext/readline/config.m4
+@@ -67,6 +67,13 @@ if test "$PHP_READLINE" && test "$PHP_READLINE" != "no"; then
+     -L$READLINE_DIR/$PHP_LIBDIR $PHP_READLINE_LIBS
+   ])
+ 
++  PHP_CHECK_LIBRARY(readline, rl_completion_matches,
++  [
++    AC_DEFINE(HAVE_RL_COMPLETION_MATCHES, 1, [ ])
++  ],[],[
++    -L$READLINE_DIR/$PHP_LIBDIR $PHP_READLINE_LIBS
++  ])
++
+   AC_DEFINE(HAVE_LIBREADLINE, 1, [ ])
+ 
+ elif test "$PHP_LIBEDIT" != "no"; then
+@@ -114,11 +121,17 @@ elif test "$PHP_LIBEDIT" != "no"; then
+     -L$READLINE_DIR/$PHP_LIBDIR
+   ])
+ 
++  PHP_CHECK_LIBRARY(edit, rl_completion_matches,
++  [
++    AC_DEFINE(HAVE_RL_COMPLETION_MATCHES, 1, [ ])
++  ],[],[
++    -L$READLINE_DIR/$PHP_LIBDIR $PHP_READLINE_LIBS
++  ])
++
+   AC_DEFINE(HAVE_LIBEDIT, 1, [ ])
+ fi
+ 
+ if test "$PHP_READLINE" != "no" || test "$PHP_LIBEDIT" != "no"; then
+-  AC_CHECK_FUNCS([rl_completion_matches])
+   PHP_NEW_EXTENSION(readline, readline.c readline_cli.c, $ext_shared, cli)
+   PHP_SUBST(READLINE_SHARED_LIBADD)
+ fi

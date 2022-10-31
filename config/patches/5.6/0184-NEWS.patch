@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 25 Aug 2021 15:23:50 +0200
+Subject: NEWS
+
+(cherry picked from commit 5539cefcda6aca7af220e7be7760a682abb88200)
+---
+ NEWS | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index acfb08c..6d7b145 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,11 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.3.30
++
++- Phar:
++  . Fixed bug #81211: Symlinks are followed when creating PHAR archive (cmb)
++
+ Backported from 7.3.29
+ 
+ - Core:

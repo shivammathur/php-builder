@@ -1,0 +1,23 @@
+From: Anatol Belski <ab@php.net>
+Date: Thu, 7 Feb 2019 22:22:38 -0800
+Subject: Sync test with changes in libcurl 7.64.0
+
+(cherry picked from commit e27301c7b37f6a1643a0dc1966919bd62a32bc74)
+---
+ ext/curl/tests/curl_basic_009.phpt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/curl/tests/curl_basic_009.phpt b/ext/curl/tests/curl_basic_009.phpt
+index 529e590..3b36a78 100644
+--- a/ext/curl/tests/curl_basic_009.phpt
++++ b/ext/curl/tests/curl_basic_009.phpt
+@@ -18,6 +18,6 @@ curl_close($ch);
+ 
+ 
+ ?>
+---EXPECTF--
+-%unicode|string%(%d) "%Srotocol%s"
+-int(1)
++--EXPECTREGEX--
++string\(\d+\) "([^\r\n]*rotocol[^\r\n]+|Could not resolve host: .+)"
++int\(\d\)

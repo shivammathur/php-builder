@@ -1,0 +1,264 @@
+From: =?utf-8?q?Pedro_Magalh=C3=A3es?= <mail@pmmaga.net>
+Date: Fri, 5 Oct 2018 16:24:55 +0100
+Subject: Remove unstable dns tests
+
+(cherry picked from php/php-src@49835e1436c34dd096915eda13b335bbd84098c0)
+---
+ ext/standard/tests/dns_get_record.phpt             | 202 ---------------------
+ ext/standard/tests/network/dns_get_record_caa.phpt |  38 ----
+ 2 files changed, 240 deletions(-)
+ delete mode 100644 ext/standard/tests/dns_get_record.phpt
+ delete mode 100644 ext/standard/tests/network/dns_get_record_caa.phpt
+
+diff --git a/ext/standard/tests/dns_get_record.phpt b/ext/standard/tests/dns_get_record.phpt
+deleted file mode 100644
+index 2ae0acf..0000000
+--- a/ext/standard/tests/dns_get_record.phpt
++++ /dev/null
+@@ -1,202 +0,0 @@
+---TEST--
+-array dns_get_record ( string $hostname [, int $type = DNS_ANY [, array &$authns [, array &$addtl [, bool &$raw = false ]]]] );
+---CREDITS--
+-marcosptf - <marcosptf@yahoo.com.br> - @phpsp - sao paulo - br
+---SKIPIF--
+-<?php
+-if (getenv("SKIP_ONLINE_TESTS")) { die('skip: online test'); }
+-?>
+---FILE--
+-<?php
+-$hostname = "php.net";
+-
+-var_dump(is_array(dns_get_record($hostname)));
+-var_dump(is_array(dns_get_record($hostname, DNS_A)));
+-var_dump(is_array(dns_get_record($hostname, DNS_CNAME)));
+-var_dump(is_array(dns_get_record($hostname, DNS_HINFO)));
+-var_dump(is_array(dns_get_record($hostname, DNS_MX)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NS)));
+-var_dump(is_array(dns_get_record($hostname, DNS_PTR)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SOA)));
+-var_dump(is_array(dns_get_record($hostname, DNS_TXT)));
+-var_dump(is_array(dns_get_record($hostname, DNS_AAAA)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SRV)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NAPTR)));
+-var_dump(is_array(dns_get_record($hostname, DNS_A6)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ALL)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ANY)));
+-
+-dns_get_record($hostname, DNS_A, $authns_DNS_A);
+-dns_get_record($hostname, DNS_CNAME, $authns_DNS_CNAME);
+-dns_get_record($hostname, DNS_HINFO, $authns_DNS_HINFO);
+-dns_get_record($hostname, DNS_MX, $authns_DNS_MX);
+-dns_get_record($hostname, DNS_NS, $authns_DNS_NS);
+-dns_get_record($hostname, DNS_PTR, $authns_DNS_PTR);
+-dns_get_record($hostname, DNS_SOA, $authns_DNS_SOA);
+-dns_get_record($hostname, DNS_TXT, $authns_DNS_TXT);
+-dns_get_record($hostname, DNS_AAAA, $authns_DNS_AAAA);
+-dns_get_record($hostname, DNS_SRV, $authns_DNS_SRV);
+-dns_get_record($hostname, DNS_NAPTR, $authns_DNS_NAPTR);
+-dns_get_record($hostname, DNS_A6, $authns_DNS_A6);
+-dns_get_record($hostname, DNS_ALL, $authns_DNS_ALL);
+-dns_get_record($hostname, DNS_ANY, $authns_DNS_ANY);
+-
+-var_dump(is_array($authns_DNS_A));
+-var_dump(is_array($authns_DNS_CNAME));
+-var_dump(is_array($authns_DNS_HINFO));
+-var_dump(is_array($authns_DNS_MX));
+-var_dump(is_array($authns_DNS_NS));
+-var_dump(is_array($authns_DNS_PTR));
+-var_dump(is_array($authns_DNS_SOA));
+-var_dump(is_array($authns_DNS_TXT));
+-var_dump(is_array($authns_DNS_AAAA));
+-var_dump(is_array($authns_DNS_SRV));
+-var_dump(is_array($authns_DNS_NAPTR));
+-var_dump(is_array($authns_DNS_A6));
+-var_dump(is_array($authns_DNS_ALL));
+-var_dump(is_array($authns_DNS_ANY));
+-
+-dns_get_record($hostname, DNS_A, $authns_DNS_A, $addtl_DNS_A);
+-dns_get_record($hostname, DNS_CNAME, $authns_DNS_CNAME, $addtl_DNS_CNAME);
+-dns_get_record($hostname, DNS_HINFO, $authns_DNS_HINFO, $addtl_DNS_HINFO);
+-dns_get_record($hostname, DNS_MX, $authns_DNS_MX, $addtl_DNS_MX);
+-dns_get_record($hostname, DNS_NS, $authns_DNS_NS, $addtl_DNS_NS);
+-dns_get_record($hostname, DNS_PTR, $authns_DNS_PTR, $addtl_DNS_PTR);
+-dns_get_record($hostname, DNS_SOA, $authns_DNS_SOA, $addtl_DNS_SOA);
+-dns_get_record($hostname, DNS_TXT, $authns_DNS_TXT, $addtl_DNS_TXT);
+-dns_get_record($hostname, DNS_AAAA, $authns_DNS_AAAA, $addtl_DNS_AAAA);
+-dns_get_record($hostname, DNS_SRV, $authns_DNS_SRV, $addtl_DNS_SRV);
+-dns_get_record($hostname, DNS_NAPTR, $authns_DNS_NAPTR, $addtl_DNS_NAPTR);
+-dns_get_record($hostname, DNS_A6, $authns_DNS_A6, $addtl_DNS_A6);
+-dns_get_record($hostname, DNS_ALL, $authns_DNS_ALL, $addtl_DNS_ALL);
+-dns_get_record($hostname, DNS_ANY, $authns_DNS_ANY, $addtl_DNS_ANY);
+-
+-var_dump(is_array($addtl_DNS_A));
+-var_dump(is_array($addtl_DNS_CNAME));
+-var_dump(is_array($addtl_DNS_HINFO));
+-var_dump(is_array($addtl_DNS_MX));
+-var_dump(is_array($addtl_DNS_NS));
+-var_dump(is_array($addtl_DNS_PTR));
+-var_dump(is_array($addtl_DNS_SOA));
+-var_dump(is_array($addtl_DNS_TXT));
+-var_dump(is_array($addtl_DNS_AAAA));
+-var_dump(is_array($addtl_DNS_SRV));
+-var_dump(is_array($addtl_DNS_NAPTR));
+-var_dump(is_array($addtl_DNS_A6));
+-var_dump(is_array($addtl_DNS_ALL));
+-var_dump(is_array($addtl_DNS_ANY));
+-
+-var_dump(is_array(dns_get_record($hostname, DNS_A, $authns_DNS_A, $addtl_DNS_A, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_CNAME, $authns_DNS_CNAME, $addtl_DNS_CNAME, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_HINFO, $authns_DNS_HINFO, $addtl_DNS_HINFO, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_MX, $authns_DNS_MX, $addtl_DNS_MX, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NS, $authns_DNS_NS, $addtl_DNS_NS, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_PTR, $authns_DNS_PTR, $addtl_DNS_PTR, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SOA, $authns_DNS_SOA, $addtl_DNS_SOA, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_TXT, $authns_DNS_TXT, $addtl_DNS_TXT, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_AAAA, $authns_DNS_AAAA, $addtl_DNS_AAAA, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SRV, $authns_DNS_SRV, $addtl_DNS_SRV, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NAPTR, $authns_DNS_NAPTR, $addtl_DNS_NAPTR, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_A6, $authns_DNS_A6, $addtl_DNS_A6, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ALL, $authns_DNS_ALL, $addtl_DNS_ALL, false)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ANY, $authns_DNS_ANY, $addtl_DNS_ANY, false)));
+-
+-var_dump(is_array(dns_get_record($hostname, DNS_A, $authns_DNS_A, $addtl_DNS_A, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_CNAME, $authns_DNS_CNAME, $addtl_DNS_CNAME, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_HINFO, $authns_DNS_HINFO, $addtl_DNS_HINFO, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_MX, $authns_DNS_MX, $addtl_DNS_MX, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NS, $authns_DNS_NS, $addtl_DNS_NS, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_PTR, $authns_DNS_PTR, $addtl_DNS_PTR, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SOA, $authns_DNS_SOA, $addtl_DNS_SOA, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_TXT, $authns_DNS_TXT, $addtl_DNS_TXT, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_AAAA, $authns_DNS_AAAA, $addtl_DNS_AAAA, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_SRV, $authns_DNS_SRV, $addtl_DNS_SRV, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_NAPTR, $authns_DNS_NAPTR, $addtl_DNS_NAPTR, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_A6, $authns_DNS_A6, $addtl_DNS_A6, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ALL, $authns_DNS_ALL, $addtl_DNS_ALL, true)));
+-var_dump(is_array(dns_get_record($hostname, DNS_ANY, $authns_DNS_ANY, $addtl_DNS_ANY, true)));
+-?>
+---EXPECTF--
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(false)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-bool(true)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+-
+-Warning: dns_get_record(): Numeric DNS record type must be between %d and %d, '%s' given in %s on line %d
+-bool(false)
+diff --git a/ext/standard/tests/network/dns_get_record_caa.phpt b/ext/standard/tests/network/dns_get_record_caa.phpt
+deleted file mode 100644
+index 2128692..0000000
+--- a/ext/standard/tests/network/dns_get_record_caa.phpt
++++ /dev/null
+@@ -1,38 +0,0 @@
+---TEST--
+-dns_get_record() CAA tests
+---SKIPIF--
+-<?php
+-if (getenv("SKIP_SLOW_TESTS")) die("skip slow test");
+-if (getenv("SKIP_ONLINE_TESTS")) die("skip online test");
+-?>
+---FILE--
+-<?php
+-/* This must be domains which publish an RFC6844 CAA-type DNS record */
+-$domains = ["big.basic.caatestsuite.com", "google.com"];
+-foreach ($domains as $domain) {
+-    $match = false;
+-    $dns = dns_get_record($domain, DNS_CAA);
+-    if (count($dns) > 0) {
+-        if (array_key_exists("type", $dns[0])
+-        and $dns[0]["type"] == "CAA"
+-        and array_key_exists("flags", $dns[0])
+-        and array_key_exists("tag", $dns[0])
+-        and array_key_exists("value", $dns[0])
+-        ) {
+-            $chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-.";
+-            if (strlen($dns[0]["value"]) == strspn($dns[0]["value"], $chars)) {
+-                $match = true;
+-            }
+-        }
+-    }
+-    if ($match) {
+-        echo "CAA record found\n";
+-    } else {
+-        echo "CAA lookup failed\n";
+-        var_dump($dns);
+-    }
+-}
+-?>
+---EXPECT--
+-CAA record found
+-CAA record found

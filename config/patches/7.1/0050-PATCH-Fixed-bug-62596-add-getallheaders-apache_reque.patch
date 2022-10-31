@@ -1,0 +1,198 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 7 Mar 2019 19:32:21 +0000
+Subject: [PATCH] Fixed bug #62596 add getallheaders (apache_request_headers)
+ missing function in FPM add sapi_add_request_header in public API (was
+ add_request_header) fix arginfo for fastcgi_finish_request function
+
+---
+ main/SAPI.c             | 50 +++++++++++++++++++++++++++++++++++++++++++++++++
+ main/SAPI.h             |  1 +
+ sapi/cgi/cgi_main.c     | 50 +------------------------------------------------
+ sapi/fpm/fpm/fpm_main.c | 25 ++++++++++++++++++++++++-
+ 4 files changed, 76 insertions(+), 50 deletions(-)
+
+diff --git a/main/SAPI.c b/main/SAPI.c
+index 7d036f1..8176561 100644
+--- a/main/SAPI.c
++++ b/main/SAPI.c
+@@ -1104,6 +1104,56 @@ SAPI_API void sapi_terminate_process(void) {
+ 	}
+ }
+ 
++SAPI_API void sapi_add_request_header(char *var, unsigned int var_len, char *val, unsigned int val_len, void *arg) /* {{{ */
++{
++	zval *return_value = (zval*)arg;
++	char *str = NULL;
++
++	ALLOCA_FLAG(use_heap)
++
++	if (var_len > 5 &&
++	    var[0] == 'H' &&
++	    var[1] == 'T' &&
++	    var[2] == 'T' &&
++	    var[3] == 'P' &&
++	    var[4] == '_') {
++
++		char *p;
++
++		var_len -= 5;
++		p = var + 5;
++		var = str = do_alloca(var_len + 1, use_heap);
++		*str++ = *p++;
++		while (*p) {
++			if (*p == '_') {
++				*str++ = '-';
++				p++;
++				if (*p) {
++					*str++ = *p++;
++				}
++			} else if (*p >= 'A' && *p <= 'Z') {
++				*str++ = (*p++ - 'A' + 'a');
++			} else {
++				*str++ = *p++;
++			}
++		}
++		*str = 0;
++	} else if (var_len == sizeof("CONTENT_TYPE")-1 &&
++	           memcmp(var, "CONTENT_TYPE", sizeof("CONTENT_TYPE")-1) == 0) {
++		var = "Content-Type";
++	} else if (var_len == sizeof("CONTENT_LENGTH")-1 &&
++	           memcmp(var, "CONTENT_LENGTH", sizeof("CONTENT_LENGTH")-1) == 0) {
++		var = "Content-Length";
++	} else {
++		return;
++	}
++	add_assoc_stringl_ex(return_value, var, var_len, val, val_len);
++	if (str) {
++		free_alloca(var, use_heap);
++	}
++}
++/* }}} */
++
+ /*
+  * Local variables:
+  * tab-width: 4
+diff --git a/main/SAPI.h b/main/SAPI.h
+index 0f68650..18c6ddc 100644
+--- a/main/SAPI.h
++++ b/main/SAPI.h
+@@ -152,6 +152,7 @@ SAPI_API void sapi_shutdown(void);
+ SAPI_API void sapi_activate(void);
+ SAPI_API void sapi_deactivate(void);
+ SAPI_API void sapi_initialize_empty_request(void);
++SAPI_API void sapi_add_request_header(char *var, unsigned int var_len, char *val, unsigned int val_len, void *arg);
+ END_EXTERN_C()
+ 
+ /*
+diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
+index cecf32a..ab32d93 100644
+--- a/sapi/cgi/cgi_main.c
++++ b/sapi/cgi/cgi_main.c
+@@ -1592,54 +1592,6 @@ PHP_FUNCTION(apache_child_terminate) /* {{{ */
+ }
+ /* }}} */
+ 
+-static void add_request_header(char *var, unsigned int var_len, char *val, unsigned int val_len, void *arg) /* {{{ */
+-{
+-	zval *return_value = (zval*)arg;
+-	char *str = NULL;
+-	char *p;
+-	ALLOCA_FLAG(use_heap)
+-
+-	if (var_len > 5 &&
+-	    var[0] == 'H' &&
+-	    var[1] == 'T' &&
+-	    var[2] == 'T' &&
+-	    var[3] == 'P' &&
+-	    var[4] == '_') {
+-
+-		var_len -= 5;
+-		p = var + 5;
+-		var = str = do_alloca(var_len + 1, use_heap);
+-		*str++ = *p++;
+-		while (*p) {
+-			if (*p == '_') {
+-				*str++ = '-';
+-				p++;
+-				if (*p) {
+-					*str++ = *p++;
+-				}
+-			} else if (*p >= 'A' && *p <= 'Z') {
+-				*str++ = (*p++ - 'A' + 'a');
+-			} else {
+-				*str++ = *p++;
+-			}
+-		}
+-		*str = 0;
+-	} else if (var_len == sizeof("CONTENT_TYPE")-1 &&
+-	           memcmp(var, "CONTENT_TYPE", sizeof("CONTENT_TYPE")-1) == 0) {
+-		var = "Content-Type";
+-	} else if (var_len == sizeof("CONTENT_LENGTH")-1 &&
+-	           memcmp(var, "CONTENT_LENGTH", sizeof("CONTENT_LENGTH")-1) == 0) {
+-		var = "Content-Length";
+-	} else {
+-		return;
+-	}
+-	add_assoc_stringl_ex(return_value, var, var_len, val, val_len);
+-	if (str) {
+-		free_alloca(var, use_heap);
+-	}
+-}
+-/* }}} */
+-
+ PHP_FUNCTION(apache_request_headers) /* {{{ */
+ {
+ 	if (zend_parse_parameters_none()) {
+@@ -1649,7 +1601,7 @@ PHP_FUNCTION(apache_request_headers) /* {{{ */
+ 	if (fcgi_is_fastcgi()) {
+ 		fcgi_request *request = (fcgi_request*) SG(server_context);
+ 
+-		fcgi_loadenv(request, add_request_header, return_value);
++		fcgi_loadenv(request, sapi_add_request_header, return_value);
+ 	} else {
+ 		char buf[128];
+ 		char **env, *p, *q, *var, *val, *t = buf;
+diff --git a/sapi/fpm/fpm/fpm_main.c b/sapi/fpm/fpm/fpm_main.c
+index 50f9298..8b72112 100644
+--- a/sapi/fpm/fpm/fpm_main.c
++++ b/sapi/fpm/fpm/fpm_main.c
+@@ -1533,6 +1533,10 @@ PHP_FUNCTION(fastcgi_finish_request) /* {{{ */
+ {
+ 	fcgi_request *request = (fcgi_request*) SG(server_context);
+ 
++	if (zend_parse_parameters_none() == FAILURE) {
++		return;
++	}
++
+ 	if (!fcgi_is_closed(request)) {
+ 		php_output_end_all();
+ 		php_header();
+@@ -1547,8 +1551,27 @@ PHP_FUNCTION(fastcgi_finish_request) /* {{{ */
+ }
+ /* }}} */
+ 
++ZEND_BEGIN_ARG_INFO(cgi_fcgi_sapi_no_arginfo, 0)
++ZEND_END_ARG_INFO()
++
++PHP_FUNCTION(apache_request_headers) /* {{{ */
++{
++	fcgi_request *request;
++
++	if (zend_parse_parameters_none() == FAILURE) {
++		return;
++	}
++
++	array_init(return_value);
++	if ((request = (fcgi_request*) SG(server_context))) {
++		fcgi_loadenv(request, sapi_add_request_header, return_value);
++	}
++} /* }}} */
++
+ static const zend_function_entry cgi_fcgi_sapi_functions[] = {
+-	PHP_FE(fastcgi_finish_request,              NULL)
++	PHP_FE(fastcgi_finish_request,                    cgi_fcgi_sapi_no_arginfo)
++	PHP_FE(apache_request_headers,                    cgi_fcgi_sapi_no_arginfo)
++	PHP_FALIAS(getallheaders, apache_request_headers, cgi_fcgi_sapi_no_arginfo)
+ 	PHP_FE_END
+ };
+ 

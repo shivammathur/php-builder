@@ -1,0 +1,80 @@
+From: Anatol Belski <ab@php.net>
+Date: Sun, 8 Jul 2018 20:20:08 +0200
+Subject: Fix C++11 and up compatibility for zend_finite and more
+
+C++11 puts isfinite, isinf, isnan and a lot of other stuff into the
+std namespace. Thus, if a C++11 or newer source is compiled, these
+symbols won't be available. A good solution would be to include cmath,
+but depending on a particular compiler that might remove even more
+stuff from the global namespace, so such a fix should only target master.
+For now, just keep these defines same for C++11 and upper, as the actual
+C++ code should use symbols from the std namespace anyway. This
+especially concerns older GCC versions like at least 4 and 5, which are
+used by default in the LTS Linux distros.
+---
+ Zend/configure.in | 6 +++---
+ configure.in      | 6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/Zend/configure.in b/Zend/configure.in
+index 6d4d450..212a96b 100644
+--- a/Zend/configure.in
++++ b/Zend/configure.in
+@@ -70,7 +70,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #endif
+ 
+ #ifndef zend_isnan
+-#if HAVE_DECL_ISNAN
++#if HAVE_DECL_ISNAN && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_isnan(a) isnan(a)
+ #elif defined(HAVE_FPCLASS)
+ #define zend_isnan(a) ((fpclass(a) == FP_SNAN) || (fpclass(a) == FP_QNAN))
+@@ -79,7 +79,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #endif
+ #endif
+ 
+-#if HAVE_DECL_ISINF
++#if HAVE_DECL_ISINF && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_isinf(a) isinf(a)
+ #elif defined(INFINITY)
+ /* Might not work, but is required by ISO C99 */
+@@ -90,7 +90,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #define zend_isinf(a) 0
+ #endif
+ 
+-#if HAVE_DECL_ISFINITE
++#if HAVE_DECL_ISFINITE && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_finite(a) isfinite(a)
+ #elif defined(HAVE_FINITE)
+ #define zend_finite(a) finite(a)
+diff --git a/configure.in b/configure.in
+index a45fe71..51bb70e 100644
+--- a/configure.in
++++ b/configure.in
+@@ -75,7 +75,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #endif
+ 
+ #ifndef zend_isnan
+-#if HAVE_DECL_ISNAN
++#if HAVE_DECL_ISNAN && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_isnan(a) isnan(a)
+ #elif defined(HAVE_FPCLASS)
+ #define zend_isnan(a) ((fpclass(a) == FP_SNAN) || (fpclass(a) == FP_QNAN))
+@@ -84,7 +84,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #endif
+ #endif
+ 
+-#if HAVE_DECL_ISINF
++#if HAVE_DECL_ISINF && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_isinf(a) isinf(a)
+ #elif defined(INFINITY)
+ /* Might not work, but is required by ISO C99 */
+@@ -95,7 +95,7 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #define zend_isinf(a) 0
+ #endif
+ 
+-#if HAVE_DECL_ISFINITE
++#if HAVE_DECL_ISFINITE && (!defined(__cplusplus) || __cplusplus < 201103L)
+ #define zend_finite(a) isfinite(a)
+ #elif defined(HAVE_FINITE)
+ #define zend_finite(a) finite(a)

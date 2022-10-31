@@ -1,0 +1,69 @@
+From: Matteo Beccati <mbeccati@php.net>
+Date: Wed, 1 Apr 2020 18:28:34 +0200
+Subject: Skip fpm tests not designed to be run as root
+
+When running as root with TEST_FPM_RUN_AS_ROOT=1
+---
+ sapi/fpm/tests/bug68391-conf-include-order.phpt     |  1 +
+ sapi/fpm/tests/proc-user-ignored.phpt               |  1 +
+ sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt |  1 +
+ sapi/fpm/tests/tester.inc                           | 10 ++++++++++
+ 4 files changed, 13 insertions(+)
+
+diff --git a/sapi/fpm/tests/bug68391-conf-include-order.phpt b/sapi/fpm/tests/bug68391-conf-include-order.phpt
+index 012a978..a357cf8 100644
+--- a/sapi/fpm/tests/bug68391-conf-include-order.phpt
++++ b/sapi/fpm/tests/bug68391-conf-include-order.phpt
+@@ -3,6 +3,7 @@ FPM: bug68391 - Configuration inclusion in alphabetical order
+ --SKIPIF--
+ <?php
+ include "skipif.inc";
++FPM\Tester::skipIfRoot();
+ ?>
+ --FILE--
+ <?php
+diff --git a/sapi/fpm/tests/proc-user-ignored.phpt b/sapi/fpm/tests/proc-user-ignored.phpt
+index e1902af..d99c4c2 100644
+--- a/sapi/fpm/tests/proc-user-ignored.phpt
++++ b/sapi/fpm/tests/proc-user-ignored.phpt
+@@ -3,6 +3,7 @@ FPM: Process user setting ignored when FPM is not running as root
+ --SKIPIF--
+ <?php
+ include "skipif.inc";
++FPM\Tester::skipIfRoot();
+ ?>
+ --FILE--
+ <?php
+diff --git a/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt b/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
+index a4d3521..885fd4d 100644
+--- a/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
++++ b/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
+@@ -3,6 +3,7 @@ FPM: UNIX socket owner and group settings can be numeric
+ --SKIPIF--
+ <?php
+ include "skipif.inc";
++FPM\Tester::skipIfRoot();
+ FPM\Tester::skipIfPosixNotLoaded();
+ ?>
+ --FILE--
+diff --git a/sapi/fpm/tests/tester.inc b/sapi/fpm/tests/tester.inc
+index 48cfdcc..43d8c1e 100644
+--- a/sapi/fpm/tests/tester.inc
++++ b/sapi/fpm/tests/tester.inc
+@@ -278,6 +278,16 @@ class Tester
+         }
+     }
+ 
++    /**
++     * Skip if running as root.
++     */
++    static public function skipIfRoot()
++    {
++        if (getmyuid() == 0) {
++            die('skip running as root');
++        }
++    }
++
+     /**
+      * Skip if posix extension not loaded.
+      */

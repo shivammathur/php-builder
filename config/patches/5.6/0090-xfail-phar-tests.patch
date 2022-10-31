@@ -1,0 +1,148 @@
+From: "Holly Li (WIPRO LIMITED)" <v-huli4@microsoft.com>
+Date: Mon, 15 Jul 2019 23:10:19 -0700
+Subject: xfail phar tests
+
+---
+ ext/phar/tests/phar_bz2.phpt       | 1 +
+ ext/phar/tests/phar_gzip.phpt      | 1 +
+ ext/phar/tests/tar/rename.phpt     | 5 ++++-
+ ext/phar/tests/tar/rename_dir.phpt | 5 ++++-
+ ext/phar/tests/tar/rmdir.phpt      | 5 ++++-
+ ext/phar/tests/tar/tar_gzip.phpt   | 1 +
+ ext/phar/tests/zip/rename.phpt     | 5 ++++-
+ ext/phar/tests/zip/rename_dir.phpt | 5 ++++-
+ ext/phar/tests/zip/rmdir.phpt      | 5 ++++-
+ 9 files changed, 27 insertions(+), 6 deletions(-)
+
+diff --git a/ext/phar/tests/phar_bz2.phpt b/ext/phar/tests/phar_bz2.phpt
+index 0e6e3ec..106fa89 100644
+--- a/ext/phar/tests/phar_bz2.phpt
++++ b/ext/phar/tests/phar_bz2.phpt
+@@ -5,6 +5,7 @@ Phar: bzipped phar
+ if (!extension_loaded("phar")) die("skip");
+ if (!extension_loaded("spl")) die("skip SPL not available");
+ if (!extension_loaded("bz2")) die("skip bz2 not available");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
+ ?>
+ --INI--
+ phar.readonly=0
+diff --git a/ext/phar/tests/phar_gzip.phpt b/ext/phar/tests/phar_gzip.phpt
+index c722834..19d5606 100644
+--- a/ext/phar/tests/phar_gzip.phpt
++++ b/ext/phar/tests/phar_gzip.phpt
+@@ -7,6 +7,7 @@ if (version_compare(PHP_VERSION, "6.0", ">")) die("skip pre-unicode version of P
+ if (!extension_loaded("spl")) die("skip SPL not available");
+ if (!extension_loaded("zlib")) die("skip zlib not available");
+ if (version_compare(phpversion(), '5.2.6', '<')) die("skip zlib is buggy in PHP < 5.2.6");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
+ ?>
+ --INI--
+ phar.readonly=0
+diff --git a/ext/phar/tests/tar/rename.phpt b/ext/phar/tests/tar/rename.phpt
+index 96588a6..9b2b4f4 100644
+--- a/ext/phar/tests/tar/rename.phpt
++++ b/ext/phar/tests/tar/rename.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rename test tar-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0
+diff --git a/ext/phar/tests/tar/rename_dir.phpt b/ext/phar/tests/tar/rename_dir.phpt
+index 0b95789..4ca8ceb 100644
+--- a/ext/phar/tests/tar/rename_dir.phpt
++++ b/ext/phar/tests/tar/rename_dir.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rename_dir test tar-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0
+diff --git a/ext/phar/tests/tar/rmdir.phpt b/ext/phar/tests/tar/rmdir.phpt
+index be03782..6cb5eab 100644
+--- a/ext/phar/tests/tar/rmdir.phpt
++++ b/ext/phar/tests/tar/rmdir.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rmdir test tar-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0
+diff --git a/ext/phar/tests/tar/tar_gzip.phpt b/ext/phar/tests/tar/tar_gzip.phpt
+index d44e1b1..a13a80a 100644
+--- a/ext/phar/tests/tar/tar_gzip.phpt
++++ b/ext/phar/tests/tar/tar_gzip.phpt
+@@ -7,6 +7,7 @@ if (version_compare(PHP_VERSION, "6.0", ">")) die("skip pre-unicode version of P
+ if (!extension_loaded("spl")) die("skip SPL not available");
+ if (!extension_loaded("zlib")) die("skip zlib not available");
+ if (version_compare(phpversion(), '5.2.6', '<')) die("skip zlib is buggy in PHP < 5.2.6");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
+ ?>
+ --INI--
+ phar.readonly=0
+diff --git a/ext/phar/tests/zip/rename.phpt b/ext/phar/tests/zip/rename.phpt
+index 9b1f5c9..776bcae 100644
+--- a/ext/phar/tests/zip/rename.phpt
++++ b/ext/phar/tests/zip/rename.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rename test zip-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0
+diff --git a/ext/phar/tests/zip/rename_dir.phpt b/ext/phar/tests/zip/rename_dir.phpt
+index bb03c7f..3452f8f 100644
+--- a/ext/phar/tests/zip/rename_dir.phpt
++++ b/ext/phar/tests/zip/rename_dir.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rename_dir test zip-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0
+diff --git a/ext/phar/tests/zip/rmdir.phpt b/ext/phar/tests/zip/rmdir.phpt
+index c7ef9da..7d062d5 100644
+--- a/ext/phar/tests/zip/rmdir.phpt
++++ b/ext/phar/tests/zip/rmdir.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ Phar: rmdir test zip-based
+ --SKIPIF--
+-<?php if (!extension_loaded("phar")) die("skip"); ?>
++<?php
++if (!extension_loaded("phar")) die("skip");
++if (phpversion() < "7.0.0" && extension_loaded('Zend OPcache') && ini_get('opcache.enable_cli')==1) die("xfail for PHP version lower than 7 when OPcache enabled");
++?>
+ --INI--
+ phar.readonly=0
+ phar.require_hash=0

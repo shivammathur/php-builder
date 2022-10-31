@@ -1,0 +1,28 @@
+From: Svante Signell <svante.signell@gmail.com>
+Date: Tue, 16 Feb 2021 19:37:13 +0100
+Subject: Don't use hrtimers on GNU Hurd
+
+This patch solves the build error:
+
+    PHP Warning: PHP Startup: Failed to initialize high-resolution timer in
+    Unknown on line 0.
+---
+ ext/standard/hrtime.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/ext/standard/hrtime.h b/ext/standard/hrtime.h
+index edd68aa..b7b267f 100644
+--- a/ext/standard/hrtime.h
++++ b/ext/standard/hrtime.h
+@@ -26,7 +26,10 @@
+ #define PHP_HRTIME_PLATFORM_HPUX    0
+ #define PHP_HRTIME_PLATFORM_AIX     0
+ 
+-#if defined(_POSIX_TIMERS) && ((_POSIX_TIMERS > 0) || defined(__OpenBSD__)) && defined(_POSIX_MONOTONIC_CLOCK) && defined(CLOCK_MONOTONIC)
++#if defined(_POSIX_TIMERS) && \
++    ((_POSIX_TIMERS > 0) || defined(__OpenBSD__) || defined(__GNU__)) && \
++    defined(_POSIX_MONOTONIC_CLOCK) && \
++    defined(CLOCK_MONOTONIC)
+ # undef  PHP_HRTIME_PLATFORM_POSIX
+ # define PHP_HRTIME_PLATFORM_POSIX 1
+ #elif defined(_WIN32) || defined(_WIN64)

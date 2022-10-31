@@ -1,0 +1,29 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Mon, 11 May 2020 14:28:51 -0700
+Subject: Update NEWS
+
+(cherry picked from commit b4afd21428e09133228fd84bf048157526c2c705)
+(cherry picked from commit f1a89efe27650b62d58fceb77252480b19da6555)
+---
+ NEWS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 38df268..475fab2 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,14 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.2.31
++
++- Core:
++  . Fixed bug #78875 (Long filenames cause OOM and temp files are not cleaned). 
++    (CVE-2019-11048) (cmb)
++  . Fixed bug #78876 (Long variables in multipart/form-data cause OOM and temp 
++    files are not cleaned). (CVE-2019-11048) (cmb)
++
+ Backported from 7.2.30
+ 
+ - Standard:

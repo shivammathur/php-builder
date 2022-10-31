@@ -1,0 +1,72 @@
+From: Anatol Belski <ab@php.net>
+Date: Mon, 6 Jun 2016 13:30:17 +0200
+Subject: fix ibase handle initialization, mostly compiler warnings
+
+(cherry picked from commit 3e6c02b91a62e3fd640dfa199f8e4178a6680821)
+---
+ ext/pdo_firebird/firebird_driver.c      | 4 ++--
+ ext/pdo_firebird/firebird_statement.c   | 4 ++--
+ ext/pdo_firebird/php_pdo_firebird_int.h | 6 ++++++
+ 3 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/ext/pdo_firebird/firebird_driver.c b/ext/pdo_firebird/firebird_driver.c
+index f8a44e7..c53fd31 100644
+--- a/ext/pdo_firebird/firebird_driver.c
++++ b/ext/pdo_firebird/firebird_driver.c
+@@ -139,7 +139,7 @@ static int firebird_handle_preparer(pdo_dbh_t *dbh, const char *sql, long sql_le
+ 	HashTable *np;
+ 
+ 	do {
+-		isc_stmt_handle s = NULL;
++		isc_stmt_handle s = PDO_FIREBIRD_HANDLE_INITIALIZER;
+ 		XSQLDA num_sqlda;
+ 		static char const info[] = { isc_info_sql_stmt_type };
+ 		char result[8];
+@@ -220,7 +220,7 @@ static int firebird_handle_preparer(pdo_dbh_t *dbh, const char *sql, long sql_le
+ static long firebird_handle_doer(pdo_dbh_t *dbh, const char *sql, long sql_len TSRMLS_DC) /* {{{ */
+ {
+ 	pdo_firebird_db_handle *H = (pdo_firebird_db_handle *)dbh->driver_data;
+-	isc_stmt_handle stmt = NULL;
++	isc_stmt_handle stmt = PDO_FIREBIRD_HANDLE_INITIALIZER;
+ 	static char const info_count[] = { isc_info_sql_records };
+ 	char result[64];
+ 	int ret = 0;
+diff --git a/ext/pdo_firebird/firebird_statement.c b/ext/pdo_firebird/firebird_statement.c
+index a87bcc1..dc64c19 100644
+--- a/ext/pdo_firebird/firebird_statement.c
++++ b/ext/pdo_firebird/firebird_statement.c
+@@ -230,7 +230,7 @@ static int firebird_fetch_blob(pdo_stmt_t *stmt, int colno, char **ptr, /* {{{ *
+ {
+ 	pdo_firebird_stmt *S = (pdo_firebird_stmt*)stmt->driver_data;
+ 	pdo_firebird_db_handle *H = S->H;
+-	isc_blob_handle blobh = NULL;
++	isc_blob_handle blobh = PDO_FIREBIRD_HANDLE_INITIALIZER;
+ 	char const bl_item = isc_info_blob_total_length;
+ 	char bl_info[20];
+ 	unsigned short i;
+@@ -424,7 +424,7 @@ static int firebird_bind_blob(pdo_stmt_t *stmt, ISC_QUAD *blob_id, zval *param T
+ {
+ 	pdo_firebird_stmt *S = (pdo_firebird_stmt*)stmt->driver_data;
+ 	pdo_firebird_db_handle *H = S->H;
+-	isc_blob_handle h = NULL;
++	isc_blob_handle h = PDO_FIREBIRD_HANDLE_INITIALIZER;
+ 	unsigned long put_cnt = 0, rem_cnt;
+ 	unsigned short chunk_size;
+ 	int result = 1;
+diff --git a/ext/pdo_firebird/php_pdo_firebird_int.h b/ext/pdo_firebird/php_pdo_firebird_int.h
+index 796f383..09cd485 100644
+--- a/ext/pdo_firebird/php_pdo_firebird_int.h
++++ b/ext/pdo_firebird/php_pdo_firebird_int.h
+@@ -61,6 +61,12 @@ typedef void (*info_func_t)(char*);
+ #define min(a,b) ((a)<(b)?(a):(b))
+ #endif
+ 
++#if defined(_LP64) || defined(__LP64__) || defined(__arch64__) || defined(_WIN64)
++# define PDO_FIREBIRD_HANDLE_INITIALIZER 0U 
++#else
++# define PDO_FIREBIRD_HANDLE_INITIALIZER NULL
++#endif
++
+ typedef struct {
+ 
+ 	/* the result of the last API call */

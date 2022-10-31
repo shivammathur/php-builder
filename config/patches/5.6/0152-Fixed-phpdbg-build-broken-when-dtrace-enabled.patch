@@ -1,0 +1,48 @@
+From: Reeze Xia <reeze@php.net>
+Date: Tue, 7 Apr 2015 23:04:34 +0800
+Subject: Fixed phpdbg build broken when dtrace enabled
+
+This also fixed a zend_string related warning
+---
+ Zend/zend_dtrace.c | 6 +++++-
+ Zend/zend_dtrace.h | 6 +++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/Zend/zend_dtrace.c b/Zend/zend_dtrace.c
+index 51bd1f4..9e58fd2 100644
+--- a/Zend/zend_dtrace.c
++++ b/Zend/zend_dtrace.c
+@@ -23,6 +23,11 @@
+ #include "zend_dtrace.h"
+ 
+ #ifdef HAVE_DTRACE
++
++ZEND_API zend_op_array *(*zend_dtrace_compile_file)(zend_file_handle *file_handle, int type TSRMLS_DC);
++ZEND_API void (*zend_dtrace_execute)(zend_op_array *op_array TSRMLS_DC);
++ZEND_API void (*zend_dtrace_execute_internal)(zend_execute_data *execute_data_ptr, zend_fcall_info *fci, int return_value_used TSRMLS_DC);
++
+ /* PHP DTrace probes {{{ */
+ static inline const char *dtrace_get_executed_filename(TSRMLS_D)
+ {
+@@ -103,4 +108,3 @@ ZEND_API void dtrace_execute_internal(zend_execute_data *execute_data_ptr, zend_
+ 
+ /* }}} */
+ #endif /* HAVE_DTRACE */
+-
+diff --git a/Zend/zend_dtrace.h b/Zend/zend_dtrace.h
+index 26008af..2ed6095 100644
+--- a/Zend/zend_dtrace.h
++++ b/Zend/zend_dtrace.h
+@@ -30,9 +30,9 @@ extern "C" {
+ #endif
+ 
+ #ifdef HAVE_DTRACE
+-ZEND_API zend_op_array *(*zend_dtrace_compile_file)(zend_file_handle *file_handle, int type TSRMLS_DC);
+-ZEND_API void (*zend_dtrace_execute)(zend_op_array *op_array TSRMLS_DC);
+-ZEND_API void (*zend_dtrace_execute_internal)(zend_execute_data *execute_data_ptr, zend_fcall_info *fci, int return_value_used TSRMLS_DC);
++ZEND_API extern zend_op_array *(*zend_dtrace_compile_file)(zend_file_handle *file_handle, int type TSRMLS_DC);
++ZEND_API extern void (*zend_dtrace_execute)(zend_op_array *op_array TSRMLS_DC);
++ZEND_API extern void (*zend_dtrace_execute_internal)(zend_execute_data *execute_data_ptr, zend_fcall_info *fci, int return_value_used TSRMLS_DC);
+ 
+ ZEND_API zend_op_array *dtrace_compile_file(zend_file_handle *file_handle, int type TSRMLS_DC);
+ ZEND_API void dtrace_execute_ex(zend_execute_data *execute_data TSRMLS_DC);

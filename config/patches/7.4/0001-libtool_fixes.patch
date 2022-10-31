@@ -1,0 +1,21 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:50 +0200
+Subject: libtool_fixes
+
+---
+ configure.ac | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index f2ba8a8..9d21596 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1435,8 +1435,6 @@ AC_PROVIDE_IFELSE([PHP_REQUIRE_CXX], [], [
+ ])
+ AC_PROG_LIBTOOL
+ 
+-PHP_SET_LIBTOOL_VARIABLE([--silent])
+-
+ dnl libtool 1.4.3 needs this.
+ PHP_SET_LIBTOOL_VARIABLE([--preserve-dup-deps])
+ 

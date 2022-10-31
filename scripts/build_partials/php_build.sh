@@ -35,7 +35,11 @@ configure_phpbuild() {
   # Path the definition for thread-safe.
   zts=''
   if [ "${BUILD:?}" = "zts" ]; then
-    zts='configure_option --enable-zts'
+    if [[ "$PHP_VERSION" =~ 8.[0-9] ]]; then
+      zts='configure_option --enable-zts'
+    else
+      zts='configure_option --enable-maintainer-zts'
+    fi
   fi
 
   # Patch PHP version, host, build, patches and install command in the definition template.

@@ -1,0 +1,169 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:54 +0200
+Subject: temporary-path-fixes-for-multiarch
+
+---
+ acinclude.m4            |  4 ++--
+ ext/dba/config.m4       |  2 +-
+ ext/gmp/config.m4       |  2 ++
+ ext/ldap/config.m4      | 22 ++++++++++------------
+ ext/pcre/config0.m4     |  2 +-
+ ext/pdo_dblib/config.m4 |  2 +-
+ 6 files changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/acinclude.m4 b/acinclude.m4
+index 342299a..2547231 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -2311,7 +2311,7 @@ AC_DEFUN([PHP_SETUP_KERBEROS],[
+     fi
+ 
+     for i in $PHP_KERBEROS; do
+-      if test -f $i/$PHP_LIBDIR/libkrb5.a || test -f $i/$PHP_LIBDIR/libkrb5.$SHLIB_SUFFIX_NAME; then
++      if test -f $i/$PHP_LIBDIR/libkrb5.$SHLIB_SUFFIX_NAME || test -f $i/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libkrb5.$SHLIB_SUFFIX_NAME || test -f $i/$PHP_LIBDIR/libkrb5.a; then
+         PHP_KERBEROS_DIR=$i
+         break
+       fi
+@@ -2390,7 +2390,7 @@ AC_DEFUN([PHP_SETUP_OPENSSL],[
+       if test -r $i/include/openssl/evp.h; then
+         OPENSSL_INCDIR=$i/include
+       fi
+-      if test -r $i/$PHP_LIBDIR/libssl.a -o -r $i/$PHP_LIBDIR/libssl.$SHLIB_SUFFIX_NAME; then
++      if test -r $i/$PHP_LIBDIR/libssl.a -o -r $i/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libssl.$SHLIB_SUFFIX_NAME -o -r $i/$PHP_LIBDIR/libssl.$SHLIB_SUFFIX_NAME; then
+         OPENSSL_LIBDIR=$i/$PHP_LIBDIR
+       fi
+       test -n "$OPENSSL_INCDIR" && test -n "$OPENSSL_LIBDIR" && break
+diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
+index 7d074f7..9feefc8 100644
+--- a/ext/dba/config.m4
++++ b/ext/dba/config.m4
+@@ -273,7 +273,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
+     AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
+   fi
+   for LIB in $2; do
+-    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
++    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/lib$LIB.$SHLIB_SUFFIX_NAME || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
+       lib_found="";
+       PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
+         AC_TRY_LINK([
+diff --git a/ext/gmp/config.m4 b/ext/gmp/config.m4
+index 1567d30..a094763 100644
+--- a/ext/gmp/config.m4
++++ b/ext/gmp/config.m4
+@@ -7,6 +7,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+   for i in $PHP_GMP /usr/local /usr; do
+     test -f $i/include/gmp.h && GMP_DIR=$i && break
++    test -f $i/include/$DEB_HOST_MULTIARCH/gmp.h && GMP_DIR=$i && break
+     test -f $i/include/$MACHINE_INCLUDES/gmp.h && GMP_DIR=$i && break
+   done
+ 
+@@ -23,6 +24,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+   PHP_ADD_LIBRARY_WITH_PATH(gmp, $GMP_DIR/$PHP_LIBDIR, GMP_SHARED_LIBADD)
+   PHP_ADD_INCLUDE($GMP_DIR/include)
++  PHP_ADD_INCLUDE($GMP_DIR/include/$DEB_HOST_MULTIARCH)
+ 
+   PHP_NEW_EXTENSION(gmp, gmp.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
+   PHP_SUBST(GMP_SHARED_LIBADD)
+diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
+index 1a35c94..2a90b56 100644
+--- a/ext/ldap/config.m4
++++ b/ext/ldap/config.m4
+@@ -117,16 +117,14 @@ if test "$PHP_LDAP" != "no"; then
+     LDAP_PTHREAD=
+   fi
+ 
+-  MACHINE_INCLUDES=$($CC -dumpmachine)
+-
+-  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.a || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.$SHLIB_SUFFIX_NAME; then
++  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.a || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.$SHLIB_SUFFIX_NAME; then
+     PHP_ADD_LIBRARY_WITH_PATH(lber, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+-  elif test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/libldap.3.dylib; then
++  elif test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/libldap.3.dylib; then
+     PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+-  elif test -f $LDAP_LIBDIR/libssldap50.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libssldap50.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libssldap50.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libssldap50.$SHLIB_SUFFIX_NAME; then
+     if test -n "$LDAP_PTHREAD"; then
+       PHP_ADD_LIBRARY($LDAP_PTHREAD)
+     fi
+@@ -139,7 +137,7 @@ if test "$PHP_LDAP" != "no"; then
+     PHP_ADD_LIBRARY_WITH_PATH(ssl3, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_NSLDAP,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libldapssl41.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldapssl41.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libldapssl41.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldapssl41.$SHLIB_SUFFIX_NAME; then
+     if test -n "$LDAP_PTHREAD"; then
+       PHP_ADD_LIBRARY($LDAP_PTHREAD)
+     fi
+@@ -149,35 +147,35 @@ if test "$PHP_LDAP" != "no"; then
+     PHP_ADD_LIBRARY_WITH_PATH(ldapssl41, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_NSLDAP,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libldapssl30.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldapssl30.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libldapssl30.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldapssl30.$SHLIB_SUFFIX_NAME; then
+     if test -n "$LDAP_PTHREAD"; then
+       PHP_ADD_LIBRARY($LDAP_PTHREAD)
+     fi
+     PHP_ADD_LIBRARY_WITH_PATH(ldapssl30, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_NSLDAP,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libldap30.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldap30.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libldap30.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldap30.$SHLIB_SUFFIX_NAME; then
+     if test -n "$LDAP_PTHREAD"; then
+       PHP_ADD_LIBRARY($LDAP_PTHREAD)
+     fi
+     PHP_ADD_LIBRARY_WITH_PATH(ldap30, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_NSLDAP,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libumich_ldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libumich_ldap.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libumich_ldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libumich_ldap.$SHLIB_SUFFIX_NAME; then
+     PHP_ADD_LIBRARY_WITH_PATH(umich_lber, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     PHP_ADD_LIBRARY_WITH_PATH(umich_ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+-  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
++  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
+     PHP_ADD_LIBRARY_WITH_PATH(clntsh, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_ORALDAP,1,[ ])
+     AC_DEFINE(HAVE_ORALDAP_12,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.11.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.11.1; then
++  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.11.1 || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libclntsh.$SHLIB_SUFFIX_NAME.11.1; then
+     PHP_ADD_LIBRARY_WITH_PATH(clntsh, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     AC_DEFINE(HAVE_ORALDAP,1,[ ])
+     AC_DEFINE(HAVE_ORALDAP_11,1,[ ])
+ 
+-  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME; then
++  elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libclntsh.$SHLIB_SUFFIX_NAME; then
+      PHP_ADD_LIBRARY_WITH_PATH(clntsh, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+      AC_DEFINE(HAVE_ORALDAP,1,[ ])
+      AC_DEFINE(HAVE_ORALDAP_10,1,[ ])
+diff --git a/ext/pcre/config0.m4 b/ext/pcre/config0.m4
+index 721b7f6..3c5e58c 100644
+--- a/ext/pcre/config0.m4
++++ b/ext/pcre/config0.m4
+@@ -23,7 +23,7 @@ PHP_ARG_WITH(pcre-jit,,[  --with-pcre-jit         Enable PCRE JIT functionality
+     AC_MSG_RESULT([$PCRE_INCDIR])
+ 
+     AC_MSG_CHECKING([for PCRE library location])
+-    for j in $PHP_PCRE_REGEX $PHP_PCRE_REGEX/$PHP_LIBDIR; do
++    for j in $PHP_PCRE_REGEX $PHP_PCRE_REGEX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH $PHP_PCRE_REGEX/$PHP_LIBDIR; do
+       test -f $j/libpcre.a || test -f $j/libpcre.$SHLIB_SUFFIX_NAME && PCRE_LIBDIR=$j
+     done
+ 
+diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
+index 6f21fa7..3f4c784 100644
+--- a/ext/pdo_dblib/config.m4
++++ b/ext/pdo_dblib/config.m4
+@@ -46,7 +46,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
+     PHP_LIBDIR=lib
+   fi
+ 
+-  if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
++  if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libsybdb.so" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
+      AC_MSG_ERROR(Could not find $PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.[a|so])
+   fi
+ 

@@ -1,0 +1,45 @@
+From: Anatol Belski <ab@php.net>
+Date: Mon, 4 Mar 2019 14:28:47 +0100
+Subject: Fix test portability
+
+(cherry picked from commit 040196972c7a757200c2e1aa88f360322c38ffde)
+---
+ ext/exif/tests/bug77563.phpt | 8 ++++----
+ ext/phar/tests/bug77396.phpt | 6 +++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/ext/exif/tests/bug77563.phpt b/ext/exif/tests/bug77563.phpt
+index 9e7ccc7..6e427a7 100644
+--- a/ext/exif/tests/bug77563.phpt
++++ b/ext/exif/tests/bug77563.phpt
+@@ -8,9 +8,9 @@ $s = exif_thumbnail(__DIR__."/bug77563.jpg");
+ ?>
+ DONE
+ --EXPECTF--
+-Warning: exif_thumbnail(bug77563.jpg): IFD data too short: 0x0009 offset 0x0008 in %s/bug77563.php on line %d
++Warning: exif_thumbnail(bug77563.jpg): IFD data too short: 0x0009 offset 0x0008 in %s%ebug77563.php on line %d
+ 
+-Warning: exif_thumbnail(bug77563.jpg): File structure corrupted in %s/bug77563.php on line %d
++Warning: exif_thumbnail(bug77563.jpg): File structure corrupted in %s%ebug77563.php on line %d
+ 
+-Warning: exif_thumbnail(bug77563.jpg): Invalid JPEG file in %s/bug77563.php on line %d
+-DONE
+\ No newline at end of file
++Warning: exif_thumbnail(bug77563.jpg): Invalid JPEG file in %s%ebug77563.php on line %d
++DONE
+diff --git a/ext/phar/tests/bug77396.phpt b/ext/phar/tests/bug77396.phpt
+index f7a2a2f..ede25ff 100644
+--- a/ext/phar/tests/bug77396.phpt
++++ b/ext/phar/tests/bug77396.phpt
+@@ -8,8 +8,8 @@ $path = '../' . str_repeat("x", PHP_MAXPATHLEN) . '.tar';
+ $phar = new PharData($path);
+ ?>
+ --EXPECTF--
+-Fatal error: Uncaught UnexpectedValueException: Phar creation or opening failed in %s/bug77396.php:%d
++Fatal error: Uncaught UnexpectedValueException: Phar creation or opening failed in %s%ebug77396.php:%d
+ Stack trace:
+-#0 %s/bug77396.php(%d): PharData->__construct(%s)
++#0 %s%ebug77396.php(%d): PharData->__construct(%s)
+ #1 {main}
+-  thrown in %s/bug77396.php on line %d
++  thrown in %s%ebug77396.php on line %d

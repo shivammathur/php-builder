@@ -1,0 +1,37 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 28 Jan 2020 09:55:15 +0100
+Subject: Fix test cases
+
+These tests fail on newer runtimes; using the C locale should be more
+portable.
+---
+ ext/date/tests/gmstrftime_variation21.phpt | 2 +-
+ ext/date/tests/strftime_variation21.phpt   | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/date/tests/gmstrftime_variation21.phpt b/ext/date/tests/gmstrftime_variation21.phpt
+index 26ed157..56b56cc 100644
+--- a/ext/date/tests/gmstrftime_variation21.phpt
++++ b/ext/date/tests/gmstrftime_variation21.phpt
+@@ -18,7 +18,7 @@ echo "*** Testing gmstrftime() : usage variation ***\n";
+ 
+ // Initialise function arguments not being substituted (if any)
+ $timestamp = gmmktime(8, 8, 8, 8, 8, 2008);
+-setlocale(LC_ALL, "en_US");
++setlocale(LC_ALL, "C");
+ date_default_timezone_set("Asia/Calcutta");
+ 
+ //array of values to iterate over
+diff --git a/ext/date/tests/strftime_variation21.phpt b/ext/date/tests/strftime_variation21.phpt
+index f6aed15..4cab43f 100644
+--- a/ext/date/tests/strftime_variation21.phpt
++++ b/ext/date/tests/strftime_variation21.phpt
+@@ -17,7 +17,7 @@ if (strtoupper(substr(PHP_OS, 0, 3)) != 'WIN') {
+ echo "*** Testing strftime() : usage variation ***\n";
+ 
+ // Initialise function arguments not being substituted (if any)
+-setlocale(LC_ALL, "en_US");
++setlocale(LC_ALL, "C");
+ date_default_timezone_set("Asia/Calcutta");
+ $timestamp = mktime(8, 8, 8, 8, 8, 2008);
+ 

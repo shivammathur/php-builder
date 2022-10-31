@@ -1,0 +1,21 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Tue, 19 Mar 2019 15:47:25 +0100
+Subject: Mark bug76348.phpt as online test
+
+(cherry picked from commit 28263642984e8f1d582b75b03204a54c4989cd33)
+---
+ ext/soap/tests/bugs/bug76348.phpt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/soap/tests/bugs/bug76348.phpt b/ext/soap/tests/bugs/bug76348.phpt
+index 6b9e71b..3049880 100644
+--- a/ext/soap/tests/bugs/bug76348.phpt
++++ b/ext/soap/tests/bugs/bug76348.phpt
+@@ -3,6 +3,7 @@ Bug #76348 (WSDL_CACHE_MEMORY causes Segmentation fault)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('soap')) die('skip soap extension not available');
++if (getenv("SKIP_ONLINE_TESTS")) die("skip online test");
+ ?>
+ --FILE--
+ <?php

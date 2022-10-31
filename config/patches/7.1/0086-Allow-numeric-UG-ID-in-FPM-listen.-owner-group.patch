@@ -1,0 +1,311 @@
+From: Andre Nathan <andre@digirati.com.br>
+Date: Tue, 4 Feb 2020 09:53:16 -0300
+Subject: Allow numeric [UG]ID in FPM listen.{owner,group}
+
+---
+ NEWS                                               |  4 ++
+ sapi/fpm/fpm/fpm_unix.c                            | 36 ++++++++-----
+ .../fpm/tests/socket-uds-numeric-ugid-nonroot.phpt | 62 ++++++++++++++++++++++
+ sapi/fpm/tests/socket-uds-numeric-ugid.phpt        | 58 ++++++++++++++++++++
+ sapi/fpm/tests/tester.inc                          | 56 +++++++++++++++++++
+ sapi/fpm/www.conf.in                               |  3 +-
+ 6 files changed, 204 insertions(+), 15 deletions(-)
+ create mode 100644 sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
+ create mode 100644 sapi/fpm/tests/socket-uds-numeric-ugid.phpt
+
+diff --git a/NEWS b/NEWS
+index 19fbb3a..1fe54e6 100644
+--- a/NEWS
++++ b/NEWS
+@@ -107,6 +107,10 @@ Backported from 7.2.26
+   . Fixed bug #77973 (Uninitialized read in gdImageCreateFromXbm).
+   (CVE-2019-11038) (cmb)
+ 
++- FPM:
++  . Implement request #77062 (Allow numeric [UG]ID in FPM listen.{owner,group})
++    (Andre Nathan)
++
+ - Iconv:
+   . Fixed bug #78069 (Out-of-bounds read in iconv.c:_php_iconv_mime_decode()
+   due to integer overflow). (CVE-2019-11039). (maris dot adam)
+diff --git a/sapi/fpm/fpm/fpm_unix.c b/sapi/fpm/fpm/fpm_unix.c
+index 1539c07..d6914bd 100644
+--- a/sapi/fpm/fpm/fpm_unix.c
++++ b/sapi/fpm/fpm/fpm_unix.c
+@@ -164,27 +164,35 @@ int fpm_unix_resolve_socket_premissions(struct fpm_worker_pool_s *wp) /* {{{ */
+ #endif
+ 
+ 	if (c->listen_owner && *c->listen_owner) {
+-		struct passwd *pwd;
++		if (strlen(c->listen_owner) == strspn(c->listen_owner, "0123456789")) {
++			wp->socket_uid = strtoul(c->listen_owner, 0, 10);
++		} else {
++			struct passwd *pwd;
+ 
+-		pwd = getpwnam(c->listen_owner);
+-		if (!pwd) {
+-			zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
+-			return -1;
+-		}
++			pwd = getpwnam(c->listen_owner);
++			if (!pwd) {
++				zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
++				return -1;
++			}
+ 
+-		wp->socket_uid = pwd->pw_uid;
+-		wp->socket_gid = pwd->pw_gid;
++			wp->socket_uid = pwd->pw_uid;
++			wp->socket_gid = pwd->pw_gid;
++		}
+ 	}
+ 
+ 	if (c->listen_group && *c->listen_group) {
+-		struct group *grp;
++		if (strlen(c->listen_group) == strspn(c->listen_group, "0123456789")) {
++			wp->socket_gid = strtoul(c->listen_group, 0, 10);
++		} else {
++			struct group *grp;
+ 
+-		grp = getgrnam(c->listen_group);
+-		if (!grp) {
+-			zlog(ZLOG_SYSERROR, "[pool %s] cannot get gid for group '%s'", wp->config->name, c->listen_group);
+-			return -1;
++			grp = getgrnam(c->listen_group);
++			if (!grp) {
++				zlog(ZLOG_SYSERROR, "[pool %s] cannot get gid for group '%s'", wp->config->name, c->listen_group);
++				return -1;
++			}
++			wp->socket_gid = grp->gr_gid;
+ 		}
+-		wp->socket_gid = grp->gr_gid;
+ 	}
+ 
+ 	return 0;
+diff --git a/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt b/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
+new file mode 100644
+index 0000000..a4d3521
+--- /dev/null
++++ b/sapi/fpm/tests/socket-uds-numeric-ugid-nonroot.phpt
+@@ -0,0 +1,62 @@
++--TEST--
++FPM: UNIX socket owner and group settings can be numeric
++--SKIPIF--
++<?php
++include "skipif.inc";
++FPM\Tester::skipIfPosixNotLoaded();
++?>
++--FILE--
++<?php
++
++require_once "tester.inc";
++
++$cfg = <<<EOT
++[global]
++error_log = {{FILE:LOG}}
++[unconfined]
++listen = {{ADDR:UDS}}
++listen.owner = {{UID}}
++listen.group = {{GID}}
++user = {{USER}}
++ping.path = /ping
++ping.response = pong
++pm = dynamic
++pm.max_children = 5
++pm.start_servers = 2
++pm.min_spare_servers = 1
++pm.max_spare_servers = 3
++EOT;
++
++$tester = new FPM\Tester($cfg);
++$tester->testConfig();
++$tester->start();
++$tester->expectLogNotice(
++    "'user' directive is ignored when FPM is not running as root",
++    'unconfined'
++);
++$tester->expectLogStartNotices();
++$tester->ping('{{ADDR:UDS}}');
++$st = stat($tester->getListen('{{ADDR:UDS}}'));
++if ($st) {
++  $pw = posix_getpwuid($st['uid']);
++  $gr = posix_getgrgid($st['gid']);
++  $user  = $pw ? $pw['name'] : 'UNKNOWN';
++  $group = $gr ? $gr['name'] : 'UNKNOWN';
++  echo "{$st['uid']}/{$user},{$st['gid']}/{$group}\n";
++} else {
++  echo "stat failed for " . $tester->getListen('{{ADDR:UDS}}');
++}
++$tester->terminate();
++$tester->expectLogTerminatingNotices();
++$tester->close();
++
++?>
++Done
++--EXPECTF--
++%d/%s,%d/%s
++Done
++--CLEAN--
++<?php
++require_once "tester.inc";
++FPM\Tester::clean();
++?>
+diff --git a/sapi/fpm/tests/socket-uds-numeric-ugid.phpt b/sapi/fpm/tests/socket-uds-numeric-ugid.phpt
+new file mode 100644
+index 0000000..d97ab2f
+--- /dev/null
++++ b/sapi/fpm/tests/socket-uds-numeric-ugid.phpt
+@@ -0,0 +1,58 @@
++--TEST--
++FPM: UNIX socket owner and group settings can be numeric
++--SKIPIF--
++<?php
++include "skipif.inc";
++FPM\Tester::skipIfPosixNotLoaded();
++FPM\Tester::skipIfNotRoot();
++?>
++--FILE--
++<?php
++
++require_once "tester.inc";
++
++$cfg = <<<EOT
++[global]
++error_log = {{FILE:LOG}}
++[unconfined]
++listen = {{ADDR:UDS}}
++listen.owner = 1234
++listen.group = 1234
++user = 1234
++ping.path = /ping
++ping.response = pong
++pm = dynamic
++pm.max_children = 5
++pm.start_servers = 2
++pm.min_spare_servers = 1
++pm.max_spare_servers = 3
++EOT;
++
++$tester = new FPM\Tester($cfg);
++$tester->start();
++$tester->expectLogStartNotices();
++$tester->ping('{{ADDR:UDS}}');
++$st = stat($tester->getListen('{{ADDR:UDS}}'));
++if ($st) {
++  $pw = posix_getpwuid($st['uid']);
++  $gr = posix_getgrgid($st['gid']);
++  $user  = $pw ? $pw['name'] : 'UNKNOWN';
++  $group = $gr ? $gr['name'] : 'UNKNOWN';
++  echo "{$st['uid']}/{$user},{$st['gid']}/{$group}\n";
++} else {
++  echo "stat failed for " . $tester->getListen('{{ADDR:UDS}}');
++}
++$tester->terminate();
++$tester->expectLogTerminatingNotices();
++$tester->close();
++
++?>
++Done
++--EXPECT--
++1234/UNKNOWN,1234/UNKNOWN
++Done
++--CLEAN--
++<?php
++require_once "tester.inc";
++FPM\Tester::clean();
++?>
+diff --git a/sapi/fpm/tests/tester.inc b/sapi/fpm/tests/tester.inc
+index 3b67028..89bbb90 100644
+--- a/sapi/fpm/tests/tester.inc
++++ b/sapi/fpm/tests/tester.inc
+@@ -268,6 +268,26 @@ class Tester
+         }
+     }
+ 
++    /**
++     * Skip if not running as root.
++     */
++    static public function skipIfNotRoot()
++    {
++        if (getmyuid() != 0) {
++            die('skip not running as root');
++        }
++    }
++
++    /**
++     * Skip if posix extension not loaded.
++     */
++    static public function skipIfPosixNotLoaded()
++    {
++        if (!extension_loaded('posix')) {
++            die('skip posix extension not loaded');
++        }
++    }
++
+     /**
+      * Tester constructor.
+      *
+@@ -669,6 +689,38 @@ class Tester
+         return $lines[0] ?? '';
+     }
+ 
++    /**
++     * @return string
++     */
++    public function getUser()
++    {
++        return get_current_user();
++    }
++
++    /**
++     * @return string
++     */
++    public function getGroup()
++    {
++        return get_current_group();
++    }
++
++    /**
++     * @return int
++     */
++    public function getUid()
++    {
++        return getmyuid();
++    }
++
++    /**
++     * @return int
++     */
++    public function getGid()
++    {
++        return getmygid();
++    }
++
+     /**
+      * Send signal to the supplied PID or the server PID.
+      *
+@@ -765,6 +817,10 @@ class Tester
+             'ADDR:UDS' => ['getAddr', 'uds'],
+             'PORT' => ['getPort', 'ip'],
+             'INCLUDE:CONF' => self::CONF_DIR . '/*.conf',
++            'USER' => ['getUser'],
++            'GROUP' => ['getGroup'],
++            'UID' => ['getUid'],
++            'GID' => ['getGid'],
+         ];
+         $aliases = [
+             'ADDR' => 'ADDR:IPv4',
+diff --git a/sapi/fpm/www.conf.in b/sapi/fpm/www.conf.in
+index df2c7c3..3a828cf 100644
+--- a/sapi/fpm/www.conf.in
++++ b/sapi/fpm/www.conf.in
+@@ -41,7 +41,8 @@ listen = 127.0.0.1:9000
+ 
+ ; Set permissions for unix socket, if one is used. In Linux, read/write
+ ; permissions must be set in order to allow connections from a web server. Many
+-; BSD-derived systems allow connections regardless of permissions.
++; BSD-derived systems allow connections regardless of permissions. The owner
++; and group can be specified either by name or by their numeric IDs.
+ ; Default Values: user and group are set as the running user
+ ;                 mode is set to 0660
+ ;listen.owner = @php_fpm_user@

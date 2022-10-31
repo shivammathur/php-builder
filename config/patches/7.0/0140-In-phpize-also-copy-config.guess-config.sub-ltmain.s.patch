@@ -1,0 +1,41 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 18 Oct 2020 20:38:15 +0200
+Subject: In phpize, also copy config.guess, config.sub,
+ ltmain.sh and shtool from their respective packages
+
+---
+ scripts/phpize.in | 12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/phpize.in b/scripts/phpize.in
+index d6ab5f4..9608d0c 100644
+--- a/scripts/phpize.in
++++ b/scripts/phpize.in
+@@ -9,10 +9,17 @@ includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+ builddir="`pwd`"
+ SED="@SED@"
+ 
++libtool_version=$(dpkg-query -f'${Version}' -W libtool)
+ aclocaldir="$prefix/share/aclocal"
+-FILES_BUILD="mkdep.awk scan_makefile_in.awk shtool ax_check_compile_flag.m4"
++if dpkg --compare-versions "$libtool_version" ge 2.4.6-0.1~; then \
++  auxdir="/usr/share/libtool/build-aux"
++else \
++  auxdir="/usr/share/libtool/config"
++fi
++FILES_BUILD="mkdep.awk scan_makefile_in.awk /usr/bin/shtool ax_check_compile_flag.m4"
+ LIBTOOL_FILES="pkg.m4 libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4"
+-FILES="acinclude.m4 Makefile.global config.sub config.guess ltmain.sh run-tests*.php"
++AUX_FILES="config.sub config.guess ltmain.sh"
++FILES="acinclude.m4 Makefile.global run-tests*.php"
+ CLEAN_FILES="$FILES *.o *.lo *.la .deps .libs/ build/ modules/ install-sh \
+ 	mkinstalldirs missing config.nice config.sub config.guess configure configure.in \
+ 	aclocal.m4 config.h config.h.in conftest* ltmain.sh libtool config.cache autom4te.cache/ \
+@@ -148,6 +155,7 @@ phpize_copy_files()
+  
+   (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
+   (cd "$aclocaldir" && cp $LIBTOOL_FILES "$builddir"/build)
++  (cd "$auxdir" && cp $AUX_FILES "$builddir")
+   (cd "$phpdir" && cp $FILES "$builddir")
+   (cd "$builddir/build" && cat ../acinclude.m4 $LIBTOOL_FILES > ../aclocal.m4)
+ }

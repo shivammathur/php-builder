@@ -1,0 +1,27 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 25 Jan 2017 11:17:25 +0100
+Subject: Fix check for CURL include in M-A directory
+
+---
+ ext/curl/config.m4 | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/curl/config.m4 b/ext/curl/config.m4
+index 2f82c34..f785770 100644
+--- a/ext/curl/config.m4
++++ b/ext/curl/config.m4
+@@ -6,12 +6,12 @@ PHP_ARG_WITH(curl, for cURL support,
+ [  --with-curl[=DIR]         Include cURL support])
+ 
+ if test "$PHP_CURL" != "no"; then
+-  if test -r $PHP_CURL/include/curl/easy.h; then
++  if test -r $PHP_CURL/include/$DEB_HOST_MULTIARCH/curl/easy.h || test -r $PHP_CURL/include/curl/easy.h; then
+     CURL_DIR=$PHP_CURL
+   else
+     AC_MSG_CHECKING(for cURL in default path)
+     for i in /usr/local /usr; do
+-      if test -r $i/include/curl/easy.h; then
++      if test -r $i/include/$DEB_HOST_MULTIARCH/curl/easy.h || test -r $i/include/curl/easy.h; then
+         CURL_DIR=$i
+         AC_MSG_RESULT(found in $i)
+         break

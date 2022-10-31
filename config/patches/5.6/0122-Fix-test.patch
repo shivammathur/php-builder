@@ -1,0 +1,22 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 31 Dec 2019 17:37:10 +0100
+Subject: Fix test
+
+The test runner may not properly handle short open tags.
+---
+ ext/opcache/tests/bug71843.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/opcache/tests/bug71843.phpt b/ext/opcache/tests/bug71843.phpt
+index 7fcf32c..32af61b 100644
+--- a/ext/opcache/tests/bug71843.phpt
++++ b/ext/opcache/tests/bug71843.phpt
+@@ -7,7 +7,7 @@ opcache.optimization_level=0xFFFFBFFF
+ --SKIPIF--
+ <?php if (!extension_loaded('Zend OPcache')) die("skip"); ?>
+ --FILE--
+-<?
++<?php
+ 0 & ~E & ~R;
+ 6 && ~See
+ ?>

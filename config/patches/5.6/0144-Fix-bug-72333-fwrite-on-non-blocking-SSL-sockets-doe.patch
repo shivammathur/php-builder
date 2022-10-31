@@ -1,0 +1,89 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 22 Jan 2017 20:44:29 +0000
+Subject: Fix bug #72333 (fwrite() on non-blocking SSL sockets does not work)
+
+---
+ ext/openssl/tests/bug72333.phpt | 54 +++++++++++++++++++++++++++++++++++++++++
+ ext/openssl/xp_ssl.c            |  8 ++++++
+ 2 files changed, 62 insertions(+)
+ create mode 100644 ext/openssl/tests/bug72333.phpt
+
+diff --git a/ext/openssl/tests/bug72333.phpt b/ext/openssl/tests/bug72333.phpt
+new file mode 100644
+index 0000000..ab2b607
+--- /dev/null
++++ b/ext/openssl/tests/bug72333.phpt
+@@ -0,0 +1,54 @@
++--TEST--
++Bug #72333: fwrite() on non-blocking SSL sockets doesn't work
++--SKIPIF--
++<?php
++if (!extension_loaded("openssl")) die("skip openssl not loaded");
++if (!function_exists("proc_open")) die("skip no proc_open");
++?>
++--FILE--
++<?php
++$serverCode = <<<'CODE'
++	$context = stream_context_create(['ssl' => ['local_cert' => __DIR__ . '/bug54992.pem']]);
++
++	$flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
++	$fp = stream_socket_server("ssl://127.0.0.1:10011", $errornum, $errorstr, $flags, $context);
++	phpt_notify();
++	$conn = stream_socket_accept($fp);
++
++	for ($i = 0; $i < 5; $i++) {
++		fread($conn, 100000);
++		usleep(200000);
++	}
++CODE;
++
++$clientCode = <<<'CODE'
++	$context = stream_context_create(['ssl' => ['verify_peer' => false, 'peer_name' => 'bug54992.local']]);
++
++	phpt_wait();
++	$fp = stream_socket_client("ssl://127.0.0.1:10011", $errornum, $errorstr, 3000, STREAM_CLIENT_CONNECT, $context);
++	stream_set_blocking($fp, 0);
++
++	function blocking_fwrite($fp, $buf) {
++		$write = [$fp];
++		$total = 0;
++		while (stream_select($read, $write, $except, 180)) {
++			$result = fwrite($fp, $buf);
++			$total += $result;
++			if ($total >= strlen($buf)) {
++				return $total;
++			}
++			$buf = substr($buf, $total);
++		}
++	}
++
++	$str1 = str_repeat("a", 5000000);
++	blocking_fwrite($fp, $str1);
++	echo "done";
++CODE;
++
++include 'ServerClientTestCase.inc';
++ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
++?>
++--EXPECT--
++done
++
+diff --git a/ext/openssl/xp_ssl.c b/ext/openssl/xp_ssl.c
+index c2d477c..6a7dcd7 100644
+--- a/ext/openssl/xp_ssl.c
++++ b/ext/openssl/xp_ssl.c
+@@ -1714,6 +1714,14 @@ static int php_openssl_enable_crypto(php_stream *stream,
+ 
+ 		if (SUCCESS == php_set_sock_blocking(sslsock->s.socket, 0 TSRMLS_CC)) {
+ 			sslsock->s.is_blocked = 0;
++			SSL_set_mode(
++				sslsock->ssl_handle,
++				(
++					SSL_get_mode(sslsock->ssl_handle) |
++					SSL_MODE_ENABLE_PARTIAL_WRITE |
++					SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER
++				)
++			);
+ 		}
+ 		
+ 		timeout = sslsock->is_client ? &sslsock->connect_timeout : &sslsock->s.timeout;

@@ -1,0 +1,23 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 15 Mar 2020 17:55:28 -0700
+Subject: Fix test
+
+(cherry picked from commit 2c081b7e269d0f63cd9d60a40997f18b5cf793be)
+(cherry picked from commit ad05ad4dbafc29dd23828760d4bfa2be12ccbb1c)
+---
+ ext/exif/tests/bug79282.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/exif/tests/bug79282.phpt b/ext/exif/tests/bug79282.phpt
+index 7b7e365..df91127 100644
+--- a/ext/exif/tests/bug79282.phpt
++++ b/ext/exif/tests/bug79282.phpt
+@@ -7,7 +7,7 @@ var_dump(exif_read_data('data://image/jpeg;base64,/9jhAAlFeGlmAAAg'));
+ 
+ ?>
+ --EXPECTF--
+-Warning: exif_read_data(): Invalid TIFF alignment marker in %s on line %d
++Warning: exif_read_data(): Missing TIFF alignment marker in %s on line %d
+ 
+ Warning: exif_read_data(): File structure corrupted in %s on line %d
+ 

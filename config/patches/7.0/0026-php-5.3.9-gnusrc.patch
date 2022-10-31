@@ -1,0 +1,142 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-5.3.9-gnusrc
+
+---
+ Zend/zend_language_parser.c        | 2 ++
+ configure.in                       | 2 ++
+ ext/interbase/interbase.c          | 1 -
+ ext/pdo_firebird/firebird_driver.c | 1 -
+ ext/standard/file.c                | 3 ---
+ ext/zlib/zlib_fopen_wrapper.c      | 2 --
+ main/php.h                         | 1 +
+ main/streams/cast.c                | 1 -
+ main/streams/memory.c              | 1 -
+ main/streams/streams.c             | 1 -
+ 10 files changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
+index fccc3fe..74fbae5 100644
+--- a/Zend/zend_language_parser.c
++++ b/Zend/zend_language_parser.c
+@@ -69,6 +69,8 @@
+ 
+ /* Copy the first part of user declarations.  */
+ 
++#include <string.h>
++
+ 
+ /*
+    +----------------------------------------------------------------------+
+diff --git a/configure.in b/configure.in
+index f37c78a..e6c5ba8 100644
+--- a/configure.in
++++ b/configure.in
+@@ -136,6 +136,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
+ AC_DEFUN([PHP_EXT_SRCDIR],[$abs_srcdir/$config_m4_dir])dnl
+ AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl
+ 
++AC_DEFINE([_GNU_SOURCE], 1, [Define to enable GNU C Library extensions])
++
+ dnl Setting up the PHP version based on the information above.
+ dnl -------------------------------------------------------------------------
+ 
+diff --git a/ext/interbase/interbase.c b/ext/interbase/interbase.c
+index ac87059..6f86d6e 100644
+--- a/ext/interbase/interbase.c
++++ b/ext/interbase/interbase.c
+@@ -22,7 +22,6 @@
+ #include "config.h"
+ #endif
+ 
+-#define _GNU_SOURCE
+ 
+ #include "php.h"
+ 
+diff --git a/ext/pdo_firebird/firebird_driver.c b/ext/pdo_firebird/firebird_driver.c
+index 166fb13..2420489 100644
+--- a/ext/pdo_firebird/firebird_driver.c
++++ b/ext/pdo_firebird/firebird_driver.c
+@@ -20,7 +20,6 @@
+ #include "config.h"
+ #endif
+ 
+-#define _GNU_SOURCE
+ 
+ #include "php.h"
+ #include "zend_exceptions.h"
+diff --git a/ext/standard/file.c b/ext/standard/file.c
+index 0bb81ca..2557aa0 100644
+--- a/ext/standard/file.c
++++ b/ext/standard/file.c
+@@ -112,9 +112,6 @@ php_file_globals file_globals;
+ #endif
+ 
+ #if defined(HAVE_FNMATCH) && !defined(PHP_WIN32)
+-# ifndef _GNU_SOURCE
+-#  define _GNU_SOURCE
+-# endif
+ # include <fnmatch.h>
+ #endif
+ 
+diff --git a/ext/zlib/zlib_fopen_wrapper.c b/ext/zlib/zlib_fopen_wrapper.c
+index e1728b3..f4da5f2 100644
+--- a/ext/zlib/zlib_fopen_wrapper.c
++++ b/ext/zlib/zlib_fopen_wrapper.c
+@@ -19,8 +19,6 @@
+ 
+ /* $Id$ */
+ 
+-#define _GNU_SOURCE
+-
+ #include "php.h"
+ #include "php_zlib.h"
+ #include "fopen_wrappers.h"
+diff --git a/main/php.h b/main/php.h
+index 25fffee..1fa1068 100644
+--- a/main/php.h
++++ b/main/php.h
+@@ -31,6 +31,7 @@
+ #define YYDEBUG 0
+ #define PHP_DEFAULT_CHARSET "UTF-8"
+ 
++#include "php_config.h"
+ #include "php_version.h"
+ #include "zend.h"
+ #include "zend_sort.h"
+diff --git a/main/streams/cast.c b/main/streams/cast.c
+index fe56c9b..2bf1692 100644
+--- a/main/streams/cast.c
++++ b/main/streams/cast.c
+@@ -18,7 +18,6 @@
+ 
+ /* $Id$ */
+ 
+-#define _GNU_SOURCE
+ #include "php.h"
+ #include "php_globals.h"
+ #include "php_network.h"
+diff --git a/main/streams/memory.c b/main/streams/memory.c
+index f4fd6a8..22040dc 100644
+--- a/main/streams/memory.c
++++ b/main/streams/memory.c
+@@ -18,7 +18,6 @@
+ 
+ /* $Id$ */
+ 
+-#define _GNU_SOURCE
+ #include "php.h"
+ #include "ext/standard/base64.h"
+ 
+diff --git a/main/streams/streams.c b/main/streams/streams.c
+index 704ab71..3c22d5d 100644
+--- a/main/streams/streams.c
++++ b/main/streams/streams.c
+@@ -21,7 +21,6 @@
+ 
+ /* $Id$ */
+ 
+-#define _GNU_SOURCE
+ #include "php.h"
+ #include "php_globals.h"
+ #include "php_network.h"

@@ -1,0 +1,26 @@
+From: Anatol Belski <ab@php.net>
+Date: Thu, 18 Oct 2018 00:43:24 +0200
+Subject: Fix test when it's run on another drive
+
+(cherry picked from commit fda06127fa71637df7913e06fc8124448c934fdc)
+---
+ ext/opcache/tests/blacklist-win32.phpt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/opcache/tests/blacklist-win32.phpt b/ext/opcache/tests/blacklist-win32.phpt
+index 0ddb226..4bbb23c 100644
+--- a/ext/opcache/tests/blacklist-win32.phpt
++++ b/ext/opcache/tests/blacklist-win32.phpt
+@@ -22,9 +22,9 @@ print_r(count($status['scripts']) > 0);
+ --EXPECTF--
+ Array
+ (
+-    [0] => C:\path\to\foo
+-    [1] => C:\path\to\foo2
+-    [2] => C:\path\to\bar
++    [0] => %c:\path\to\foo
++    [1] => %c:\path\to\foo2
++    [2] => %c:\path\to\bar
+     [3] => __DIR__\blacklist.inc
+     [4] => __DIR__\current.php
+     [5] => %scurrent.php

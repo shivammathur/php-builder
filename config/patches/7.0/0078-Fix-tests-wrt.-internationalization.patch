@@ -1,0 +1,87 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Fri, 12 Apr 2019 13:05:16 +0200
+Subject: Fix tests wrt. internationalization
+
+(cherry picked from commit php/php-src@d07a6fdedfa3d894024f33431cad10d6c64d428f)
+---
+ ext/pdo_pgsql/tests/bug_33876.phpt | 9 +++------
+ ext/pdo_pgsql/tests/copy_from.phpt | 4 ++--
+ ext/pdo_pgsql/tests/copy_to.phpt   | 4 ++--
+ 3 files changed, 7 insertions(+), 10 deletions(-)
+
+diff --git a/ext/pdo_pgsql/tests/bug_33876.phpt b/ext/pdo_pgsql/tests/bug_33876.phpt
+index 15c4275..45c65c6 100644
+--- a/ext/pdo_pgsql/tests/bug_33876.phpt
++++ b/ext/pdo_pgsql/tests/bug_33876.phpt
+@@ -88,10 +88,7 @@ if (!$res->execute(array(false))) {
+ } else {
+ 	print_r($res->fetchAll(PDO::FETCH_ASSOC));
+ }
+-
+-
+-
+---EXPECT--
++--EXPECTF--
+ Array
+ (
+     [0] => Array
+@@ -120,7 +117,7 @@ Array
+ (
+     [0] => 22P02
+     [1] => 7
+-    [2] => ERROR:  invalid input syntax for type boolean: ""
++    [2] => %s:  %sboolean%s
+ )
+ EMUL
+ Array
+@@ -151,5 +148,5 @@ Array
+ (
+     [0] => 22P02
+     [1] => 7
+-    [2] => ERROR:  invalid input syntax for type boolean: ""
++    [2] => %s:  %sboolean%s
+ )
+diff --git a/ext/pdo_pgsql/tests/copy_from.phpt b/ext/pdo_pgsql/tests/copy_from.phpt
+index 31d7752..d2f1003 100644
+--- a/ext/pdo_pgsql/tests/copy_from.phpt
++++ b/ext/pdo_pgsql/tests/copy_from.phpt
+@@ -259,7 +259,7 @@ array(6) {
+   NULL
+ }
+ Testing pgsqlCopyFromArray() with error
+-Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %s "test_error" %s
++Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %stest_error%s
+ Testing pgsqlCopyFromFile() with default parameters
+ bool(true)
+ array(6) {
+@@ -393,7 +393,7 @@ array(6) {
+   NULL
+ }
+ Testing pgsqlCopyFromFile() with error
+-Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %s "test_error" %s
++Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %stest_error%s
+ Testing pgsqlCopyFromFile() with non existing file
+ Exception: SQLSTATE[HY000]: General error: 7 Unable to open the file
+ 
+diff --git a/ext/pdo_pgsql/tests/copy_to.phpt b/ext/pdo_pgsql/tests/copy_to.phpt
+index 93aab16..c018727 100644
+--- a/ext/pdo_pgsql/tests/copy_to.phpt
++++ b/ext/pdo_pgsql/tests/copy_to.phpt
+@@ -116,7 +116,7 @@ array(3) {
+ "
+ }
+ Testing pgsqlCopyToArray() with error
+-Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %s "test_error" %s
++Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %stest_error%s
+ Testing pgsqlCopyToFile() with default parameters
+ bool(true)
+ 0	test insert 0	\N
+@@ -133,7 +133,7 @@ bool(true)
+ 1;NULL
+ 2;NULL
+ Testing pgsqlCopyToFile() with error
+-Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %s "test_error" %s
++Exception: SQLSTATE[42P01]: Undefined table: 7 %s:  %stest_error%s
+ Testing pgsqlCopyToFile() to unwritable file
+ Exception: SQLSTATE[HY000]: General error: 7 Unable to open the file for writing
+ 

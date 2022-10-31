@@ -2,7 +2,7 @@
 
 # Function to update the build log
 log_build() {
-  gh release download -p "build.log" || true
+  gh release download "$PHP_VERSION" -p "build.log" || true
   date '+%Y.%m.%d' | sudo tee -a build.log
   assets+=("./build.log")
 }
@@ -25,17 +25,15 @@ get_version_from_branch() {
 # Function to update the PHP version log
 log_version() {
   assets+=("scripts/install.sh")
-  for PHP_VERSION in 8.0 8.1 8.2 8.3; do
-    new_version=$(get_stable_release_tag "$PHP_SOURCE")
+  new_version=$(get_stable_release_tag "$PHP_SOURCE")
+  if [ "$new_version" = "" ]; then
+    new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
     if [ "$new_version" = "" ]; then
-      new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
-      if [ "$new_version" = "" ]; then
-        new_version=$(get_version_from_branch master)
-      fi
+      new_version=$(get_version_from_branch master)
     fi
-    echo "$new_version" > "php$PHP_VERSION.log"
-    assets+=("./php$PHP_VERSION.log")
-  done
+  fi
+  echo "$new_version" > "php$PHP_VERSION.log"
+  assets+=("./php$PHP_VERSION.log")
 }
 
 # Exit if commit message has skip-release.
@@ -44,19 +42,22 @@ log_version() {
 # Remove SAPI builds.
 rm -rf ./builds/php-sapi*
 
-# Build assets array with builds.
-assets=()
-for asset in ./builds/*/*; do
-  assets+=("$asset")
+IFS=' ' read -r -a PHP_VERSIONS <<<"${PHP_LIST:?}"
+for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
+  # Build assets array with builds.
+  assets=()
+  for asset in ./builds/*/php_"$PHP_VERSION"*; do
+    assets+=("$asset")
+  done
+
+  # Update logs.
+  log_version
+  log_build
+
+  # Create or update release.
+  if ! gh release view "$PHP_VERSION"; then
+    bash scripts/retry.sh 5 5 gh release create "$PHP_VERSION" "${assets[@]}" -t "$PHP_VERSION" -n "$PHP_VERSION"
+  else
+    bash scripts/retry.sh 5 5 gh release upload "$PHP_VERSION" "${assets[@]}" --clobber
+  fi
 done
-
-# Update logs.
-log_version
-log_build
-
-# Create or update release.
-if ! gh release view builds; then
-  bash scripts/retry.sh 5 5 gh release create "builds" "${assets[@]}" -t "builds" -n "builds"
-else
-  bash scripts/retry.sh 5 5 gh release upload "builds" "${assets[@]}" --clobber
-fi

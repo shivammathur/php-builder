@@ -1,0 +1,377 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Wed, 21 Nov 2018 23:58:00 +0100
+Subject: Clean up server-tests.php remains
+
+sapi/tests/ has been introduced as a generic means to test different
+SAPIs[1].  run-tests2.php has later be renamed to server-tests.php and
+recently been dropped[2].  However, the sapi/tests/test00?.php test
+cases remained, even though they make no sense for run-tests.php,
+since they use an unsupported format for the `--ENV--` section and the
+completely unsupported `--HEADERS--` section, respectively.  While
+these tests ran successfully under run-tests.php, that was only by
+accident, and they did not really test something useful.  Therefore, we
+remove these tests altogether.
+
+sapi/tests/bug69487.phpt is actually a CGI test (CGI is enforced due to
+the `--POST--` section), so we move it to sapi/cgi/tests, which leaves
+sapi/tests/ empty.  Thus, we also remove the sapi/ directory from
+run-tests.php.
+
+Finally, we remove the `--HEADERS--` and `--REQUEST--` sections from
+the list of allowed run-tests.php sections.
+
+[1] <http://git.php.net/?p=php-src.git;a=commit;h=b671380b6b5b6e1f4f235e810afa4199e989d2ba>
+[2] <http://git.php.net/?p=php-src.git;a=commit;h=4f36acb9e65935aa657f1f22e2320a401bdbdad3>
+
+(cherry picked from commit 1acac320c5a88a54a5965e759f1cb33b6cd71f13)
+---
+ sapi/cgi/tests/bug69487.phpt | 20 ++++++++++++
+ sapi/tests/bug69487.phpt     | 20 ------------
+ sapi/tests/test001.phpt      | 16 ----------
+ sapi/tests/test002.phpt      | 22 -------------
+ sapi/tests/test003.phpt      | 21 -------------
+ sapi/tests/test004.phpt      | 26 ----------------
+ sapi/tests/test005.phpt      | 27 ----------------
+ sapi/tests/test006.phpt      | 73 --------------------------------------------
+ sapi/tests/test007.phpt      | 46 ----------------------------
+ 9 files changed, 20 insertions(+), 251 deletions(-)
+ create mode 100644 sapi/cgi/tests/bug69487.phpt
+ delete mode 100644 sapi/tests/bug69487.phpt
+ delete mode 100644 sapi/tests/test001.phpt
+ delete mode 100644 sapi/tests/test002.phpt
+ delete mode 100644 sapi/tests/test003.phpt
+ delete mode 100644 sapi/tests/test004.phpt
+ delete mode 100644 sapi/tests/test005.phpt
+ delete mode 100644 sapi/tests/test006.phpt
+ delete mode 100644 sapi/tests/test007.phpt
+
+diff --git a/sapi/cgi/tests/bug69487.phpt b/sapi/cgi/tests/bug69487.phpt
+new file mode 100644
+index 0000000..3ac3796
+--- /dev/null
++++ b/sapi/cgi/tests/bug69487.phpt
+@@ -0,0 +1,20 @@
++--TEST--
++Bug #69487 (SAPI may truncate POST data)
++--INI--
++allow_url_fopen=1
++sys_temp_dir=/not-supposed-to-exist
++--POST--
++foo=bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar
++--FILE--
++<?php
++var_dump(isset($_POST['foo']));
++var_dump(strlen(file_get_contents('php://input')));
++?>
++--EXPECT--
++Warning: Unknown: Unable to create temporary file, Check permissions in temporary files directory. in Unknown on line 0
++
++Warning: Unknown: POST data can't be buffered; all data discarded in Unknown on line 0
++
++Warning: Cannot modify header information - headers already sent in Unknown on line 0
++bool(false)
++int(0)
+diff --git a/sapi/tests/bug69487.phpt b/sapi/tests/bug69487.phpt
+deleted file mode 100644
+index 3ac3796..0000000
+--- a/sapi/tests/bug69487.phpt
++++ /dev/null
+@@ -1,20 +0,0 @@
+---TEST--
+-Bug #69487 (SAPI may truncate POST data)
+---INI--
+-allow_url_fopen=1
+-sys_temp_dir=/not-supposed-to-exist
+---POST--
+-foo=bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar-bar
+---FILE--
+-<?php
+-var_dump(isset($_POST['foo']));
+-var_dump(strlen(file_get_contents('php://input')));
+-?>
+---EXPECT--
+-Warning: Unknown: Unable to create temporary file, Check permissions in temporary files directory. in Unknown on line 0
+-
+-Warning: Unknown: POST data can't be buffered; all data discarded in Unknown on line 0
+-
+-Warning: Cannot modify header information - headers already sent in Unknown on line 0
+-bool(false)
+-int(0)
+diff --git a/sapi/tests/test001.phpt b/sapi/tests/test001.phpt
+deleted file mode 100644
+index a964393..0000000
+--- a/sapi/tests/test001.phpt
++++ /dev/null
+@@ -1,16 +0,0 @@
+---TEST--
+-IIS style CGI missing SCRIPT_FILENAME
+---DESCRIPTION--
+-This would be similar to what IIS produces for a simple query.
+---ENV--
+-return <<<END
+-PATH_TRANSLATED=$filename
+-PATH_INFO=$scriptname
+-SCRIPT_NAME=$scriptname
+-END;
+---FILE--
+-<?php
+-    echo "HELLO";
+-?>
+---EXPECT--
+-HELLO
+\ No newline at end of file
+diff --git a/sapi/tests/test002.phpt b/sapi/tests/test002.phpt
+deleted file mode 100644
+index 42ade3d..0000000
+--- a/sapi/tests/test002.phpt
++++ /dev/null
+@@ -1,22 +0,0 @@
+---TEST--
+-Apache style CGI
+---DESCRIPTION--
+-Apache likes to set SCRIPT_FILENAME to the php executable
+-if you use ScriptAlias configurations, and the proper
+-path is in PATH_TRANSLATED.  SCRIPT_NAME in this is faked,
+-but that is ok, Apache sets SCRIPT_NAME to the ScriptAlias
+-of the executable.
+---ENV--
+-return <<<END
+-REDIRECT_URL=$scriptname
+-PATH_TRANSLATED=$filename
+-PATH_INFO=$scriptname
+-SCRIPT_NAME=/scriptalias/php
+-SCRIPT_FILENAME=$this->conf['TEST_PHP_EXECUTABLE']
+-END;
+---FILE--
+-<?php
+-    echo "HELLO";
+-?>
+---EXPECT--
+-HELLO
+\ No newline at end of file
+diff --git a/sapi/tests/test003.phpt b/sapi/tests/test003.phpt
+deleted file mode 100644
+index 5cabe66..0000000
+--- a/sapi/tests/test003.phpt
++++ /dev/null
+@@ -1,21 +0,0 @@
+---TEST--
+-IIS style CGI missing SCRIPT_FILENAME, has PATH_INFO
+---DESCRIPTION--
+-This would be similar to what IIS produces for a simple query
+-that also has PATH_INFO.
+---REQUEST--
+-return <<<END
+-PATH_INFO=/path/info
+-END;
+---ENV--
+-return <<<END
+-PATH_TRANSLATED=/path/bla
+-PATH_INFO=/path/info
+-SCRIPT_NAME=path
+-END;
+---FILE--
+-<?php
+-    echo $_SERVER['PATH_INFO'];
+-?>
+---EXPECT--
+-/path/info
+\ No newline at end of file
+diff --git a/sapi/tests/test004.phpt b/sapi/tests/test004.phpt
+deleted file mode 100644
+index ef43774..0000000
+--- a/sapi/tests/test004.phpt
++++ /dev/null
+@@ -1,26 +0,0 @@
+---TEST--
+-Apache style CGI with PATH_INFO
+---DESCRIPTION--
+-Apache likes to set SCRIPT_FILENAME to the php executable
+-if you use ScriptAlias configurations, and the proper
+-path is in PATH_TRANSLATED.  SCRIPT_NAME in this is faked,
+-but that is ok, Apache sets SCRIPT_NAME to the ScriptAlias
+-of the executable.
+---REQUEST--
+-return <<<END
+-PATH_INFO=/path/info
+-END;
+---ENV--
+-return <<<END
+-REDIRECT_URL=/path
+-PATH_TRANSLATED=/path/info/fpp
+-PATH_INFO=/path/info
+-SCRIPT_NAME=/scriptalias/php
+-SCRIPT_FILENAME=$this->conf['TEST_PHP_EXECUTABLE']
+-END;
+---FILE--
+-<?php
+-    echo $_SERVER['PATH_INFO'];
+-?>
+---EXPECT--
+-/path/info
+\ No newline at end of file
+diff --git a/sapi/tests/test005.phpt b/sapi/tests/test005.phpt
+deleted file mode 100644
+index 7415b66..0000000
+--- a/sapi/tests/test005.phpt
++++ /dev/null
+@@ -1,27 +0,0 @@
+---TEST--
+-QUERY_STRING Security Bug
+---DESCRIPTION--
+-This bug was present in PHP 4.3.0 only.
+-A failure should print HELLO.
+---REQUEST--
+-return <<<END
+-SCRIPT_NAME=/nothing.php
+-QUERY_STRING=$filename
+-END;
+---ENV--
+-return <<<END
+-REDIRECT_URL=$scriptname
+-PATH_TRANSLATED=c:\apache\1.3.27\htdocs\nothing.php
+-QUERY_STRING=$filename
+-PATH_INFO=/nothing.php
+-SCRIPT_NAME=/phpexe/php.exe/nothing.php
+-SCRIPT_FILENAME=c:\apache\1.3.27\htdocs\nothing.php
+-END;
+---FILE--
+-<?php
+-    echo "HELLO";
+-?>
+---EXPECTHEADERS--
+-Status: 404
+---EXPECT--
+-No input file specified.
+\ No newline at end of file
+diff --git a/sapi/tests/test006.phpt b/sapi/tests/test006.phpt
+deleted file mode 100644
+index 45e3781..0000000
+--- a/sapi/tests/test006.phpt
++++ /dev/null
+@@ -1,73 +0,0 @@
+---TEST--
+-Multipart Form POST Data
+---HEADERS--
+-return <<<END
+-Content-Type=multipart/form-data; boundary=---------------------------240723202011929
+-Content-Length=862
+-END;
+---ENV--
+-return <<<END
+-CONTENT_TYPE=multipart/form-data; boundary=---------------------------240723202011929
+-CONTENT_LENGTH=862
+-END;
+---POST--
+------------------------------240723202011929
+-Content-Disposition: form-data; name="entry"
+-
+-entry box
+------------------------------240723202011929
+-Content-Disposition: form-data; name="password"
+-
+-password box
+------------------------------240723202011929
+-Content-Disposition: form-data; name="radio1"
+-
+-test 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="checkbox1"
+-
+-test 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="choices"
+-
+-Choice 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="choices"
+-
+-Choice 2
+------------------------------240723202011929
+-Content-Disposition: form-data; name="file"; filename="info.php"
+-Content-Type: application/octet-stream
+-
+-<?php
+-phpinfo();
+-?>
+------------------------------240723202011929--
+-
+---FILE--
+-<?php 
+-error_reporting(0);
+-print_r($_POST);
+-print_r($_FILES);
+-?>
+---EXPECTF--
+-Array
+-(
+-    [entry] => entry box
+-    [password] => password box
+-    [radio1] => test 1
+-    [checkbox1] => test 1
+-    [choices] => Choice 2
+-)
+-Array
+-(
+-    [file] => Array
+-        (
+-            [name] => info.php
+-            [type] => application/octet-stream
+-            [tmp_name] => %s
+-            [error] => 0
+-            [size] => 21
+-        )
+-
+-)
+diff --git a/sapi/tests/test007.phpt b/sapi/tests/test007.phpt
+deleted file mode 100644
+index 8c50e4b..0000000
+--- a/sapi/tests/test007.phpt
++++ /dev/null
+@@ -1,46 +0,0 @@
+---TEST--
+-Multipart Form POST Data, incorrect content length
+---HEADERS--
+-return <<<END
+-Content-Type=multipart/form-data; boundary=---------------------------240723202011929
+-Content-Length=100
+-END;
+---POST--
+------------------------------240723202011929
+-Content-Disposition: form-data; name="entry"
+-
+-entry box
+------------------------------240723202011929
+-Content-Disposition: form-data; name="password"
+-
+-password box
+------------------------------240723202011929
+-Content-Disposition: form-data; name="radio1"
+-
+-test 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="checkbox1"
+-
+-test 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="choices"
+-
+-Choice 1
+------------------------------240723202011929
+-Content-Disposition: form-data; name="choices"
+-
+-Choice 2
+------------------------------240723202011929
+-Content-Disposition: form-data; name="file"; filename="info.php"
+-Content-Type: application/octet-stream
+-
+-<?php
+-phpinfo();
+-?>
+------------------------------240723202011929--
+-
+---FILE--
+-<?php 
+-print @$_POST['choices'];
+-?>
+---EXPECT--

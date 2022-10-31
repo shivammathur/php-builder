@@ -1,0 +1,93 @@
+From: Andre Nathan <andre@digirati.com.br>
+Date: Tue, 4 Feb 2020 09:53:16 -0300
+Subject: Allow numeric [UG]ID in FPM listen.{owner,group}
+
+---
+ NEWS                    |  4 ++++
+ sapi/fpm/fpm/fpm_unix.c | 36 ++++++++++++++++++++++--------------
+ sapi/fpm/www.conf.in    |  3 ++-
+ 3 files changed, 28 insertions(+), 15 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 475fab2..f26ba0c 100644
+--- a/NEWS
++++ b/NEWS
+@@ -104,6 +104,10 @@ Backported from 7.1.30
+   . Fixed bug #77973 (Uninitialized read in gdImageCreateFromXbm).
+     (CVE-2019-11038) (cmb)
+ 
++- FPM:
++  . Implement request #77062 (Allow numeric [UG]ID in FPM listen.{owner,group})
++    (Andre Nathan)
++
+ - Iconv:
+   . Fixed bug #78069 (Out-of-bounds read in iconv.c:_php_iconv_mime_decode()
+     due to integer overflow). (CVE-2019-11039). (maris dot adam)
+diff --git a/sapi/fpm/fpm/fpm_unix.c b/sapi/fpm/fpm/fpm_unix.c
+index 44f8df3..67d05f5 100644
+--- a/sapi/fpm/fpm/fpm_unix.c
++++ b/sapi/fpm/fpm/fpm_unix.c
+@@ -165,27 +165,35 @@ int fpm_unix_resolve_socket_premissions(struct fpm_worker_pool_s *wp) /* {{{ */
+ #endif
+ 
+ 	if (c->listen_owner && *c->listen_owner) {
+-		struct passwd *pwd;
++		if (strlen(c->listen_owner) == strspn(c->listen_owner, "0123456789")) {
++			wp->socket_uid = strtoul(c->listen_owner, 0, 10);
++		} else {
++			struct passwd *pwd;
+ 
+-		pwd = getpwnam(c->listen_owner);
+-		if (!pwd) {
+-			zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
+-			return -1;
+-		}
++			pwd = getpwnam(c->listen_owner);
++			if (!pwd) {
++				zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
++				return -1;
++			}
+ 
+-		wp->socket_uid = pwd->pw_uid;
+-		wp->socket_gid = pwd->pw_gid;
++			wp->socket_uid = pwd->pw_uid;
++			wp->socket_gid = pwd->pw_gid;
++		}
+ 	}
+ 
+ 	if (c->listen_group && *c->listen_group) {
+-		struct group *grp;
++		if (strlen(c->listen_group) == strspn(c->listen_group, "0123456789")) {
++			wp->socket_gid = strtoul(c->listen_group, 0, 10);
++		} else {
++			struct group *grp;
+ 
+-		grp = getgrnam(c->listen_group);
+-		if (!grp) {
+-			zlog(ZLOG_SYSERROR, "[pool %s] cannot get gid for group '%s'", wp->config->name, c->listen_group);
+-			return -1;
++			grp = getgrnam(c->listen_group);
++			if (!grp) {
++				zlog(ZLOG_SYSERROR, "[pool %s] cannot get gid for group '%s'", wp->config->name, c->listen_group);
++				return -1;
++			}
++			wp->socket_gid = grp->gr_gid;
+ 		}
+-		wp->socket_gid = grp->gr_gid;
+ 	}
+ 
+ 	return 0;
+diff --git a/sapi/fpm/www.conf.in b/sapi/fpm/www.conf.in
+index df2c7c3..3a828cf 100644
+--- a/sapi/fpm/www.conf.in
++++ b/sapi/fpm/www.conf.in
+@@ -41,7 +41,8 @@ listen = 127.0.0.1:9000
+ 
+ ; Set permissions for unix socket, if one is used. In Linux, read/write
+ ; permissions must be set in order to allow connections from a web server. Many
+-; BSD-derived systems allow connections regardless of permissions.
++; BSD-derived systems allow connections regardless of permissions. The owner
++; and group can be specified either by name or by their numeric IDs.
+ ; Default Values: user and group are set as the running user
+ ;                 mode is set to 0660
+ ;listen.owner = @php_fpm_user@

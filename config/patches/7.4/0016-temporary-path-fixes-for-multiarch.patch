@@ -1,0 +1,79 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:54 +0200
+Subject: temporary-path-fixes-for-multiarch
+
+---
+ ext/dba/config.m4       | 2 +-
+ ext/gmp/config.m4       | 3 ++-
+ ext/ldap/config.m4      | 7 ++-----
+ ext/pdo_dblib/config.m4 | 2 +-
+ 4 files changed, 6 insertions(+), 8 deletions(-)
+
+diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
+index 79136d5..bbd6bad 100644
+--- a/ext/dba/config.m4
++++ b/ext/dba/config.m4
+@@ -302,7 +302,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
+     AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
+   fi
+   for LIB in $2; do
+-    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
++    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/lib$LIB.$SHLIB_SUFFIX_NAME || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
+       lib_found="";
+       PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
+         AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+diff --git a/ext/gmp/config.m4 b/ext/gmp/config.m4
+index fa55751..1efacd8 100644
+--- a/ext/gmp/config.m4
++++ b/ext/gmp/config.m4
+@@ -12,7 +12,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+     PHP_ADD_LIBRARY(gmp,,GMP_SHARED_LIBADD)
+   else
+-    if test ! -f $PHP_GMP/include/gmp.h; then
++    if test ! -f $PHP_GMP/include/gmp.h -a test ! -f $PHP_GMP/$DEB_HOST_MULTIARCH/include/gmp.h; then
+       AC_MSG_ERROR(Unable to locate gmp.h)
+     fi
+ 
+@@ -25,6 +25,7 @@ if test "$PHP_GMP" != "no"; then
+ 
+     PHP_ADD_LIBRARY_WITH_PATH(gmp, $PHP_GMP/$PHP_LIBDIR, GMP_SHARED_LIBADD)
+     PHP_ADD_INCLUDE($PHP_GMP/include)
++    PHP_ADD_INCLUDE($PHP_GMP/include/$DEB_HOST_MULTIARCH)
+   fi
+ 
+   PHP_INSTALL_HEADERS([ext/gmp/php_gmp_int.h])
+diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
+index f10cccc..766b551 100644
+--- a/ext/ldap/config.m4
++++ b/ext/ldap/config.m4
+@@ -65,14 +65,11 @@ if test "$PHP_LDAP" != "no"; then
+     AC_MSG_ERROR(Cannot find ldap.h)
+   fi
+ 
+-  dnl -pc removal is a hack for clang
+-  MACHINE_INCLUDES=$($CC -dumpmachine | $SED 's/-pc//')
+-
+-  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.a || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.$SHLIB_SUFFIX_NAME; then
++  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.a || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.$SHLIB_SUFFIX_NAME; then
+     PHP_ADD_LIBRARY_WITH_PATH(lber, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+     PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+-  elif test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/libldap.3.dylib; then
++  elif test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldap.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/libldap.$SHLIB_SUFFIX_NAME.3 || test -f $LDAP_LIBDIR/libldap.3.dylib; then
+     PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
+ 
+   elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
+diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
+index b6cbc01..4dc3774 100644
+--- a/ext/pdo_dblib/config.m4
++++ b/ext/pdo_dblib/config.m4
+@@ -44,7 +44,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
+     PHP_LIBDIR=lib
+   fi
+ 
+-  if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
++  if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libsybdb.so" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
+      AC_MSG_ERROR(Could not find $PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.[a|so])
+   fi
+ 

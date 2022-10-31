@@ -1,0 +1,140 @@
+From: Svante Signell <svante.signell@gmail.com>
+Date: Thu, 31 Mar 2016 14:58:42 +0200
+Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
+
+---
+ ext/date/lib/parse_tz.c | 55 ++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 41 insertions(+), 14 deletions(-)
+
+diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
+index 9b39c6e..4f271d7 100644
+--- a/ext/date/lib/parse_tz.c
++++ b/ext/date/lib/parse_tz.c
+@@ -537,13 +537,19 @@ static char *parse_iso6709(char *p, double *result)
+ static struct location_info **create_location_table(void)
+ {
+     struct location_info **li, *i;
+-    char zone_tab[PATH_MAX];
++    char *zone_tab = NULL;
++    int len;
+     char line[512];
+     FILE *fp;
+ 
+-    strncpy(zone_tab, ZONEINFO_PREFIX "/zone.tab", sizeof zone_tab);
++    len = strlen(ZONEINFO_PREFIX) + 9 + 1;
++    zone_tab = malloc(len);
++    if (!zone_tab)
++        return NULL;
++    strncpy(zone_tab, ZONEINFO_PREFIX "/zone.tab", len);
+ 
+     fp = fopen(zone_tab, "r");
++    free(zone_tab);
+     if (!fp) {
+         return NULL;
+     }
+@@ -678,12 +684,14 @@ static void create_zone_index(timelib_tzdb *db)
+ 
+ 	do {
+ 		struct dirent **ents;
+-		char name[PATH_MAX], *top;
+-		int count;
++		char *name = NULL, *top;
++		int count, len;
+ 
+ 		/* Pop the top stack entry, and iterate through its contents. */
+ 		top = dirstack[--dirstack_top];
+-		snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s", top);
++		len = strlen(ZONEINFO_PREFIX) + 1 + strlen(top) + 1;
++		name = malloc(len);
++		snprintf(name, len, ZONEINFO_PREFIX "/%s", top);
+ 
+ 		count = php_scandir(name, &ents, index_filter, php_alphasort);
+ 
+@@ -691,7 +699,9 @@ static void create_zone_index(timelib_tzdb *db)
+ 			struct stat st;
+ 			const char *leaf = ents[count - 1]->d_name;
+ 
+-			snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s/%s", 
++			len = strlen(ZONEINFO_PREFIX) + 1 + strlen(top) + 1 + strlen(leaf) + 1;
++			name = realloc(name, len);
++			snprintf(name, len, ZONEINFO_PREFIX "/%s/%s",
+ 				 top, leaf);
+ 			
+ 			if (strlen(name) && stat(name, &st) == 0) {
+@@ -700,7 +710,9 @@ static void create_zone_index(timelib_tzdb *db)
+ 
+ 				if (root[0] == '/') root++;
+ 
+-				snprintf(name, sizeof name, "%s%s%s", root, 
++				len = strlen(root) + 1 + strlen(leaf) + 1;
++				name = realloc(name, len);
++				snprintf(name, len, "%s%s%s", root,
+ 					 *root ? "/": "", leaf);
+ 
+ 				if (S_ISDIR(st.st_mode)) {
+@@ -726,6 +738,7 @@ static void create_zone_index(timelib_tzdb *db)
+ 		}
+ 		
+ 		if (count != -1) free(ents);
++		free(name);
+ 		free(top);
+ 	} while (dirstack_top);
+ 
+@@ -824,18 +837,24 @@ static const char *canonical_tzname(const char *timezone)
+  * length of the mapped data is placed in *length. */
+ static char *map_tzfile(const char *timezone, size_t *length)
+ {
+-	char fname[PATH_MAX];
++	char *fname = NULL;
+ 	struct stat st;
+ 	char *p;
+-	int fd;
+-	
++	const char *c_tzname = canonical_tzname(timezone);
++	int fd, len;
++
+ 	if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
+ 		return NULL;
+ 	}
+ 
+-	snprintf(fname, sizeof fname, ZONEINFO_PREFIX "/%s", canonical_tzname(timezone));
++	len = strlen(ZONEINFO_PREFIX) + 1 + strlen(c_tzname) + 1;
++	fname = malloc(len);
++	if (!fname)
++		return NULL;
++	snprintf(fname, len, ZONEINFO_PREFIX "/%s", c_tzname);
+ 
+ 	fd = open(fname, O_RDONLY);
++	free(fname);
+ 	if (fd == -1) {
+ 		return NULL;
+ 	} else if (fstat(fd, &st) != 0 || !is_valid_tzfile(&st, fd)) {
+@@ -934,7 +953,9 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+ 
+ #ifdef HAVE_SYSTEM_TZDATA
+ 	if (tzdb == timezonedb_system) {
+-		char fname[PATH_MAX];
++		char *fname = NULL;
++		const char *c_tzname = canonical_tzname(timezone);
++		int len, res;
+ 		struct stat st;
+ 
+ 		if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
+@@ -948,9 +969,15 @@ int timelib_timezone_id_is_valid(char *timezone, const timelib_tzdb *tzdb)
+ 			}
+ 		}
+ 
+-		snprintf(fname, sizeof fname, ZONEINFO_PREFIX "/%s", canonical_tzname(timezone));
++		len = strlen(ZONEINFO_PREFIX) + 1 + strlen(c_tzname) + 1;
++		fname = malloc(len);
++		if (!fname)
++			return 0;
++		snprintf(fname, len, ZONEINFO_PREFIX "/%s", c_tzname);
+ 
+-		return stat(fname, &st) == 0 && is_valid_tzfile(&st, 0);
++		res = (stat(fname, &st) == 0) && is_valid_tzfile(&st, 0);
++		free(fname);
++		return res;
+ 	}
+ #endif
+ 

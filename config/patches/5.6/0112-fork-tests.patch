@@ -1,0 +1,272 @@
+From: Anatol Belski <ab@php.net>
+Date: Thu, 1 Dec 2016 14:52:18 +0100
+Subject: fork tests
+
+(cherry picked from commit 2252d4e59d62510a490382d457167a9eac640228)
+---
+ ext/curl/tests/bug48203-win32.phpt       | 36 +++++++++++++
+ ext/curl/tests/bug48203.phpt             |  5 ++
+ ext/curl/tests/bug48203_multi-win32.phpt | 89 ++++++++++++++++++++++++++++++++
+ ext/curl/tests/bug48203_multi.phpt       |  3 ++
+ ext/curl/tests/bug54798-win32.phpt       | 68 ++++++++++++++++++++++++
+ ext/curl/tests/bug54798.phpt             |  3 ++
+ 6 files changed, 204 insertions(+)
+ create mode 100644 ext/curl/tests/bug48203-win32.phpt
+ create mode 100644 ext/curl/tests/bug48203_multi-win32.phpt
+ create mode 100644 ext/curl/tests/bug54798-win32.phpt
+
+diff --git a/ext/curl/tests/bug48203-win32.phpt b/ext/curl/tests/bug48203-win32.phpt
+new file mode 100644
+index 0000000..947c33a
+--- /dev/null
++++ b/ext/curl/tests/bug48203-win32.phpt
+@@ -0,0 +1,36 @@
++--TEST--
++Bug #48203 (Crash when CURLOPT_STDERR is set to regular file)
++--SKIPIF--
++<?php include 'skipif.inc'; ?>
++<?php
++if(substr(PHP_OS, 0, 3) != 'WIN' ) {
++    die('skip Windows only test');
++}
++?>
++--FILE--
++<?php
++include 'server.inc';
++$fp = fopen(dirname(__FILE__) . '/bug48203.tmp', 'w');
++
++$ch = curl_init();
++
++curl_setopt($ch, CURLOPT_VERBOSE, 1);
++curl_setopt($ch, CURLOPT_STDERR, $fp);
++curl_setopt($ch, CURLOPT_URL, curl_cli_server_start());
++
++fclose($fp); // <-- premature close of $fp caused a crash!
++
++curl_exec($ch);
++curl_close($ch);
++
++echo "Ok\n";
++
++?>
++--CLEAN--
++<?php @unlink(dirname(__FILE__) . '/bug48203.tmp'); ?>
++--EXPECTF--
++Warning: curl_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
++Hello World!
++Hello World!Ok
++%A
++
+diff --git a/ext/curl/tests/bug48203.phpt b/ext/curl/tests/bug48203.phpt
+index aae7fc5..fc8b409 100644
+--- a/ext/curl/tests/bug48203.phpt
++++ b/ext/curl/tests/bug48203.phpt
+@@ -2,6 +2,11 @@
+ Bug #48203 (Crash when CURLOPT_STDERR is set to regular file)
+ --SKIPIF--
+ <?php include 'skipif.inc'; ?>
++<?php
++if(substr(PHP_OS, 0, 3) == 'WIN' ) {
++    die('skip now for Windows');
++}
++?>
+ --FILE--
+ <?php
+ include 'server.inc';
+diff --git a/ext/curl/tests/bug48203_multi-win32.phpt b/ext/curl/tests/bug48203_multi-win32.phpt
+new file mode 100644
+index 0000000..9016725
+--- /dev/null
++++ b/ext/curl/tests/bug48203_multi-win32.phpt
+@@ -0,0 +1,89 @@
++--TEST--
++Variation of bug #48203 with curl_multi_exec (Crash when file pointers passed to curl are closed before calling curl_multi_exec)
++--SKIPIF--
++<?php
++include 'skipif.inc';
++if(substr(PHP_OS, 0, 3) != 'WIN' ) {
++    die('skip Windows only test');
++}
++?>
++--FILE--
++<?php
++include 'server.inc';
++function checkForClosedFilePointer($curl_option, $description) {
++	$fp = fopen(dirname(__FILE__) . '/bug48203.tmp', 'w');
++
++	$ch1 = curl_init();
++	$ch2 = curl_init();
++
++	$options = array(
++		CURLOPT_RETURNTRANSFER => 1,
++		$curl_option => $fp,
++		CURLOPT_URL => curl_cli_server_start()
++	);
++
++	// we also need to set CURLOPT_VERBOSE to test CURLOPT_STDERR properly
++	if (CURLOPT_STDERR == $curl_option) {
++		$options[CURLOPT_VERBOSE] = 1;
++	}
++
++	if (CURLOPT_INFILE == $curl_option) {
++	    $options[CURLOPT_UPLOAD] = 1;
++	}
++
++	curl_setopt_array($ch1, $options);
++	curl_setopt_array($ch2, $options);
++
++	fclose($fp); // <-- premature close of $fp caused a crash!
++
++	$mh = curl_multi_init();
++
++	curl_multi_add_handle($mh, $ch1);
++	curl_multi_add_handle($mh, $ch2);
++
++	$active = 0;
++	do {
++		curl_multi_exec($mh, $active);
++	} while ($active > 0);
++
++	curl_multi_remove_handle($mh, $ch1);
++	curl_multi_remove_handle($mh, $ch2);
++	curl_multi_close($mh);
++
++	echo "Ok for $description\n";
++}
++
++$options_to_check = array(
++	"CURLOPT_STDERR", "CURLOPT_WRITEHEADER", "CURLOPT_FILE", "CURLOPT_INFILE"
++);
++
++foreach($options_to_check as $option) {
++	checkForClosedFilePointer(constant($option), $option);
++}
++
++?>
++--CLEAN--
++<?php @unlink(dirname(__FILE__) . '/bug48203.tmp'); ?>
++--EXPECTF--
++Warning: curl_multi_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
++
++Warning: curl_multi_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
++Ok for CURLOPT_STDERR
++%A
++
++Warning: curl_multi_exec(): CURLOPT_WRITEHEADER resource has gone away, resetting to default in %s on line %d
++
++Warning: curl_multi_exec(): CURLOPT_WRITEHEADER resource has gone away, resetting to default in %s on line %d
++Ok for CURLOPT_WRITEHEADER
++
++Warning: curl_multi_exec(): CURLOPT_FILE resource has gone away, resetting to default in %s on line %d
++
++Warning: curl_multi_exec(): CURLOPT_FILE resource has gone away, resetting to default in %s on line %d
++Hello World!
++Hello World!Hello World!
++Hello World!Ok for CURLOPT_FILE
++
++Warning: curl_multi_exec(): CURLOPT_INFILE resource has gone away, resetting to default in %s on line %d
++
++Warning: curl_multi_exec(): CURLOPT_INFILE resource has gone away, resetting to default in %s on line %d
++Ok for CURLOPT_INFILE
+diff --git a/ext/curl/tests/bug48203_multi.phpt b/ext/curl/tests/bug48203_multi.phpt
+index e28c990..b582e78 100644
+--- a/ext/curl/tests/bug48203_multi.phpt
++++ b/ext/curl/tests/bug48203_multi.phpt
+@@ -3,6 +3,9 @@ Variation of bug #48203 with curl_multi_exec (Crash when file pointers passed to
+ --SKIPIF--
+ <?php
+ include 'skipif.inc';
++if(substr(PHP_OS, 0, 3) == 'WIN' ) {
++    die('skip not for Windows');
++}
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/curl/tests/bug54798-win32.phpt b/ext/curl/tests/bug54798-win32.phpt
+new file mode 100644
+index 0000000..c3b240d
+--- /dev/null
++++ b/ext/curl/tests/bug54798-win32.phpt
+@@ -0,0 +1,68 @@
++--TEST--
++Bug #54798 (Segfault when CURLOPT_STDERR file pointer is closed before calling curl_exec)
++--SKIPIF--
++<?php 
++include 'skipif.inc';
++if(substr(PHP_OS, 0, 3) != 'WIN' ) {
++    die('skip Windows only');
++}
++?>
++--FILE--
++<?php
++
++function checkForClosedFilePointer($host, $curl_option, $description) {
++	$fp = fopen(dirname(__FILE__) . '/bug54798.tmp', 'w+');
++
++	$ch = curl_init();
++
++	// we also need CURLOPT_VERBOSE to be set to test CURLOPT_STDERR properly
++	if (CURLOPT_STDERR == $curl_option) {
++		curl_setopt($ch, CURLOPT_VERBOSE, 1);
++	}
++
++    if (CURLOPT_INFILE == $curl_option) {
++        curl_setopt($ch, CURLOPT_UPLOAD, 1);
++    }
++
++	curl_setopt($ch, $curl_option, $fp);
++	
++	curl_setopt($ch, CURLOPT_URL, $host);
++	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
++
++	fclose($fp); // <-- premature close of $fp caused a crash!
++
++	curl_exec($ch);
++
++	curl_close($ch);
++
++	echo "Ok for $description\n";
++}
++
++$options_to_check = array(
++	"CURLOPT_STDERR",
++    "CURLOPT_WRITEHEADER",
++    "CURLOPT_FILE",
++    "CURLOPT_INFILE"
++);
++
++include 'server.inc';
++$host = curl_cli_server_start();
++foreach($options_to_check as $option) {
++	checkForClosedFilePointer($host, constant($option), $option);
++}
++
++?>
++===DONE===
++--CLEAN--
++<?php @unlink(dirname(__FILE__) . '/bug54798.tmp'); ?>
++--EXPECTF--
++%AOk for CURLOPT_STDERR
++
++%AOk for CURLOPT_WRITEHEADER
++
++%AHello World!
++Hello World!Ok for CURLOPT_FILE
++
++%AOk for CURLOPT_INFILE
++===DONE===
++%A
+diff --git a/ext/curl/tests/bug54798.phpt b/ext/curl/tests/bug54798.phpt
+index 4a9b999..d254281 100644
+--- a/ext/curl/tests/bug54798.phpt
++++ b/ext/curl/tests/bug54798.phpt
+@@ -3,6 +3,9 @@ Bug #54798 (Segfault when CURLOPT_STDERR file pointer is closed before calling c
+ --SKIPIF--
+ <?php 
+ include 'skipif.inc';
++if(substr(PHP_OS, 0, 3) == 'WIN' ) {
++    die('skip not for Windows');
++}
+ ?>
+ --FILE--
+ <?php

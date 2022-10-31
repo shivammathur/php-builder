@@ -1,0 +1,36 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 15 Nov 2021 09:57:10 +0100
+Subject: fix new tests
+
+(cherry picked from commit b21524ff3db15da5a7779cba73e3774eb5404d40)
+---
+ ext/dom/tests/bug79971_2.phpt       | 2 +-
+ ext/simplexml/tests/bug79971_1.phpt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/dom/tests/bug79971_2.phpt b/ext/dom/tests/bug79971_2.phpt
+index c4e6b1e..01cd123 100644
+--- a/ext/dom/tests/bug79971_2.phpt
++++ b/ext/dom/tests/bug79971_2.phpt
+@@ -7,7 +7,7 @@ if (!extension_loaded('dom')) die('skip dom extension not available');
+ --FILE--
+ <?php
+ $imp = new DOMImplementation;
+-if (PHP_OS_FAMILY === 'Windows') {
++if (DIRECTORY_SEPARATOR !== '/') {
+     $path = '/' . str_replace('\\', '/', __DIR__);
+ } else {
+     $path = __DIR__;
+diff --git a/ext/simplexml/tests/bug79971_1.phpt b/ext/simplexml/tests/bug79971_1.phpt
+index 197776d..464112c 100644
+--- a/ext/simplexml/tests/bug79971_1.phpt
++++ b/ext/simplexml/tests/bug79971_1.phpt
+@@ -6,7 +6,7 @@ if (!extension_loaded('simplexml')) die('skip simplexml extension not available'
+ ?>
+ --FILE--
+ <?php
+-if (PHP_OS_FAMILY === 'Windows') {
++if (DIRECTORY_SEPARATOR !== '/') {
+     $path = '/' . str_replace('\\', '/', __DIR__);
+ } else {
+     $path = __DIR__;

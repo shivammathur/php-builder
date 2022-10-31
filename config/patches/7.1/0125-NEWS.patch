@@ -1,0 +1,28 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 15 Nov 2021 09:05:33 +0100
+Subject: NEWS
+
+(cherry picked from commit c032381da0bfb6457aa9cfa7a430790f6eab8178)
+---
+ NEWS | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/NEWS b/NEWS
+index 97e7584..a7ed5a7 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,7 +1,13 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
+-Backported from 7.4.25
++Backported from 7.3.33
++
++- XML:
++  . Fix #79971: special character is breaking the path in xml function.
++    (CVE-2021-21707) (cmb)
++
++Backported from 7.3.32
+ 
+ - FPM:
+   . Fixed bug #81026 (PHP-FPM oob R/W in root process leading to privilege

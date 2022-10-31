@@ -1,0 +1,21 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Fri, 30 Aug 2019 12:35:05 +0200
+Subject: Fix erroneous test expectation
+
+---
+ ext/pdo_mysql/tests/pdo_mysql_exec.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pdo_mysql/tests/pdo_mysql_exec.phpt b/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
+index acd9090..9830737 100644
+--- a/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
++++ b/ext/pdo_mysql/tests/pdo_mysql_exec.phpt
+@@ -75,7 +75,7 @@ MySQLPDOTest::skip();
+ 			exec_and_count(19, $db, 'CREATE PROCEDURE p(OUT ver_param VARCHAR(255)) BEGIN SELECT VERSION() INTO ver_param; END;', 0);
+ 			// we got this far without problems. If there's an issue from now on, its a failure
+ 			$ignore_exception = false;
+-			exec_and_count(20, $db, 'CALL p(@version)', 0);
++			exec_and_count(20, $db, 'CALL p(@version)', 1);
+ 			$stmt = $db->query('SELECT @version AS p_version');
+ 			$tmp = $stmt->fetchAll(PDO::FETCH_ASSOC);
+ 			if (count($tmp) > 1 || !isset($tmp[0]['p_version'])) {

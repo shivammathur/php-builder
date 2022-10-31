@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 17 Oct 2020 08:10:05 +0200
+Subject: Add pkg-config m4 files to phpize script
+
+---
+ scripts/phpize.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/phpize.in b/scripts/phpize.in
+index 4bf2811..d8d8bd3 100644
+--- a/scripts/phpize.in
++++ b/scripts/phpize.in
+@@ -12,9 +12,9 @@ SED="@SED@"
+ 
+ FILES_BUILD="mkdep.awk scan_makefile_in.awk shtool"
+ if [ -f "$aclocaldir/ltsugar.m4" ]; then
+-    LIBTOOL_FILES="libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4"
++    LIBTOOL_FILES="pkg.m4 libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4"
+ else
+-    LIBTOOL_FILES="libtool.m4"
++    LIBTOOL_FILES="pkg.m4 libtool.m4"
+ fi
+ FILES="acinclude.m4 Makefile.global config.sub config.guess ltmain.sh run-tests*.php"
+ CLEAN_FILES="$FILES *.o *.lo *.la .deps .libs/ build/ modules/ install-sh \

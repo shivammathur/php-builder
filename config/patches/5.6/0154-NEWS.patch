@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 29 Sep 2020 09:20:11 +0200
+Subject: NEWS
+
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 9e873d0..d8909a5 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.2.34
++
++- Core:
++  . Fixed bug #79699 (PHP parses encoded cookie names so malicious `__Host-`
++    cookies can be sent). (CVE-2020-7070) (Stas)
++
+ Backported from 7.2.33
+ 
+ - Core:

@@ -1,0 +1,94 @@
+From: Hugh McMaster <hugh.mcmaster@outlook.com>
+Date: Wed, 5 Dec 2018 23:27:30 +1100
+Subject: ext/intl: Use pkg-config to detect icu
+
+The developers of icu recommend using pkg-config to detect icu,
+because icu-config is deprecated.
+---
+ ext/intl/config.m4                       | 18 +++++++-----------
+ ext/intl/msgformat/msgformat_helpers.cpp | 16 +++++++++-------
+ 2 files changed, 16 insertions(+), 18 deletions(-)
+
+diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
+index 52408f8..592cea3 100644
+--- a/ext/intl/config.m4
++++ b/ext/intl/config.m4
+@@ -9,16 +9,8 @@ if test "$PHP_INTL" != "no"; then
+   PHP_SETUP_ICU(INTL_SHARED_LIBADD)
+   PHP_SUBST(INTL_SHARED_LIBADD)
+   PHP_REQUIRE_CXX()
+-  INTL_COMMON_FLAGS="$ICU_INCS -Wno-write-strings -D__STDC_LIMIT_MACROS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+-  if test "$icu_version" -ge "4002"; then
+-    icu_spoof_src=" spoofchecker/spoofchecker_class.c \
+-    spoofchecker/spoofchecker.c\
+-    spoofchecker/spoofchecker_create.c\
+-    spoofchecker/spoofchecker_main.c"
+-  else
+-    icu_spoof_src=""
+-  fi
+-  PHP_NEW_EXTENSION(intl, php_intl.c \
++  INTL_COMMON_FLAGS="$ICU_CFLAGS -Wno-write-strings -D__STDC_LIMIT_MACROS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
++  PHP_INTL_C_SOURCES="php_intl.c \
+     intl_error.c \
+     intl_convert.c \
+     collator/collator.c \
+@@ -68,7 +60,11 @@ if test "$PHP_INTL" != "no"; then
+     transliterator/transliterator_methods.c \
+     uchar/uchar.c \
+     idn/idn.c \
+-    $icu_spoof_src, $ext_shared,,$INTL_COMMON_FLAGS,cxx)
++    spoofchecker/spoofchecker_class.c \
++    spoofchecker/spoofchecker.c\
++    spoofchecker/spoofchecker_create.c\
++    spoofchecker/spoofchecker_main.c"
++  PHP_NEW_EXTENSION(intl, $PHP_INTL_C_SOURCES, $ext_shared,,$INTL_COMMON_FLAGS,cxx)
+ 
+   PHP_INTL_CXX_SOURCES="intl_convertcpp.cpp \
+     common/common_enum.cpp \
+diff --git a/ext/intl/msgformat/msgformat_helpers.cpp b/ext/intl/msgformat/msgformat_helpers.cpp
+index 3e9b0d7..fa54ba9 100644
+--- a/ext/intl/msgformat/msgformat_helpers.cpp
++++ b/ext/intl/msgformat/msgformat_helpers.cpp
+@@ -216,6 +216,8 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 			continue;
+ 		}
+ 
++#define ASCII_LITERAL(s) UNICODE_STRING(s, sizeof(s)-1)
++		
+ 		UMessagePatternArgType argType = p.getArgType();
+ 		/* No type specified, treat it as a string */
+ 		if (argType == UMSGPAT_ARG_TYPE_NONE) {
+@@ -229,15 +231,15 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 					UnicodeString typeString = mp.getSubstring(type_part);
+ 					/* This is all based on the rules in the docs for MessageFormat
+ 					 * @see http://icu-project.org/apiref/icu4c/classMessageFormat.html */
+-					if (typeString == "number") {
++					if (typeString == ASCII_LITERAL("number")) {
+ 						MessagePattern::Part style_part = mp.getPart(i + 1); /* Not advancing i */
+ 						if (style_part.getType() == UMSGPAT_PART_TYPE_ARG_STYLE) {
+ 							UnicodeString styleString = mp.getSubstring(style_part);
+-							if (styleString == "integer") {
++							if (styleString == ASCII_LITERAL("integer")) {
+ 								type = Formattable::kInt64;
+-							} else if (styleString == "currency") {
++							} else if (styleString == ASCII_LITERAL("currency")) {
+ 								type = Formattable::kDouble;
+-							} else if (styleString == "percent") {
++							} else if (styleString == ASCII_LITERAL("percent")) {
+ 								type = Formattable::kDouble;
+ 							} else { /* some style invalid/unknown to us */
+ 								type = Formattable::kDouble;
+@@ -245,10 +247,10 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 						} else { // if missing style, part, make it a double
+ 							type = Formattable::kDouble;
+ 						}
+-					} else if ((typeString == "date") || (typeString == "time")) {
++					} else if ((typeString == ASCII_LITERAL("date")) || (typeString == ASCII_LITERAL("time"))) {
+ 						type = Formattable::kDate;
+-					} else if ((typeString == "spellout") || (typeString == "ordinal")
+-							|| (typeString == "duration")) {
++					} else if ((typeString == ASCII_LITERAL("spellout")) || (typeString == ASCII_LITERAL("ordinal"))
++							   || (typeString == ASCII_LITERAL("duration"))) {
+ 						type = Formattable::kDouble;
+ 					}
+ 				} else {

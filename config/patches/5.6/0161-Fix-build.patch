@@ -1,0 +1,23 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Mon, 1 Feb 2021 09:46:17 +0100
+Subject: Fix build
+
+(cherry picked from commit e5d767d27f94895e09f0321562fd3774d4656164)
+(cherry picked from commit 02352d5acc1896756dcb4645f54689ffdcc4ca52)
+---
+ ext/soap/php_sdl.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/soap/php_sdl.c b/ext/soap/php_sdl.c
+index 49f6137..4a3a2fa 100644
+--- a/ext/soap/php_sdl.c
++++ b/ext/soap/php_sdl.c
+@@ -318,7 +318,7 @@ void sdl_restore_uri_credentials(sdlCtx *ctx TSRMLS_DC)
+ 	ctx->context = NULL;
+ }
+ 
+-#define SAFE_STR(a) ((a)?a:"")
++#define SAFE_STR(a) ((a)?((const char *)a):"")
+ 
+ static void load_wsdl_ex(zval *this_ptr, char *struri, sdlCtx *ctx, int include TSRMLS_DC)
+ {

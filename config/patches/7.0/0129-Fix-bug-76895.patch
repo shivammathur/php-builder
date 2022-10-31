@@ -1,0 +1,139 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Tue, 23 Jul 2019 10:38:23 +0200
+Subject: Fix bug #76895
+
+There are two parts here: First, opcache should not be blocking
+signals while invoking compile_file. Second, we should have noticed
+this issue a long time ago, but apparently we don't use
+zend_signal_deactivate as part of the standard shutdown sequence.
+In addition to calling deactivate, also make sure that we always
+check for zero depth, independent of SIGG(check), which is currently
+not enabled.
+---
+ Zend/zend_signal.c            | 21 ++++++++++++++++-----
+ ext/opcache/ZendAccelerator.c | 13 +++++++++++--
+ main/main.c                   |  5 +++++
+ 3 files changed, 32 insertions(+), 7 deletions(-)
+
+diff --git a/Zend/zend_signal.c b/Zend/zend_signal.c
+index b12f30d..7fa3a7f 100644
+--- a/Zend/zend_signal.c
++++ b/Zend/zend_signal.c
+@@ -304,34 +304,45 @@ void zend_signal_activate(void)
+ 
+ 	SIGG(active) = 1;
+ 	SIGG(depth)  = 0;
++	SIGG(check)  = ZEND_DEBUG;
+ } /* }}} */
+ 
+ /* {{{ zend_signal_deactivate
+  * */
+ void zend_signal_deactivate(void)
+ {
+-
+ 	if (SIGG(check)) {
+ 		int x;
+ 		struct sigaction sa = {{0}};
+ 		if (SIGG(depth) != 0) {
+ 			zend_error(E_CORE_WARNING, "zend_signal: shutdown with non-zero blocking depth (%d)", SIGG(depth));
+ 		}
++
+ 		/* did anyone steal our installed handler */
+ 		for (x = 0; x < sizeof(zend_sigs) / sizeof(*zend_sigs); x++) {
+ 			sigaction(zend_sigs[x], NULL, &sa);
+-			if (sa.sa_sigaction != zend_signal_handler_defer) {
++			if (sa.sa_sigaction != zend_signal_handler_defer &&
++					sa.sa_sigaction != (void *) SIG_IGN) {
+ 				zend_error(E_CORE_WARNING, "zend_signal: handler was replaced for signal (%d) after startup", zend_sigs[x]);
+ 			}
+ 		}
+ 	}
+ 
+-	SIGNAL_BEGIN_CRITICAL();
+-	SIGG(active) = 0;
++	/* After active=0 is set, signal handlers will be called directly and other
++	 * state that is reset below will not be accessed. */
++	*((volatile int *) &SIGG(active)) = 0;
++
+ 	SIGG(running) = 0;
+ 	SIGG(blocked) = 0;
+ 	SIGG(depth) = 0;
+-	SIGNAL_END_CRITICAL();
++
++	/* If there are any queued signals because of a missed unblock, drop them. */
++	if (SIGG(phead) && SIGG(ptail)) {
++		SIGG(ptail)->next = SIGG(pavail);
++		SIGG(pavail) = SIGG(phead);
++		SIGG(phead) = NULL;
++		SIGG(ptail) = NULL;
++	}
+ }
+ /* }}} */
+ 
+diff --git a/ext/opcache/ZendAccelerator.c b/ext/opcache/ZendAccelerator.c
+index 5227601..2116726 100644
+--- a/ext/opcache/ZendAccelerator.c
++++ b/ext/opcache/ZendAccelerator.c
+@@ -1478,7 +1478,9 @@ static zend_persistent_script *opcache_compile_file(zend_file_handle *file_handl
+ 
+ 	/* check blacklist right after ensuring that file was opened */
+ 	if (file_handle->opened_path && zend_accel_blacklist_is_blacklisted(&accel_blacklist, ZSTR_VAL(file_handle->opened_path))) {
++		SHM_UNPROTECT();
+ 		ZCSG(blacklist_misses)++;
++		SHM_PROTECT();
+ 		*op_array_p = accelerator_orig_compile_file(file_handle, type);
+ 		return NULL;
+ 	}
+@@ -1509,7 +1511,9 @@ static zend_persistent_script *opcache_compile_file(zend_file_handle *file_handl
+ 		}
+ 
+ 		if (ZCG(accel_directives).max_file_size > 0 && size > (size_t)ZCG(accel_directives).max_file_size) {
++			SHM_UNPROTECT();
+ 			ZCSG(blacklist_misses)++;
++			SHM_PROTECT();
+ 			*op_array_p = accelerator_orig_compile_file(file_handle, type);
+ 			return NULL;
+ 		}
+@@ -1860,11 +1864,16 @@ zend_op_array *persistent_compile_file(zend_file_handle *file_handle, int type)
+ 			return accelerator_orig_compile_file(file_handle, type);
+ 		}
+ 
++		SHM_PROTECT();
++		HANDLE_UNBLOCK_INTERRUPTIONS();
++		persistent_script = opcache_compile_file(file_handle, type, key, key ? key_length : 0, &op_array);
++		HANDLE_BLOCK_INTERRUPTIONS();
++		SHM_UNPROTECT();
++
+ 		/* Try and cache the script and assume that it is returned from_shared_memory.
+          * If it isn't compile_and_cache_file() changes the flag to 0
+          */
+        	from_shared_memory = 0;
+-		persistent_script = opcache_compile_file(file_handle, type, key, key ? key_length : 0, &op_array);
+ 		if (persistent_script) {
+ 			persistent_script = cache_script_in_shared_memory(persistent_script, key, key ? key_length : 0, &from_shared_memory);
+ 		}
+@@ -1983,7 +1992,7 @@ static zend_string* persistent_zend_resolve_path(const char *filename, int filen
+ 			zend_string *resolved_path;
+ 			int key_length;
+ 			char *key = NULL;
+-			
++
+ 			if (!ZCG(accel_directives).revalidate_path) {
+ 				/* lookup by "not-real" path */
+ 				key = accel_make_persistent_key(filename, filename_len, &key_length);
+diff --git a/main/main.c b/main/main.c
+index 93ac6ca..91f9ead 100644
+--- a/main/main.c
++++ b/main/main.c
+@@ -1882,6 +1882,11 @@ void php_request_shutdown(void *dummy)
+ 		zend_unset_timeout();
+ 	} zend_end_try();
+ 
++	/* 17. Deactivate Zend signals */
++#ifdef ZEND_SIGNALS
++	zend_signal_deactivate();
++#endif
++
+ #ifdef PHP_WIN32
+ 	if (PG(com_initialized)) {
+ 		CoUninitialize();

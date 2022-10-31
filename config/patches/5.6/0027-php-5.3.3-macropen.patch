@@ -1,0 +1,52 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-5.3.3-macropen
+
+---
+ ext/dba/dba.c     | 2 +-
+ ext/dba/dba_db3.c | 2 +-
+ ext/dba/dba_db4.c | 4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/ext/dba/dba.c b/ext/dba/dba.c
+index cf9674a..7554203 100644
+--- a/ext/dba/dba.c
++++ b/ext/dba/dba.c
+@@ -930,7 +930,7 @@ static void php_dba_open(INTERNAL_FUNCTION_PARAMETERS, int persistent)
+ 		}
+ 	}
+ 
+-	if (error || hptr->open(info, &error TSRMLS_CC) != SUCCESS) {
++	if (error || (hptr->open)(info, &error TSRMLS_CC) != SUCCESS) {
+ 		dba_close(info TSRMLS_CC);
+ 		php_error_docref2(NULL TSRMLS_CC, Z_STRVAL_PP(args[0]), Z_STRVAL_PP(args[1]), E_WARNING, "Driver initialization failed for handler: %s%s%s", hptr->name, error?": ":"", error?error:"");
+ 		FREENOW;
+diff --git a/ext/dba/dba_db3.c b/ext/dba/dba_db3.c
+index 2d0ad86..ddb2440 100644
+--- a/ext/dba/dba_db3.c
++++ b/ext/dba/dba_db3.c
+@@ -91,7 +91,7 @@ DBA_OPEN_FUNC(db3)
+ 
+ 	if ((err=db_create(&dbp, NULL, 0)) == 0) {
+ 	    dbp->set_errcall(dbp, php_dba_db3_errcall_fcn);
+-	    if ((err=dbp->open(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
++	    if ((err=(dbp->open)(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
+ 			dba_db3_data *data;
+ 
+ 			data = pemalloc(sizeof(*data), info->flags&DBA_PERSISTENT);
+diff --git a/ext/dba/dba_db4.c b/ext/dba/dba_db4.c
+index 2dfb33a..1aac4cc 100644
+--- a/ext/dba/dba_db4.c
++++ b/ext/dba/dba_db4.c
+@@ -126,9 +126,9 @@ DBA_OPEN_FUNC(db4)
+ 	    dbp->set_errcall(dbp, php_dba_db4_errcall_fcn);
+ 	    if (
+ #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
+-			(err=dbp->open(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, 0, info->path, NULL, type, gmode, filemode)) == 0) {
+ #else
+-			(err=dbp->open(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, info->path, NULL, type, gmode, filemode)) == 0) {
+ #endif
+ 			dba_db4_data *data;
+ 

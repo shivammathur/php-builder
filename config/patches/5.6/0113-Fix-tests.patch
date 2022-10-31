@@ -1,0 +1,38 @@
+From: Anatol Belski <ab@php.net>
+Date: Tue, 31 Dec 2019 16:05:37 +0100
+Subject: Fix tests
+
+Testing with `CURLOPT_VERBOSE` enabled is brittle; we have to be less
+strict in what we're expecting.
+---
+ ext/curl/tests/bug48203-win32.phpt       | 6 ++----
+ ext/curl/tests/bug48203_multi-win32.phpt | 2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/ext/curl/tests/bug48203-win32.phpt b/ext/curl/tests/bug48203-win32.phpt
+index 947c33a..e6ee265 100644
+--- a/ext/curl/tests/bug48203-win32.phpt
++++ b/ext/curl/tests/bug48203-win32.phpt
+@@ -30,7 +30,5 @@ echo "Ok\n";
+ <?php @unlink(dirname(__FILE__) . '/bug48203.tmp'); ?>
+ --EXPECTF--
+ Warning: curl_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
+-Hello World!
+-Hello World!Ok
+-%A
+-
++%AHello World!
++Hello World!Ok%A
+diff --git a/ext/curl/tests/bug48203_multi-win32.phpt b/ext/curl/tests/bug48203_multi-win32.phpt
+index 9016725..a9d8174 100644
+--- a/ext/curl/tests/bug48203_multi-win32.phpt
++++ b/ext/curl/tests/bug48203_multi-win32.phpt
+@@ -68,7 +68,7 @@ foreach($options_to_check as $option) {
+ Warning: curl_multi_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
+ 
+ Warning: curl_multi_exec(): CURLOPT_STDERR resource has gone away, resetting to stderr in %s on line %d
+-Ok for CURLOPT_STDERR
++%AOk for CURLOPT_STDERR
+ %A
+ 
+ Warning: curl_multi_exec(): CURLOPT_WRITEHEADER resource has gone away, resetting to default in %s on line %d

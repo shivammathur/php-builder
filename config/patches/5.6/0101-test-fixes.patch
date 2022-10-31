@@ -1,0 +1,96 @@
+From: Anatol Belski <ab@php.net>
+Date: Sun, 28 Feb 2016 11:53:21 +0100
+Subject: test fixes
+
+(cherry picked from php/php-src@f738abab859d847fce9b5c6e5b4c102d0f77e819)
+---
+ ext/opcache/tests/bug66338.phpt           |  4 ++--
+ ext/opcache/tests/bug67215.phpt           |  2 +-
+ ext/opcache/tests/revalidate_path_01.phpt | 28 +++++++++++++++++++++++-----
+ 3 files changed, 26 insertions(+), 8 deletions(-)
+
+diff --git a/ext/opcache/tests/bug66338.phpt b/ext/opcache/tests/bug66338.phpt
+index ed7f8ab..6553f83 100644
+--- a/ext/opcache/tests/bug66338.phpt
++++ b/ext/opcache/tests/bug66338.phpt
+@@ -15,13 +15,13 @@ file_put_contents( "$root-Officials.inc", '<?php
+ 
+ file_put_contents( "$root-clientUS.php", '<?php 
+ 	class LocalTerms { const GOV_LEADER = "Barack Hussein Obama II"; }
+-	require "'.$root.'-Officials.inc";
++	require \''.$root.'-Officials.inc\';
+ 	printf( "The President of the USA is %s\n", Officials::getLeader() );
+ 	' );
+ 
+ file_put_contents( "$root-clientUK.php", '<?php 
+ 	class LocalTerms { const GOV_LEADER = "David William Donald Cameron"; }
+-	require "'.$root.'-Officials.inc";
++	require \''.$root.'-Officials.inc\';
+ 	printf( "The Prime Minister of the UK is %s\n", Officials::getLeader() );
+ 	' );
+ 
+diff --git a/ext/opcache/tests/bug67215.phpt b/ext/opcache/tests/bug67215.phpt
+index e9919d1..01ff34b 100644
+--- a/ext/opcache/tests/bug67215.phpt
++++ b/ext/opcache/tests/bug67215.phpt
+@@ -11,7 +11,7 @@ opcache.file_update_protection=0
+ 
+ $file_c = __DIR__ . "/bug67215.c.php";
+ $file_p = __DIR__ . "/bug67215.p.php";
+-file_put_contents($file_c, "<?php require \"$file_p\"; class c extends p {} ?>");
++file_put_contents($file_c, "<?php require '$file_p'; class c extends p {} ?>");
+ file_put_contents($file_p, '<?php class p { protected $var = ""; } ?>');
+ require $file_c;
+ $a = new c();
+diff --git a/ext/opcache/tests/revalidate_path_01.phpt b/ext/opcache/tests/revalidate_path_01.phpt
+index cf2ac0d..8261633 100644
+--- a/ext/opcache/tests/revalidate_path_01.phpt
++++ b/ext/opcache/tests/revalidate_path_01.phpt
+@@ -25,16 +25,30 @@ while (filemtime($file1) != filemtime($file2)) {
+ 	touch($file1);
+ 	touch($file2);
+ }
+-@unlink($link);
+-@symlink($dir1, $link);
++if (substr(PHP_OS, 0, 3) == 'WIN') {
++	@rmdir($link);
++	$ln = str_replace('/', '\\', $link);
++	$d1 = realpath($dir1);
++	`mklink /j $ln $d1`;
++} else {
++	@unlink($link);
++	@symlink($dir1, $link);
++}
+ 
+ include "php_cli_server.inc";
+ //php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d opcache.revalidate_path=1');
+ php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d opcache.revalidate_path=1 -d opcache.file_update_protection=0 -d realpath_cache_size=0');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/main.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/main.php');
+-@unlink($link);
+-@symlink($dir2, $link);
++if (substr(PHP_OS, 0, 3) == 'WIN') {
++	@rmdir($link);
++	$ln = str_replace('/', '\\', $link);
++	$d2 = realpath($dir2);
++	`mklink /j $ln $d2`;
++} else {
++	@unlink($link);
++	@symlink($dir2, $link);
++}
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/main.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/main.php');
+ ?>
+@@ -48,7 +62,11 @@ $file1 = "$dir1/index.php";
+ $file2 = "$dir2/index.php";
+ $main = "$dir/main.php";
+ @unlink($main);
+-@unlink($link);
++if (substr(PHP_OS, 0, 3) == 'WIN') {
++	@rmdir($link);
++} else {
++	@unlink($link);
++}
+ @unlink($file1);
+ @unlink($file2);
+ @rmdir($dir1);

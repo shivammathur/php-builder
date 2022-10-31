@@ -1,0 +1,20 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 28 Aug 2019 14:34:48 +0200
+Subject: relax test, offset may be different on various system lib versions
+
+(cherry picked from commit b781eb2900cc0d74e385e704711a0002a9ecc8cb)
+---
+ ext/pcre/tests/bug75457.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pcre/tests/bug75457.phpt b/ext/pcre/tests/bug75457.phpt
+index c7ce9ed..571a4bd 100644
+--- a/ext/pcre/tests/bug75457.phpt
++++ b/ext/pcre/tests/bug75457.phpt
+@@ -6,5 +6,5 @@ $pattern = "/(((?(?C)0?=))(?!()0|.(?0)0)())/";
+ var_dump(preg_match($pattern, "hello"));
+ ?>
+ --EXPECTF--
+-Warning: preg_match(): Compilation failed: assertion expected after (?( or (?(?C) at offset 4 in %sbug75457.php on line %d
++Warning: preg_match(): Compilation failed: assertion expected after (?( or (?(?C) at offset %d in %sbug75457.php on line %d
+ bool(false)

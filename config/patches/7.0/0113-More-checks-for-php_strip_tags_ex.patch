@@ -1,0 +1,31 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Wed, 22 Jan 2020 22:36:53 -0800
+Subject: More checks for php_strip_tags_ex
+
+(cherry picked from commit 2dc170e25d86a725fefd4c08f2bd8378820b28f5)
+---
+ ext/standard/string.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/standard/string.c b/ext/standard/string.c
+index c4b5e03..7c044af 100644
+--- a/ext/standard/string.c
++++ b/ext/standard/string.c
+@@ -4707,7 +4707,7 @@ PHPAPI size_t php_strip_tags_ex(char *rbuf, size_t len, int *stateptr, const cha
+ 				switch (state) {
+ 					case 1: /* HTML/XML */
+ 						lc = '>';
+-						if (is_xml && *(p -1) == '-') {
++						if (is_xml && p >= buf + 1 && *(p-1) == '-') {
+ 							break;
+ 						}
+ 						in_q = state = is_xml = 0;
+@@ -4728,7 +4728,7 @@ PHPAPI size_t php_strip_tags_ex(char *rbuf, size_t len, int *stateptr, const cha
+ 						break;
+ 
+ 					case 2: /* PHP */
+-						if (!br && lc != '\"' && *(p-1) == '?') {
++						if (!br && lc != '\"' && p >= buf + 1 && *(p-1) == '?') {
+ 							in_q = state = 0;
+ 							tp = tbuf;
+ 						}

@@ -1,0 +1,34 @@
+From: Thijs Kinkhorst <thijs@debian.org>
+Date: Wed, 15 Jun 2016 09:18:03 +0200
+Subject: Add patch to install php7 module directly to APXS_LIBEXEC
+
+---
+ sapi/apache2handler/config.m4 | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/sapi/apache2handler/config.m4 b/sapi/apache2handler/config.m4
+index 55c1617..1526bf7 100644
+--- a/sapi/apache2handler/config.m4
++++ b/sapi/apache2handler/config.m4
+@@ -64,18 +64,9 @@ if test "$PHP_APXS2" != "no"; then
+   fi
+ 
+   APXS_LIBEXECDIR='$(INSTALL_ROOT)'`$APXS -q LIBEXECDIR`
+-  if test -z `$APXS -q SYSCONFDIR`; then
+-    INSTALL_IT="\$(mkinstalldirs) '$APXS_LIBEXECDIR' && \
+-                 $APXS -S LIBEXECDIR='$APXS_LIBEXECDIR' \
+-                       -i -n php7"
+-  else
+-    APXS_SYSCONFDIR='$(INSTALL_ROOT)'`$APXS -q SYSCONFDIR`
+-    INSTALL_IT="\$(mkinstalldirs) '$APXS_LIBEXECDIR' && \
+-                \$(mkinstalldirs) '$APXS_SYSCONFDIR' && \
+-                 $APXS -S LIBEXECDIR='$APXS_LIBEXECDIR' \
+-                       -S SYSCONFDIR='$APXS_SYSCONFDIR' \
+-                       -i -a -n php7"
+-  fi
++  INSTALL_IT="\$(mkinstalldirs) '$APXS_LIBEXECDIR' && \
++               $APXS -S LIBEXECDIR='$APXS_LIBEXECDIR' \
++                     -i -n php7"
+ 
+   case $host_alias in
+   *aix*)

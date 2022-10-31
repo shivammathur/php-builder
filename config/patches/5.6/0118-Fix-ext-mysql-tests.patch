@@ -1,0 +1,66 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 31 Dec 2019 16:53:58 +0100
+Subject: Fix ext/mysql tests
+
+* mysql_connect.phpt may call a different number of mysql_*()
+  functions, so can trigger a different number of deprecation notices.
+  Since these are irrelevant here, we suppress them.
+
+* mysql_query_load_data_openbasedir.phpt can't work on Windows, so we
+  skip it there.
+---
+ ext/mysql/tests/mysql_connect.phpt                 | 22 ++--------------------
+ .../tests/mysql_query_load_data_openbasedir.phpt   |  2 ++
+ 2 files changed, 4 insertions(+), 20 deletions(-)
+
+diff --git a/ext/mysql/tests/mysql_connect.phpt b/ext/mysql/tests/mysql_connect.phpt
+index 2b73092..be40c34 100644
+--- a/ext/mysql/tests/mysql_connect.phpt
++++ b/ext/mysql/tests/mysql_connect.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ mysql_connect()
++--INI--
++error_reporting=E_ALL&~E_DEPRECATED
+ --SKIPIF--
+ <?php
+ require_once('skipif.inc');
+@@ -104,25 +106,5 @@ if (!ini_get('sql.safe_mode')) {
+ print "done!";
+ ?>
+ --EXPECTF--
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+ Warning: mysql_connect(): Access denied for user '%s'@'%s' (using password: YES) in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+-
+-Deprecated: mysql_connect(): The mysql extension is deprecated and will be removed in the future: use mysqli or PDO instead in %s on line %d
+ done!
+diff --git a/ext/mysql/tests/mysql_query_load_data_openbasedir.phpt b/ext/mysql/tests/mysql_query_load_data_openbasedir.phpt
+index c2cb41e..b3f0c31 100644
+--- a/ext/mysql/tests/mysql_query_load_data_openbasedir.phpt
++++ b/ext/mysql/tests/mysql_query_load_data_openbasedir.phpt
+@@ -2,6 +2,8 @@
+ LOAD DATA INFILE - open_basedir
+ --SKIPIF--
+ <?php
++if (substr(PHP_OS, 0, 3) == 'WIN') die("skip this test is not for Windows platforms");
++
+ include_once('skipif.inc');
+ include_once('skipifconnectfailure.inc');
+ 

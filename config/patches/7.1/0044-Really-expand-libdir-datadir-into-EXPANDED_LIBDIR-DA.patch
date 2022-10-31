@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 14 Mar 2016 16:09:34 +0100
+Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
+
+---
+ configure.in | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.in b/configure.in
+index 2cfae1f..e7b23f0 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1254,9 +1254,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $localstatedir`
+ EXPANDED_BINDIR=`eval echo $bindir`
+ EXPANDED_SBINDIR=`eval echo $sbindir`
+ EXPANDED_MANDIR=`eval echo $mandir`
+-EXPANDED_LIBDIR=$libdir
++EXPANDED_LIBDIR=`eval echo $libdir`
+ EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
+-EXPANDED_DATADIR=$datadir
++EXPANDED_DATADIR=`eval echo $datadir`
+ EXPANDED_PHP_CONFIG_FILE_PATH=`eval echo "$PHP_CONFIG_FILE_PATH"`
+ EXPANDED_PHP_CONFIG_FILE_SCAN_DIR=`eval echo "$PHP_CONFIG_FILE_SCAN_DIR"`
+ INCLUDE_PATH=.:$EXPANDED_PEAR_INSTALLDIR

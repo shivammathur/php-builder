@@ -1,0 +1,21 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Mon, 23 Aug 2021 23:43:32 -0700
+Subject: Fix test
+
+(cherry picked from commit b815645aac76b494dc119fa6b88de32fa9bcccf1)
+---
+ ext/phar/tests/bug81211.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/phar/tests/bug81211.phpt b/ext/phar/tests/bug81211.phpt
+index 43d8214..96b1401 100644
+--- a/ext/phar/tests/bug81211.phpt
++++ b/ext/phar/tests/bug81211.phpt
+@@ -41,5 +41,5 @@ try {
+ @rmdir(__DIR__ . '/bug81211');
+ ?>
+ --EXPECTF--
+-Iterator RecursiveIteratorIterator returned a path "%s%ebug81211\foobar\file" that is not in the base directory "%s%ebug81211\foo"
+-Iterator RecursiveDirectoryIterator returned a path "%s%ebug81211\foobar\file" that is not in the base directory "%s%ebug81211\foo"
++Iterator RecursiveIteratorIterator returned a path "%s%ebug81211%efoobar%efile" that is not in the base directory "%s%ebug81211%efoo"
++Iterator RecursiveDirectoryIterator returned a path "%s%ebug81211%efoobar%efile" that is not in the base directory "%s%ebug81211%efoo"

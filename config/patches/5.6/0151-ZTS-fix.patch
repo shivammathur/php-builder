@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 4 Aug 2020 07:40:22 +0200
+Subject: ZTS fix
+
+---
+ ext/standard/image.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/standard/image.c b/ext/standard/image.c
+index f663e7c..db64b3a 100644
+--- a/ext/standard/image.c
++++ b/ext/standard/image.c
+@@ -1399,7 +1399,7 @@ static void php_getimagesize_from_any(INTERNAL_FUNCTION_PARAMETERS, int mode) {
+ 	}
+ 
+ 	if (mode == FROM_PATH && CHECK_NULL_PATH(input, input_len)) {
+-		php_error_docref(NULL, E_WARNING, "Invalid path");
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid path");
+ 		return;
+ 	}
+ 

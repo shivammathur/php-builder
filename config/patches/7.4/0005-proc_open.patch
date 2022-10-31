@@ -1,0 +1,21 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:52 +0200
+Subject: proc_open
+
+---
+ ext/standard/proc_open.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/standard/proc_open.c b/ext/standard/proc_open.c
+index 25a5f7f..93c47af 100644
+--- a/ext/standard/proc_open.c
++++ b/ext/standard/proc_open.c
+@@ -55,7 +55,7 @@
+  * */
+ #ifdef PHP_CAN_SUPPORT_PROC_OPEN
+ 
+-#if 0 && HAVE_PTSNAME && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_SYS_IOCTL_H && HAVE_TERMIOS_H
++#if HAVE_PTSNAME && HAVE_GRANTPT && HAVE_UNLOCKPT && HAVE_SYS_IOCTL_H && HAVE_TERMIOS_H
+ # include <sys/ioctl.h>
+ # include <termios.h>
+ # define PHP_CAN_DO_PTS	1

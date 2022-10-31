@@ -1,0 +1,128 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 8 Apr 2017 10:40:20 +0200
+Subject: Fix PHP bug #64827: Segfault in zval_mark_grey (zend_gc.c)
+
+---
+ Zend/zend_gc.c | 84 +++++++++++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 59 insertions(+), 25 deletions(-)
+
+diff --git a/Zend/zend_gc.c b/Zend/zend_gc.c
+index e72655c..e7c5098 100644
+--- a/Zend/zend_gc.c
++++ b/Zend/zend_gc.c
+@@ -310,16 +310,25 @@ tail_call:
+ 		}
+ 	}
+ 	while (p != NULL) {
+-		pz = *(zval**)p->pData;
+-		if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-			pz->refcount__gc++;
+-		}
+-		if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
+-			if (p->pListNext == NULL) {
+-				goto tail_call;
++		if (p->pData != NULL) {
++			pz = *(zval**)p->pData;
++			if (pz != NULL) {
++				if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++					pz->refcount__gc++;
++				}
++				if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
++					if (p->pListNext == NULL) {
++						goto tail_call;
++					} else {
++						zval_scan_black(pz TSRMLS_CC);
++					}
++				}
+ 			} else {
+-				zval_scan_black(pz TSRMLS_CC);
++				/* Now this is really odd ... we've got a p->pData which references a NULL pointer */
+ 			}
++		} else {
++			/* shall we log something when encountering a p->pData == NULL */
++		
+ 		}
+ 		p = p->pListNext;
+ 	}
+@@ -353,12 +362,20 @@ static void zobj_scan_black(struct _store_object *obj, zval *pz TSRMLS_DC)
+ 		}
+ 		p = props->pListHead;
+ 		while (p != NULL) {
+-			pz = *(zval**)p->pData;
+-			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-				pz->refcount__gc++;
+-			}
+-			if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
+-				zval_scan_black(pz TSRMLS_CC);
++			if (p->pData != NULL) {
++				pz = *(zval**)p->pData;
++				if (pz != NULL) {
++					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++						pz->refcount__gc++;
++					}
++					if (GC_ZVAL_GET_COLOR(pz) != GC_BLACK) {
++						zval_scan_black(pz TSRMLS_CC);
++					}
++				} else {
++					/* pz is NULL - maybe there should be some logging? */
++				}
++			} else {
++				/* p->pData is NULL - maybe there should be some logging? */
+ 			}
+ 			p = p->pListNext;
+ 		}
+@@ -417,14 +434,23 @@ tail_call:
+ 			}
+ 		}
+ 		while (p != NULL) {
+-			pz = *(zval**)p->pData;
+-			if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-				pz->refcount__gc--;
+-			}
+-			if (p->pListNext == NULL) {
+-				goto tail_call;
++			if (p->pData != NULL) {
++				pz = *(zval**)p->pData;
++				if (pz != NULL) {
++					if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++						pz->refcount__gc--;
++					}
++					if (p->pListNext == NULL) {
++						goto tail_call;
++					} else {
++						zval_mark_grey(pz TSRMLS_CC);
++					}
++				} else {
++					/* Now this is odd - we have a valid pz and a pData which is NULL */
++				
++				}
+ 			} else {
+-				zval_mark_grey(pz TSRMLS_CC);
++				/* Some logging maybe? p->pData is NULL */
+ 			}
+ 			p = p->pListNext;
+ 		}
+@@ -459,11 +485,19 @@ static void zobj_mark_grey(struct _store_object *obj, zval *pz TSRMLS_DC)
+ 			}
+ 			p = props->pListHead;
+ 			while (p != NULL) {
+-				pz = *(zval**)p->pData;
+-				if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
+-					pz->refcount__gc--;
++				if (p->pData != NULL) {
++					pz = *(zval**)p->pData;
++					if (pz != NULL) {
++						if (Z_TYPE_P(pz) != IS_ARRAY || Z_ARRVAL_P(pz) != &EG(symbol_table)) {
++							pz->refcount__gc--;
++						}
++						zval_mark_grey(pz TSRMLS_CC);
++					} else {
++						/* TODO: Some logging maybe? */
++					}
++				} else {
++					/* TODO: Some logging maybe? */
+ 				}
+-				zval_mark_grey(pz TSRMLS_CC);
+ 				p = p->pListNext;
+ 			}
+ 		}

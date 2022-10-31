@@ -1,0 +1,19 @@
+From: Anatol Belski <ab@php.net>
+Date: Wed, 6 Mar 2019 12:48:42 +0100
+Subject: Fix test
+
+---
+ ext/phar/tests/bug71488.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/phar/tests/bug71488.phpt b/ext/phar/tests/bug71488.phpt
+index 65bd7b2..8468ce2 100644
+--- a/ext/phar/tests/bug71488.phpt
++++ b/ext/phar/tests/bug71488.phpt
+@@ -14,5 +14,5 @@ DONE
+ @unlink(__DIR__."/bug71488.test");
+ ?>
+ --EXPECTF--
+-Fatal error: Uncaught BadMethodCallException: tar-based phar "%s/bug71488.test" cannot be created, link "%s" is too long for format in %sbug71488.php:%d
++Fatal error: Uncaught exception 'BadMethodCallException' with message 'tar-based phar "%sbug71488.test" cannot be created, link "%s" is too long for format' in %sbug71488.php:%d
+ Stack trace:%A

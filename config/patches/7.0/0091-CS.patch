@@ -1,0 +1,24 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 30 Jul 2019 09:45:35 +0200
+Subject: CS
+
+---
+ NEWS | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index d6f0e18..cba2755 100644
+--- a/NEWS
++++ b/NEWS
+@@ -5,9 +5,9 @@ Backported from 7.1.31
+ 
+ - EXIF:
+   . Fixed bug #78256 (heap-buffer-overflow on exif_process_user_comment).
+-  (CVE-2019-11042) (Stas)
++    (CVE-2019-11042) (Stas)
+   . Fixed bug #78222 (heap-buffer-overflow on exif_scan_thumbnail).
+-  (CVE-2019-11041) (Stas)
++    (CVE-2019-11041) (Stas)
+   
+ - Phar:
+   . Fixed bug #77919 (Potential UAF in Phar RSHUTDOWN). (cmb)

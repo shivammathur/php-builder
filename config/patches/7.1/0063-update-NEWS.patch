@@ -1,0 +1,31 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 21 Jan 2020 09:06:34 +0100
+Subject: update NEWS
+
+---
+ NEWS | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 25d352f..e311fc7 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,18 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.2.27
++
++- Mbstring:
++  . Fixed bug #79037 (global buffer-overflow in `mbfl_filt_conv_big5_wchar`).
++    (CVE-2020-7060) (Nikita)
++
++- Session:
++  . Fixed bug #79091 (heap use-after-free in session_create_id()). (cmb, Nikita)
++
++- Standard:
++  . Fixed bug #79099 (OOB read in php_strip_tags_ex). (CVE-2020-7059). (cmb)
++
+ Backported from 7.2.26
+ 
+ - Bcmath:

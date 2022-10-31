@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 14 Apr 2020 08:02:28 +0200
+Subject: NEWS
+
+(cherry picked from commit bd4a5ebe653f36ea7705fbc95a6ec4842d7f86fc)
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 98a3b4d..f1744cd 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.2.30
++
++- Standard:
++  . Fixed bug #79330 (shell_exec silently truncates after a null byte). (stas)
++  . Fixed bug #79465 (OOB Read in urldecode). (CVE-2020-7067) (stas)
++
+ Backported from 7.2.29
+ 
+ - Core: 

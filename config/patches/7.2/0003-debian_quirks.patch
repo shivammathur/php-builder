@@ -1,0 +1,166 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:51 +0200
+Subject: debian_quirks
+
+---
+ configure.ac          |  6 +++++-
+ ext/ext_skel          |  2 +-
+ php.ini-development   |  2 +-
+ php.ini-production    |  2 +-
+ sapi/cli/php.1.in     | 11 ++++++-----
+ scripts/Makefile.frag |  4 ++--
+ scripts/php-config.in |  8 ++++----
+ scripts/phpize.in     |  4 ++--
+ 8 files changed, 22 insertions(+), 17 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index d86423c..0b0f0ac 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1106,7 +1106,7 @@ if test "$PHP_CLI" = "no"; then
+ fi
+ 
+ PHP_ARG_WITH(pear, [whether to install PEAR],
+-[  --with-pear=DIR         Install PEAR in DIR @<:@PREFIX/lib/php@:>@
++[  --with-pear=DIR         Install PEAR in DIR @<:@PREFIX/share/php@:>@
+   --without-pear          Do not install PEAR], DEFAULT, yes)
+ 
+ if test "$PHP_PEAR" != "no"; then
+@@ -1143,6 +1143,7 @@ dnl
+   PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
+ fi
+ 
++PEAR_INSTALLDIR=/usr/share/php
+ 
+ dnl Configuring Zend and TSRM.
+ dnl -------------------------------------------------------------------------
+@@ -1215,6 +1216,8 @@ dnl Build extension directory path
+ 
+ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|$SED 's/#define ZEND_MODULE_API_NO //'`
+ 
++AC_SUBST(ZEND_MODULE_API_NO)
++
+ if test -z "$EXTENSION_DIR"; then
+   extbasedir=$ZEND_MODULE_API_NO
+   if test "$oldstyleextdir" = "yes"; then
+@@ -1529,6 +1532,7 @@ $php_shtool mkdir -p scripts/man1
+ ALL_OUTPUT_FILES="php7.spec main/build-defs.h \
+ scripts/phpize scripts/man1/phpize.1 \
+ scripts/php-config scripts/man1/php-config.1 \
++ext/ext_skel
+ $PHP_OUTPUT_FILES"
+ 
+ dnl
+diff --git a/ext/ext_skel b/ext/ext_skel
+index 936d128..f9b5aa3 100755
+--- a/ext/ext_skel
++++ b/ext/ext_skel
+@@ -70,7 +70,7 @@ if test -d "$extname" ; then
+ fi
+ 
+ if test -z "$skel_dir"; then
+-  skel_dir="skeleton"
++  skel_dir="/usr/lib/php/@DEBIAN_PHP_API@/skeleton"
+ fi
+ 
+ ## convert skel_dir to full path
+diff --git a/php.ini-development b/php.ini-development
+index 6fd4018..2cb93e1 100644
+--- a/php.ini-development
++++ b/php.ini-development
+@@ -706,7 +706,7 @@ default_charset = "UTF-8"
+ ;;;;;;;;;;;;;;;;;;;;;;;;;
+ 
+ ; UNIX: "/path1:/path2"
+-;include_path = ".:/php/includes"
++;include_path = ".:/usr/share/php"
+ ;
+ ; Windows: "\path1;\path2"
+ ;include_path = ".;c:\php\includes"
+diff --git a/php.ini-production b/php.ini-production
+index 6f83923..bba9980 100644
+--- a/php.ini-production
++++ b/php.ini-production
+@@ -708,7 +708,7 @@ default_charset = "UTF-8"
+ ;;;;;;;;;;;;;;;;;;;;;;;;;
+ 
+ ; UNIX: "/path1:/path2"
+-;include_path = ".:/php/includes"
++;include_path = ".:/usr/share/php"
+ ;
+ ; Windows: "\path1;\path2"
+ ;include_path = ".;c:\php\includes"
+diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
+index 88a43d3..a202630 100644
+--- a/sapi/cli/php.1.in
++++ b/sapi/cli/php.1.in
+@@ -365,13 +365,14 @@ Shows configuration for extension
+ Show configuration file names
+ .SH FILES
+ .TP 15
+-.B php\-cli.ini
++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cli/php.ini
+ The configuration file for the CLI version of PHP.
+ .TP
+-.B php.ini
+-The standard configuration file will only be used when
+-.B php\-cli.ini
+-cannot be found.
++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cgi/php.ini
++The configuration file for the CGI version of PHP.
++.TP
++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/apache2/php.ini
++The configuration file for the version of PHP that apache2 uses.
+ .SH EXAMPLES
+ .TP 5
+ \fI@program_prefix@php \-r 'echo "Hello World\\n";'\fP
+diff --git a/scripts/Makefile.frag b/scripts/Makefile.frag
+index 06be3af..ca1cd7c 100644
+--- a/scripts/Makefile.frag
++++ b/scripts/Makefile.frag
+@@ -2,8 +2,8 @@
+ # Build environment install
+ #
+ 
+-phpincludedir = $(includedir)/php
+-phpbuilddir = $(libdir)/build
++phpincludedir = $(includedir)/php/$(DEBIAN_PHP_API)
++phpbuilddir = $(prefix)/lib/php/$(DEBIAN_PHP_API)/build
+ 
+ BUILD_FILES = \
+ 	scripts/phpize.m4 \
+diff --git a/scripts/php-config.in b/scripts/php-config.in
+index d6c62cc..fa25dc7 100644
+--- a/scripts/php-config.in
++++ b/scripts/php-config.in
+@@ -6,11 +6,11 @@ datarootdir="@datarootdir@"
+ exec_prefix="@exec_prefix@"
+ version="@PHP_VERSION@"
+ vernum="@PHP_VERSION_ID@"
+-include_dir="@includedir@/php"
+-includes="-I$include_dir -I$include_dir/main -I$include_dir/TSRM -I$include_dir/Zend -I$include_dir/ext -I$include_dir/ext/date/lib"
+-ldflags="@PHP_LDFLAGS@"
++include_dir="@includedir@/php/@DEBIAN_PHP_API@"
++includes="-I$include_dir -I$include_dir/main -I$include_dir/TSRM -I$include_dir/Zend -I$include_dir/ext -I$include_dir/ext/date/lib $(getconf LFS_CFLAGS)"
++ldflags="-L$prefix/lib/php/@DEBIAN_PHP_API@ @PHP_LDFLAGS@"
+ libs="@EXTRA_LIBS@"
+-extension_dir='@EXTENSION_DIR@'
++extension_dir="@EXTENSION_DIR@"
+ man_dir=`eval echo @mandir@`
+ program_prefix="@program_prefix@"
+ program_suffix="@program_suffix@"
+diff --git a/scripts/phpize.in b/scripts/phpize.in
+index afec191..2abf0d9 100644
+--- a/scripts/phpize.in
++++ b/scripts/phpize.in
+@@ -4,8 +4,8 @@
+ prefix='@prefix@'
+ datarootdir='@datarootdir@'
+ exec_prefix="`eval echo @exec_prefix@`"
+-phpdir="`eval echo @libdir@`/build"
+-includedir="`eval echo @includedir@`/php"
++phpdir="$prefix/lib/php/@DEBIAN_PHP_API@/build"
++includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+ builddir="`pwd`"
+ SED="@SED@"
+ 

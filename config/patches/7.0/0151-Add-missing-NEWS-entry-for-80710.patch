@@ -1,0 +1,26 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 27 Apr 2021 13:38:39 +0200
+Subject: Add missing NEWS entry for #80710
+
+(cherry picked from commit 60a68a45c3e9f63585151221e7fe9ddff78bd71f)
+(cherry picked from commit f16c623ec8ae3f3cdc73ab3fa05ae6bb0a77d1f3)
+---
+ NEWS | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index f025e94..55c8f1b 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,11 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.3.28
++
++- Imap:
++  . Fixed bug #80710 (imap_mail_compose() header injection). (cmb, Stas)
++
+ Backported from 7.3.27
+ 
+ - SOAP:

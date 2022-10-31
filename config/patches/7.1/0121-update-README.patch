@@ -1,0 +1,18 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 20 Oct 2021 18:11:27 +0200
+Subject: update README
+
+---
+ README.md | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index db7b983..c45ab1e 100644
+--- a/README.md
++++ b/README.md
+@@ -2,4 +2,3 @@ This is a fork of the official PHP repository which received backport of securit
+ 
+ This branch is PHP version 7.1.33 with security fix.
+ 
+-**Note that this branch receives no maintenance from Microsoft.**
+\ No newline at end of file

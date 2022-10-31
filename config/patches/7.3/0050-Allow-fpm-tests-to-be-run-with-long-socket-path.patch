@@ -1,0 +1,33 @@
+From: Matteo Beccati <mbeccati@php.net>
+Date: Wed, 1 Apr 2020 18:14:25 +0200
+Subject: Allow fpm tests to be run with long socket path
+
+Socket path is restricted to ~100 bytes, so we can use
+the system temp dir if the path ends up too long.
+---
+ sapi/fpm/tests/tester.inc | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/sapi/fpm/tests/tester.inc b/sapi/fpm/tests/tester.inc
+index c07fabe..48cfdcc 100644
+--- a/sapi/fpm/tests/tester.inc
++++ b/sapi/fpm/tests/tester.inc
+@@ -860,7 +860,17 @@ class Tester
+     {
+         $port = $this->getPort($type, $pool, true);
+         if ($type === 'uds') {
+-            return $this->getFile($port . '.sock');
++            $address = $this->getFile($port . '.sock');
++
++            // Socket max path length is 108 on Linux and 104 on BSD,
++            // so we use the latter
++            if (strlen($address) <= 104) {
++                return $address;
++            }
++
++            return sys_get_temp_dir().'/'.
++                hash('crc32', dirname($address)).'-'.
++                basename($address);
+         }
+ 
+         return $this->getHost($type) . ':' . $port;

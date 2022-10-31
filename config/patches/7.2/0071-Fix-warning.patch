@@ -1,0 +1,24 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Sun, 27 Jun 2021 21:57:58 -0700
+Subject: Fix warning
+
+(cherry picked from commit 190013787bbc424c240413d914e3a038f974ccef)
+---
+ ext/filter/logical_filters.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/filter/logical_filters.c b/ext/filter/logical_filters.c
+index 7ddf44c..6894fa2 100644
+--- a/ext/filter/logical_filters.c
++++ b/ext/filter/logical_filters.c
+@@ -587,8 +587,8 @@ bad_url:
+ 		RETURN_VALIDATION_FAILED
+ 	}
+ 
+-	if (url->user != NULL && !is_userinfo_valid(url->user)
+-		|| url->pass != NULL && !is_userinfo_valid(url->pass)
++	if ((url->user != NULL && !is_userinfo_valid(url->user))
++		|| (url->pass != NULL && !is_userinfo_valid(url->pass))
+ 	) {
+ 		php_url_free(url);
+ 		RETURN_VALIDATION_FAILED

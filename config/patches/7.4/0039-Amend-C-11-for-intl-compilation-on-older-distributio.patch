@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 10 Apr 2019 06:31:27 +0000
+Subject: Amend C++11 for intl compilation on older distributions
+
+---
+ ext/intl/config.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
+index 7285f75..048424b 100644
+--- a/ext/intl/config.m4
++++ b/ext/intl/config.m4
+@@ -84,7 +84,7 @@ if test "$PHP_INTL" != "no"; then
+ 
+   PHP_REQUIRE_CXX()
+   PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)
+-  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS"
++  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS -std=c++11"
+   if test "$ext_shared" = "no"; then
+     PHP_ADD_SOURCES(PHP_EXT_DIR(intl), $PHP_INTL_CXX_SOURCES, $PHP_INTL_CXX_FLAGS)
+   else

@@ -1,0 +1,44 @@
+From: Ben Ramsey <ramsey@php.net>
+Date: Tue, 19 Oct 2021 23:59:11 -0500
+Subject: Change UBool to bool for equality operators in ICU >= 70.1
+
+Refer to:
+- https://github.com/unicode-org/icu/commit/633438f8da99fee815e2c61626ea779a84567a3d
+- https://github.com/unicode-org/icu/commit/f6325d49ba57ec26f320b2865ce09ca47db458d9
+---
+ ext/intl/breakiterator/codepointiterator_internal.cpp | 4 ++++
+ ext/intl/breakiterator/codepointiterator_internal.h   | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/ext/intl/breakiterator/codepointiterator_internal.cpp b/ext/intl/breakiterator/codepointiterator_internal.cpp
+index dedb1cb..25e94c6 100644
+--- a/ext/intl/breakiterator/codepointiterator_internal.cpp
++++ b/ext/intl/breakiterator/codepointiterator_internal.cpp
+@@ -74,7 +74,11 @@ CodePointBreakIterator::~CodePointBreakIterator()
+ 	clearCurrentCharIter();
+ }
+ 
++#if U_ICU_VERSION_MAJOR_NUM >= 70
++bool CodePointBreakIterator::operator==(const BreakIterator& that) const
++#else
+ UBool CodePointBreakIterator::operator==(const BreakIterator& that) const
++#endif
+ {
+ 	if (typeid(*this) != typeid(that)) {
+ 		return false;
+diff --git a/ext/intl/breakiterator/codepointiterator_internal.h b/ext/intl/breakiterator/codepointiterator_internal.h
+index d34fc0a..25759c1 100644
+--- a/ext/intl/breakiterator/codepointiterator_internal.h
++++ b/ext/intl/breakiterator/codepointiterator_internal.h
+@@ -36,7 +36,11 @@ namespace PHP {
+ 
+ 		virtual ~CodePointBreakIterator();
+ 
++#if U_ICU_VERSION_MAJOR_NUM >= 70
++		virtual bool operator==(const BreakIterator& that) const;
++#else
+ 		virtual UBool operator==(const BreakIterator& that) const;
++#endif
+ 
+ 		virtual CodePointBreakIterator* clone(void) const;
+ 

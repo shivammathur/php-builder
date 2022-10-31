@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 17 Mar 2020 07:23:32 +0100
+Subject: fix test
+
+(cherry picked from commit b42b6d0ff774fdced1155cb0c721d91914d619f5)
+---
+ ext/exif/tests/bug79282.phpt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/exif/tests/bug79282.phpt b/ext/exif/tests/bug79282.phpt
+index df91127..142cf28 100644
+--- a/ext/exif/tests/bug79282.phpt
++++ b/ext/exif/tests/bug79282.phpt
+@@ -7,9 +7,9 @@ var_dump(exif_read_data('data://image/jpeg;base64,/9jhAAlFeGlmAAAg'));
+ 
+ ?>
+ --EXPECTF--
+-Warning: exif_read_data(): Missing TIFF alignment marker in %s on line %d
++Warning: exif_read_data(%s): Missing TIFF alignment marker in %s on line %d
+ 
+-Warning: exif_read_data(): File structure corrupted in %s on line %d
++Warning: exif_read_data(%s): File structure corrupted in %s on line %d
+ 
+-Warning: exif_read_data(): Invalid JPEG file in %s on line %d
++Warning: exif_read_data(%s): Invalid JPEG file in %s on line %d
+ bool(false)

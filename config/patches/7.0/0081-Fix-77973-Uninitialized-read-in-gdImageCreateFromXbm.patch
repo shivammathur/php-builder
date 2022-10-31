@@ -1,0 +1,63 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Mon, 6 May 2019 10:18:51 +0200
+Subject: Fix #77973: Uninitialized read in gdImageCreateFromXbm
+
+We have to ensure that `sscanf()` does indeed read a hex value here,
+and bail out otherwise.
+
+(cherry picked from commit ed6dee9a198c904ad5e03113e58a2d2c200f5184)
+---
+ ext/gd/libgd/xbm.c         |  6 +++++-
+ ext/gd/tests/bug77973.phpt | 26 ++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 1 deletion(-)
+ create mode 100644 ext/gd/tests/bug77973.phpt
+
+diff --git a/ext/gd/libgd/xbm.c b/ext/gd/libgd/xbm.c
+index 044159d..16978a1 100644
+--- a/ext/gd/libgd/xbm.c
++++ b/ext/gd/libgd/xbm.c
+@@ -135,7 +135,11 @@ gdImagePtr gdImageCreateFromXbm(FILE * fd)
+ 			}
+ 			h[3] = ch;
+ 		}
+-		sscanf(h, "%x", &b);
++		if (sscanf(h, "%x", &b) != 1) {
++			php_gd_error("invalid XBM");
++			gdImageDestroy(im);
++			return 0;
++		}
+ 		for (bit = 1; bit <= max_bit; bit = bit << 1) {
+ 			gdImageSetPixel(im, x++, y, (b & bit) ? 1 : 0);
+ 			if (x == im->sx) {
+diff --git a/ext/gd/tests/bug77973.phpt b/ext/gd/tests/bug77973.phpt
+new file mode 100644
+index 0000000..2545dbe
+--- /dev/null
++++ b/ext/gd/tests/bug77973.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++Bug #77973 (Uninitialized read in gdImageCreateFromXbm)
++--SKIPIF--
++<?php
++if (!extension_loaded('gd')) die("skip gd extension not available");
++if (!function_exists('imagecreatefromxbm')) die("skip imagecreatefromxbm not available");
++?>
++--FILE--
++<?php
++$contents = hex2bin("23646566696e6520776964746820320a23646566696e652068656967687420320a737461746963206368617220626974735b5d203d7b0a7a7a787a7a");
++$filepath = __DIR__ . '/bug77973.xbm';
++file_put_contents($filepath, $contents);
++$im = imagecreatefromxbm($filepath);
++var_dump($im);
++?>
++===DONE===
++--EXPECTF--
++Warning: imagecreatefromxbm(): invalid XBM in %s on line %d
++
++Warning: imagecreatefromxbm(): '%s' is not a valid XBM file in %s on line %d
++bool(false)
++===DONE===
++--CLEAN--
++<?php
++unlink(__DIR__ . '/bug77973.xbm');
++?>

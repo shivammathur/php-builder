@@ -1,0 +1,497 @@
+From: Hugh McMaster <hugh.mcmaster@outlook.com>
+Date: Wed, 5 Dec 2018 23:27:30 +1100
+Subject: ext/intl: Use C++ namespaces for ICU >= 63.1
+
+The developers of icu recommend using pkg-config to detect icu,
+because icu-config is deprecated.
+---
+ ext/intl/breakiterator/breakiterator_class.cpp     |  1 +
+ ext/intl/breakiterator/breakiterator_class.h       |  2 ++
+ ext/intl/breakiterator/breakiterator_methods.cpp   |  2 ++
+ .../breakiterator/codepointiterator_internal.cpp   |  4 ++-
+ .../breakiterator/codepointiterator_internal.h     |  5 +++-
+ .../rulebasedbreakiterator_methods.cpp             |  3 ++
+ ext/intl/calendar/calendar_class.cpp               |  3 ++
+ ext/intl/calendar/calendar_class.h                 |  2 ++
+ ext/intl/calendar/calendar_methods.cpp             |  5 ++++
+ ext/intl/calendar/gregoriancalendar_methods.cpp    |  7 +++++
+ ext/intl/common/common_date.cpp                    |  9 ++----
+ ext/intl/common/common_date.h                      |  2 ++
+ ext/intl/common/common_enum.h                      |  1 +
+ ext/intl/config.m4                                 | 33 ++++++++++++++--------
+ ext/intl/dateformat/dateformat_format_object.cpp   |  6 ++++
+ ext/intl/dateformat/dateformat_helpers.cpp         |  2 ++
+ ext/intl/dateformat/dateformat_helpers.h           |  5 ++++
+ ext/intl/intl_convertcpp.h                         |  2 ++
+ ext/intl/msgformat/msgformat_helpers.cpp           | 26 ++++++++++++-----
+ ext/intl/timezone/timezone_class.cpp               |  2 ++
+ ext/intl/timezone/timezone_class.h                 |  2 ++
+ ext/intl/timezone/timezone_methods.cpp             |  4 +++
+ 22 files changed, 101 insertions(+), 27 deletions(-)
+
+diff --git a/ext/intl/breakiterator/breakiterator_class.cpp b/ext/intl/breakiterator/breakiterator_class.cpp
+index db99ad0..73ea32d 100644
+--- a/ext/intl/breakiterator/breakiterator_class.cpp
++++ b/ext/intl/breakiterator/breakiterator_class.cpp
+@@ -38,6 +38,7 @@ extern "C" {
+ }
+ 
+ using PHP::CodePointBreakIterator;
++using icu::RuleBasedBreakIterator;
+ 
+ /* {{{ Global variables */
+ zend_class_entry *BreakIterator_ce_ptr;
+diff --git a/ext/intl/breakiterator/breakiterator_class.h b/ext/intl/breakiterator/breakiterator_class.h
+index d1b5ebb..a856b7c 100644
+--- a/ext/intl/breakiterator/breakiterator_class.h
++++ b/ext/intl/breakiterator/breakiterator_class.h
+@@ -26,6 +26,8 @@
+ 
+ #ifndef USE_BREAKITERATOR_POINTER
+ typedef void BreakIterator;
++#else
++using icu::BreakIterator;
+ #endif
+ 
+ typedef struct {
+diff --git a/ext/intl/breakiterator/breakiterator_methods.cpp b/ext/intl/breakiterator/breakiterator_methods.cpp
+index 0363198..f5ddc9c 100644
+--- a/ext/intl/breakiterator/breakiterator_methods.cpp
++++ b/ext/intl/breakiterator/breakiterator_methods.cpp
+@@ -32,6 +32,8 @@ extern "C" {
+ }
+ 
+ using PHP::CodePointBreakIterator;
++using icu::BreakIterator;
++using icu::Locale;
+ 
+ U_CFUNC PHP_METHOD(BreakIterator, __construct)
+ {
+diff --git a/ext/intl/breakiterator/codepointiterator_internal.cpp b/ext/intl/breakiterator/codepointiterator_internal.cpp
+index 723cfd5..578ec89 100644
+--- a/ext/intl/breakiterator/codepointiterator_internal.cpp
++++ b/ext/intl/breakiterator/codepointiterator_internal.cpp
+@@ -33,7 +33,9 @@ typedef union {
+ 
+ using namespace PHP;
+ 
+-UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CodePointBreakIterator);
++using icu::UCharCharacterIterator;
++
++UOBJECT_DEFINE_RTTI_IMPLEMENTATION(CodePointBreakIterator)
+ 
+ CodePointBreakIterator::CodePointBreakIterator()
+ : BreakIterator(), fCharIter(NULL), lastCodePoint(U_SENTINEL)
+diff --git a/ext/intl/breakiterator/codepointiterator_internal.h b/ext/intl/breakiterator/codepointiterator_internal.h
+index d34fc0a..7ecf12d 100644
+--- a/ext/intl/breakiterator/codepointiterator_internal.h
++++ b/ext/intl/breakiterator/codepointiterator_internal.h
+@@ -18,8 +18,11 @@
+ #define CODEPOINTITERATOR_INTERNAL_H
+ 
+ #include <unicode/brkiter.h>
++#include <unicode/unistr.h>
+ 
+-using U_ICU_NAMESPACE::BreakIterator;
++using icu::BreakIterator;
++using icu::CharacterIterator;
++using icu::UnicodeString;
+ 
+ namespace PHP {
+ 
+diff --git a/ext/intl/breakiterator/rulebasedbreakiterator_methods.cpp b/ext/intl/breakiterator/rulebasedbreakiterator_methods.cpp
+index 8ab8194..90c7ad7 100644
+--- a/ext/intl/breakiterator/rulebasedbreakiterator_methods.cpp
++++ b/ext/intl/breakiterator/rulebasedbreakiterator_methods.cpp
+@@ -26,6 +26,9 @@ extern "C" {
+ #include "../intl_convertcpp.h"
+ #include "../intl_common.h"
+ 
++using icu::RuleBasedBreakIterator;
++using icu::Locale;
++
+ static inline RuleBasedBreakIterator *fetch_rbbi(BreakIterator_object *bio) {
+ 	return (RuleBasedBreakIterator*)bio->biter;
+ }
+diff --git a/ext/intl/calendar/calendar_class.cpp b/ext/intl/calendar/calendar_class.cpp
+index 94a2d5a..d3df5bf 100644
+--- a/ext/intl/calendar/calendar_class.cpp
++++ b/ext/intl/calendar/calendar_class.cpp
+@@ -34,6 +34,9 @@ extern "C" {
+ #include <assert.h>
+ }
+ 
++using icu::GregorianCalendar;
++using icu::Locale;
++
+ /* {{{ Global variables */
+ zend_class_entry *Calendar_ce_ptr;
+ zend_class_entry *GregorianCalendar_ce_ptr;
+diff --git a/ext/intl/calendar/calendar_class.h b/ext/intl/calendar/calendar_class.h
+index a884580..33cd7bc 100644
+--- a/ext/intl/calendar/calendar_class.h
++++ b/ext/intl/calendar/calendar_class.h
+@@ -26,6 +26,8 @@
+ 
+ #ifndef USE_CALENDAR_POINTER
+ typedef void Calendar;
++#else
++using icu::Calendar;
+ #endif
+ 
+ typedef struct {
+diff --git a/ext/intl/calendar/calendar_methods.cpp b/ext/intl/calendar/calendar_methods.cpp
+index 155ed5f..26359b9 100644
+--- a/ext/intl/calendar/calendar_methods.cpp
++++ b/ext/intl/calendar/calendar_methods.cpp
+@@ -18,6 +18,9 @@
+ #include "config.h"
+ #endif
+ 
++#define __STDC_FORMAT_MACROS
++#include <inttypes.h>
++
+ #include "../intl_cppshims.h"
+ 
+ #include <unicode/locid.h>
+@@ -40,6 +43,8 @@ extern "C" {
+ }
+ #include "../common/common_enum.h"
+ 
++using icu::Locale;
++
+ U_CFUNC PHP_METHOD(IntlCalendar, __construct)
+ {
+ 	zend_throw_exception( NULL,
+diff --git a/ext/intl/calendar/gregoriancalendar_methods.cpp b/ext/intl/calendar/gregoriancalendar_methods.cpp
+index 13ff6a7..13837d2 100644
+--- a/ext/intl/calendar/gregoriancalendar_methods.cpp
++++ b/ext/intl/calendar/gregoriancalendar_methods.cpp
+@@ -23,6 +23,8 @@
+ #include <unicode/locid.h>
+ #include <unicode/calendar.h>
+ #include <unicode/gregocal.h>
++#include <unicode/ustring.h>
++
+ extern "C" {
+ #include "../php_intl.h"
+ #include "../intl_common.h"
+@@ -34,6 +36,11 @@ extern "C" {
+ #include "zend_exceptions.h"
+ }
+ 
++using icu::GregorianCalendar;
++using icu::Locale;
++using icu::UnicodeString;
++using icu::StringPiece;
++
+ static inline GregorianCalendar *fetch_greg(Calendar_object *co) {
+ 	return (GregorianCalendar*)co->ucal;
+ }
+diff --git a/ext/intl/common/common_date.cpp b/ext/intl/common/common_date.cpp
+index f1bf75a..457f04b 100644
+--- a/ext/intl/common/common_date.cpp
++++ b/ext/intl/common/common_date.cpp
+@@ -25,13 +25,10 @@ extern "C" {
+ #include <ext/date/php_date.h>
+ }
+ 
+-#ifndef INFINITY
+-#define INFINITY (DBL_MAX+DBL_MAX)
+-#endif
++using icu::TimeZone;
++using icu::UnicodeString;
+ 
+-#ifndef NAN
+-#define NAN (INFINITY-INFINITY)
+-#endif
++#include "zend_portability.h"
+ 
+ /* {{{ timezone_convert_datetimezone
+  *      The timezone in DateTime and DateTimeZone is not unified. */
+diff --git a/ext/intl/common/common_date.h b/ext/intl/common/common_date.h
+index d6b7c20..a1c08e4 100644
+--- a/ext/intl/common/common_date.h
++++ b/ext/intl/common/common_date.h
+@@ -28,6 +28,8 @@ U_CDECL_END
+ 
+ #include <unicode/timezone.h>
+ 
++using icu::TimeZone;
++
+ U_CFUNC TimeZone *timezone_convert_datetimezone(int type, void *object, int is_datetime, intl_error *outside_error, const char *func);
+ U_CFUNC int intl_datetime_decompose(zval *z, double *millis, TimeZone **tz,
+ 		intl_error *err, const char *func);
+diff --git a/ext/intl/common/common_enum.h b/ext/intl/common/common_enum.h
+index b9b87c1..9e47115 100644
+--- a/ext/intl/common/common_enum.h
++++ b/ext/intl/common/common_enum.h
+@@ -75,6 +75,7 @@ U_CFUNC zval *zoi_with_current_get_current_data(zend_object_iterator *iter);
+ U_CFUNC void zoi_with_current_invalidate_current(zend_object_iterator *iter);
+ 
+ #ifdef __cplusplus
++using icu::StringEnumeration;
+ U_CFUNC void IntlIterator_from_StringEnumeration(StringEnumeration *se, zval *object);
+ #endif
+ 
+diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
+index ca2cd82..4b9f469 100644
+--- a/ext/intl/config.m4
++++ b/ext/intl/config.m4
+@@ -9,6 +9,7 @@ if test "$PHP_INTL" != "no"; then
+   PHP_SETUP_ICU(INTL_SHARED_LIBADD)
+   PHP_SUBST(INTL_SHARED_LIBADD)
+   PHP_REQUIRE_CXX()
++  INTL_COMMON_FLAGS="$ICU_INCS $ICU_CFLAGS -Wno-write-strings -D__STDC_LIMIT_MACROS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1"
+   if test "$icu_version" -ge "4002"; then
+     icu_spoof_src=" spoofchecker/spoofchecker_class.c \
+     spoofchecker/spoofchecker.c\
+@@ -20,7 +21,6 @@ if test "$PHP_INTL" != "no"; then
+   PHP_NEW_EXTENSION(intl, php_intl.c \
+     intl_error.c \
+     intl_convert.c \
+-	intl_convertcpp.cpp \
+     collator/collator.c \
+     collator/collator_class.c \
+     collator/collator_sort.c \
+@@ -32,8 +32,6 @@ if test "$PHP_INTL" != "no"; then
+     collator/collator_is_numeric.c \
+     collator/collator_error.c \
+     common/common_error.c \
+-	common/common_enum.cpp \
+-	common/common_date.cpp \
+     converter/converter.c \
+     formatter/formatter.c \
+     formatter/formatter_main.c \
+@@ -53,17 +51,12 @@ if test "$PHP_INTL" != "no"; then
+     dateformat/dateformat_attr.c \
+     dateformat/dateformat_data.c \
+     dateformat/dateformat_format.c \
+-    dateformat/dateformat_format_object.cpp \
+     dateformat/dateformat_parse.c \
+-    dateformat/dateformat_create.cpp \
+-    dateformat/dateformat_attrcpp.cpp \
+-    dateformat/dateformat_helpers.cpp \
+     msgformat/msgformat.c \
+     msgformat/msgformat_attr.c \
+     msgformat/msgformat_class.c \
+     msgformat/msgformat_data.c  \
+     msgformat/msgformat_format.c \
+-    msgformat/msgformat_helpers.cpp \
+     msgformat/msgformat_parse.c \
+     grapheme/grapheme_string.c \
+     grapheme/grapheme_util.c \
+@@ -73,6 +66,18 @@ if test "$PHP_INTL" != "no"; then
+     transliterator/transliterator.c \
+     transliterator/transliterator_class.c \
+     transliterator/transliterator_methods.c \
++    uchar/uchar.c \
++    idn/idn.c \
++    $icu_spoof_src, $ext_shared,,$INTL_COMMON_FLAGS,cxx)
++
++  PHP_INTL_CXX_SOURCES="intl_convertcpp.cpp \
++    common/common_enum.cpp \
++    common/common_date.cpp \
++    dateformat/dateformat_format_object.cpp \
++    dateformat/dateformat_create.cpp \
++    dateformat/dateformat_attrcpp.cpp \
++    dateformat/dateformat_helpers.cpp \
++    msgformat/msgformat_helpers.cpp \
+     timezone/timezone_class.cpp \
+     timezone/timezone_methods.cpp \
+     calendar/calendar_class.cpp \
+@@ -83,10 +88,14 @@ if test "$PHP_INTL" != "no"; then
+     breakiterator/breakiterator_methods.cpp \
+     breakiterator/rulebasedbreakiterator_methods.cpp \
+     breakiterator/codepointiterator_internal.cpp \
+-    breakiterator/codepointiterator_methods.cpp \
+-    uchar/uchar.c \
+-    idn/idn.c \
+-    $icu_spoof_src, $ext_shared,,$ICU_INCS -Wno-write-strings -D__STDC_LIMIT_MACROS -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1,cxx)
++    breakiterator/codepointiterator_methods.cpp"
++  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $ICU_CXXFLAGS"
++  if test "$ext_shared" = "no"; then
++    PHP_ADD_SOURCES(PHP_EXT_DIR(intl), $PHP_INTL_CXX_SOURCES, $PHP_INTL_CXX_FLAGS)
++  else
++    PHP_ADD_SOURCES_X(PHP_EXT_DIR(intl), $PHP_INTL_CXX_SOURCES, $PHP_INTL_CXX_FLAGS, shared_objects_intl, yes)
++  fi
++
+   PHP_ADD_BUILD_DIR($ext_builddir/collator)
+   PHP_ADD_BUILD_DIR($ext_builddir/converter)
+   PHP_ADD_BUILD_DIR($ext_builddir/common)
+diff --git a/ext/intl/dateformat/dateformat_format_object.cpp b/ext/intl/dateformat/dateformat_format_object.cpp
+index 3be7633..146ac03 100644
+--- a/ext/intl/dateformat/dateformat_format_object.cpp
++++ b/ext/intl/dateformat/dateformat_format_object.cpp
+@@ -33,6 +33,12 @@ extern "C" {
+ #include "../common/common_date.h"
+ }
+ 
++using icu::Locale;
++using icu::DateFormat;
++using icu::GregorianCalendar;
++using icu::StringPiece;
++using icu::SimpleDateFormat;
++
+ static const DateFormat::EStyle valid_styles[] = {
+ 		DateFormat::kNone,
+ 		DateFormat::kFull,
+diff --git a/ext/intl/dateformat/dateformat_helpers.cpp b/ext/intl/dateformat/dateformat_helpers.cpp
+index 959afa8..7e070ea 100644
+--- a/ext/intl/dateformat/dateformat_helpers.cpp
++++ b/ext/intl/dateformat/dateformat_helpers.cpp
+@@ -28,6 +28,8 @@ extern "C" {
+ #include "../calendar/calendar_class.h"
+ }
+ 
++using icu::GregorianCalendar;
++
+ int datefmt_process_calendar_arg(zval* calendar_zv,
+ 								 Locale const& locale,
+ 								 const char *func_name,
+diff --git a/ext/intl/dateformat/dateformat_helpers.h b/ext/intl/dateformat/dateformat_helpers.h
+index eb90c99..fd73e81 100644
+--- a/ext/intl/dateformat/dateformat_helpers.h
++++ b/ext/intl/dateformat/dateformat_helpers.h
+@@ -22,11 +22,16 @@
+ #endif
+ 
+ #include <unicode/calendar.h>
++#include <unicode/datefmt.h>
+ 
+ extern "C" {
+ #include "../php_intl.h"
+ }
+ 
++using icu::Locale;
++using icu::Calendar;
++using icu::DateFormat;
++
+ int datefmt_process_calendar_arg(zval* calendar_zv,
+ 								 Locale const& locale,
+ 								 const char *func_name,
+diff --git a/ext/intl/intl_convertcpp.h b/ext/intl/intl_convertcpp.h
+index eab5f14..0bb486f 100644
+--- a/ext/intl/intl_convertcpp.h
++++ b/ext/intl/intl_convertcpp.h
+@@ -26,6 +26,8 @@
+ #include <unicode/unistr.h>
+ #include <zend_types.h>
+ 
++using icu::UnicodeString;
++
+ int intl_stringFromChar(UnicodeString &ret, char *str, size_t str_len, UErrorCode *status);
+ 
+ zend_string* intl_charFromString(const UnicodeString &from, UErrorCode *status);
+diff --git a/ext/intl/msgformat/msgformat_helpers.cpp b/ext/intl/msgformat/msgformat_helpers.cpp
+index ce7899e..40d0d5c 100644
+--- a/ext/intl/msgformat/msgformat_helpers.cpp
++++ b/ext/intl/msgformat/msgformat_helpers.cpp
+@@ -76,6 +76,16 @@ MessageFormatAdapter::getMessagePattern(MessageFormat* m) {
+ #endif
+ U_NAMESPACE_END
+ 
++using icu::Formattable;
++using icu::Format;
++using icu::DateFormat;
++using icu::MessageFormat;
++#ifdef HAS_MESSAGE_PATTERN
++using icu::MessagePattern;
++#endif
++using icu::MessageFormatAdapter;
++using icu::FieldPosition;
++
+ U_CFUNC int32_t umsg_format_arg_count(UMessageFormat *fmt)
+ {
+ 	int32_t fmt_count = 0;
+@@ -214,6 +224,8 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 			continue;
+ 		}
+ 
++#define ASCII_LITERAL(s) UNICODE_STRING(s, sizeof(s)-1)
++		
+ 		UMessagePatternArgType argType = p.getArgType();
+ 		/* No type specified, treat it as a string */
+ 		if (argType == UMSGPAT_ARG_TYPE_NONE) {
+@@ -227,15 +239,15 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 					UnicodeString typeString = mp.getSubstring(type_part);
+ 					/* This is all based on the rules in the docs for MessageFormat
+ 					 * @see http://icu-project.org/apiref/icu4c/classMessageFormat.html */
+-					if (typeString == "number") {
++					if (typeString == ASCII_LITERAL("number")) {
+ 						MessagePattern::Part style_part = mp.getPart(i + 1); /* Not advancing i */
+ 						if (style_part.getType() == UMSGPAT_PART_TYPE_ARG_STYLE) {
+ 							UnicodeString styleString = mp.getSubstring(style_part);
+-							if (styleString == "integer") {
++							if (styleString == ASCII_LITERAL("integer")) {
+ 								type = Formattable::kInt64;
+-							} else if (styleString == "currency") {
++							} else if (styleString == ASCII_LITERAL("currency")) {
+ 								type = Formattable::kDouble;
+-							} else if (styleString == "percent") {
++							} else if (styleString == ASCII_LITERAL("percent")) {
+ 								type = Formattable::kDouble;
+ 							} else { /* some style invalid/unknown to us */
+ 								type = Formattable::kDouble;
+@@ -243,10 +255,10 @@ static HashTable *umsg_parse_format(MessageFormatter_object *mfo,
+ 						} else { // if missing style, part, make it a double
+ 							type = Formattable::kDouble;
+ 						}
+-					} else if ((typeString == "date") || (typeString == "time")) {
++					} else if ((typeString == ASCII_LITERAL("date")) || (typeString == ASCII_LITERAL("time"))) {
+ 						type = Formattable::kDate;
+-					} else if ((typeString == "spellout") || (typeString == "ordinal")
+-							|| (typeString == "duration")) {
++					} else if ((typeString == ASCII_LITERAL("spellout")) || (typeString == ASCII_LITERAL("ordinal"))
++							   || (typeString == ASCII_LITERAL("duration"))) {
+ 						type = Formattable::kDouble;
+ 					}
+ 				} else {
+diff --git a/ext/intl/timezone/timezone_class.cpp b/ext/intl/timezone/timezone_class.cpp
+index d1e8e2e..d3557eb 100644
+--- a/ext/intl/timezone/timezone_class.cpp
++++ b/ext/intl/timezone/timezone_class.cpp
+@@ -37,6 +37,8 @@ extern "C" {
+ #include <ext/date/php_date.h>
+ }
+ 
++using icu::Calendar;
++
+ /* {{{ Global variables */
+ U_CDECL_BEGIN
+ zend_class_entry *TimeZone_ce_ptr = NULL;
+diff --git a/ext/intl/timezone/timezone_class.h b/ext/intl/timezone/timezone_class.h
+index 0667c78..99e9b56 100644
+--- a/ext/intl/timezone/timezone_class.h
++++ b/ext/intl/timezone/timezone_class.h
+@@ -29,6 +29,8 @@
+ 
+ #ifndef USE_TIMEZONE_POINTER
+ typedef void TimeZone;
++#else
++using icu::TimeZone;
+ #endif
+ 
+ typedef struct {
+diff --git a/ext/intl/timezone/timezone_methods.cpp b/ext/intl/timezone/timezone_methods.cpp
+index a35174d..b999aa1 100644
+--- a/ext/intl/timezone/timezone_methods.cpp
++++ b/ext/intl/timezone/timezone_methods.cpp
+@@ -23,6 +23,7 @@
+ #include <unicode/locid.h>
+ #include <unicode/timezone.h>
+ #include <unicode/ustring.h>
++#include <unicode/calendar.h>
+ #include "intl_convertcpp.h"
+ 
+ #include "../common/common_date.h"
+@@ -37,6 +38,9 @@ extern "C" {
+ }
+ #include "common/common_enum.h"
+ 
++using icu::Locale;
++using icu::Calendar;
++
+ U_CFUNC PHP_METHOD(IntlTimeZone, __construct)
+ {
+ 	zend_throw_exception( NULL,

@@ -1,0 +1,68 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Fri, 29 Mar 2019 11:12:09 +0100
+Subject: Fix #77821: Potential heap corruption in TSendMail()
+
+`zend_string_tolower()` returns a copy (not a duplicate) of the given
+string, if it is already in lower case.  In this case we must not not
+`zend_string_free()` both strings.  The cleanest solution is to call
+` zend_string_release()` on both strings, which properly handles the
+refcount.
+
+(cherry picked from commit 6c631ccfef94f93259d474682f8bfa803e163c87)
+---
+ NEWS             |  3 +++
+ win32/sendmail.c | 13 +++++++------
+ 2 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index c8c6b0b..35d3dda 100644
+--- a/NEWS
++++ b/NEWS
+@@ -7,6 +7,9 @@ Backported from 7.1.29
+   . Fixed bug #77950 (Heap-buffer-overflow in _estrndup via exif_process_IFD_TAG). 
+     (CVE-2019-11036) (Stas)
+ 
++- Mail
++  . Fixed bug #77821 (Potential heap corruption in TSendMail()). (cmb)
++
+ Backported from 7.1.28
+ 
+ - EXIF:
+diff --git a/win32/sendmail.c b/win32/sendmail.c
+index 808fc8f..c11da78 100644
+--- a/win32/sendmail.c
++++ b/win32/sendmail.c
+@@ -274,8 +274,9 @@ PHPAPI int TSendMail(char *host, int *error, char **error_message,
+ 		}
+ 
+ 		if (!found) {
+-			if (headers_lc) {
+-				zend_string_free(headers_lc);
++			if (headers) {
++				zend_string_release(headers_trim);
++				zend_string_release(headers_lc);
+ 			}
+ 			*error = W32_SM_SENDMAIL_FROM_NOT_SET;
+ 			return FAILURE;
+@@ -289,8 +290,8 @@ PHPAPI int TSendMail(char *host, int *error, char **error_message,
+ 			efree(RPath);
+ 		}
+ 		if (headers) {
+-			zend_string_free(headers_trim);
+-			zend_string_free(headers_lc);
++			zend_string_release(headers_trim);
++			zend_string_release(headers_lc);
+ 		}
+ 		/* 128 is safe here, the specifier in snprintf isn't longer than that */
+ 		if (NULL == (*error_message = ecalloc(1, HOST_NAME_LEN + 128))) {
+@@ -308,8 +309,8 @@ PHPAPI int TSendMail(char *host, int *error, char **error_message,
+ 			efree(RPath);
+ 		}
+ 		if (headers) {
+-			zend_string_free(headers_trim);
+-			zend_string_free(headers_lc);
++			zend_string_release(headers_trim);
++			zend_string_release(headers_lc);
+ 		}
+ 		if (ret != SUCCESS) {
+ 			*error = ret;

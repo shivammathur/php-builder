@@ -1,0 +1,14 @@
+pecl amqp
+pecl apcu
+pecl ast-1.0.16
+pecl ds-1.3.0
+pecl igbinary
+pecl imagick
+pecl memcache-4.0.5.2
+pecl mongodb-1.9.2
+pecl msgpack
+pecl redis
+pecl sqlsrv-5.9.0
+pecl pdo_sqlsrv-5.9.0
+pecl xdebug-2.9.0
+pecl memcached

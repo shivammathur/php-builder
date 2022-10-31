@@ -1,0 +1,27 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 20 Oct 2021 14:11:20 +0200
+Subject: NEWS
+
+(cherry picked from commit 28c4ee7da2cf3428113e07326dbd46550c50c2bd)
+(cherry picked from commit 9e0b951aee92deb470e31bd9f0e14f1434861b6a)
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 6d7b145..3525cf9 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.4.25
++
++- FPM:
++  . Fixed bug #81026 (PHP-FPM oob R/W in root process leading to privilege
++    escalation) (CVE-2021-21703). (Jakub Zelenka)
++
+ Backported from 7.3.30
+ 
+ - Phar:

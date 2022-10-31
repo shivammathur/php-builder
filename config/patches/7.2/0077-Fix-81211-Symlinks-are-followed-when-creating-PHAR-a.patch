@@ -1,0 +1,105 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Mon, 23 Aug 2021 13:42:17 +0200
+Subject: Fix #81211: Symlinks are followed when creating PHAR archive
+
+It is insufficient to check whether the `base` is contained in `fname`;
+we also need to ensure that `fname` is properly separated.  And of
+course, `fname` has to start with `base`.
+
+(cherry picked from commit 2ff853aa113e52637c85e28d1a03df1aa2d747b5)
+---
+ ext/phar/phar_object.c                           |  3 +-
+ ext/phar/tests/bug81211.phpt                     | 45 ++++++++++++++++++++++++
+ ext/standard/tests/file/windows_links/common.inc |  9 ++++-
+ 3 files changed, 55 insertions(+), 2 deletions(-)
+ create mode 100644 ext/phar/tests/bug81211.phpt
+
+diff --git a/ext/phar/phar_object.c b/ext/phar/phar_object.c
+index 2987b64..01bdc05 100644
+--- a/ext/phar/phar_object.c
++++ b/ext/phar/phar_object.c
+@@ -1440,6 +1440,7 @@ static int phar_build(zend_object_iterator *iter, void *puser) /* {{{ */
+ 	zend_class_entry *ce = p_obj->c;
+ 	phar_archive_object *phar_obj = p_obj->p;
+ 	php_stream_statbuf ssb;
++	char ch;
+ 
+ 	value = iter->funcs->get_current_data(iter);
+ 
+@@ -1569,7 +1570,7 @@ phar_spl_fileinfo:
+ 		base = temp;
+ 		base_len = (int)strlen(base);
+ 
+-		if (strstr(fname, base)) {
++		if (fname_len >= base_len && strncmp(fname, base, base_len) == 0 && ((ch = fname[base_len - IS_SLASH(base[base_len - 1])]) == '\0' || IS_SLASH(ch))) {
+ 			str_key_len = fname_len - base_len;
+ 
+ 			if (str_key_len <= 0) {
+diff --git a/ext/phar/tests/bug81211.phpt b/ext/phar/tests/bug81211.phpt
+new file mode 100644
+index 0000000..43d8214
+--- /dev/null
++++ b/ext/phar/tests/bug81211.phpt
+@@ -0,0 +1,45 @@
++--TEST--
++Bug #81211 (Symlinks are followed when creating PHAR archive)
++--SKIPIF--
++<?php
++if (!extension_loaded('phar')) die('skip phar extension is not available');
++if (PHP_OS_FAMILY === 'Windows') {
++    if (false === include __DIR__ . '/../../standard/tests/file/windows_links/common.inc') {
++        die('skip windows_links/common.inc is not available');
++    }
++    skipIfSeCreateSymbolicLinkPrivilegeIsDisabled(__FILE__);
++}
++?>
++--FILE--
++<?php
++mkdir(__DIR__ . '/bug81211');
++mkdir(__DIR__ . '/bug81211/foobar');
++mkdir(__DIR__ . '/bug81211/foo');
++
++file_put_contents(__DIR__ . '/bug81211/foobar/file', 'this file should NOT be included in the archive!');
++symlink(__DIR__ . '/bug81211/foobar/file', __DIR__ . '/bug81211/foo/symlink');
++
++$archive = new PharData(__DIR__ . '/bug81211/archive.tar');
++try {
++    $archive->buildFromDirectory(__DIR__ . '/bug81211/foo');
++} catch (UnexpectedValueException $ex) {
++    echo $ex->getMessage(), PHP_EOL;
++}
++try {
++    $archive->buildFromIterator(new RecursiveDirectoryIterator(__DIR__ . '/bug81211/foo', FilesystemIterator::SKIP_DOTS), __DIR__ . '/bug81211/foo');
++} catch (UnexpectedValueException $ex) {
++    echo $ex->getMessage(), PHP_EOL;
++}
++?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . '/bug81211/archive.tar');
++@unlink(__DIR__ . '/bug81211/foo/symlink');
++@unlink(__DIR__ . '/bug81211/foobar/file');
++@rmdir(__DIR__ . '/bug81211/foo');
++@rmdir(__DIR__ . '/bug81211/foobar');
++@rmdir(__DIR__ . '/bug81211');
++?>
++--EXPECTF--
++Iterator RecursiveIteratorIterator returned a path "%s%ebug81211\foobar\file" that is not in the base directory "%s%ebug81211\foo"
++Iterator RecursiveDirectoryIterator returned a path "%s%ebug81211\foobar\file" that is not in the base directory "%s%ebug81211\foo"
+diff --git a/ext/standard/tests/file/windows_links/common.inc b/ext/standard/tests/file/windows_links/common.inc
+index 505368b..caa3758 100644
+--- a/ext/standard/tests/file/windows_links/common.inc
++++ b/ext/standard/tests/file/windows_links/common.inc
+@@ -20,4 +20,11 @@ function get_mountvol() {
+ 	return "$sysroot\\System32\\mountvol.exe";
+ }
+ 
+-?>
++function skipIfSeCreateSymbolicLinkPrivilegeIsDisabled(string $filename) {
++	$ln = "$filename.lnk";
++	$ret = exec("mklink $ln " . __FILE__ .' 2>&1', $out);
++	@unlink($ln);
++	if (strpos($ret, 'privilege') !== false) {
++		die('skip SeCreateSymbolicLinkPrivilege not enabled');
++	}
++}

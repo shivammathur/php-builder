@@ -1,0 +1,22 @@
+From: Anatol Belski <ab@php.net>
+Date: Fri, 13 Jan 2017 15:31:10 +0100
+Subject: refix test
+
+(cherry picked from commit e7c3f449581a9724b5dd3d051c0420987a669c01)
+---
+ ext/opcache/tests/blacklist-win32.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/opcache/tests/blacklist-win32.phpt b/ext/opcache/tests/blacklist-win32.phpt
+index 909c695..0ddb226 100644
+--- a/ext/opcache/tests/blacklist-win32.phpt
++++ b/ext/opcache/tests/blacklist-win32.phpt
+@@ -17,7 +17,7 @@ $conf[4] = preg_replace("!^\\Q".dirname(__FILE__)."\\E!", "__DIR__", $conf[4]);
+ print_r($conf);
+ include("blacklist.inc");
+ $status = opcache_get_status();
+-print_r(count($status['scripts']));
++print_r(count($status['scripts']) > 0);
+ ?>
+ --EXPECTF--
+ Array

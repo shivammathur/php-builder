@@ -1,0 +1,84 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 17 Dec 2019 15:26:04 +0100
+Subject: Fix tests
+
+---
+ ext/bcmath/tests/bug72093-win32.phpt | 2 +-
+ ext/bcmath/tests/bug75178-win32.phpt | 4 ++--
+ ext/exif/tests/bug76557.phpt         | 2 +-
+ ext/exif/tests/bug78910.phpt         | 8 ++++----
+ ext/spl/tests/bug54291.phpt          | 2 +-
+ 5 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/ext/bcmath/tests/bug72093-win32.phpt b/ext/bcmath/tests/bug72093-win32.phpt
+index a9b2077..bcea874 100644
+--- a/ext/bcmath/tests/bug72093-win32.phpt
++++ b/ext/bcmath/tests/bug72093-win32.phpt
+@@ -14,5 +14,5 @@ var_dump(bcpowmod(1, 1.2, 1, 1));
+ ?>
+ --EXPECTF--
+ string(1) "1"
+-string(3) "0.0"
+ bc math warning: non-zero scale in exponent
++string(3) "0.0"
+diff --git a/ext/bcmath/tests/bug75178-win32.phpt b/ext/bcmath/tests/bug75178-win32.phpt
+index bae590f..c70e3aa 100644
+--- a/ext/bcmath/tests/bug75178-win32.phpt
++++ b/ext/bcmath/tests/bug75178-win32.phpt
+@@ -14,8 +14,8 @@ var_dump(bcpowmod('4', '4', '3.1', 3));
+ ?>
+ ===DONE===
+ --EXPECT--
++bc math warning: non-zero scale in base
+ string(5) "1.000"
++bc math warning: non-zero scale in modulus
+ string(5) "1.000"
+ ===DONE===
+-bc math warning: non-zero scale in base
+-bc math warning: non-zero scale in modulus
+diff --git a/ext/exif/tests/bug76557.phpt b/ext/exif/tests/bug76557.phpt
+index 4553b62..8920de6 100644
+--- a/ext/exif/tests/bug76557.phpt
++++ b/ext/exif/tests/bug76557.phpt
+@@ -70,7 +70,7 @@ Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal f
+ 
+ Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal format code 0x3030, suppose BYTE in %sbug76557.php on line %d
+ 
+-Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal pointer offset(x30303030 + x30303030 = x60606060 > x00EE) in %sbug76557.php on line %d
++Warning: exif_read_data(bug76557.jpg): Process tag(x3030=UndefinedTa): Illegal pointer offset(x30303030 + x30303030 = x60606060 > %s) in %sbug76557.php on line %d
+ 
+ Warning: exif_read_data(bug76557.jpg): File structure corrupted in %sbug76557.php on line %d
+ 
+diff --git a/ext/exif/tests/bug78910.phpt b/ext/exif/tests/bug78910.phpt
+index f5b1c32..7e40b82 100644
+--- a/ext/exif/tests/bug78910.phpt
++++ b/ext/exif/tests/bug78910.phpt
+@@ -7,11 +7,11 @@ var_dump(exif_read_data('data:image/jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAA
+ 
+ ?>
+ --EXPECTF--
+-Notice: exif_read_data(): Read from TIFF: tag(0x927C, MakerNote  ): Illegal format code 0x2020, switching to BYTE in %s on line %d
++Notice: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Read from TIFF: tag(0x927C, MakerNote  ): Illegal format code 0x2020, switching to BYTE in %s on line %d
+ 
+-Warning: exif_read_data(): Process tag(x927C=MakerNote  ): Illegal format code 0x2020, suppose BYTE in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Process tag(x927C=MakerNote  ): Illegal format code 0x2020, suppose BYTE in %s on line %d
+ 
+-Warning: exif_read_data(): IFD data too short: 0x0000 offset 0x000C in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): IFD data too short: 0x0000 offset 0x000C in %s on line %d
+ 
+-Warning: exif_read_data(): Invalid TIFF file in %s on line %d
++Warning: exif_read_data(jpg;base64,TU0AKgAAAAwgICAgAAIBDwAEAAAAAgAAACKSfCAgAAAAAEZVSklGSUxN): Invalid TIFF file in %s on line %d
+ bool(false)
+diff --git a/ext/spl/tests/bug54291.phpt b/ext/spl/tests/bug54291.phpt
+index c0119c4..5e4a5a0 100644
+--- a/ext/spl/tests/bug54291.phpt
++++ b/ext/spl/tests/bug54291.phpt
+@@ -5,7 +5,7 @@ Bug #54291 (Crash iterating DirectoryIterator for dir name starting with \0)
+ $dir = new DirectoryIterator("\x00/abc");
+ $dir->isFile();
+ --EXPECTF--
+-Fatal error: Uncaught UnexpectedValueException: Failed to open directory "" in %s:%d
++Fatal error: Uncaught UnexpectedValueException: DirectoryIterator::__construct() expects parameter 1 to be a valid path, string given in %s:%d
+ Stack trace:
+ #0 %s(%d): DirectoryIterator->__construct('\x00/abc')
+ #1 {main}

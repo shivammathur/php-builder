@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 4 Nov 2018 04:42:41 +0000
+Subject: Use SOURCE_DATE_EPOCH as PHP_BUILD_DATE if available
+
+---
+ configure.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/configure.in b/configure.in
+index 08db7ac..a45fe71 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1292,7 +1292,7 @@ fi
+ EXTRA_LDFLAGS="$EXTRA_LDFLAGS $PHP_LDFLAGS"
+ EXTRA_LDFLAGS_PROGRAM="$EXTRA_LDFLAGS_PROGRAM $PHP_LDFLAGS"
+ 
+-PHP_BUILD_DATE=`date '+%Y-%m-%d' -r $srcdir/NEWS`
++PHP_BUILD_DATE=`date --utc --date="@${SOURCE_DATE_EPOCH:-$(date +%s)}" +%Y-%m-%d`
+ AC_DEFINE_UNQUOTED(PHP_BUILD_DATE,"$PHP_BUILD_DATE",[PHP build date])
+ 
+ case $host_alias in

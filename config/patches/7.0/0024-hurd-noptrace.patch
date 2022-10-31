@@ -1,0 +1,24 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:54 +0200
+Subject: hurd-noptrace
+
+---
+ sapi/fpm/config.m4 | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/sapi/fpm/config.m4 b/sapi/fpm/config.m4
+index e6a1a49..3340fa1 100644
+--- a/sapi/fpm/config.m4
++++ b/sapi/fpm/config.m4
+@@ -147,6 +147,11 @@ AC_DEFUN([AC_FPM_TRACE],
+         pid_t child;
+         int status;
+ 
++        /* broken ptrace on Hurd, avoid hanging */
++        #ifdef __GNU__
++        return 10;
++        #endif
++
+         if ( (child = fork()) ) { /* parent */
+           int ret = 0;
+ 

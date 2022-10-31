@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 4 Jan 2021 14:20:55 +0100
+Subject: NEWS
+
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 49bdbdd..2d247db 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 7.3.26
++
++- Standard:
++  . Fixed bug #77423 (FILTER_VALIDATE_URL accepts URLs with invalid userinfo).
++    (CVE-2020-7071) (cmb)
++
+ Backported from 7.2.34
+ 
+ - Core:

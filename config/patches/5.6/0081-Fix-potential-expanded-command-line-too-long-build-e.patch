@@ -1,0 +1,25 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 30 Apr 2019 12:12:22 +0200
+Subject: Fix potential "expanded command line too long" build errors
+
+Instead of passing the long argument list to cl.exe, we pass it as
+inline file to link.exe.
+---
+ win32/build/Makefile | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/win32/build/Makefile b/win32/build/Makefile
+index 87a3e81..ae3cbfc 100644
+--- a/win32/build/Makefile
++++ b/win32/build/Makefile
+@@ -90,7 +90,9 @@ $(PHPDLL_RES): win32\build\template.rc
+ 
+ $(BUILD_DIR)\$(PHPDLL): generated_files $(PHPDEF) $(PHP_GLOBAL_OBJS) $(STATIC_EXT_OBJS) $(PHPDLL_RES) $(MCFILE)
+ 	@copy win32\build\default.manifest $(BUILD_DIR)\$(PHPDLL).manifest
+-	@$(CC) $(PHP_GLOBAL_OBJS) $(STATIC_EXT_OBJS) $(STATIC_EXT_LIBS) $(LIBS) $(PHPDLL_RES) /link /out:$(BUILD_DIR)\$(PHPDLL) $(PHP5_PGD_OPTION) $(PHP_LDFLAGS) $(LDFLAGS) $(STATIC_EXT_LDFLAGS)
++	@$(LD) @<<
++$(PHP_GLOBAL_OBJS) $(STATIC_EXT_OBJS) $(STATIC_EXT_LIBS) $(LIBS) $(PHPDLL_RES) /out:$(BUILD_DIR)\$(PHPDLL) $(PHP5_PGD_OPTION) $(PHP_LDFLAGS) $(LDFLAGS) $(STATIC_EXT_LDFLAGS)
++<<
+ 	-@$(_VC_MANIFEST_EMBED_DLL)
+ 
+ $(BUILD_DIR)\$(PHPLIB): $(BUILD_DIR)\$(PHPDLL)

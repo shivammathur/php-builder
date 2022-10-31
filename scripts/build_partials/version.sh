@@ -1,7 +1,7 @@
 # Check that a build of the stable PHP version already exists.
 check_stable() {
   # Set release URL
-  RELEASE="https://github.com/${GITHUB_REPOSITORY:?}/releases/download/builds"
+  RELEASE="https://github.com/${GITHUB_REPOSITORY:?}/releases/download/$PHP_VERSION"
 
   # if commit message does not have build-all...
   # then, check if a build of the stable PHP version exists

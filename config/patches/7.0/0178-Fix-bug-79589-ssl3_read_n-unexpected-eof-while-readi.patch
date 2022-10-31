@@ -1,0 +1,97 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 15 May 2022 13:49:17 +0100
+Subject: Fix bug #79589: ssl3_read_n:unexpected eof while reading
+
+The unexpected EOF failure was introduced in OpenSSL 3.0 to prevent
+truncation attack. However there are many non complaint servers and
+it is causing break for many users including potential majority
+of those where the truncation attack is not applicable. For that reason
+we try to keep behavior consitent with older OpenSSL versions which is
+also the path chosen by some other languages and web servers.
+
+Closes GH-8369
+---
+ ext/openssl/tests/bug79589.phpt | 21 +++++++++++++++++++++
+ ext/openssl/xp_ssl.c            | 13 +++++++++----
+ 2 files changed, 30 insertions(+), 4 deletions(-)
+ create mode 100644 ext/openssl/tests/bug79589.phpt
+
+diff --git a/ext/openssl/tests/bug79589.phpt b/ext/openssl/tests/bug79589.phpt
+new file mode 100644
+index 0000000..5d277e8
+--- /dev/null
++++ b/ext/openssl/tests/bug79589.phpt
+@@ -0,0 +1,21 @@
++--TEST--
++Bug #65538: TLS unexpected EOF failure
++--EXTENSIONS--
++openssl
++--SKIPIF--
++<?php
++if (getenv("SKIP_ONLINE_TESTS")) die("skip online test");
++?>
++--FILE--
++<?php
++
++$release = file_get_contents(
++    'https://chromedriver.storage.googleapis.com/LATEST_RELEASE',
++    false,
++    stream_context_create(['ssl' => ['verify_peer'=> false]])
++);
++echo gettype($release);
++
++?>
++--EXPECT--
++string
+diff --git a/ext/openssl/xp_ssl.c b/ext/openssl/xp_ssl.c
+index 193eb53..da478ee 100644
+--- a/ext/openssl/xp_ssl.c
++++ b/ext/openssl/xp_ssl.c
+@@ -1568,6 +1568,11 @@ int php_openssl_setup_crypto(php_stream *stream,
+ 	ssl_ctx_options &= ~SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS;
+ #endif
+ 
++#ifdef SSL_OP_IGNORE_UNEXPECTED_EOF
++	/* Only for OpenSSL 3+ to keep OpenSSL 1.1.1 behavior */
++	ssl_ctx_options |= SSL_OP_IGNORE_UNEXPECTED_EOF;
++#endif
++
+ #if OPENSSL_VERSION_NUMBER >= 0x10000000L
+ 	if (!GET_VER_OPT("disable_compression") || zend_is_true(val)) {
+ 		ssl_ctx_options |= SSL_OP_NO_COMPRESSION;
+@@ -1839,7 +1844,7 @@ static int php_openssl_enable_crypto(php_stream *stream,
+ 		do {
+ 			struct timeval	cur_time,
+ 							elapsed_time;
+-			
++
+ 			if (sslsock->is_client) {
+ 				n = SSL_connect(sslsock->ssl_handle);
+ 			} else {
+@@ -1849,7 +1854,7 @@ static int php_openssl_enable_crypto(php_stream *stream,
+ 			if (has_timeout) {
+ 				gettimeofday(&cur_time, NULL);
+ 				elapsed_time = subtract_timeval( cur_time, start_time );
+-			
++
+ 				if (compare_timeval( elapsed_time, *timeout) > 0) {
+ 					php_error_docref(NULL, E_WARNING, "SSL: Handshake timed out");
+ 					return -1;
+@@ -2045,7 +2050,7 @@ static size_t php_openssl_sockop_io(int read, php_stream *stream, char *buf, siz
+ 				if (errno == EAGAIN && err == SSL_ERROR_WANT_WRITE && read == 0) {
+ 					retry = 1;
+ 				}
+-				
++
+ 				/* Also, on reads, we may get this condition on an EOF. We should check properly. */
+ 				if (read) {
+ 					stream->eof = (retry == 0 && errno != EAGAIN && !SSL_pending(sslsock->ssl_handle));
+@@ -2089,7 +2094,7 @@ static size_t php_openssl_sockop_io(int read, php_stream *stream, char *buf, siz
+ 				}
+ 			}
+ 
+-			/* Finally, we keep going until we got data, and an SSL_ERROR_NONE, unless we had an error. */			
++			/* Finally, we keep going until we got data, and an SSL_ERROR_NONE, unless we had an error. */
+ 		} while (retry);
+ 
+ 		/* Tell PHP if we read / wrote bytes. */

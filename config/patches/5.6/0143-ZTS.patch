@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 14 Apr 2020 08:15:07 +0200
+Subject: ZTS
+
+---
+ ext/standard/exec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/standard/exec.c b/ext/standard/exec.c
+index a586b78..40eca2b 100644
+--- a/ext/standard/exec.c
++++ b/ext/standard/exec.c
+@@ -538,11 +538,11 @@ PHP_FUNCTION(shell_exec)
+ 	}
+ 
+ 	if (!command_len) {
+-		php_error_docref(NULL, E_WARNING, "Cannot execute a blank command");
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Cannot execute a blank command");
+ 		RETURN_FALSE;
+ 	}
+ 	if (strlen(command) != command_len) {
+-		php_error_docref(NULL, E_WARNING, "NULL byte detected. Possible attack");
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "NULL byte detected. Possible attack");
+ 		RETURN_FALSE;
+ 	}
+ 

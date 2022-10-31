@@ -1,0 +1,22 @@
+From: Dmitry Stogov <dmitry@zend.com>
+Date: Wed, 23 Dec 2015 03:52:01 +0300
+Subject: Fixed test on 32-bit systems
+
+(cherry picked from php/php-src@1e3ab158432f8d97c3561fdfc17b7e4aa3dbdd60)
+---
+ ext/opcache/tests/bug71127.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/opcache/tests/bug71127.phpt b/ext/opcache/tests/bug71127.phpt
+index 5770aea..0c60609 100644
+--- a/ext/opcache/tests/bug71127.phpt
++++ b/ext/opcache/tests/bug71127.phpt
+@@ -3,7 +3,7 @@ Bug #71127 (Define in auto_prepend_file is overwrite)
+ --INI--
+ opcache.enable=1
+ opcache.enable_cli=1
+-opcache.optimization_level=0xFFFFBFFF
++opcache.optimization_level=0x7FFFBFFF
+ --SKIPIF--
+ <?php if (!extension_loaded('Zend OPcache')) die("skip"); ?>
+ --FILE--
