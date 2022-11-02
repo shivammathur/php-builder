@@ -379,8 +379,8 @@ else
   version="$1"
 fi
 
-debug=${4:-false}
-build=${3:-ts}
+debug=${3:-false}
+build=${4:-nts}
 
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then
