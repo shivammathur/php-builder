@@ -12,4 +12,5 @@ pecl redis
 pecl sqlsrv
 pecl pdo_sqlsrv
 pecl xdebug
+pecl yaml
 git memcached https://github.com/php-memcached-dev/php-memcached master --enable-memcached --enable-memcached-igbinary --enable-memcached-json --enable-memcached-msgpack
