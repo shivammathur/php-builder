@@ -3,12 +3,11 @@
 --with-bz2=shared,/usr
 --enable-calendar=shared
 --enable-ctype=shared
---with-curl=shared
+--with-curl=shared,/usr
 --with-enchant=shared
 --enable-exif=shared
 --enable-fileinfo=shared
 --enable-filter
---with-ffi=shared
 --enable-ftp=shared
 --with-openssl-dir=/usr
 --with-gettext=shared,/usr
@@ -32,7 +31,10 @@
 --with-tidy=shared,/usr
 --enable-tokenizer=shared
 --with-xsl=shared
---with-zip=shared
+
+# zip
+--enable-zip=shared
+--with-libzip=/usr
 
 # dba
 --enable-dba=shared
@@ -44,8 +46,13 @@
 --enable-flatfile
 
 # gd
---enable-gd=shared,/usr
---with-external-gd
+--with-gd=shared,/usr
+--enable-gd-native-ttf
+--with-jpeg-dir=/usr
+--with-xpm-dir=/usr/X11R6
+--with-png-dir=/usr
+--with-freetype-dir=/usr
+--with-webp-dir=/usr
 
 # mhash
 --with-mhash=/usr

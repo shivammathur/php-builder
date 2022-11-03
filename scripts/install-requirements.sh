@@ -257,6 +257,7 @@ install_packages apache2 \
                  libwrap0-dev \
                  libxml2-dev \
                  libxmltok1-dev \
+                 libxpm-dev \
                  libxslt1-dev \
                  libzip-dev \
                  libzstd-dev \
