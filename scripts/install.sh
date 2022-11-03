@@ -209,7 +209,7 @@ local_deps() {
   install_packages apt-transport-https ca-certificates file gnupg jq zstd gcc g++
   libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
   add_ppa
-  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libzip-dev libzstd-dev make php-common shtool systemd tzdata unixodbc-dev
+  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev libpcre2-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsodium-dev libtidy-dev libtool libwebp-dev libxpm-dev libxslt1-dev libyaml-dev libzip-dev libzstd-dev make php-common shtool systemd tzdata unixodbc-dev
 }
 
 github_deps() {
