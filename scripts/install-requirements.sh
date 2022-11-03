@@ -259,6 +259,7 @@ install_packages apache2 \
                  libxmltok1-dev \
                  libxpm-dev \
                  libxslt1-dev \
+                 libyaml-dev \
                  libzip-dev \
                  libzstd-dev \
                  locales-all \

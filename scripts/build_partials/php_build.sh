@@ -51,6 +51,9 @@ configure_phpbuild() {
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "/PATCHES/{r./$patches_dir/~series" -e "d}" "$definitions"/"$PHP_VERSION"
 
+  # Print the definition file.
+  cat "$definitions"/"$PHP_VERSION"
+
   # Remove ~series file.
   rm "$patches_dir"/~series
 }
