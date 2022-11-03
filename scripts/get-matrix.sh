@@ -2,6 +2,8 @@
 
 container_os_json_array=()
 runner_os_json_array=()
+test_container_os_json_array=()
+test_runner_os_json_array=()
 
 # Store input container os versions in container_os_array,
 # Store input runner os versions in runner_os_array,
@@ -16,12 +18,12 @@ IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"operating-system\": \"ubuntu-latest\", \"build\": \"$build\"}")
+      container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"build\": \"$build\"}")
     done
   done
 done
 
-# Build a matrix array with runner os and php-version.
+# Build a matrix array with runner os, php-version and the build.
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
@@ -30,8 +32,36 @@ for os in "${runner_os_array[@]}"; do
   done
 done
 
+# Build a matrix array with runner os, php-version, build and the debug.
+for os in "${container_os_array[@]}"; do
+  for php in "${php_array[@]}"; do
+    for build in "${build_array[@]}"; do
+      for debug in debug release; do
+        test_container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      done
+    done
+  done
+done
+
+# Build a matrix array with runner os, php-version, build and the debug.
+for os in "${runner_os_array[@]}"; do
+  for php in "${php_array[@]}"; do
+    for build in "${build_array[@]}"; do
+      for debug in debug release; do
+        test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      done
+    done
+  done
+done
+
 # Output the matrices.
-# shellcheck disable=SC2001
-echo "container_os_matrix={\"include\":[$(echo "${container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_OUTPUT"
-# shellcheck disable=SC2001
-echo "runner_os_matrix={\"include\":[$(echo "${runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}" >> "$GITHUB_OUTPUT"
+(
+  # shellcheck disable=SC2001
+  echo "container_os_matrix={\"include\":[$(echo "${container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+  # shellcheck disable=SC2001
+  echo "runner_os_matrix={\"include\":[$(echo "${runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+  # shellcheck disable=SC2001
+  echo "test_container_os_matrix={\"include\":[$(echo "${test_container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+  # shellcheck disable=SC2001
+  echo "test_runner_os_matrix={\"include\":[$(echo "${test_runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+) >> "$GITHUB_OUTPUT"

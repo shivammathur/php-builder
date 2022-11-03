@@ -31,6 +31,8 @@ jobs:
     outputs:
       container_os_matrix: ${{ steps.set-matrix.outputs.container_os_matrix }}
       runner_os_matrix: ${{ steps.set-matrix.outputs.runner_os_matrix }}
+      test_container_os_matrix: ${{ steps.set-matrix.outputs.test_container_os_matrix }}
+      test_runner_os_matrix: ${{ steps.set-matrix.outputs.test_runner_os_matrix }}
 
     steps:
       - name: Checkout
@@ -52,7 +54,7 @@ jobs:
   build:
     needs: get-matrix
     if: "!contains(github.event.head_commit.message, 'skip-build')"
-    runs-on: ${{ matrix.operating-system }}
+    runs-on: ubuntu-latest
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -119,7 +121,7 @@ jobs:
     needs: [get-matrix, build]
     if: "!contains(github.event.head_commit.message, 'skip-merge')"
     container: ${{ matrix.container }}
-    runs-on: ${{ matrix.operating-system }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
@@ -208,7 +210,7 @@ jobs:
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+      matrix: ${{fromJson(needs.get-matrix.outputs.test_container_os_matrix)}}
 
     steps:
       - name: Checkout
@@ -222,7 +224,7 @@ jobs:
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }}
 
       - name: Test
         run: |
@@ -234,20 +236,14 @@ jobs:
         run: php -r "print_r(gd_info());"
 
       - name: Test pecl
-        run: |
-          sudo pecl install -f psr
-          php -m | grep -q psr || exit 1
+        run: bash scripts/test_pecl.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
 
       - name: Check SAPI
-        run: |
-          sudo mkdir -p /var/www/html
-          sudo rm -rf /var/www/html/index.html
-          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
-          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-            switch_sapi -v ${{ matrix.php-version }} -s $sapi
-            resp="$(curl -s http://localhost)"
-            [ "$sapi" != "$resp" ] && exit 1 || echo "$resp"
-          done
+        run: bash scripts/test_sapi.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
 
   github-test:
     needs: [merge, build, get-matrix]
@@ -255,7 +251,7 @@ jobs:
     if: "!contains(github.event.head_commit.message, 'skip-github-test')"
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.get-matrix.outputs.runner_os_matrix)}}
+      matrix: ${{fromJson(needs.get-matrix.outputs.test_runner_os_matrix)}}
 
     steps:
       - name: Checkout
@@ -269,7 +265,7 @@ jobs:
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }}
 
       - name: Test
         run: |
@@ -278,20 +274,14 @@ jobs:
           php -m
 
       - name: Test pecl
-        run: |
-          sudo pecl install -f psr
-          php -m | grep -q psr || exit 1
+        run: bash scripts/test_pecl.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
 
       - name: Check SAPI
-        run: |
-          sudo mkdir -p /var/www/html
-          sudo rm -rf /var/www/html/index.html
-          echo "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
-          for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-            sudo switch_sapi -v ${{ matrix.php-version }} -s $sapi
-            resp="$(curl -s http://localhost)"
-            [ "$sapi" != "$resp" ] && exit 1 || echo "$resp"
-          done
+        run: bash scripts/test_sapi.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
 
   release:
     needs: [local-test, github-test]
