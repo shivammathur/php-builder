@@ -3,21 +3,33 @@ configure_fpm() {
   # Set FPM_CONF_DIR
   FPM_CONF_DIR="$INSTALL_ROOT"/"${conf_dir:?}"/fpm
 
-  # Rename the php fpm pools config directory to pool.d and move to php fpm scan directory.
-  mv "${INSTALL_ROOT:?}"/etc/php-fpm.d "$FPM_CONF_DIR"/pool.d
+  # If it exists rename the php-fpm.d directory to pool.d and move to php-fpm.conf to the fpm scan directory,
+  # otherwise create the www.conf in the pool.d directory using the php-fpm.conf.
+  if [ -d "${INSTALL_ROOT:?}"/etc/php-fpm.d ]; then
+    mv "${INSTALL_ROOT:?}"/etc/php-fpm.d "$FPM_CONF_DIR"/pool.d
+    # Patch PHP_VERSION, pid and log in php-fpm.conf
+    sed -Ei -e "s|PHP_VERSION|$PHP_VERSION|g" \
+            -e "s|@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@|$PHP_VERSION|g" \
+            -e "s|pool.d|php/$PHP_VERSION/fpm/pool.d|" \
+            -e "s|;pid.*|pid = /run/php/php$PHP_VERSION-fpm.pid|" \
+            -e "s|;error_log.*|error_log = /var/log/php$PHP_VERSION-fpm.log|" "$INSTALL_ROOT"/etc/php-fpm.conf
+
+    # Set fpm listener socket, owner, group and mode in pool.d/www.conf.
+    sed -Ei -e "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" \
+            -e 's|;listen.owner.*|listen.owner = www-data|' \
+            -e 's|;listen.group.*|listen.group = www-data|' \
+            -e 's|;listen.mode.*|listen.mode = 0660|' "$FPM_CONF_DIR"/pool.d/www.conf
+  else
+    # Set fpm listener socket, owner, group and mode in pool.d/www.conf.
+    sed -Ei -e "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" \
+            -e "s|@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@|$PHP_VERSION|g" \
+            -e 's|;listen.owner.*|listen.owner = www-data|' \
+            -e 's|;listen.group.*|listen.group = www-data|' \
+            -e 's|;listen.mode.*|listen.mode = 0660|' "$INSTALL_ROOT"/etc/php-fpm.conf
+    mkdir -p "$FPM_CONF_DIR"/pool.d
+    sed -nr '/('"'"'|\[)www('"'"'|\])/{h;p;d};x;/www/{x;p}' < "$INSTALL_ROOT"/etc/php-fpm.conf > "$FPM_CONF_DIR"/pool.d/www.conf
+  fi
   mv "$INSTALL_ROOT"/etc/php-fpm.conf "$FPM_CONF_DIR"/php-fpm.conf
-
-  # Patch PHP_VERSION, pid and log in php-fpm.conf
-  sed -Ei -e "s|PHP_VERSION|$PHP_VERSION|g" \
-          -e "s|pool.d|php/$PHP_VERSION/fpm/pool.d|" \
-          -e "s|;pid.*|pid = /run/php/php$PHP_VERSION-fpm.pid|" \
-          -e "s|;error_log.*|error_log = /var/log/php$PHP_VERSION-fpm.log|" "$FPM_CONF_DIR"/php-fpm.conf
-
-  # Set fpm listener socket, owner, group and mode in pool.d/www.conf.
-  sed -Ei -e "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" \
-          -e 's|;listen.owner.*|listen.owner = www-data|' \
-          -e 's|;listen.group.*|listen.group = www-data|' \
-          -e 's|;listen.mode.*|listen.mode = 0660|' "$FPM_CONF_DIR"/pool.d/www.conf
 
   # Patch the config files.
   sed -i -e "s|PHP_VERSION|$PHP_VERSION|g" config/php-fpm.logrotate
