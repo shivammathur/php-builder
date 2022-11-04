@@ -195,12 +195,10 @@ jobs:
         run: phpize -v
 
       - name: Check php extensions
-        run: |
-          php -m
-          ln -sf /etc/php/${{ matrix.php-version }}/mods-available/pcov.ini /etc/php/${{ matrix.php-version }}/cli/conf.d/20-pcov.ini
-          for extension in amqp apcu ds igbinary imagick memcache memcached mongodb msgpack pcov redis xdebug sqlsrv pdo_sqlsrv yaml; do
-            php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
-          done
+        run: bash scripts/test_extensions.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+          
 
   local-test:
     needs: [merge, build, get-matrix]
