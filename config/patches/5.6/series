@@ -112,8 +112,6 @@
 0112-fork-tests.patch
 0113-Fix-tests.patch
 0114-fix-test.patch
-0115-Extend-test-latest-cURL-ships-also-with-smb-and-smbs.patch
-0116-Sync-test-for-libcurl-7.64.0.patch
 0117-Sync-test-with-changes-in-libcurl-7.64.0.patch
 0118-Fix-ext-mysql-tests.patch
 0119-Clean-up-server-tests.php-remains.patch

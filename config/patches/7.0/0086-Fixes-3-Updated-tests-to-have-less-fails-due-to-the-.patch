@@ -4,7 +4,6 @@ Subject: Fixes #3: Updated tests to have less fails due to the test files
  themselves.
 
 ---
- ext/curl/tests/check_win_config.phpt               |  2 +-
  ext/curl/tests/curl_basic_009.phpt                 |  6 +--
  ext/pdo_mysql/tests/pdo_mysql_exec.phpt            |  2 +-
  .../tests/pdo_mysql_stmt_getcolumnmeta.phpt        | 20 ++++----
@@ -14,19 +13,6 @@ Subject: Fixes #3: Updated tests to have less fails due to the test files
  7 files changed, 29 insertions(+), 77 deletions(-)
  delete mode 100644 ext/standard/tests/streams/stream_socket_sendto.phpt
 
-diff --git a/ext/curl/tests/check_win_config.phpt b/ext/curl/tests/check_win_config.phpt
-index 98f3e92..9e1ad98 100644
---- a/ext/curl/tests/check_win_config.phpt
-+++ b/ext/curl/tests/check_win_config.phpt
-@@ -45,7 +45,7 @@ GSSAPI => No
- KERBEROS5 => Yes
- UNIX_SOCKETS => No
- PSL => No
--Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, pop3, pop3s, rtsp, scp, sftp, smtp, smtps, telnet, tftp
-+Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, ldaps, pop3, pop3s, rtsp, scp, sftp, smb, smbs, smtp, smtps, telnet, tftp
- Host => %s-pc-win32
- SSL Version => OpenSSL/%s
- ZLib Version => %s
 diff --git a/ext/curl/tests/curl_basic_009.phpt b/ext/curl/tests/curl_basic_009.phpt
 index 529e590..3b36a78 100644
 --- a/ext/curl/tests/curl_basic_009.phpt
@@ -194,7 +180,7 @@ index 1a81d48..efe5788 100644
  		$lconv['mon_thousands_sep']
  	);
 +	if ($locale === 'Swedish_Sweden.1252') {
-+		var_dump(in_array($lconv['mon_thousands_sep'], ['.', ' ']));
++		var_dump(in_array($lconv['mon_thousands_sep'], ['.', 'ï¿½']));
 +	}
  	echo '++++++++++++++++++++++', "\n";
  }
@@ -211,12 +197,12 @@ index 1a81d48..efe5788 100644
  string(1) ","
 @@ -64,7 +68,7 @@ string(1) "?"
  string(1) ","
- string(1) " "
+ string(1) "ï¿½"
  ++++++++++++++++++++++
 -string(25) "Czech_Czech Republic.1250"
 +string(%d) "Czech_Czech%s.1250"
  string(1) ","
- string(1) " "
+ string(1) "ï¿½"
  string(3) "CZK"
 diff --git a/sapi/cli/tests/php_cli_server.inc b/sapi/cli/tests/php_cli_server.inc
 index 5ee3887..0ea90da 100644

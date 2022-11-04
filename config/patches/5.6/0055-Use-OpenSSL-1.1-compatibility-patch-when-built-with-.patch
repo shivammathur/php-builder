@@ -5,7 +5,6 @@ Subject: Use-OpenSSL-1.1-compatibility-patch-when-built-with-
 ---
  ext/openssl/openssl.c                             | 683 ++++++++++++++++------
  ext/openssl/tests/bug41033.phpt                   |   4 +-
- ext/openssl/tests/bug66501.phpt                   |   2 +-
  ext/openssl/tests/openssl_error_string_basic.phpt |   2 +-
  ext/openssl/tests/sni_server.phpt                 |   3 +
  ext/openssl/xp_ssl.c                              |  18 +-
@@ -1185,20 +1184,7 @@ index 4aeae66..50c78fe 100644
 +$valid = openssl_verify($ct, $signature, $pukeyid, OPENSSL_VERSION_NUMBER < 0x10100000 ? OPENSSL_ALGO_DSS1 : OPENSSL_ALGO_SHA1);
  echo "Signature validity: " . $valid . "\n";
  
- 
-diff --git a/ext/openssl/tests/bug66501.phpt b/ext/openssl/tests/bug66501.phpt
-index 7ad5e21..c2146ab 100644
---- a/ext/openssl/tests/bug66501.phpt
-+++ b/ext/openssl/tests/bug66501.phpt
-@@ -16,7 +16,7 @@ AwEHoUQDQgAEPq4hbIWHvB51rdWr8ejrjWo4qVNWVugYFtPg/xLQw0mHkIPZ4DvK
- sqOTOnMoezkbSmVVMuwz9flvnqHGmQvmug==
- -----END EC PRIVATE KEY-----';
- $key = openssl_pkey_get_private($pkey);
--$res = openssl_sign($data ='alpha', $sign, $key, 'ecdsa-with-SHA1');
-+$res = openssl_sign($data ='alpha', $sign, $key, OPENSSL_VERSION_NUMBER < 0x10100000 ? 'ecdsa-with-SHA1' : 'SHA1');
- var_dump($res);
- --EXPECTF--
- bool(true)
+
 diff --git a/ext/openssl/tests/openssl_error_string_basic.phpt b/ext/openssl/tests/openssl_error_string_basic.phpt
 index 82f3099..d94048d 100644
 --- a/ext/openssl/tests/openssl_error_string_basic.phpt
