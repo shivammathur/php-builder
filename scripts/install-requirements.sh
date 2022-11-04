@@ -123,6 +123,7 @@ configure_requirements() {
   ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so
   ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
   ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/curl
+  ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
   if [ -d /usr/lib64 ]; then
     ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
     ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
