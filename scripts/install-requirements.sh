@@ -122,6 +122,7 @@ configure_requirements() {
   ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
   ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so
   ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
+  ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/curl
   if [ -d /usr/lib64 ]; then
     ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
     ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
