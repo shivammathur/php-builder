@@ -23,6 +23,7 @@ configure_fpm() {
     # Set fpm listener socket, owner, group and mode in pool.d/www.conf.
     sed -Ei -e "s|^listen = .*|listen = /run/php/php$PHP_VERSION-fpm.sock|" \
             -e "s|@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@|$PHP_VERSION|g" \
+            -e "s|pool.d|php/$PHP_VERSION/fpm/pool.d|" \
             -e 's|;listen.owner.*|listen.owner = www-data|' \
             -e 's|;listen.group.*|listen.group = www-data|' \
             -e 's|;listen.mode.*|listen.mode = 0660|' "$INSTALL_ROOT"/etc/php-fpm.conf
