@@ -360,27 +360,36 @@ fi
 if [[ "$1" =~ remove ]]; then
   version=$2
   remove
+  exit 0
 elif [[ "$2" =~ remove ]]; then
   version=$1
   remove
+  exit 0
 fi
 
-if [ "$1" = "github" ]; then
-  runner="github"
-  version=${2:-8.1}
-elif [[ "$1" =~ local|self-hosted ]]; then
-  runner="local"
-  version="$2"
-elif [[ "$2" =~ local|self-hosted|github ]]; then
-  runner="$2"
-  version="$1"
-else
-  runner="local"
-  version="$1"
-fi
+for arg in "$@"; do
+  if [[ "$arg" =~ ^[0-9]+\.[0-9]+$ ]]; then
+    version="$arg"
+  elif [[ "$arg" =~ local|self-hosted ]]; then
+    runner="local"
+  elif [[ "$arg" =~ github ]]; then
+    runner="github"
+  elif [[ "$arg" =~ release|debug ]]; then
+    debug="$arg"
+  elif [[ "$arg" =~ nts|zts ]]; then
+    build="$arg"
+  fi
+done
 
-debug=${3:-false}
-build=${4:-nts}
+[[ -z "$version" ]] && version=8.1
+[[ -z "$runner" ]] && runner=local
+[[ -z "$debug" ]] && debug=release
+[[ -z "$build" ]] && build=nts
+
+if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-3])$ ]]; then
+  echo "Version $version is not supported";
+  exit 1;
+fi
 
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then

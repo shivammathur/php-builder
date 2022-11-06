@@ -45,36 +45,25 @@ The installer takes the following options:
 ./install.sh <php-version> <release|debug> <nts|zts>
 ```
 
-The php version is required and `release` and `nts` are the defaults. 
+The `php-version` is required, and `release` and `nts` are the defaults. 
 
-- To install `PHP 8.2`:
+- release: No debugging symbols
+- debug: With debugging symbols
+- nts: Non Thread Safe
+- zts: Thread Safe
+
+### Examples
+
+- To install `PHP 8.2` without debugging symbols and non thread safe:
 
 ```bash
 ./install.sh 8.2
 ```
 
-or, to install `PHP 8.1`:
+- or, to install `PHP 8.2` with debugging symbols and thread safe:
 
 ```bash
-./install.sh 8.1
-```
-
-### Install ZTS PHP without debugging symbols
-
-```bash
-./install.sh 8.1 release zts
-```
-
-### Install NTS PHP with debugging symbols
-
-```bash
-./install.sh 8.1 debug
-```
-
-### Install ZTS PHP with debugging symbols
-
-```bash
-./install.sh 8.1 debug zts
+./install.sh 8.2 debug zts
 ```
 
 - Finally, test your PHP version:
@@ -85,7 +74,7 @@ php -v
 
 **Notes:**
 
-- All PHP versions have prefix `/usr` and the directory structure will be same as that of Debian builds.
+- All PHP versions have the prefix `/usr` and the directory structure will be same as that of the official Debian builds.
 - Any pre-existing extensions INI configuration for the PHP version will be removed upon installation.
 - The installer will switch to the PHP version you installed.
 
@@ -178,11 +167,11 @@ The following releases have `nts` and `zts` builds for the following PHP version
 - [PHP 8.1.x](https://github.com/shivammathur/php-builder/releases/tag/8.1)
 - [PHP 8.0.x](https://github.com/shivammathur/php-builder/releases/tag/8.0)
 - [PHP 7.4.x](https://github.com/shivammathur/php-builder/releases/tag/7.4)
-- [PHP 7.3.x](https://github.com/shivammathur/php-builder/releases/tag/7.3)
-- [PHP 7.2.x](https://github.com/shivammathur/php-builder/releases/tag/7.2)
-- [PHP 7.1.x](https://github.com/shivammathur/php-builder/releases/tag/7.1)
-- [PHP 7.0.x](https://github.com/shivammathur/php-builder/releases/tag/7.0)
-- [PHP 5.6.x](https://github.com/shivammathur/php-builder/releases/tag/5.6)
+- [PHP 7.3.33](https://github.com/shivammathur/php-builder/releases/tag/7.3)
+- [PHP 7.2.34](https://github.com/shivammathur/php-builder/releases/tag/7.2)
+- [PHP 7.1.33](https://github.com/shivammathur/php-builder/releases/tag/7.1)
+- [PHP 7.0.33](https://github.com/shivammathur/php-builder/releases/tag/7.0)
+- [PHP 5.6.40](https://github.com/shivammathur/php-builder/releases/tag/5.6)
 
 ## Uninstall
 
@@ -232,3 +221,4 @@ The scripts and documentation in this project are under the [MIT license](LICENS
 - [php-build](https://github.com/php-build/php-build "php-build project")
 - [PhpRedis](https://github.com/phpredis/phpredis "Redis PHP Extension")
 - [Xdebug](https://github.com/xdebug/xdebug "Xdebug PHP Extension")
+- [YAML](https://github.com/php/pecl-file_formats-yaml "YAML PHP Extension")
