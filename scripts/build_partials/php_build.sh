@@ -10,7 +10,7 @@ patch_config_file() {
 # Function to configure php-build.
 configure_phpbuild() {
   # Set install command based on PHP version.
-  if [[ "${branch:?}" =~ ^(master|PHP-"$PHP_VERSION")$ ]]; then
+  if [[ "${branch:?}" =~ ^(master|PHP-"$PHP_VERSION"(.0)?)$ ]]; then
     install_command="install_package_from_github $branch"
   else
     install_command="install_package \"https://github.com/php/web-php-distributions/raw/master/${new_version:?}.tar.gz\""
