@@ -305,5 +305,5 @@ jobs:
         env:
           GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PHP_LIST: ${{ env.PHP_LIST }}
+          PHP_LIST: ${{ github.event.inputs.php-versions || env.PHP_LIST }}
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
