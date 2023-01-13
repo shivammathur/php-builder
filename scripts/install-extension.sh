@@ -27,6 +27,22 @@ patch_xdebug() {
   sed -i 's/80300/80400/g' config.m4
 }
 
+patch_amqp() {
+  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
+}
+
+patch_memcache() {
+  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
+}
+
+patch_memcached() {
+  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
+}
+
+patch_redis() {
+  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
+}
+
 extension=$1
 repo=$2
 tag=$3
