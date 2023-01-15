@@ -1,3 +1,4 @@
+set -e
 php -m
 extensions=( "amqp" "apcu" "ds" "igbinary" "imagick" "memcache" "memcached" "mongodb" "msgpack" "redis" "xdebug" "sqlsrv" "pdo_sqlsrv" "yaml" )
 if [[ "$PHP_VERSION" != "5.6" && "$PHP_VERSION" != "7.0" ]]; then
