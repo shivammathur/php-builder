@@ -1,0 +1,15 @@
+diff --git a/ext/mbstring/mbstring.c b/ext/mbstring/mbstring.c
+index fa46684293..d80b4fb798 100644
+--- a/ext/mbstring/mbstring.c
++++ b/ext/mbstring/mbstring.c
+@@ -4960,6 +4960,10 @@ static void init_check_utf8(void)
+ 
+ #endif
+ 
++#if defined(__GNUC__) && __GNUC__ < 8
++#define _mm256_set_m128i(X, Y) _mm256_insertf128_si256(_mm256_castsi128_si256(Y), (X), 1)
++#endif
++
+ #if defined(ZEND_INTRIN_AVX2_NATIVE) || defined(ZEND_INTRIN_AVX2_RESOLVER)
+ 
+ /* Take (256-bit) `hi` and `lo` as a 512-bit value, shift down by some
