@@ -39,3 +39,4 @@
 0039-Don-t-use-hrtimers-on-GNU-Hurd.patch
 0040-ax_gcc_func_attribute-Revise-the-detection-of-unknow.patch
 0041-define-missing-avx-symbol-on-gcc-7-and-below.patch
+0042-change-minimum-re2c-version-to-1.0.1
