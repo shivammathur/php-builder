@@ -43,6 +43,10 @@ patch_redis() {
   [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
 }
 
+patch_igbinary() {
+  [ "$PHP_VERSION" = "8.3" ] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
+}
+
 extension=$1
 repo=$2
 tag=$3
