@@ -23,7 +23,6 @@
 
 ## OS Support
 
-- Ubuntu 18.04 (Bionic) amd64
 - Ubuntu 20.04 (Focal) amd64
 - Ubuntu 22.04 (Jammy) amd64
 - Debian 10 (Buster) amd64
