@@ -33,12 +33,20 @@ configure_phpbuild() {
   patch_config_file patch_file "$patches_dir"/~series
 
   # Path the definition for thread-safe.
+  # Zend Signals are broken with ZTS: https://externals.io/message/118859
   zts=''
   if [ "${BUILD:?}" = "zts" ]; then
+    zts='configure_option --disable-zend-signals'
+
     if [[ "$PHP_VERSION" =~ 8.[0-9] ]]; then
-      zts='configure_option --enable-zts'
+      zts="$zts --enable-zts"
     else
-      zts='configure_option --enable-maintainer-zts'
+      zts="$zts --enable-maintainer-zts"
+    fi
+
+    # Zend Max Execution Timers are enabled by default since PHP 8.3
+    if [[ "$PHP_VERSION" == '8.2' ]]
+      zts="$zts --enable-zend-max-execution-timers"
     fi
   fi
 
