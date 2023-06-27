@@ -1,13 +1,14 @@
 set -e
 php -m
-extensions=( "amqp" "apcu" "igbinary" "imagick" "memcache" "memcached" "mongodb" "msgpack" "redis" "xdebug" "sqlsrv" "pdo_sqlsrv" "yaml" )
-if [[ "$PHP_VERSION" != "5.6" ]]; then
-  extensions+=( "ds" )
-fi
-if [[ "$PHP_VERSION" != "5.6" && "$PHP_VERSION" != "7.0" ]]; then
-   extensions+=( "pcov" )
-   ln -sf /etc/php/"$PHP_VERSION"/mods-available/pcov.ini /etc/php/"$PHP_VERSION"/cli/conf.d/20-pcov.ini
-fi
+
+extensions=()  
+while read -r extension_config; do
+  extensions+=($(echo "$extension_config" | cut -d ' ' -f 2 | cut -d '-' -f 1))
+done < config/extensions/"$PHP_VERSION"
+
 for extension in "${extensions[@]}"; do
+  if [ "$extension" = "pcov" ]; then
+    ln -sf /etc/php/"$PHP_VERSION"/mods-available/pcov.ini /etc/php/"$PHP_VERSION"/cli/conf.d/20-pcov.ini
+  fi
   php -r "if(! extension_loaded(\"$extension\")) {throw new Exception(\"$extension not found\");}"
 done
