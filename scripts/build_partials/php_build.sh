@@ -22,6 +22,14 @@ configure_phpbuild() {
   # Patch the definition for the PHP version.
   patch_config_file configure_option "${definitions:?}"/"$PHP_VERSION"
 
+  # Path the definition for thread-safe.
+  # Zend Signals are broken with ZTS: https://externals.io/message/118859
+  zts=''
+  if [ "${BUILD:?}" = "zts" ]; then
+    patch_config_file configure_option "${definitions:?}"/zts/"$PHP_VERSION"
+    zts="$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' "${definitions:?}"/zts/"$PHP_VERSION")"
+  fi
+
   # Copy all local patches to the php-build patches directory.
   patches_dir=config/patches/"$PHP_VERSION"
   if [ -d "$patches_dir" ]; then
@@ -31,24 +39,6 @@ configure_phpbuild() {
 
   # Patch series file to php-build syntax.
   patch_config_file patch_file "$patches_dir"/~series
-
-  # Path the definition for thread-safe.
-  # Zend Signals are broken with ZTS: https://externals.io/message/118859
-  zts=''
-  if [ "${BUILD:?}" = "zts" ]; then
-    zts='configure_option --disable-zend-signals'
-
-    if [[ "$PHP_VERSION" =~ 8.[0-9] ]]; then
-      zts="$zts --enable-zts"
-    else
-      zts="$zts --enable-maintainer-zts"
-    fi
-
-    # Zend Max Execution Timers are enabled by default since PHP 8.3
-    if [ "$PHP_VERSION" = 8.2 ]; then
-      zts="$zts --enable-zend-max-execution-timers"
-    fi
-  fi
 
   # Patch PHP version, host, build, patches and install command in the definition template.
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \
