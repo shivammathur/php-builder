@@ -45,7 +45,7 @@ configure_phpbuild() {
     fi
 
     # Zend Max Execution Timers are enabled by default since PHP 8.3
-    if [[ "$PHP_VERSION" == '8.2' ]]
+    if [ "$PHP_VERSION" = 8.2 ]; then
       zts="$zts --enable-zend-max-execution-timers"
     fi
   fi
