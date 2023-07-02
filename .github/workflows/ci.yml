@@ -254,7 +254,7 @@ jobs:
   github-test:
     needs: [merge, build, get-matrix]
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, 'skip-github-test')"
+    if: "!contains(github.event.head_commit.message, 'skip-github-test') && contains(needs.get-matrix.outputs.container_os_matrix, 'ubuntu')"
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.test_runner_os_matrix)}}
@@ -289,10 +289,34 @@ jobs:
         env:
           PHP_VERSION: ${{ matrix.php-version }}
 
-  release:
-    needs: [local-test, github-test]
+  release-container-only:
+    needs: [get-matrix, local-test]
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-release')"
+    if: "!contains(github.event.head_commit.message, 'skip-release') && !contains(needs.get-matrix.outputs.container_os_matrix, 'ubuntu')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create builds directory
+        run: mkdir builds
+
+      - uses: actions/download-artifact@v3
+        with:
+          path: builds
+
+      - name: Release
+        run: bash scripts/release.sh
+        env:
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_LIST: ${{ github.event.inputs.php-versions || env.PHP_LIST }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+  release:
+    needs: [get-matrix, local-test, github-test]
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-release') && contains(needs.get-matrix.outputs.container_os_matrix, 'ubuntu')"
 
     steps:
       - name: Checkout
