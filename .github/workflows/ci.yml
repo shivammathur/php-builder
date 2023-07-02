@@ -141,6 +141,7 @@ jobs:
         run: bash scripts/install-requirements.sh
         env:
           BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
 
       - uses: actions/download-artifact@v3
         with:

@@ -179,6 +179,7 @@ install_packages apt-transport-https \
 # Set library versions
 libmysql_dev=$(get_libmysql)
 libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
+[[ "$PHP_VERSION" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
 gcc_version=$(gcc --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d '.' -f 1)
 libgcc_dev="libgcc-$gcc_version-dev"
 libgccjit_dev="libgccjit-$gcc_version-dev"
@@ -241,7 +242,7 @@ install_packages apache2 \
                  libonig-dev \
                  libonig-dev \
                  libpam0g-dev \
-                 libpcre2-dev \
+                 "$libpcre_dev" \
                  libpng-dev \
                  libpq-dev \
                  libpspell-dev \
