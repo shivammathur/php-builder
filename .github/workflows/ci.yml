@@ -18,11 +18,15 @@ on:
         description: 'PHP version to build'
         default: '5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3'
         required: false
+      container-os-versions:
+        description: 'OS versions to build on'
+        default: 'ubuntu:focal ubuntu:jammy debian:buster debian:bullseye debian:bookworm'
+        required: false
   schedule:
     - cron: '0 0 1-31/2 * *'
 
 env:
-  CONTAINER_OS_LIST: ubuntu:focal ubuntu:jammy debian:buster debian:bullseye
+  CONTAINER_OS_LIST: ubuntu:focal ubuntu:jammy debian:buster debian:bullseye debian:bookworm
   RUNNER_OS_LIST: ubuntu-20.04 ubuntu-22.04
   PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
@@ -45,7 +49,7 @@ jobs:
         id: set-matrix
         env:
           COMMIT: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
-          CONTAINER_OS_LIST: ${{ env.CONTAINER_OS_LIST }}
+          CONTAINER_OS_LIST: ${{ github.event.inputs.container-os-versions || env.CONTAINER_OS_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
           PHP_LIST: ${{ github.event.inputs.php-versions || env.PHP_LIST }}
