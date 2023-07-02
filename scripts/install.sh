@@ -51,10 +51,6 @@ set_base_version() {
   else
     set_base_version_codename
     set_base_version_id
-
-    # Remove once PPAs start having bookworm releases
-    [ "$VERSION_CODENAME" = 'bookworm' ] && VERSION_CODENAME="bullseye" && VERSION_ID="11"
-
     printf "ID=%s\nVERSION_ID=%s\nVERSION_CODENAME=%s\n" "$ID" "$VERSION_ID" "$VERSION_CODENAME" | tee /tmp/os-release >/dev/null 2>&1
   fi
 }
@@ -75,7 +71,7 @@ update_lists() {
   if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
     if [[ -n "$ppa" && -n "$ppa_search" ]]; then
       list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
-    elif grep -Eq '^deb ' "$list_file"; then
+    elif [ -e "$list_file" ] && grep -Eq '^deb ' "$list_file"; then
       list="$list_file"
     fi
     update_lists_helper "$list"
