@@ -27,6 +27,7 @@
 - Ubuntu 22.04 (Jammy) amd64
 - Debian 10 (Buster) amd64
 - Debian 11 (Bullseye) amd64
+- Debian 12 (Bookworm) amd64
 
 All other distributions based on the above operating systems will also be supported on best effort basis.
 
