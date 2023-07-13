@@ -1,0 +1,48 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 7 Jun 2023 10:11:02 +0200
+Subject: Increase random bytes in HTTP Digest authentication for SOAP Minimal
+ fix for GHSA-76gg-c692-v2mw
+
+(cherry picked from commit 66e67c73b83b42234530b6681dc16aac5efaf0f7)
+---
+ NEWS                | 6 ++++++
+ ext/soap/php_http.c | 7 +++++--
+ 2 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 27b96a6..45a03d6 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.0.29
++
++- Soap:
++  . Fixed bug GHSA-76gg-c692-v2mw (Missing error check and insufficient random
++    bytes in HTTP Digest authentication for SOAP). (nielsdos, timwolla)
++
+ Backported from 8.0.28
+ 
+ - Core:
+diff --git a/ext/soap/php_http.c b/ext/soap/php_http.c
+index 3246091..f3935cb 100644
+--- a/ext/soap/php_http.c
++++ b/ext/soap/php_http.c
+@@ -639,10 +639,13 @@ try_again:
+ 					char          HA1[33], HA2[33], response[33], cnonce[33], nc[9];
+ 					PHP_MD5_CTX   md5ctx;
+ 					unsigned char hash[16];
++					int i;
+ 
+ 					PHP_MD5Init(&md5ctx);
+-					snprintf(cnonce, sizeof(cnonce), "%ld", php_rand(TSRMLS_C));
+-					PHP_MD5Update(&md5ctx, (unsigned char*)cnonce, strlen(cnonce));
++					for (i = 0; i < 4; i++) { /* 16 bytes of randomness*/
++						snprintf(cnonce, sizeof(cnonce), "%ld", php_rand(TSRMLS_C));
++						PHP_MD5Update(&md5ctx, (unsigned char*)cnonce, strlen(cnonce));
++					}
+ 					PHP_MD5Final(hash, &md5ctx);
+ 					make_digest(cnonce, hash);
+ 

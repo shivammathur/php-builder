@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 20 Dec 2022 08:42:44 +0100
+Subject: adapt test for 5.x
+
+---
+ ext/pdo_sqlite/tests/bug81740.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pdo_sqlite/tests/bug81740.phpt b/ext/pdo_sqlite/tests/bug81740.phpt
+index 99fb07c..08947e3 100644
+--- a/ext/pdo_sqlite/tests/bug81740.phpt
++++ b/ext/pdo_sqlite/tests/bug81740.phpt
+@@ -10,7 +10,7 @@ memory_limit=-1
+ --FILE--
+ <?php
+ $pdo = new PDO("sqlite::memory:");
+-$string = str_repeat("a", 0x80000000);
++$string = str_repeat("a", 0x7fffffff);
+ var_dump($pdo->quote($string));
+ ?>
+ --EXPECT--

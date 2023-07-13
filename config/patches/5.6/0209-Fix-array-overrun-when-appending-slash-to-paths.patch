@@ -1,0 +1,65 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Fri, 27 Jan 2023 19:28:27 +0100
+Subject: Fix array overrun when appending slash to paths
+
+Fix it by extending the array sizes by one character. As the input is
+limited to the maximum path length, there will always be place to append
+the slash. As the php_check_specific_open_basedir() simply uses the
+strings to compare against each other, no new failures related to too
+long paths are introduced.
+We'll let the DOM and XML case handle a potentially too long path in the
+library code.
+
+(cherry picked from commit ec10b28d64decbc54aa1e585dce580f0bd7a5953)
+(cherry picked from commit 887cd0710ad856a0d22c329b6ea6c71ebd8621ae)
+(cherry picked from commit d43aca084651d395d1191a9751e2ea90036df09e)
+---
+ ext/dom/document.c            | 2 +-
+ ext/xmlreader/php_xmlreader.c | 2 +-
+ main/fopen_wrappers.c         | 6 +++---
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ext/dom/document.c b/ext/dom/document.c
+index 1970c38..7cf4464 100644
+--- a/ext/dom/document.c
++++ b/ext/dom/document.c
+@@ -1498,7 +1498,7 @@ static xmlDocPtr dom_document_parser(zval *id, int mode, char *source, int sourc
+ 	int validate, recover, resolve_externals, keep_blanks, substitute_ent;
+ 	int resolved_path_len;
+ 	int old_error_reporting = 0;
+-	char *directory=NULL, resolved_path[MAXPATHLEN];
++	char *directory=NULL, resolved_path[MAXPATHLEN + 1];
+ 
+ 	if (id != NULL) {
+ 		intern = (dom_object *)zend_object_store_get_object(id TSRMLS_CC);
+diff --git a/ext/xmlreader/php_xmlreader.c b/ext/xmlreader/php_xmlreader.c
+index 31208d8..7948b4c 100644
+--- a/ext/xmlreader/php_xmlreader.c
++++ b/ext/xmlreader/php_xmlreader.c
+@@ -1044,7 +1044,7 @@ PHP_METHOD(xmlreader, XML)
+ 	xmlreader_object *intern = NULL;
+ 	char *source, *uri = NULL, *encoding = NULL;
+ 	int resolved_path_len, ret = 0;
+-	char *directory=NULL, resolved_path[MAXPATHLEN];
++	char *directory=NULL, resolved_path[MAXPATHLEN + 1];
+ 	xmlParserInputBufferPtr inputbfr;
+ 	xmlTextReaderPtr reader;
+ 
+diff --git a/main/fopen_wrappers.c b/main/fopen_wrappers.c
+index af9c558..1554aaa 100644
+--- a/main/fopen_wrappers.c
++++ b/main/fopen_wrappers.c
+@@ -141,10 +141,10 @@ PHPAPI ZEND_INI_MH(OnUpdateBaseDir)
+ */
+ PHPAPI int php_check_specific_open_basedir(const char *basedir, const char *path TSRMLS_DC)
+ {
+-	char resolved_name[MAXPATHLEN];
+-	char resolved_basedir[MAXPATHLEN];
++	char resolved_name[MAXPATHLEN + 1];
++	char resolved_basedir[MAXPATHLEN + 1];
+ 	char local_open_basedir[MAXPATHLEN];
+-	char path_tmp[MAXPATHLEN];
++	char path_tmp[MAXPATHLEN + 1];
+ 	char *path_file;
+ 	int resolved_basedir_len;
+ 	int resolved_name_len;

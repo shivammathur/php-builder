@@ -1,0 +1,63 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Fri, 30 Dec 2022 14:31:40 +0100
+Subject: Fix GH-10187: Segfault in stripslashes() with arm64
+
+Closes GH-10188
+
+Co-authored-by: todeveni <toni.viemero@iki.fi>
+Signed-off-by: George Peter Banyard <girgias@php.net>
+---
+ ext/standard/string.c                   | 18 +++++++++++-------
+ ext/standard/tests/strings/gh10187.phpt |  8 ++++++++
+ 2 files changed, 19 insertions(+), 7 deletions(-)
+ create mode 100644 ext/standard/tests/strings/gh10187.phpt
+
+diff --git a/ext/standard/string.c b/ext/standard/string.c
+index 269a0ad..47873a2 100644
+--- a/ext/standard/string.c
++++ b/ext/standard/string.c
+@@ -3925,19 +3925,23 @@ static zend_always_inline char *php_stripslashes_impl(const char *str, char *out
+ 		quad_word q;
+ 		vst1q_u8(q.mem, vceqq_u8(x, vdupq_n_u8('\\')));
+ 		if (q.dw[0] | q.dw[1]) {
+-			int i = 0;
+-			for (; i < 16; i++) {
++			unsigned int i = 0;
++			while (i < 16) {
+ 				if (q.mem[i] == 0) {
+ 					*out++ = str[i];
++					i++;
+ 					continue;
+ 				}
+ 
+ 				i++;			/* skip the slash */
+-				char s = str[i];
+-				if (s == '0')
+-					*out++ = '\0';
+-				else
+-					*out++ = s;	/* preserve the next character */
++				if (i < len) {
++					char s = str[i];
++					if (s == '0')
++						*out++ = '\0';
++					else
++						*out++ = s;	/* preserve the next character */
++					i++;
++				}
+ 			}
+ 			str += i;
+ 			len -= i;
+diff --git a/ext/standard/tests/strings/gh10187.phpt b/ext/standard/tests/strings/gh10187.phpt
+new file mode 100644
+index 0000000..b42c95e
+--- /dev/null
++++ b/ext/standard/tests/strings/gh10187.phpt
+@@ -0,0 +1,8 @@
++--TEST--
++GH-10187 (Segfault in stripslashes() with arm64)
++--FILE--
++<?php
++var_dump(stripslashes("1234567890abcde\\"));
++?>
++--EXPECT--
++string(15) "1234567890abcde"

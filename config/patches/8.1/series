@@ -37,4 +37,6 @@
 0037-Include-all-libtool-files-from-phpize.m4.patch
 0038-In-phpize-also-copy-config.guess-config.sub-ltmain.s.patch
 0039-Don-t-use-hrtimers-on-GNU-Hurd.patch
-0040-ax_gcc_func_attribute-Revise-the-detection-of-unknow.patch
+0040-Fail-the-build-when-the-dtrace-call-fails.patch
+0041-Override-result-of-AC_PROG_LN_S-to-fix-FTBFS-on-ppc6.patch
+0042-Update-gcc-func-attr-macro.patch.patch

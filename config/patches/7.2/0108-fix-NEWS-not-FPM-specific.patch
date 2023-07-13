@@ -1,0 +1,22 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 14 Feb 2023 11:47:22 +0100
+Subject: fix NEWS, not FPM specific
+
+(cherry picked from commit c04f310440a906fc4ca885f4ecf6e3e4cd36edc7)
+---
+ NEWS | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 31ef566..be9216e 100644
+--- a/NEWS
++++ b/NEWS
+@@ -8,8 +8,6 @@ Backported from 8.0.28
+     (CVE-2023-0567). (Tim Düsterhus)
+   . Fixed bug #81746 (1-byte array overrun in common path resolve code).
+     (CVE-2023-0568). (Niels Dossche)
+-
+-- FPM:
+   . Fixed bug GHSA-54hq-v5wp-fqgv (DOS vulnerability when parsing multipart
+     request body). (CVE-2023-0662) (Jakub Zelenka)
+ 

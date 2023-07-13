@@ -1,0 +1,23 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 14 Feb 2023 09:14:47 +0100
+Subject: NEWS
+
+---
+ NEWS | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 8157a20..c166836 100644
+--- a/NEWS
++++ b/NEWS
+@@ -9,6 +9,10 @@ Backported from 8.0.28
+   . Fixed bug #81746 (1-byte array overrun in common path resolve code).
+     (CVE-2023-0568). (Niels Dossche)
+ 
++- FPM:
++  . Fixed bug GHSA-54hq-v5wp-fqgv (DOS vulnerability when parsing multipart
++    request body). (CVE-2023-0662) (Jakub Zelenka)
++
+ Backported from 8.0.27
+ 
+ - PDO/SQLite:

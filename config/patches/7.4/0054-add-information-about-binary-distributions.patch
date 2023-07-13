@@ -1,0 +1,30 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Fri, 9 Dec 2022 09:23:16 +0100
+Subject: add information about binary distributions
+
+---
+ README.md | 13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
+
+diff --git a/README.md b/README.md
+index 1aaedd9..cabdc18 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,15 @@
++# Sources
++
+ This is a fork of the official PHP repository which receives backport of security fixes from maintained branches.
+ 
+-This branch is PHP version 7.4.33 with security fix.
++This branch is **PHP version 7.4.33** with security fixes (see the NEWS file).
++
++# Binary distributions
++
++Known list of providers using this repository as sources for build of old PHP version with extended security support:
++
++## RPM
++
++### Fedora / RHEL / CentOS / AlmaLinux / RockyLinux
+ 
++* [Remi's RPM repository](https://rpms.remirepo.net/)
+\ No newline at end of file

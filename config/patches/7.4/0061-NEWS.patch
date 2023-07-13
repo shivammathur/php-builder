@@ -1,0 +1,27 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 13 Feb 2023 11:46:47 +0100
+Subject: NEWS
+
+---
+ NEWS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 03e8c83..8157a20 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,14 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.0.28
++
++- Core:
++  . Fixed bug #81744 (Password_verify() always return true with some hash).
++    (CVE-2023-0567). (Tim Düsterhus)
++  . Fixed bug #81746 (1-byte array overrun in common path resolve code).
++    (CVE-2023-0568). (Niels Dossche)
++
+ Backported from 8.0.27
+ 
+ - PDO/SQLite:

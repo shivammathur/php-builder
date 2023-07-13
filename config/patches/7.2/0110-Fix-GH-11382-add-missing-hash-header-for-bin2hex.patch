@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 6 Jun 2023 18:05:22 +0200
+Subject: Fix GH-11382 add missing hash header for bin2hex
+
+(cherry picked from commit 40439039c224bb8cdebd1b7b3d03b8cc11e7cce7)
+---
+ ext/soap/php_http.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/soap/php_http.c b/ext/soap/php_http.c
+index 15b086e..6903a3b 100644
+--- a/ext/soap/php_http.c
++++ b/ext/soap/php_http.c
+@@ -23,6 +23,7 @@
+ #include "ext/standard/base64.h"
+ #include "ext/standard/md5.h"
+ #include "ext/standard/php_random.h"
++#include "ext/hash/php_hash.h"
+ 
+ static char *get_http_header_value(char *headers, char *type);
+ static zend_string *get_http_body(php_stream *socketd, int close, char *headers);

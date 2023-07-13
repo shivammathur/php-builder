@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Mon, 19 Dec 2022 09:24:02 +0100
+Subject: NEWS
+
+(cherry picked from commit 7328f3a0344806b846bd05657bdce96e47810bf0)
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 5653be9..4876ceb 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.0.27
++
++- PDO/SQLite:
++  . Fixed bug #81740 (PDO::quote() may return unquoted string).
++    (CVE-2022-31631) (cmb)
++
+ Backported from 7.4.32
+ 
+ - Core:

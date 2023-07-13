@@ -67,3 +67,15 @@
 0070-Fix-regression-introduced-by-fixing-bug-81726.patch
 0071-fix-NEWS.patch
 0072-Fix-bug-81738-buffer-overflow-in-hash_update-on-long.patch
+0073-Fix-81740-PDO-quote-may-return-unquoted-string.patch
+0074-NEWS.patch
+0075-crypt-Fix-validation-of-malformed-BCrypt-hashes.patch
+0076-crypt-Fix-possible-buffer-overread-in-php_crypt.patch
+0077-Fix-array-overrun-when-appending-slash-to-paths.patch
+0078-NEWS.patch
+0079-Fix-repeated-warning-for-file-uploads-limit-exceedin.patch
+0080-Introduce-max_multipart_body_parts-INI.patch
+0081-NEWS.patch
+0082-fix-NEWS-not-FPM-specific.patch
+0083-Fix-missing-randomness-check-and-insufficient-random.patch
+0084-Fix-GH-11382-add-missing-hash-header-for-bin2hex.patch

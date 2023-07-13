@@ -131,3 +131,12 @@
 0134-Fix-81727-Don-t-mangle-HTTP-variable-names-that-clas.patch
 0135-Fix-81726-phar-wrapper-DOS-when-using-quine-gzip-fil.patch
 0136-Fix-regression-introduced-by-fixing-bug-81726.patch
+0137-fix-NEWS.patch
+0138-Fix-81740-PDO-quote-may-return-unquoted-string.patch
+0139-NEWS.patch
+0140-crypt-Fix-validation-of-malformed-BCrypt-hashes.patch
+0141-crypt-Fix-possible-buffer-overread-in-php_crypt.patch
+0142-Fix-array-overrun-when-appending-slash-to-paths.patch
+0143-NEWS.patch
+0144-Fix-missing-randomness-check-and-insufficient-random.patch
+0145-Fix-GH-11382-add-missing-hash-header-for-bin2hex.patch
