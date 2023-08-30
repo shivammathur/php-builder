@@ -16,7 +16,7 @@ on:
         required: false
       php-versions:
         description: 'PHP version to build'
-        default: '5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3'
+        default: '5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4'
         required: false
       container-os-versions:
         description: 'OS versions to build on'
@@ -28,7 +28,7 @@ on:
 env:
   CONTAINER_OS_LIST: ubuntu:focal ubuntu:jammy debian:buster debian:bullseye debian:bookworm
   RUNNER_OS_LIST: ubuntu-20.04 ubuntu-22.04
-  PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3
+  PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
   BUILD_LIST: nts zts
 

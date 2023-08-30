@@ -24,27 +24,27 @@ patch_pdo_sqlsrv() {
 
 patch_xdebug() {
   # Patch for xdebug on PHP 8.3.
-  sed -i 's/80300/80400/g' config.m4
+  sed -i 's/80400/80500/g' config.m4
 }
 
 patch_amqp() {
-  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
 }
 
 patch_memcache() {
-  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
 }
 
 patch_memcached() {
-  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
 }
 
 patch_redis() {
-  [ "$PHP_VERSION" = "8.3" ] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
 }
 
 patch_igbinary() {
-  [ "$PHP_VERSION" = "8.3" ] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
 }
 
 extension=$1
