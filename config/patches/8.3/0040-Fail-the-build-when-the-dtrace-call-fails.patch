@@ -14,8 +14,8 @@ index 921a78e..204c014 100644
  $abs_srcdir/$ac_provsrc:;
  
  $ac_bdir[$]ac_hdrobj: $abs_srcdir/$ac_provsrc
--	CPP="\$(CPP)" CC="\$(CC)" CFLAGS="\$(CFLAGS_CLEAN)" dtrace -h -C -s $ac_srcdir[$]ac_provsrc -o \$[]@.bak && \$(SED) -e 's,PHP_,DTRACE_,g' \$[]@.bak > \$[]@
-+	CPP="\$(CPP)" CC="\$(CC)" CFLAGS="\$(CFLAGS_CLEAN)" dtrace -h -C -s $ac_srcdir[$]ac_provsrc -o \$[]@.bak
+-	CC="\$(CC)" CFLAGS="\$(CFLAGS_CLEAN)" dtrace -h -C -s $ac_srcdir[$]ac_provsrc -o \$[]@.bak && \$(SED) -e 's,PHP_,DTRACE_,g' \$[]@.bak > \$[]@
++	CC="\$(CC)" CFLAGS="\$(CFLAGS_CLEAN)" dtrace -h -C -s $ac_srcdir[$]ac_provsrc -o \$[]@.bak
 +	\$(SED) -e 's,PHP_,DTRACE_,g' \$[]@.bak > \$[]@
  
  \$(PHP_DTRACE_OBJS): $ac_bdir[$]ac_hdrobj
