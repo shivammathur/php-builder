@@ -75,7 +75,7 @@ update_lists() {
       list="$list_file"
     fi
     update_lists_helper "$list"
-    echo '' | tee /tmp/setup_php >/dev/null 2>&1
+    [[ -n $ppa && -n $ppa_search ]] || echo '' | tee /tmp/setup_php >/dev/null 2>&1
   fi
 }
 
@@ -172,12 +172,16 @@ update_ppa() {
   . /etc/os-release
 }
 
+fix_broken_packages() {
+  sudo apt --fix-broken install >/dev/null 2>&1
+}
+
 install_packages() {
   packages=("$@")
   apt_mgr='apt-get'
   command -v apt-fast >/dev/null && apt_mgr='apt-fast'
   apt_install="sudo $debconf_fix $apt_mgr install -y --no-install-recommends"
-  $apt_install "${packages[@]}" 2>/dev/null || (update_lists && $apt_install "${packages[@]}")
+  $apt_install "${packages[@]}" || (update_lists && fix_broken_packages && $apt_install "${packages[@]}")
 }
 
 add_prerequisites() {
