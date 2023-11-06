@@ -214,10 +214,11 @@ local_deps() {
 }
 
 github_deps() {
-  if [ "$VERSION_ID" = "22.04" ]; then
-    install_packages unixodbc
-  fi
   add_ppa || update_ppa
+  if [ "$VERSION_ID" = "22.04" ]; then
+    [[ "$version" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
+    install_packages unixodbc "$libpcre_dev"
+  fi
   install_packages libgd-dev
 }
 
