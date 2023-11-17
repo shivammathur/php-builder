@@ -20,6 +20,7 @@ strip_debug() {
 copy_debug_symbols() {
   debug_symbols_dir="$FAKE_ROOT"/debian/.debhelper/php"$PHP_VERSION"/dbgsym-root/usr/lib/debug/.build-id
   if [ -d "$debug_symbols_dir" ]; then
-    cp -a "$debug_symbols_dir" "$INSTALL_ROOT"/usr/lib/debug
+    mkdir -p "$INSTALL_ROOT"/usr/lib/debug/.build-id
+    cp -a "$debug_symbols_dir"/* "$INSTALL_ROOT"/usr/lib/debug/.build-id
   fi
 }
