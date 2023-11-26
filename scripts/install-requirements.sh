@@ -250,6 +250,7 @@ install_packages apache2 \
                  librabbitmq-dev \
                  libreadline-dev \
                  libsasl2-dev \
+                 libsnmp-dev \
                  libsodium-dev \
                  libsqlite3-dev \
                  libssl-dev \
@@ -259,11 +260,13 @@ install_packages apache2 \
                  libwebp-dev \
                  libwrap0-dev \
                  libxml2-dev \
+                 libxmlrpc-epi-dev \
                  libxmltok1-dev \
                  libxpm-dev \
                  libxslt1-dev \
                  libyaml-dev \
                  libzip-dev \
+                 libzmq3-dev \
                  libzstd-dev \
                  locales-all \
                  netbase \

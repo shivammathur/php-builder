@@ -1,4 +1,4 @@
-pecl amqp
+pecl amqp-1.11.0
 pecl apcu
 pecl ast-1.0.16
 pecl ds-1.3.0
@@ -7,9 +7,10 @@ pecl imagick
 pecl memcache-4.0.5.2
 pecl mongodb-1.9.2
 pecl msgpack
-pecl redis
+pecl redis-5.3.7
 pecl sqlsrv-5.9.0
 pecl pdo_sqlsrv-5.9.0
 pecl xdebug-2.9.0
 pecl yaml-2.0.4
 pecl memcached
+git zmq https://github.com/zeromq/php-zmq master
