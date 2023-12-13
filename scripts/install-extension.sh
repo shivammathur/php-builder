@@ -47,6 +47,10 @@ patch_igbinary() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
 }
 
+patch_pcov() {
+	[[ "$PHP_VERSION" = "8.4" ]] && sed -i 's/0, 0, 0, 0/0, 0, 0/' pcov.c
+}
+
 extension=$1
 repo=$2
 tag=$3
