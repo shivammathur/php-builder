@@ -41,6 +41,11 @@ patch_memcached() {
 
 patch_redis() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
+  if [[ "$PHP_VERSION" = "8.4" ]]; then
+    sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" library.c
+    sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" -e "/php_mt_rand.h/d" backoff.c
+    sed -i -e "s|standard/php_random.h|ext/random/php_random.h|" redis.c
+  fi  
 }
 
 patch_igbinary() {
