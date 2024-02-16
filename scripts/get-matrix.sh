@@ -4,6 +4,7 @@ container_os_json_array=()
 runner_os_json_array=()
 test_container_os_json_array=()
 test_runner_os_json_array=()
+container_only='true'
 
 # Store input container os versions in container_os_array,
 # Store input runner os versions in runner_os_array,
@@ -54,6 +55,14 @@ for os in "${runner_os_array[@]}"; do
   done
 done
 
+for runner_os in "${runner_os_array[@]}"; do
+  conatiner_runner_os="${runner_os//-/:}"
+  if [[ $CONTAINER_OS_LIST != *$conatiner_runner_os* ]]; then
+    container_only='false'
+    break
+  fi
+done
+
 # Output the matrices.
 (
   # shellcheck disable=SC2001
@@ -64,4 +73,5 @@ done
   echo "test_container_os_matrix={\"include\":[$(echo "${test_container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
   # shellcheck disable=SC2001
   echo "test_runner_os_matrix={\"include\":[$(echo "${test_runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+  echo "container_only=$container_only"
 ) >> "$GITHUB_OUTPUT"
