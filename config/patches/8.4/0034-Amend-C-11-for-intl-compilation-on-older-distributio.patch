@@ -1,19 +1,25 @@
-From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
-Date: Wed, 10 Apr 2019 06:31:27 +0000
-Subject: Amend C++11 for intl compilation on older distributions
+From 3ed2885d2ed27bf4ab1063cbb927f409af08da30 Mon Sep 17 00:00:00 2001
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Fri, 23 Feb 2024 00:47:40 +0000
+Subject: [PATCH] Amend C++11 for intl compilation on older distributions
 
 ---
- ext/intl/config.m4 |    2 +-
+ ext/intl/config.m4 | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
+diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
+index 48f5147ca7..0fd8c13b1a 100644
 --- a/ext/intl/config.m4
 +++ b/ext/intl/config.m4
-@@ -86,7 +86,7 @@ if test "$PHP_INTL" != "no"; then
+@@ -90,7 +90,7 @@ if test "$PHP_INTL" != "no"; then
+     PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)
+   ])
  
-   PHP_REQUIRE_CXX()
-   PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)
 -  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS"
 +  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS -std=c++11"
    case $host_alias in
    *cygwin*) PHP_INTL_CXX_FLAGS="$PHP_INTL_CXX_FLAGS -D_POSIX_C_SOURCE=200809L"
    esac
+-- 
+2.43.0
+
