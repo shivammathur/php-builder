@@ -402,8 +402,9 @@ if [ "$debug" = "debug" ]; then
 fi
 
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
-list_file='/etc/apt/sources.list'
-list_dir="$list_file.d"
+list_dir='/etc/apt/sources.list.d'
+list_file="$list_dir/ubuntu.sources"
+[ -e "$list_file" ] || list_file='/etc/apt/sources.list'
 debconf_fix='DEBIAN_FRONTEND=noninteractive'
 upstream_lsb='/etc/upstream-release/lsb-release'
 lp_api='https://api.launchpad.net/1.0'

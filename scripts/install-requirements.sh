@@ -145,8 +145,9 @@ if [ -z "${BUILD}" ]; then
 fi
 
 # Constants.
-list_file='/etc/apt/sources.list'
-list_dir="$list_file.d"
+list_dir='/etc/apt/sources.list.d'
+list_file="$list_dir/ubuntu.sources"
+[ -e "$list_file" ] || list_file='/etc/apt/sources.list'
 lp_api='https://api.launchpad.net/1.0'
 lp_ppa='http://ppa.launchpad.net'
 key_dir='/usr/share/keyrings'
