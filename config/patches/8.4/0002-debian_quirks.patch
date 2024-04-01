@@ -100,14 +100,15 @@ Subject: debian_quirks
  	scripts/phpize.m4 \
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
-@@ -6,11 +6,11 @@ datarootdir="@datarootdir@"
+@@ -6,12 +6,12 @@ datarootdir="@datarootdir@"
  exec_prefix="@exec_prefix@"
  version="@PHP_VERSION@"
  vernum="@PHP_VERSION_ID@"
 -include_dir="@includedir@/php"
++include_dir="@includedir@/php/@DEBIAN_PHP_API@"
+ lib_dir="@orig_libdir@"
 -includes="-I$include_dir -I$include_dir/main -I$include_dir/TSRM -I$include_dir/Zend -I$include_dir/ext -I$include_dir/ext/date/lib"
 -ldflags="@PHP_LDFLAGS@"
-+include_dir="@includedir@/php/@DEBIAN_PHP_API@"
 +includes="-I$include_dir -I$include_dir/main -I$include_dir/TSRM -I$include_dir/Zend -I$include_dir/ext -I$include_dir/ext/date/lib $(getconf LFS_CFLAGS)"
 +ldflags="-L$prefix/lib/php/@DEBIAN_PHP_API@ @PHP_LDFLAGS@"
  libs="@EXTRA_LIBS@"

@@ -9,7 +9,7 @@ Subject: extension_api
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1323,8 +1323,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND
+@@ -1401,8 +1401,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
@@ -21,7 +21,7 @@ Subject: extension_api
    if test "$oldstyleextdir" = "yes"; then
      if test "$PHP_DEBUG" = "1"; then
        part1=debug
-@@ -1458,6 +1460,7 @@ PHP_SUBST(CXX)
+@@ -1534,6 +1536,7 @@ PHP_SUBST(CXX)
  PHP_SUBST(CXXFLAGS)
  PHP_SUBST(CXXFLAGS_CLEAN)
  PHP_SUBST_OLD(DEBUG_CFLAGS)
@@ -31,16 +31,16 @@ Subject: extension_api
  PHP_SUBST_OLD(EXTRA_LDFLAGS_PROGRAM)
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
-@@ -19,6 +19,7 @@ php_cli_binary=NONE
+@@ -20,6 +20,7 @@ php_cli_binary=NONE
  php_cgi_binary=NONE
  configure_options="@CONFIGURE_OPTIONS@"
  php_sapis="@PHP_INSTALLED_SAPIS@"
 +phpapi="@DEBIAN_PHP_API@"
  ini_dir="@EXPANDED_PHP_CONFIG_FILE_SCAN_DIR@"
  ini_path="@EXPANDED_PHP_CONFIG_FILE_PATH@"
- 
-@@ -59,6 +60,8 @@ case "$1" in
-   echo $include_dir;;
+ php_embed_type="@PHP_EMBED_TYPE@"
+@@ -72,6 +73,8 @@ case "$1" in
+   echo $php_embed_lib;;
  --php-binary)
    echo $php_binary;;
 +--phpapi)
@@ -48,7 +48,7 @@ Subject: extension_api
  --php-sapis)
    echo $php_sapis;;
  --configure-options)
-@@ -86,6 +89,7 @@ Options:
+@@ -101,6 +104,7 @@ Options:
    --man-dir           [$man_dir]
    --php-binary        [$php_binary]
    --php-sapis         [$php_sapis]

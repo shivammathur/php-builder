@@ -9,7 +9,7 @@ Subject: expose_all_built_and_installed_apis
 
 --- a/scripts/man1/php-config.1.in
 +++ b/scripts/man1/php-config.1.in
-@@ -44,7 +44,7 @@ Full path to php CLI or CGI binary
+@@ -52,7 +52,7 @@ Full path to php CLI or CGI binary
  .TP
  .PD 0
  .B \-\-php-sapis
@@ -20,7 +20,7 @@ Subject: expose_all_built_and_installed_apis
  .B \-\-configure-options
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
-@@ -18,11 +18,14 @@ exe_extension="@EXEEXT@"
+@@ -19,12 +19,15 @@ exe_extension="@EXEEXT@"
  php_cli_binary=NONE
  php_cgi_binary=NONE
  configure_options="@CONFIGURE_OPTIONS@"
@@ -29,6 +29,7 @@ Subject: expose_all_built_and_installed_apis
  phpapi="@DEBIAN_PHP_API@"
  ini_dir="@EXPANDED_PHP_CONFIG_FILE_SCAN_DIR@"
  ini_path="@EXPANDED_PHP_CONFIG_FILE_PATH@"
+ php_embed_type="@PHP_EMBED_TYPE@"
  
 +# Query the dpkg database for available PHP sapis
 +php_sapis='apache2handler cli cgi embed fpm phpdbg'

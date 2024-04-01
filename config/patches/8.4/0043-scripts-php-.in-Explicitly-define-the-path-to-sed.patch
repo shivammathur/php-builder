@@ -38,5 +38,5 @@ index 0dcfe21..0d71e79 100644
 -SED="@SED@"
 +SED="/bin/sed"
  
- libtool_version=$(dpkg-query -f'${Version}' -W libtool)
- aclocaldir="$prefix/share/aclocal"
+ FILES_BUILD="php.m4 shtool libtool.m4 ax_check_compile_flag.m4 ax_gcc_func_attribute.m4 php_cxx_compile_stdcxx.m4 pkg.m4 \
+     config.guess config.sub ltmain.sh Makefile.global gen_stub.php"
