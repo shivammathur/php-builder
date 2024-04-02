@@ -31,6 +31,12 @@ set_base_version_id() {
   done
 }
 
+add_proposed() {
+  command -v sudo >/dev/null && SUDO=sudo
+  ${SUDO} sed -i "s/: $VERSION_CODENAME/: $VERSION_CODENAME-proposed $VERSION_CODENAME/" "$list_file"
+  echo -e "Package: *\nPin: release a=$VERSION_CODENAME-proposed\nPin-Priority: 500" | ${SUDO} tee /etc/apt/preferences.d/proposed-updates
+}
+
 set_base_version_codename() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
   if [[ "$ID_LIKE" =~ ubuntu ]]; then
@@ -71,7 +77,7 @@ update_lists() {
   if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
     if [[ -n "$ppa" && -n "$ppa_search" ]]; then
       list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
-    elif [ -e "$list_file" ] && grep -Eq '^deb ' "$list_file"; then
+    elif [ -e "$list_file" ] && grep -Eq '^deb |^Types deb' "$list_file"; then
       list="$list_file"
     fi
     update_lists_helper "$list"
@@ -262,6 +268,7 @@ extract_build() {
 
 install() {
   to_wait=()
+  [ "$VERSION_ID" = "24.04" ] && add_proposed
   if [ "$1" != "github" ]; then
     add_prerequisites
     set_base_version
