@@ -27,7 +27,6 @@
 0027-php-5.6.0-oldpcre.patch
 0028-hack-phpdbg-to-explicitly-link-with-libedit.patch
 0029-Fix-ZEND_MM_ALIGNMENT-on-m64k.patch
-0030-Remove-W3C-validation-icon-to-not-expose-the-reader-.patch
 0031-Don-t-put-INSTALL_ROOT-into-phar.phar-exec-stanza.patch
 0032-Really-expand-libdir-datadir-into-EXPANDED_LIBDIR-DA.patch
 0033-Fix-ext-date-lib-parse_tz-PATH_MAX-HURD-FTBFS.patch
