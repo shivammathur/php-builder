@@ -4,7 +4,7 @@ container_os_json_array=()
 runner_os_json_array=()
 test_container_os_json_array=()
 test_runner_os_json_array=()
-container_only='true'
+container_only='false'
 
 # Store input container os versions in container_os_array,
 # Store input runner os versions in runner_os_array,
@@ -56,9 +56,9 @@ for os in "${runner_os_array[@]}"; do
 done
 
 for runner_os in "${runner_os_array[@]}"; do
-  conatiner_runner_os="${runner_os//-/:}"
-  if [[ $CONTAINER_OS_LIST != *$conatiner_runner_os* ]]; then
-    container_only='false'
+  container_runner_os="${runner_os//-/:}"
+  if [[ $CONTAINER_OS_LIST != *$container_runner_os* ]]; then
+    container_only='true'
     break
   fi
 done
