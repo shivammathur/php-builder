@@ -86,7 +86,7 @@ Subject: php-5.4.7-libdb
  PHP_MINIT_FUNCTION(dba);
  PHP_MSHUTDOWN_FUNCTION(dba);
  PHP_MINFO_FUNCTION(dba);
-@@ -386,6 +390,10 @@ PHP_MINFO_FUNCTION(dba)
+@@ -445,6 +449,10 @@ PHP_MINFO_FUNCTION(dba)
  
  	php_info_print_table_start();
  	php_info_print_table_row(2, "DBA support", "enabled");
