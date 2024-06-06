@@ -42,4 +42,4 @@
 0042-Update-gcc-func-attr-macro.patch
 0043-scripts-php-.in-Explicitly-define-the-path-to-sed.patch
 0044-Remove-timestamps-from-phar.patch
-
+0045-method-visibility-issue.patch
