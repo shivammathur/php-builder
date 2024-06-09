@@ -25,6 +25,7 @@
 
 - Ubuntu 20.04 (Focal) amd64
 - Ubuntu 22.04 (Jammy) amd64
+- Ubuntu 24.04 (Noble) amd64
 - Debian 11 (Bullseye) amd64
 - Debian 12 (Bookworm) amd64
 
