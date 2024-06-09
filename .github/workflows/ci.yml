@@ -20,13 +20,13 @@ on:
         required: false
       container-os-versions:
         description: 'OS versions to build on'
-        default: 'ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:10 debian:11 debian:12'
+        default: 'ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:11 debian:12'
         required: false
   schedule:
     - cron: '0 0 1-31/2 * *'
 
 env:
-  CONTAINER_OS_LIST: ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:10 debian:11 debian:12
+  CONTAINER_OS_LIST: ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:11 debian:12
   RUNNER_OS_LIST: ubuntu-20.04 ubuntu-22.04 ubuntu-24.04
   PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
