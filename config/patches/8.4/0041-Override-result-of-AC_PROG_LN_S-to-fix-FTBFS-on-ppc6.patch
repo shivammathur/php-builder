@@ -10,7 +10,7 @@ diff --git a/configure.ac b/configure.ac
 index 143e397..f119c24 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -135,6 +135,11 @@ AC_PROG_CPP
+@@ -139,6 +139,11 @@ AC_PROG_CPP
  AC_USE_SYSTEM_EXTENSIONS
  AC_PROG_LN_S
  
@@ -19,6 +19,6 @@ index 143e397..f119c24 100644
 +  LN_S='ln -s'
 +fi
 +
- if test "$cross_compiling" = yes ; then
-   AC_MSG_CHECKING(for native build C compiler)
-   AC_CHECK_PROGS(BUILD_CC, [gcc clang c99 c89 cc cl],none)
+ AS_VAR_IF([cross_compiling], [yes],
+   [AC_CHECK_PROGS([BUILD_CC], [gcc clang c99 c89 cc cl], [none])
+     AC_MSG_CHECKING([for native build C compiler])

@@ -14,7 +14,7 @@ Subject: php-5.3.9-gnusrc
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -80,6 +80,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])
+@@ -82,6 +82,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
  AC_DEFUN([PHP_EXT_SRCDIR],[$abs_srcdir/$config_m4_dir])dnl
  AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl
  
@@ -26,7 +26,7 @@ Subject: php-5.3.9-gnusrc
 --- a/ext/pdo_firebird/firebird_driver.c
 +++ b/ext/pdo_firebird/firebird_driver.c
 @@ -18,10 +18,6 @@
- #include "config.h"
+ #include <config.h>
  #endif
  
 -#ifndef _GNU_SOURCE
