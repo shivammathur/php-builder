@@ -8,21 +8,21 @@ Subject: Fix ZEND_MM_ALIGNMENT on m64k
 
 --- a/Zend/Zend.m4
 +++ b/Zend/Zend.m4
-@@ -256,7 +256,7 @@ typedef union _mm_align_test {
+@@ -346,7 +346,7 @@ typedef union _mm_align_test {
  
- int main()
+ int main(void)
  {
 -  size_t i = ZEND_MM_ALIGNMENT;
 +  size_t i = ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT;
    int zeros = 0;
    FILE *fp;
  
-@@ -266,7 +266,7 @@ int main()
-   }
+@@ -357,7 +357,7 @@ int main(void)
  
    fp = fopen("conftest.zend", "w");
--  fprintf(fp, "(size_t)%zu (size_t)%d %d\n", ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
-+  fprintf(fp, "(size_t)%zu (size_t)%d %d\n", ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
+   fprintf(fp, "(size_t)%zu (size_t)%d %d\n",
+-    ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
++    ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros, ZEND_MM_ALIGNMENT < 4);
    fclose(fp);
  
    return 0;
