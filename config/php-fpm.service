@@ -9,6 +9,7 @@ ExecStart=/usr/sbin/php-fpmPHP_VERSION --nodaemonize --fpm-config /etc/php/PHP_V
 ExecStartPost=-/usr/lib/php/php-fpm-socket-helper install /run/php/php-fpm.sock /etc/php/PHP_VERSION/fpm/pool.d/www.conf NO_DOT
 ExecStopPost=-/usr/lib/php/php-fpm-socket-helper remove /run/php/php-fpm.sock /etc/php/PHP_VERSION/fpm/pool.d/www.conf NO_DOT
 ExecReload=/bin/kill -USR2 $MAINPID
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
