@@ -9,26 +9,26 @@ Subject: extension_api
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1401,8 +1401,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
+@@ -1384,8 +1384,11 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
 +DEBIAN_PHP_API=$ZEND_MODULE_API_NO
 +
  if test -z "$EXTENSION_DIR"; then
--  extbasedir=$ZEND_MODULE_API_NO
+   extbasedir=$ZEND_MODULE_API_NO
 +  extbasedir=$DEBIAN_PHP_API
    if test "$oldstyleextdir" = "yes"; then
      if test "$PHP_DEBUG" = "1"; then
        part1=debug
-@@ -1534,6 +1536,7 @@ PHP_SUBST(CXX)
- PHP_SUBST(CXXFLAGS)
- PHP_SUBST(CXXFLAGS_CLEAN)
- PHP_SUBST_OLD(DEBUG_CFLAGS)
-+PHP_SUBST_OLD(DEBIAN_PHP_API)
- PHP_SUBST_OLD(EXTENSION_DIR)
- PHP_SUBST_OLD(EXTRA_LDFLAGS)
- PHP_SUBST_OLD(EXTRA_LDFLAGS_PROGRAM)
+@@ -1514,6 +1517,7 @@ PHP_SUBST([CPPFLAGS])
+ PHP_SUBST([CXX])
+ PHP_SUBST([CXXFLAGS])
+ PHP_SUBST([CXXFLAGS_CLEAN])
++PHP_SUBST_OLD([DEBIAN_PHP_API])
+ PHP_SUBST_OLD([EXTENSION_DIR])
+ PHP_SUBST([EXTRA_LDFLAGS])
+ PHP_SUBST([EXTRA_LDFLAGS_PROGRAM])
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
 @@ -20,6 +20,7 @@ php_cli_binary=NONE
