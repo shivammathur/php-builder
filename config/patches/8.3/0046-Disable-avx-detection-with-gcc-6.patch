@@ -1,0 +1,43 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 2 Dec 2023 22:09:36 +0100
+Subject: Disable avx detection with gcc < 6
+
+---
+ Zend/zend_cpuinfo.h | 17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/Zend/zend_cpuinfo.h b/Zend/zend_cpuinfo.h
+index 9d221c5..244bb4c 100644
+--- a/Zend/zend_cpuinfo.h
++++ b/Zend/zend_cpuinfo.h
+@@ -186,9 +186,14 @@ static inline int zend_cpu_supports_avx512(void) {
+ #if PHP_HAVE_BUILTIN_CPU_INIT
+ 	__builtin_cpu_init();
+ #endif
+-	return __builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512dq")
+-		&& __builtin_cpu_supports("avx512cd") && __builtin_cpu_supports("avx512bw")
+-		&& __builtin_cpu_supports("avx512vl");
++	return __builtin_cpu_supports("avx512f")
++#if (__GNUC__ > 5)
++		&& __builtin_cpu_supports("avx512dq")
++		&& __builtin_cpu_supports("avx512cd")
++		&& __builtin_cpu_supports("avx512bw")
++		&& __builtin_cpu_supports("avx512vl")
++#endif
++		;
+ }
+ #endif
+ 
+@@ -198,7 +203,11 @@ static inline int zend_cpu_supports_avx512_vbmi(void) {
+ #if PHP_HAVE_BUILTIN_CPU_INIT
+ 	__builtin_cpu_init();
+ #endif
+-	return zend_cpu_supports_avx512() && __builtin_cpu_supports("avx512vbmi");
++	return zend_cpu_supports_avx512()
++#if (__GNUC__ > 5)
++		&& __builtin_cpu_supports("avx512vbmi")
++#endif
++		;
+ }
+ #endif
+ 
