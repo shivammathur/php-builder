@@ -225,6 +225,7 @@ install_packages apache2 \
                  libffi-dev \
                  libfreetype6-dev \
                  libraqm-dev \
+                 libimagequant-dev \
                  "$libgcc_dev" \
                  "$libgccjit_dev" \
                  libgcrypt20-dev \
