@@ -224,6 +224,7 @@ install_packages apache2 \
                  libexpat1-dev \
                  libffi-dev \
                  libfreetype6-dev \
+                 libraqm-dev \
                  "$libgcc_dev" \
                  "$libgccjit_dev" \
                  libgcrypt20-dev \
