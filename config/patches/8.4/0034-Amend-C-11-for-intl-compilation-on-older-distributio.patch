@@ -11,15 +11,15 @@ diff --git a/ext/intl/config.m4 b/ext/intl/config.m4
 index 48f5147ca7..0fd8c13b1a 100644
 --- a/ext/intl/config.m4
 +++ b/ext/intl/config.m4
-@@ -90,7 +90,7 @@ if test "$PHP_INTL" != "no"; then
+@@ -95,7 +95,7 @@ if test "$PHP_INTL" != "no"; then
      PHP_CXX_COMPILE_STDCXX(11, mandatory, PHP_INTL_STDCXX)
    ])
  
 -  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS"
 +  PHP_INTL_CXX_FLAGS="$INTL_COMMON_FLAGS $PHP_INTL_STDCXX $ICU_CXXFLAGS -std=c++11"
-   case $host_alias in
-   *cygwin*) PHP_INTL_CXX_FLAGS="$PHP_INTL_CXX_FLAGS -D_POSIX_C_SOURCE=200809L"
-   esac
+   AS_CASE([$host_alias], [*cygwin*],
+     [PHP_INTL_CXX_FLAGS="$PHP_INTL_CXX_FLAGS -D_POSIX_C_SOURCE=200809L"])
+   AS_VAR_IF([ext_shared], [no],
 -- 
 2.43.0
 

@@ -23,4 +23,3 @@ index a67c9d210c..fcbc5e656f 100644
  # undef  ZEND_HRTIME_PLATFORM_POSIX
  # define ZEND_HRTIME_PLATFORM_POSIX 1
  #elif defined(_WIN32) || defined(_WIN64)
- 
