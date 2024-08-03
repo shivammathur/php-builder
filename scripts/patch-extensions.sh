@@ -1,3 +1,8 @@
+# Function to patch ast source.
+patch_ast() {
+  [[ "$PHP_VERSION" = "8.4" ]] && sed -i '/ast_register_flag_constant("DIM_ALTERNATIVE_SYNTAX/d' ast.c
+}
+
 # Function to patch imagick source.
 patch_imagick() {
   sed -i 's/spl_ce_Countable/zend_ce_countable/' imagick.c util/checkSymbols.php
