@@ -3,17 +3,15 @@ Date: Sat, 2 May 2015 10:26:57 +0200
 Subject: hack-phpdbg-to-explicitly-link-with-libedit
 
 ---
- sapi/phpdbg/config.m4 |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ sapi/phpdbg/config.m4 | 2 ++
+ 1 file changed, 2 insertions(+)
 
 --- a/sapi/phpdbg/config.m4
 +++ b/sapi/phpdbg/config.m4
-@@ -34,7 +34,9 @@ if test "$PHP_PHPDBG" != "no"; then
-   if test "$PHP_PHPDBG_READLINE" = "yes"; then
-     if test "$PHP_READLINE" != "no" || test "$PHP_LIBEDIT" != "no"; then
-       AC_DEFINE(HAVE_PHPDBG_READLINE, 1, [ ])
--      PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
-+#     PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
+@@ -35,6 +35,8 @@ if test "$PHP_PHPDBG" != "no"; then
+       AC_DEFINE([HAVE_PHPDBG_READLINE], [1],
+         [Define to 1 if the phpdbg SAPI has libedit/readline integration.])
+       PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
 +# Temporary hack until this gets fixed
 +      PHPDBG_EXTRA_LIBS="-ledit -ltermcap"
        AC_MSG_RESULT([ok])
