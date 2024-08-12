@@ -9,19 +9,19 @@ Subject: extension_api
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1384,8 +1384,11 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
+@@ -1336,8 +1336,11 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
 +DEBIAN_PHP_API=$ZEND_MODULE_API_NO
 +
- if test -z "$EXTENSION_DIR"; then
+ AS_VAR_IF([EXTENSION_DIR],, [
    extbasedir=$ZEND_MODULE_API_NO
 +  extbasedir=$DEBIAN_PHP_API
-   if test "$oldstyleextdir" = "yes"; then
-     if test "$PHP_DEBUG" = "1"; then
-       part1=debug
-@@ -1514,6 +1517,7 @@ PHP_SUBST([CPPFLAGS])
+   AS_VAR_IF([oldstyleextdir], [yes], [
+     AS_VAR_IF([PHP_DEBUG], [1], [part1=debug], [part1=no-debug])
+     AS_VAR_IF([PHP_THREAD_SAFETY], [yes], [part2=zts], [part2=non-zts])
+@@ -1452,6 +1455,7 @@ PHP_SUBST([CPPFLAGS])
  PHP_SUBST([CXX])
  PHP_SUBST([CXXFLAGS])
  PHP_SUBST([CXXFLAGS_CLEAN])

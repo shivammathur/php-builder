@@ -14,9 +14,9 @@ Subject: php-5.3.9-gnusrc
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -82,6 +82,8 @@ AC_DEFUN([PHP_EXT_DIR],[$config_m4_dir])dnl
- AC_DEFUN([PHP_EXT_SRCDIR],[$abs_srcdir/$config_m4_dir])dnl
- AC_DEFUN([PHP_ALWAYS_SHARED],[])dnl
+@@ -76,6 +76,8 @@ PHP_SUBST([PHP_MINOR_VERSION])
+ PHP_SUBST([PHP_RELEASE_VERSION])
+ PHP_SUBST([PHP_EXTRA_VERSION])
  
 +AC_DEFINE([_GNU_SOURCE], 1, [Define to enable GNU C Library extensions])
 +

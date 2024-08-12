@@ -22,28 +22,20 @@ Subject: temporary-path-fixes-for-multiarch
          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 --- a/ext/gmp/config.m4
 +++ b/ext/gmp/config.m4
-@@ -11,7 +11,7 @@ if test "$PHP_GMP" != "no"; then
+@@ -12,7 +12,7 @@ if test "$PHP_GMP" != "no"; then
  
-     PHP_ADD_LIBRARY([gmp],, [GMP_SHARED_LIBADD])
-   else
--    if test ! -f $PHP_GMP/include/gmp.h; then
-+    if test ! -f $PHP_GMP/include/gmp.h -a test ! -f $PHP_GMP/$DEB_HOST_MULTIARCH/include/gmp.h; then
-       AC_MSG_ERROR([Unable to locate gmp.h])
-     fi
+   AS_VAR_IF([gmp_found], [no], [AS_VAR_IF([PHP_GMP], [yes], [GMP_LIBS=-lgmp], [
+     GMP_LIBS="-L$PHP_GMP/$PHP_LIBDIR -lgmp"
+-    GMP_CFLAGS="-I$PHP_GMP/include"
++    GMP_CFLAGS="-I$PHP_GMP/$DEB_HOST_MULTIARCH/include"
+   ])])
  
-@@ -24,6 +24,7 @@ if test "$PHP_GMP" != "no"; then
-       [$PHP_GMP/$PHP_LIBDIR],
-       [GMP_SHARED_LIBADD])
-     PHP_ADD_INCLUDE([$PHP_GMP/include])
-+    PHP_ADD_INCLUDE([$PHP_GMP/include/$DEB_HOST_MULTIARCH])
-   fi
- 
-   PHP_INSTALL_HEADERS([ext/gmp], [php_gmp_int.h])
+   dnl Sanity check.
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
-@@ -71,11 +71,11 @@ if test "$PHP_LDAP" != "no"; then
-   dnl -pc removal is a hack for clang
-   MACHINE_INCLUDES=$($CC -dumpmachine | $SED 's/-pc//')
+@@ -72,11 +72,11 @@ if test "$PHP_LDAP" != "no"; then
+   AH_TEMPLATE([HAVE_ORALDAP],
+     [Define to 1 if the ldap extension uses the Oracle Instant Client.])
  
 -  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.a || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/liblber.$SHLIB_SUFFIX_NAME; then
 +  if test -f $LDAP_LIBDIR/liblber.a || test -f $LDAP_LIBDIR/liblber.$SHLIB_SUFFIX_NAME || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.a || test -f $LDAP_LIBDIR/$DEB_HOST_MULTIARCH/liblber.$SHLIB_SUFFIX_NAME; then
@@ -57,9 +49,9 @@ Subject: temporary-path-fixes-for-multiarch
    elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
 --- a/ext/pdo_dblib/config.m4
 +++ b/ext/pdo_dblib/config.m4
-@@ -32,7 +32,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
-       PHP_LIBDIR=lib
-     fi
+@@ -24,7 +24,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
+ 
+     AS_VAR_IF([PHP_LIBDIR],, [PHP_LIBDIR=lib])
  
 -    if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
 +    if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libsybdb.so" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
