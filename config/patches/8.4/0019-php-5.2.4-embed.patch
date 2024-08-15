@@ -9,11 +9,11 @@ Subject: php-5.2.4-embed
 --- a/sapi/embed/config.m4
 +++ b/sapi/embed/config.m4
 @@ -12,7 +12,7 @@ if test "$PHP_EMBED" != "no"; then
-     yes|shared)
+     [yes|shared], [
        LIBPHP_CFLAGS="-shared"
        PHP_EMBED_TYPE=shared
 -      INSTALL_IT="\$(mkinstalldirs) \$(INSTALL_ROOT)\$(orig_libdir); \$(INSTALL) -m 0755 $SAPI_SHARED \$(INSTALL_ROOT)\$(orig_libdir)"
-+      INSTALL_IT="\$(mkinstalldirs) \$(INSTALL_ROOT)\$(libdir); \$(LIBTOOL) --mode=install \$(INSTALL) -m 0755 \$(OVERALL_TARGET) \$(INSTALL_ROOT)\$(libdir)"
-       ;;
-     static)
++      INSTALL_IT="\$(mkinstalldirs) \$(INSTALL_ROOT)\$(orig_libdir); \$(LIBTOOL) --mode=install \$(INSTALL) -m 0755 \$(OVERALL_TARGET) \$(INSTALL_ROOT)\$(orig_libdir)"
+     ],
+     [static], [
        LIBPHP_CFLAGS="-static"
