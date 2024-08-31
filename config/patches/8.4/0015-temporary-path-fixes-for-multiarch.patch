@@ -3,34 +3,26 @@ Date: Sat, 2 May 2015 10:26:54 +0200
 Subject: temporary-path-fixes-for-multiarch
 
 ---
- ext/dba/config.m4       |    2 +-
- ext/gmp/config.m4       |    3 ++-
- ext/ldap/config.m4      |    7 ++-----
- ext/pdo_dblib/config.m4 |    2 +-
- 4 files changed, 6 insertions(+), 8 deletions(-)
+ ext/dba/config.m4       | 2 +-
+ ext/ldap/config.m4      | 4 ++--
+ ext/pdo_dblib/config.m4 | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
+diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
+index ef58820..943864f 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -302,7 +302,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
-     AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
-   fi
-   for LIB in $2; do
+@@ -336,7 +336,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
+   AS_VAR_IF([THIS_INCLUDE],,
+     [AC_MSG_ERROR([DBA: Could not find necessary header file(s).])])
+   for LIB in m4_normalize([$2]); do
 -    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
 +    if test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.a || test -f $THIS_PREFIX/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/lib$LIB.$SHLIB_SUFFIX_NAME || test -f $THIS_PREFIX/$PHP_LIBDIR/lib$LIB.$SHLIB_SUFFIX_NAME; then
        lib_found="";
-       PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
-         AC_LINK_IFELSE([AC_LANG_PROGRAM([[
---- a/ext/gmp/config.m4
-+++ b/ext/gmp/config.m4
-@@ -12,7 +12,7 @@ if test "$PHP_GMP" != "no"; then
- 
-   AS_VAR_IF([gmp_found], [no], [AS_VAR_IF([PHP_GMP], [yes], [GMP_LIBS=-lgmp], [
-     GMP_LIBS="-L$PHP_GMP/$PHP_LIBDIR -lgmp"
--    GMP_CFLAGS="-I$PHP_GMP/include"
-+    GMP_CFLAGS="-I$PHP_GMP/$DEB_HOST_MULTIARCH/include"
-   ])])
- 
-   dnl Sanity check.
+       PHP_TEMP_LDFLAGS([-L$THIS_PREFIX/$PHP_LIBDIR], [-l$LIB],
+         [AC_LINK_IFELSE([AC_LANG_PROGRAM([#include "$THIS_INCLUDE"],
+diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
+index 447e9dd..38e9a07 100644
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
 @@ -72,11 +72,11 @@ if test "$PHP_LDAP" != "no"; then
@@ -47,11 +39,13 @@ Subject: temporary-path-fixes-for-multiarch
      PHP_ADD_LIBRARY_WITH_PATH([ldap], [$LDAP_LIBDIR], [LDAP_SHARED_LIBADD])
  
    elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
+diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
+index 4cfea50..423623f 100644
 --- a/ext/pdo_dblib/config.m4
 +++ b/ext/pdo_dblib/config.m4
-@@ -24,7 +24,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
- 
-     AS_VAR_IF([PHP_LIBDIR],, [PHP_LIBDIR=lib])
+@@ -22,7 +22,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
+       AC_MSG_ERROR([Directory $PHP_PDO_DBLIB is not a FreeTDS installation directory])
+     fi
  
 -    if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then
 +    if test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.a" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/$DEB_HOST_MULTIARCH/libsybdb.so" && test ! -r "$PDO_FREETDS_INSTALLATION_DIR/$PHP_LIBDIR/libsybdb.so"; then

@@ -9,14 +9,14 @@ Subject: Really expand $libdir/$datadir into @EXPANDED_LIBDIR/DATADIR@
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1370,9 +1370,9 @@ EXPANDED_LOCALSTATEDIR=`eval echo $local
- EXPANDED_BINDIR=`eval echo $bindir`
- EXPANDED_SBINDIR=`eval echo $sbindir`
- EXPANDED_MANDIR=`eval echo $mandir`
+ EXPANDED_BINDIR=$(eval echo $bindir)
+ EXPANDED_SBINDIR=$(eval echo $sbindir)
+ EXPANDED_MANDIR=$(eval echo $mandir)
 -EXPANDED_LIBDIR=$libdir
-+EXPANDED_LIBDIR=`eval echo $libdir`
- EXPANDED_SYSCONFDIR=`eval echo $sysconfdir`
++EXPANDED_LIBDIR=$(eval echo $libdir)
+ EXPANDED_SYSCONFDIR=$(eval echo $sysconfdir)
 -EXPANDED_DATADIR=$datadir
-+EXPANDED_DATADIR=`eval echo $datadir`
- EXPANDED_PHP_CONFIG_FILE_PATH=`eval echo "$PHP_CONFIG_FILE_PATH"`
- EXPANDED_PHP_CONFIG_FILE_SCAN_DIR=`eval echo "$PHP_CONFIG_FILE_SCAN_DIR"`
++EXPANDED_DATADIR=$(eval echo $datadir)
+ EXPANDED_PHP_CONFIG_FILE_PATH=$(eval echo "$PHP_CONFIG_FILE_PATH")
+ EXPANDED_PHP_CONFIG_FILE_SCAN_DIR=$(eval echo "$PHP_CONFIG_FILE_SCAN_DIR")
  INCLUDE_PATH=.:$EXPANDED_PEAR_INSTALLDIR
