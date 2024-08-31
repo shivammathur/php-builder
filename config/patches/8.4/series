@@ -41,4 +41,5 @@
 0042-Update-gcc-func-attr-macro.patch
 0043-scripts-php-.in-Explicitly-define-the-path-to-sed.patch
 0044-Remove-timestamps-from-phar.patch
+0045-Revert-to-backticks-for-ac_extra-in-php.m4.patch
 

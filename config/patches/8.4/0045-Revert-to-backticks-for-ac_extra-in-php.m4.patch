@@ -1,0 +1,27 @@
+From 44b6bb002e2dd38a6b41bd17abc81a7fd07a7e3e Mon Sep 17 00:00:00 2001
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Sat, 31 Aug 2024 10:16:12 +0000
+Subject: [PATCH] Revert to backticks for ac_extra in php.m4
+
+Switching to $() from backticks in php.m4 add a \
+at the end of ac_extra on Debian breaking Makefile rules
+---
+ build/php.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/php.m4 b/build/php.m4
+index beba3fee0e..424cdb4b6f 100644
+--- a/build/php.m4
++++ b/build/php.m4
+@@ -953,7 +953,7 @@ AC_DEFUN([PHP_NEW_EXTENSION],[
+   ext_srcdir=[]PHP_EXT_SRCDIR()
+   ext_dir=[]PHP_EXT_DIR()
+ 
+-  ifelse($5,,ac_extra=,[ac_extra=$(echo "$5"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g)])
++  ifelse($5,,ac_extra=,[ac_extra=`echo "$5"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g`])
+ 
+   if test "$3" != "shared" && test "$3" != "yes" && test "$4" != "cli"; then
+ dnl ---------------------------------------------- Static module
+-- 
+2.46.0
+
