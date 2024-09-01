@@ -17,8 +17,8 @@ index beba3fee0e..424cdb4b6f 100644
    ext_srcdir=[]PHP_EXT_SRCDIR()
    ext_dir=[]PHP_EXT_DIR()
  
--  ifelse($5,,ac_extra=,[ac_extra=$(echo "$5"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g)])
-+  ifelse($5,,ac_extra=,[ac_extra=`echo "$5"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g`])
+-  ifelse($5,,ac_extra=,[ac_extra=$(echo "m4_normalize(m4_expand([$5]))"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g)])
++  ifelse($5,,ac_extra=,[ac_extra=`echo "m4_normalize(m4_expand([$5]))"|$SED s#@ext_srcdir@#$ext_srcdir#g|$SED s#@ext_builddir@#$ext_builddir#g`])
  
    if test "$3" != "shared" && test "$3" != "yes" && test "$4" != "cli"; then
  dnl ---------------------------------------------- Static module
