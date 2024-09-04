@@ -163,11 +163,6 @@ sks=(
 # Set frontend to noninteractive
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 
-if [ "$VERSION_ID" = "24.04" ]; then
-  sed -i 's/: noble/: noble-proposed noble/' "$list_file"
-  echo -e "Package: *\nPin: release a=noble-proposed\nPin-Priority: 500" | tee /etc/apt/preferences.d/proposed-updates
-fi
-
 # Install the build requirements for PHP
 install_packages apt-transport-https \
                  ca-certificates \

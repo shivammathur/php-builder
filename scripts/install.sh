@@ -31,12 +31,6 @@ set_base_version_id() {
   done
 }
 
-add_proposed() {
-  command -v sudo >/dev/null && SUDO=sudo
-  ${SUDO} sed -i "s/: $VERSION_CODENAME/: $VERSION_CODENAME-proposed $VERSION_CODENAME/" "$list_file"
-  echo -e "Package: *\nPin: release a=$VERSION_CODENAME-proposed\nPin-Priority: 500" | ${SUDO} tee /etc/apt/preferences.d/proposed-updates
-}
-
 set_base_version_codename() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
   if [[ "$ID_LIKE" =~ ubuntu ]]; then
@@ -270,7 +264,6 @@ extract_build() {
 
 install() {
   to_wait=()
-  [ "$VERSION_ID" = "24.04" ] && add_proposed
   if [ "$1" != "github" ]; then
     add_prerequisites
     set_base_version
