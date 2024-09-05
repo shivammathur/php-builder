@@ -14,7 +14,7 @@ Subject: debian_quirks
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1132,7 +1132,7 @@ AS_VAR_IF([PHP_CLI], [no], [with_pear=no])
+@@ -1141,7 +1141,7 @@ AS_VAR_IF([PHP_CLI], [no], [with_pear=no])
  PHP_ARG_WITH([pear],
    [whether to install PEAR],
    [AS_HELP_STRING([[--with-pear[=DIR]]],
@@ -23,7 +23,7 @@ Subject: debian_quirks
    [no],
    [yes])
  
-@@ -1160,6 +1160,8 @@ AS_VAR_IF([PHP_PEAR], [no],, [
+@@ -1169,6 +1169,8 @@ AS_VAR_IF([PHP_PEAR], [no],, [
      [pear])
  ])
  
@@ -32,15 +32,15 @@ Subject: debian_quirks
  dnl Configuring Zend and TSRM.
  dnl ----------------------------------------------------------------------------
  
-@@ -1332,6 +1334,8 @@ datadir=`eval eval echo $datadir`
+@@ -1334,6 +1336,8 @@ datadir=$(eval eval echo $datadir)
  dnl Build extension directory path.
  ZEND_MODULE_API_NO=$($EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|"${SED}" 's/#define ZEND_MODULE_API_NO //')
  
 +AC_SUBST(ZEND_MODULE_API_NO)
 +
- AS_VAR_IF([EXTENSION_DIR],, [
-   extbasedir=$ZEND_MODULE_API_NO
-   AS_VAR_IF([oldstyleextdir], [yes], [
+ AC_ARG_VAR([EXTENSION_DIR],
+   [Default directory for dynamically loadable PHP extensions. If left empty, it
+   is determined automatically. Can be overridden using the PHP 'extension_dir'
 --- a/php.ini-development
 +++ b/php.ini-development
 @@ -735,7 +735,7 @@ default_charset = "UTF-8"

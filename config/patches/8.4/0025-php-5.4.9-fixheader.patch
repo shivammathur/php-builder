@@ -9,12 +9,12 @@ Make generated php_config.h constant across rebuilds.
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1401,7 +1401,7 @@ PHP_REMOVE_USR_LIB([LDFLAGS])
- EXTRA_LDFLAGS="$EXTRA_LDFLAGS $PHP_LDFLAGS"
- EXTRA_LDFLAGS_PROGRAM="$EXTRA_LDFLAGS_PROGRAM $PHP_LDFLAGS"
+@@ -1412,7 +1412,7 @@ EXTRA_LDFLAGS_PROGRAM="$EXTRA_LDFLAGS_PROGRAM $PHP_LDFLAGS"
  
--UNAME=$(uname -a | xargs)
-+UNAME=$(uname | xargs)
- PHP_UNAME=${PHP_UNAME:-$UNAME}
+ AC_ARG_VAR([PHP_UNAME],
+   [System information (defaults to the 'uname -a' output)])
+-AS_VAR_IF([PHP_UNAME],, [PHP_UNAME=$(uname -a | xargs)])
++AS_VAR_IF([PHP_UNAME],, [PHP_UNAME=$(uname | xargs)])
  AC_DEFINE_UNQUOTED([PHP_UNAME], ["$PHP_UNAME"], [The 'uname -a' output.])
+ 
  PHP_OS=$(uname | xargs)
