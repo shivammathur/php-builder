@@ -1,0 +1,128 @@
+# Common extensions
+--enable-bcmath=shared
+--with-bz2=shared,/usr
+--enable-calendar=shared
+--enable-ctype=shared
+--with-curl=shared
+--with-enchant=shared
+--enable-exif=shared
+--enable-fileinfo=shared
+--enable-filter
+--with-ffi=shared
+--enable-ftp=shared
+--with-openssl-dir=/usr
+--with-gettext=shared,/usr
+--with-gmp=shared
+--enable-intl=shared
+--with-iconv=shared
+--with-libedit=shared
+--with-openssl
+--enable-pdo=shared
+--with-pdo-dblib=shared,/usr
+--with-pdo-firebird=shared,/usr
+--enable-phar=shared
+--enable-posix=shared
+--enable-session
+--enable-shmop=shared
+--enable-sockets=shared
+--enable-sysvmsg=shared
+--enable-sysvsem=shared
+--enable-sysvshm=shared
+--with-tidy=shared,/usr
+--enable-tokenizer=shared
+--with-xsl=shared
+--with-zip=shared
+
+# dba
+--enable-dba=shared
+--with-db4=/usr
+--without-gdbm
+--with-qdbm=/usr
+--with-lmdb=/usr
+--enable-inifile
+--enable-flatfile
+
+# gd
+--enable-gd=shared,/usr
+--with-external-gd
+
+# mhash
+--with-mhash=/usr
+
+# ldap
+--with-ldap=shared,/usr
+--with-ldap-sasl
+
+# mbstring
+--enable-mbstring=shared
+--enable-mbregex
+
+# mysql
+--enable-mysqlnd=shared
+--enable-mysqlnd-compression-support
+--with-zlib=/usr
+--with-mysqli=shared,mysqlnd
+--with-mysql-sock=/var/run/mysqld/mysqld.sock
+--with-pdo-mysql=shared,mysqlnd
+--with-mysql-sock=/var/run/mysqld/mysqld.sock
+
+# odbc
+--with-unixODBC=shared,/usr
+--with-pdo-odbc=shared,unixODBC,/usr
+
+# pgsql
+--with-pgsql=shared,/usr
+--with-pdo-pgsql=shared,/usr
+
+# snmp
+--with-snmp=shared,/usr
+
+# soap
+--enable-soap=shared
+--with-libxml
+
+# sodium
+--with-sodium
+--with-password-argon2
+
+# sqlite
+--with-sqlite3=shared
+--with-pdo-sqlite=shared
+
+# xml
+--enable-dom=shared
+--enable-simplexml=shared
+--enable-xml=shared
+--enable-xmlreader=shared
+--enable-xmlwriter=shared
+
+# opcache
+--enable-opcache
+--enable-huge-code-pages
+
+# Common config
+--build=BUILD_MACHINE_SYSTEM_TYPE
+--host=HOST_MACHINE_SYSTEM_TYPE
+--config-cache
+--cache-file=/tmp/config.cache
+--with-libdir=lib/BUILD_MACHINE_SYSTEM_TYPE
+--libdir=/usr/lib/php
+--program-suffix=PHP_VERSION
+--sysconfdir=/etc
+--localstatedir=/var
+--disable-rpath
+--disable-static
+--with-pic
+--with-layout=GNU
+--without-pear
+# --with-external-pcre
+--with-system-tzdata
+
+# Placeholder for thread-safe build.
+ZTS
+
+# Placeholder for patch commands.
+PATCHES
+
+# Placeholder for INSTALL command.
+INSTALL

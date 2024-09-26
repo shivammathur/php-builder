@@ -390,7 +390,7 @@ done
 [[ -z "$debug" ]] && debug=release
 [[ -z "$build" ]] && build=nts
 
-if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-4])$ ]]; then
+if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-5])$ ]]; then
   echo "Version $version is not supported";
   exit 1;
 fi

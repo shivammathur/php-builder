@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 3 Jan 2022 15:32:12 +0100
+Subject: Override result of AC_PROG_LN_S to fix FTBFS on ppc64el
+
+---
+ configure.ac | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 143e397..f119c24 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -139,6 +139,11 @@ AC_PROG_CPP
+ AC_USE_SYSTEM_EXTENSIONS
+ AC_PROG_LN_S
+ 
++if test "$LN_S" != "ln -s"; then
++  AC_MSG_WARN([Overriding result of AC_PROG_LN_S, ln -s always works here])
++  LN_S='ln -s'
++fi
++
+ AS_VAR_IF([cross_compiling], [yes],
+   [AC_CHECK_PROGS([BUILD_CC], [gcc clang c99 c89 cc cl], [none])
+     AC_MSG_CHECKING([for native build C compiler])

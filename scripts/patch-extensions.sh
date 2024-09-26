@@ -1,6 +1,6 @@
 # Function to patch ast source.
 patch_ast() {
-  [[ "$PHP_VERSION" = "8.4" ]] && sed -i '/ast_register_flag_constant("DIM_ALTERNATIVE_SYNTAX/d' ast.c
+  [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i '/ast_register_flag_constant("DIM_ALTERNATIVE_SYNTAX/d' ast.c
 }
 
 # Function to patch imagick source.
@@ -29,28 +29,28 @@ patch_pdo_sqlsrv() {
 patch_xdebug() {
   # Patch for xdebug on PHP 8.3.
   sed -i 's/80400/80500/g' config.m4
-  [[ "$PHP_VERSION" = "8.4" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
+  [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
 }
 
 # Function to patch amqp source.
 patch_amqp() {
-  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
 }
 
 # Function to patch memcache source.
 patch_memcache() {
-  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
 }
 
 # Function to patch memcached source.
 patch_memcached() {
-  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
 }
 
 # Function to patch redis source.
 patch_redis() {
-  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
-  if [[ "$PHP_VERSION" = "8.4" ]]; then
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include <sys\/types.h>/#include <errno.h>\n#include <sys\/types.h>/" library.c
+  if [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]]; then
     sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" library.c
     sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" -e "/php_mt_rand.h/d" backoff.c
     sed -i -e "s|standard/php_random.h|ext/random/php_random.h|" redis.c
@@ -59,10 +59,10 @@ patch_redis() {
 
 # Function to patch igbinary source.
 patch_igbinary() {
-  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
+  [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
 }
 
 # Function to patch pcov source.
 patch_pcov() {
-	[[ "$PHP_VERSION" = "8.4" ]] && sed -i 's/0, 0, 0, 0/0, 0, 0/' pcov.c
+	[[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i 's/0, 0, 0, 0/0, 0, 0/' pcov.c
 }
