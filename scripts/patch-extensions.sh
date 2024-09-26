@@ -27,8 +27,7 @@ patch_pdo_sqlsrv() {
 
 # Function to patch xdebug source.
 patch_xdebug() {
-  # Patch for xdebug on PHP 8.3.
-  sed -i 's/80400/80500/g' config.m4
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/80500/80600/g' config.m4
   [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
 }
 
