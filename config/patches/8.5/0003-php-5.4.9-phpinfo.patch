@@ -24,10 +24,10 @@ The available extensions are not related to this command.
  			php_info_print_table_row(2, "Server API", sapi_module.pretty_name );
 --- a/ext/standard/tests/general_functions/phpinfo.phpt
 +++ b/ext/standard/tests/general_functions/phpinfo.phpt
-@@ -17,7 +17,6 @@ PHP Version => %s
+@@ -17,7 +17,6 @@
  
  System => %s
- Build Date => %s%a
+ Build Date => %r(.+?)%r
 -Configure Command => %s
  Server API => Command Line Interface
  Virtual Directory Support => %s
