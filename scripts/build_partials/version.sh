@@ -48,12 +48,13 @@ get_version() {
       new_version=$(get_version_from_branch master)
       export branch="master"
     else
-      ref="$(git ls-remote --heads https://github.com/php/php-src "PHP-$PHP_VERSION".0)"
-      if [[ -n "$ref" ]]; then
-        export branch="PHP-$PHP_VERSION.0"
-      else
-        export branch="PHP-$PHP_VERSION"
-      fi
+      for branch_name in "PHP-$PHP_VERSION" "PHP-$PHP_VERSION.0"; do
+        ref="$(git ls-remote --heads https://github.com/php/php-src "$branch_name")"
+        if [[ -n "$ref" ]]; then
+          export branch=$branch_name
+          break;
+        fi
+      done  
     fi
     export stable="false"
   else
