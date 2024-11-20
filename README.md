@@ -54,16 +54,16 @@ The `php-version` is required, and `release` and `nts` are the defaults.
 
 ### Examples
 
-- To install `PHP 8.3` without debugging symbols and non thread safe:
+- To install `PHP 8.4` without debugging symbols and non thread safe:
 
 ```bash
-./install.sh 8.3
+./install.sh 8.4
 ```
 
-- or, to install `PHP 8.3` with debugging symbols and thread safe:
+- or, to install `PHP 8.4` with debugging symbols and thread safe:
 
 ```bash
-./install.sh 8.3 debug zts
+./install.sh 8.4 debug zts
 ```
 
 - Finally, test your PHP version:
@@ -163,7 +163,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols.
 
 - [PHP 8.5.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.5)
-- [PHP 8.4.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.4)
+- [PHP 8.4.x](https://github.com/shivammathur/php-builder/releases/tag/8.4)
 - [PHP 8.3.x](https://github.com/shivammathur/php-builder/releases/tag/8.3)
 - [PHP 8.2.x](https://github.com/shivammathur/php-builder/releases/tag/8.2)
 - [PHP 8.1.x](https://github.com/shivammathur/php-builder/releases/tag/8.1)
@@ -184,16 +184,16 @@ curl -sSLO https://github.com/shivammathur/php-builder/releases/latest/download/
 chmod a+x ./install.sh
 ```
 
-- Then, to remove `PHP 8.3`:
+- Then, to remove `PHP 8.4`:
+
+```bash
+./install.sh --remove 8.4
+```
+
+or, to remove `PHP 8.3`:
 
 ```bash
 ./install.sh --remove 8.3
-```
-
-or, to remove `PHP 8.2`:
-
-```bash
-./install.sh --remove 8.2
 ```
 
 ## Related Projects
