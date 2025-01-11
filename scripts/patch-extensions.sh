@@ -1,6 +1,7 @@
 # Function to patch ast source.
 patch_ast() {
   [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i '/ast_register_flag_constant("DIM_ALTERNATIVE_SYNTAX/d' ast.c
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i '/ZEND_AST_EXIT/d' ast_data.c
 }
 
 # Function to patch imagick source.
