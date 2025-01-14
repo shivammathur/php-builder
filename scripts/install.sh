@@ -220,7 +220,7 @@ github_deps() {
     install_packages "$libpcre_dev" libxmlrpc-epi-dev
   elif [ "$VERSION_ID" = "24.04" ]; then
     [[ "$version" =~ 5.6|7.[0-2] ]] && install_packages libpcre3-dev
-    install_packages unixodbc-dev
+    install_packages unixodbc-dev libmagickcore-dev
   fi
   install_packages libgd-dev
 }
