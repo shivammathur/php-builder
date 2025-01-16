@@ -74,6 +74,7 @@ for os in "${runner_os_array[@]}"; do
 done
 
 for runner_os in "${runner_os_array[@]}"; do
+  [[ "$runner_os" = *arm* ]] && runner_os="arm64v8/${runner_os/-arm/}"
   container_runner_os="${runner_os//-/:}"
   if [[ $CONTAINER_OS_LIST != *$container_runner_os* ]]; then
     container_only='true'
