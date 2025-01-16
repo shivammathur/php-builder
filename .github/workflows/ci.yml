@@ -31,6 +31,7 @@ env:
   PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
   BUILD_LIST: nts zts
+  PHP_SOURCE: --web-php
   CONTAINER_BASE: ubuntu-24.04
   CONTAINER_BASE_ARM: ubuntu-24.04-arm
 
@@ -58,7 +59,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
           PHP_LIST: ${{ github.event.inputs.php-versions || env.PHP_LIST }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source || env.PHP_SOURCE }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           BUILD_LIST: ${{ env.BUILD_LIST }}
         run: bash scripts/get-matrix.sh
