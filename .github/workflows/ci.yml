@@ -20,17 +20,19 @@ on:
         required: false
       container-os-versions:
         description: 'OS versions to build on'
-        default: 'ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:11 debian:12'
+        default: 'ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12'
         required: false
   schedule:
     - cron: '0 0 1-31/2 * *'
 
 env:
-  CONTAINER_OS_LIST: ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 debian:11 debian:12
-  RUNNER_OS_LIST: ubuntu-20.04 ubuntu-22.04 ubuntu-24.04
+  CONTAINER_OS_LIST: ubuntu:20.04 ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12
+  RUNNER_OS_LIST: ubuntu-20.04 ubuntu-22.04 ubuntu-24.04 ubuntu-22.04-arm ubuntu-24.04-arm
   PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
   BUILD_LIST: nts zts
+  CONTAINER_BASE: ubuntu-24.04
+  CONTAINER_BASE_ARM: ubuntu-24.04-arm
 
 jobs:
   get-matrix:
@@ -51,6 +53,8 @@ jobs:
         env:
           COMMIT: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
           CONTAINER_OS_LIST: ${{ github.event.inputs.container-os-versions || env.CONTAINER_OS_LIST }}
+          CONTAINER_BASE: ${{ env.CONTAINER_BASE }}
+          CONTAINER_BASE_ARM: ${{ env.CONTAINER_BASE_ARM }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
           PHP_LIST: ${{ github.event.inputs.php-versions || env.PHP_LIST }}
@@ -62,7 +66,7 @@ jobs:
   build:
     needs: get-matrix
     if: "!contains(github.event.head_commit.message, 'skip-build')"
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.container-base }}
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -129,7 +133,7 @@ jobs:
     needs: [get-matrix, build]
     if: "!contains(github.event.head_commit.message, 'skip-merge')"
     container: ${{ matrix.container }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.container-base }}
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
@@ -212,7 +216,7 @@ jobs:
 
   local-test:
     needs: [merge, build, get-matrix]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.container-base }}
     if: "!contains(github.event.head_commit.message, 'skip-local-test')"
     container: ${{ matrix.container }}
     strategy:

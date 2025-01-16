@@ -274,7 +274,9 @@ install() {
     github_deps &
     to_wait=($!)
   fi
-  tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID.tar.zst"
+  arch="$(arch)"
+  [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
+  tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules

@@ -15,11 +15,26 @@ IFS=' ' read -r -a runner_os_array <<<"${RUNNER_OS_LIST:?}"
 IFS=' ' read -r -a build_array <<<"${BUILD_LIST:?}"
 IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST:?}" "${COMMIT:-'--build-new'}" "${PHP_SOURCE:-'--web-php'}")"
 
+get_container_base() {
+  [[ $1 = *arm64v8* ]] && echo "${CONTAINER_BASE_ARM:?}" || echo "${CONTAINER_BASE:?}"
+}
+
+get_dist_version() {
+  [[ $1 = *arm64v8* ]] && echo "${os##*:}-arm" || echo "${os##*:}"
+}
+
+get_dist() {
+  echo "${os%:*}" | cut -d'/' -f 2
+}
+
 # Build a matrix array with container, distribution, distribution version and php-version and OS
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"build\": \"$build\"}")
+      dist="$(get_dist "$os")"
+      dist_version="$(get_dist_version "$os")"
+      os_base="$(get_container_base "$os")"
+      container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\"}")
     done
   done
 done
@@ -38,7 +53,10 @@ for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for debug in debug release; do
-        test_container_os_json_array+=("{\"container\": \"$os\", \"php-version\": \"$php\", \"dist\": \"${os%:*}\", \"dist-version\": \"${os##*:}\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+        dist="$(get_dist "$os")"
+        dist_version="$(get_dist_version "$os")"
+        os_base="$(get_container_base "$os")"
+        test_container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"debug\": \"$debug\"}")
       done
     done
   done

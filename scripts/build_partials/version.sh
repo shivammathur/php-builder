@@ -11,8 +11,10 @@ check_stable() {
       (
         mkdir -p "${INSTALL_ROOT:?}"
         cd "$INSTALL_ROOT"/.. || exit
-        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID.tar.xz"
-        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID.tar.zst"
+        arch="$(arch)"
+        [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
+        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz"
+        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
         ls -la
       )
       echo "$new_version" exists
