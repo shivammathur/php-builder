@@ -57,11 +57,13 @@ build_php() {
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto")"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
   EXTRA_CFLAGS="-Wall -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
+  DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)"
   export CFLAGS
   export CPPFLAGS
   export CXXFLAGS
   export LDFLAGS
   export EXTRA_CFLAGS
+  export DEB_HOST_MULTIARCH
 
   # Export inputs
   export INSTALL_ROOT
