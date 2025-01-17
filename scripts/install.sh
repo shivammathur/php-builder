@@ -216,11 +216,14 @@ local_deps() {
 github_deps() {
   add_ppa || update_ppa
   if [ "$VERSION_ID" = "22.04" ]; then
-    [[ "$version" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
-    install_packages "$libpcre_dev" libxmlrpc-epi-dev
+    jammy_deps=('libxmlrpc-epi-dev')
+    [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && jammy_deps+=('unixodbc-dev')
+    [[ "$version" =~ 5.6|7.[0-2] ]] && jammy_deps+=('libpcre3-dev') || jammy_deps+=('libpcre2-dev')
+    install_packages "${jammy_deps[@]}"
   elif [ "$VERSION_ID" = "24.04" ]; then
-    [[ "$version" =~ 5.6|7.[0-2] ]] && install_packages libpcre3-dev
-    install_packages unixodbc-dev libmagickcore-dev
+    noble_libs=('unixodbc-dev' 'libmagickcore-dev')
+    [[ "$version" =~ 5.6|7.[0-2] ]] && noble_libs+=('libpcre3-dev')
+    install_packages "${noble_libs[@]}"
   fi
   install_packages libgd-dev
 }
@@ -265,6 +268,8 @@ extract_build() {
 
 install() {
   to_wait=()
+  arch="$(arch)"
+  [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
   if [ "$1" != "github" ]; then
     add_prerequisites
     set_base_version
@@ -274,8 +279,6 @@ install() {
     github_deps &
     to_wait=($!)
   fi
-  arch="$(arch)"
-  [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
   get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
