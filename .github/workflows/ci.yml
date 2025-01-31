@@ -125,7 +125,7 @@ jobs:
           SAPI_LIST: ${{ env.SAPI_LIST }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/debian/*.zst
@@ -149,7 +149,7 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
@@ -179,9 +179,9 @@ jobs:
           PHP_SOURCE: ${{ github.event.inputs.php-source }}
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: |
             /tmp/*.xz
             /tmp/*.zst
@@ -228,9 +228,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
 
       - name: Install PHP
@@ -269,9 +269,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+ubuntu
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.os }}
           path: /tmp
 
       - name: Install PHP
@@ -307,7 +307,7 @@ jobs:
       - name: Create builds directory
         run: mkdir builds
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: builds
 
@@ -331,7 +331,7 @@ jobs:
       - name: Create builds directory
         run: mkdir builds
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           path: builds
 
