@@ -46,19 +46,22 @@ rm -rf ./builds/php-sapi*
 IFS=' ' read -r -a PHP_VERSIONS <<<"${PHP_LIST:?}"
 for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   # Build assets array with builds.
+  shopt -s nullglob
   assets=()
   for asset in ./builds/*/php_"$PHP_VERSION"*; do
     assets+=("$asset")
   done
+  shopt -u nullglob
+  if [ "${#assets[@]}" -ne 0 ]; then
+    # Update logs.
+    log_version
+    log_build
 
-  # Update logs.
-  log_version
-  log_build
-
-  # Create or update release.
-  if ! gh release view "$PHP_VERSION"; then
-    bash scripts/retry.sh 5 5 gh release create "$PHP_VERSION" "${assets[@]}" -t "$PHP_VERSION" -n "$PHP_VERSION"
-  else
-    bash scripts/retry.sh 5 5 gh release upload "$PHP_VERSION" "${assets[@]}" --clobber
+    # Create or update release.
+    if ! gh release view "$PHP_VERSION"; then
+      bash scripts/retry.sh 5 5 gh release create "$PHP_VERSION" "${assets[@]}" -t "$PHP_VERSION" -n "$PHP_VERSION"
+    else
+      bash scripts/retry.sh 5 5 gh release upload "$PHP_VERSION" "${assets[@]}" --clobber
+    fi
   fi
 done
