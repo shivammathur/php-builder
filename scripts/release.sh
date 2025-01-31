@@ -12,7 +12,12 @@ get_stable_release_tag() {
   source=$1
   if [ "$source" = "--web-php" ]; then
     release_tag="$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${PHP_VERSION//./\\.}\.[0-9]+)" | head -n 1)"
-    [[ -z $release_tag ]] && echo "php-$(curl -sL https://www.php.net/releases | grep -Po -m 1 "${PHP_VERSION//./\\.}\.[0-9]+" | head -n 1)" || echo "$release_tag"
+    if [[ -z $release_tag ]]; then
+      semver="$(curl -sL https://www.php.net/releases | grep -Po -m 1 "${PHP_VERSION//./\\.}\.[0-9]+" | head -n 1)"
+      [[ -n "$semver" ]] && echo "php-$semver"
+    else
+      echo "$release_tag"
+    fi
   else
     curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | tail -1 | cut -d '"' -f 1
   fi
