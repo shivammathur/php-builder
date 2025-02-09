@@ -24,6 +24,7 @@ patch_pdo_sqlsrv() {
     cd source/pdo_sqlsrv || exit 1
     cp -rf ../shared ./
   fi
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/zval_ptr_dtor( &dbh->query_stmt_zval );/OBJ_RELEASE(dbh->query_stmt_obj);dbh->query_stmt_obj = NULL;/' php_pdo_sqlsrv_int.h
 }
 
 # Function to patch xdebug source.
