@@ -21,7 +21,6 @@
 0021-expose_all_built_and_installed_apis.patch
 0022-Use-system-timezone.patch
 0023-php-fpm-do-reload-on-SIGHUP.patch
-0024-php-5.4.8-ldap_r.patch
 0025-php-5.4.9-fixheader.patch
 0026-php-5.6.0-noNO.patch
 0027-php-5.6.0-oldpcre.patch
@@ -41,3 +40,6 @@
 0042-Update-gcc-func-attr-macro.patch
 0043-scripts-php-.in-Explicitly-define-the-path-to-sed.patch
 0044-Remove-timestamps-from-phar.patch
+0045-Revert-Use-pkg-config-for-ext-ldap-without-a-directo.patch
+0046-temporary-path-fixes-for-multiarch-ldap.patch
+0047-php-5.4.8-ldap_r.patch
