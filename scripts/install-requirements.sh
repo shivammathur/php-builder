@@ -2,14 +2,18 @@
 
 # Function to cURL.
 get() {
-  file_path=$1
-  shift
+  mode=$1
+  file_path=$2
+  shift 2
   links=("$@")
-  command -v sudo >/dev/null && SUDO=sudo
-  for link in "${links[@]}"; do
-    status_code=$(${SUDO} curl -w "%{http_code}" -o "$file_path" -sL "$link")
-    [ "$status_code" = "200" ] && break
-  done
+  if [ "$mode" = "-s" ]; then
+    sudo curl -sL "${links[0]}"
+  else
+    for link in "${links[@]}"; do
+      status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
+      [ "$status_code" = "200" ] && break
+    done
+  fi
 }
 
 # Helper function to update the package list(s).
@@ -40,7 +44,7 @@ update_lists() {
 # Function to get the fingerprint from a Ubuntu repository.
 ubuntu_fingerprint() {
   ppa=$1
-  curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
+  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
 }
 
 # Function to get the fingerprint from a Debian repository.
@@ -49,7 +53,7 @@ debian_fingerprint() {
   ppa_url=$2
   package_dist=$3
   release_pub=/tmp/"${ppa/\//-}".gpg
-  get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
+  get -q "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
   gpg --homedir /tmp --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
 }
 
@@ -61,12 +65,12 @@ add_key() {
   key_source=$4
   key_file=$5
   key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|debian.org|setup-php.com ]]; then
+  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org|setup-php.com ]]; then
     fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
-  [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
+  [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     gpg --homedir /tmp --batch --yes --dearmor "$key_file" && rm -f "$key_file" >/dev/null 2>&1
     mv "$key_file".gpg "$key_file"
@@ -76,7 +80,7 @@ add_key() {
 # Function to add a package list.
 add_list() {
   ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
   key_source=${3:-"$ppa_url"}
   package_dist=${4:-"$VERSION_CODENAME"}
   branches=${5:-main}
@@ -92,9 +96,11 @@ add_list() {
 # Function to remove a package list.
 remove_list() {
   ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
-  grep -lr "$ppa_url" "$list_dir" | xargs -n1 rm -f
-  rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
+  [ -n "$2" ] && ppa_urls=("$2") || ppa_urls=("$lp_ppa/$ppa/ubuntu" "$lpc_ppa/$ppa/ubuntu")
+  for ppa_url in "${ppa_urls[@]}"; do
+    grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
+  done
+  sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
 }
 
 # Function to add a package repository.
@@ -148,8 +154,12 @@ fi
 list_dir='/etc/apt/sources.list.d'
 list_file="$list_dir/ubuntu.sources"
 [ -e "$list_file" ] || list_file='/etc/apt/sources.list'
-lp_api='https://api.launchpad.net/1.0'
+lp_api=(
+  'https://api.launchpad.net/1.0'
+  'https://api.launchpad.net/devel'
+)
 lp_ppa='http://ppa.launchpad.net'
+lpc_ppa='https://ppa.launchpadcontent.net'
 key_dir='/usr/share/keyrings'
 sks=(
   'https://keyserver.ubuntu.com'

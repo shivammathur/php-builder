@@ -10,21 +10,25 @@ HELP
 }
 
 get() {
-  file_path=$1
-  shift
+  mode=$1
+  file_path=$2
+  shift 2
   links=("$@")
-  command -v sudo >/dev/null && SUDO=sudo
-  for link in "${links[@]}"; do
-    status_code=$(${SUDO} curl -w "%{http_code}" -o "$file_path" -sL "$link")
-    [ "$status_code" = "200" ] && break
-  done
+  if [ "$mode" = "-s" ]; then
+    sudo curl -sL "${links[0]}"
+  else
+    for link in "${links[@]}"; do
+      status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
+      [ "$status_code" = "200" ] && break
+    done
+  fi
 }
 
 set_base_version_id() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
   if ! [ -d "$dist_info_dir" ]; then
     sudo mkdir -p "$dist_info_dir"
-    get "$dist_info_dir"/os_releases.csv https://raw.githubusercontent.com/shivammathur/setup-php/develop/src/configs/os_releases.csv
+    get -q "$dist_info_dir"/os_releases.csv https://raw.githubusercontent.com/shivammathur/setup-php/develop/src/configs/os_releases.csv
   fi
   for base in ubuntu debian; do
     [[ "$ID_LIKE" =~ $base ]] && ID="$base" && VERSION_ID="$(grep -hr -m 1 "$VERSION_CODENAME" /usr/share/distro-info | cut -d ',' -f 1 | cut -d ' ' -f 1)" && break
@@ -95,7 +99,7 @@ check_lists() {
 
 ubuntu_fingerprint() {
   ppa=$1
-  curl -sL "$lp_api"/~"${ppa%/*}"/+archive/"${ppa##*/}" | jq -r '.signing_key_fingerprint'
+  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
 }
 
 debian_fingerprint() {
@@ -103,7 +107,7 @@ debian_fingerprint() {
   ppa_url=$2
   package_dist=$3
   release_pub=/tmp/"${ppa/\//-}".gpg
-  get "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
+  get -q "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
   gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
 }
 
@@ -114,12 +118,12 @@ add_key() {
   key_source=$4
   key_file=$5
   key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|debian.org|setup-php.com ]]; then
+  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org|setup-php.com ]]; then
     fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
-  [ ! -e "$key_source" ] && get "$key_file" "${key_urls[@]}"
+  [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     sudo gpg --batch --yes --dearmor "$key_file" >/dev/null 2>&1 && sudo mv "$key_file".gpg "$key_file"
   fi
@@ -127,7 +131,7 @@ add_key() {
 
 add_list() {
   ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
+  ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
   key_source=${3:-"$ppa_url"}
   package_dist=${4:-"$VERSION_CODENAME"}
   branches=${5:-main}
@@ -148,8 +152,10 @@ add_list() {
 
 remove_list() {
   ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lp_ppa/$ppa/ubuntu"}
-  grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
+  [ -n "$2" ] && ppa_urls=("$2") || ppa_urls=("$lp_ppa/$ppa/ubuntu" "$lpc_ppa/$ppa/ubuntu")
+  for ppa_url in "${ppa_urls[@]}"; do
+    grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
+  done
   sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
 }
 
@@ -280,7 +286,7 @@ install() {
     to_wait=($!)
   fi
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
-  get "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
+  get -q "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version"
@@ -415,8 +421,12 @@ list_file="$list_dir/ubuntu.sources"
 [ -e "$list_file" ] || list_file='/etc/apt/sources.list'
 debconf_fix='DEBIAN_FRONTEND=noninteractive'
 upstream_lsb='/etc/upstream-release/lsb-release'
-lp_api='https://api.launchpad.net/1.0'
+lp_api=(
+  'https://api.launchpad.net/1.0'
+  'https://api.launchpad.net/devel'
+)
 lp_ppa='http://ppa.launchpad.net'
+lpc_ppa='https://ppa.launchpadcontent.net'
 key_dir='/usr/share/keyrings'
 dist_info_dir='/usr/share/distro-info'
 sury='https://packages.sury.org'
