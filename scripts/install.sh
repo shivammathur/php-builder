@@ -60,7 +60,7 @@ set_base_version() {
 }
 
 update_lists_helper() {
-  list=$1
+  local list=$1
   command -v sudo >/dev/null && SUDO=sudo
   if [[ -n "$list" ]]; then
     ${SUDO} apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
@@ -72,6 +72,7 @@ update_lists_helper() {
 update_lists() {
   local ppa=${1:-}
   local ppa_search=${2:-}
+  local list=
   if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
     if [[ -n "$ppa" && -n "$ppa_search" ]]; then
       list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
@@ -84,8 +85,8 @@ update_lists() {
 }
 
 check_lists() {
-  ppa=$1
-  ppa_search=$2
+  local ppa=$1
+  local ppa_search=$2
   if grep -Eqr "$ppa_search" "$list_dir"; then
     list_count="$(sudo find /var/lib/apt/lists -type f -name "*${ppa/\//_}*" | wc -l)"
     if [ "$list_count" = "0" ]; then
@@ -98,26 +99,26 @@ check_lists() {
 }
 
 ubuntu_fingerprint() {
-  ppa=$1
+  local ppa=$1
   get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
 }
 
 debian_fingerprint() {
-  ppa=$1
-  ppa_url=$2
-  package_dist=$3
+  local ppa=$1
+  local ppa_url=$2
+  local package_dist=$3
   release_pub=/tmp/"${ppa/\//-}".gpg
   get -q "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
   gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
 }
 
 add_key() {
-  ppa=${1:-ondrej/php}
-  ppa_url=$2
-  package_dist=$3
-  key_source=$4
-  key_file=$5
-  key_urls=("$key_source")
+  local ppa=${1:-ondrej/php}
+  local ppa_url=$2
+  local package_dist=$3
+  local key_source=$4
+  local key_file=$5
+  local key_urls=("$key_source")
   if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org|setup-php.com ]]; then
     fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
@@ -130,12 +131,12 @@ add_key() {
 }
 
 add_list() {
-  ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
-  key_source=${3:-"$ppa_url"}
-  package_dist=${4:-"$VERSION_CODENAME"}
-  branches=${5:-main}
-  ppa_search="deb .*$ppa_url $package_dist .*$branches"
+  local ppa=${1-ondrej/php}
+  local ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
+  local key_source=${3:-"$ppa_url"}
+  local package_dist=${4:-"$VERSION_CODENAME"}
+  local branches=${5:-main}
+  local ppa_search="deb .*$ppa_url $package_dist .*$branches"
   if check_lists "$ppa" "$ppa_search"; then
     echo "Repository $ppa already exists";
     return 1;
@@ -151,7 +152,7 @@ add_list() {
 }
 
 remove_list() {
-  ppa=${1-ondrej/php}
+  local ppa=${1-ondrej/php}
   [ -n "$2" ] && ppa_urls=("$2") || ppa_urls=("$lp_ppa/$ppa/ubuntu" "$lpc_ppa/$ppa/ubuntu")
   for ppa_url in "${ppa_urls[@]}"; do
     grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
@@ -169,11 +170,11 @@ add_ppa() {
 
 update_ppa() {
   set_base_version
-  ppa=ondrej/php
-  ppa_url=$lp_ppa/$ppa/ubuntu
-  package_dist=$VERSION_CODENAME
-  branches=main
-  ppa_search="deb .*$ppa_url $package_dist .*$branches"
+  local ppa=ondrej/php
+  local ppa_url=$lp_ppa/$ppa/ubuntu
+  local package_dist=$VERSION_CODENAME
+  local branches=main
+  local ppa_search="deb .*$ppa_url $package_dist .*$branches"
   update_lists "$ppa" "$ppa_search"
   . /etc/os-release
 }
@@ -227,7 +228,7 @@ github_deps() {
     [[ "$version" =~ 5.6|7.[0-2] ]] && jammy_deps+=('libpcre3-dev') || jammy_deps+=('libpcre2-dev')
     install_packages "${jammy_deps[@]}"
   elif [ "$VERSION_ID" = "24.04" ]; then
-    noble_libs=('unixodbc-dev' 'libmagickcore-dev')
+    noble_libs=('unixodbc-dev' 'libmagickcore-dev' 'libxmlrpc-epi-dev')
     [[ "$version" =~ 5.6|7.[0-2] ]] && noble_libs+=('libpcre3-dev')
     install_packages "${noble_libs[@]}"
   fi
