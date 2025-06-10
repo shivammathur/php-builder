@@ -5,7 +5,7 @@ pecl ds
 pecl igbinary
 pecl imagick
 pecl memcache
-pecl mongodb
+pecl mongodb-1.20.1
 pecl msgpack
 pecl pcov
 pecl redis
