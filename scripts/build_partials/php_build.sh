@@ -25,7 +25,7 @@ configure_phpbuild() {
   # Path the definition for thread-safe.
   # Zend Signals are broken with ZTS: https://externals.io/message/118859
   zts=''
-  if [ "${BUILD:?}" = "zts" ]; then
+  if [[ "${BUILD:?}" = *zts* ]]; then
     patch_config_file configure_option "${definitions:?}"/zts/"$PHP_VERSION"
     zts="$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' "${definitions:?}"/zts/"$PHP_VERSION")"
   fi

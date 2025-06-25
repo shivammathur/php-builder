@@ -209,6 +209,7 @@ install_packages apache2 \
                  autoconf \
                  automake \
                  bison \
+                 clang \
                  dpkg-dev \
                  firebird-dev \
                  freetds-dev \
@@ -281,6 +282,7 @@ install_packages apache2 \
                  libzip-dev \
                  libzmq3-dev \
                  libzstd-dev \
+                 llvm \
                  locales-all \
                  netbase \
                  netcat-openbsd \

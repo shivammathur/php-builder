@@ -409,8 +409,8 @@ if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-5])$ ]]; then
 fi
 
 PHP_PKG_SUFFIX=
-if [ "${build:?}" = "zts" ]; then
-  PHP_PKG_SUFFIX="-zts"
+if [ "${build:?}" != "nts" ]; then
+  PHP_PKG_SUFFIX="-$build"
 fi
 if [ "$debug" = "debug" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
