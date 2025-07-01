@@ -188,6 +188,7 @@ install_packages apt-transport-https \
                  git \
                  gnupg \
                  jq \
+                 lsb-release \
                  sudo \
                  wget \
                  zstd
@@ -206,6 +207,13 @@ if [ "${BUILD:?}" = "debug" ]; then
   sed -i "h;s/^//;p;x" /etc/apt/sources.list.d/ondrej-*.list
   sed -i '2s/main$/main\/debug/' /etc/apt/sources.list.d/ondrej-*.list
   apt-get update
+fi
+
+if [[ "$BUILD" = *asan* ]]; then
+  add_list apt/llvm http://apt.llvm.org/"$VERSION_CODENAME"/ https://apt.llvm.org/llvm-snapshot.gpg.key llvm-toolchain-"$VERSION_CODENAME"-17 main
+  install_packages clang-17 lldb-17 lld-17 clangd-17 \
+                   clang-tidy-17 clang-format-17 clang-tools-17 llvm-17-dev llvm-17-tools libomp-17-dev libc++-17-dev libc++abi-17-dev libclang-common-17-dev libclang-17-dev libclang-cpp17-dev liblldb-17-dev libunwind-17-dev \
+                   libclang-rt-17-dev libpolly-17-dev libstdc++-1[0-9]-dev
 fi
 
 # Install PHP build requirements.

@@ -30,16 +30,18 @@ package_php() {
     tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
 
-    copy_debug_symbols
+    if ! [[ "${BUILD:?}" = *asan* ]]; then
+      copy_debug_symbols
 
-    echo "Creating Debug Package using XZ"
-    XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
+      echo "Creating Debug Package using XZ"
+      XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
+      mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
 
-    echo "Creating Debug Package using ZSTD"
-    zstd -V
-    tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+      echo "Creating Debug Package using ZSTD"
+      zstd -V
+      tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
+      mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+    fi  
 
     echo "::endgroup::"
   )
