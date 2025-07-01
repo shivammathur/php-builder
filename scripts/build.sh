@@ -37,7 +37,7 @@ get_buildflags() {
   flags=$(dpkg-buildflags --get "$type")
 
   # Add or remove lto optimization flags.
-  if [ "$lto" = "-lto" ]; then
+  if [ "$lto" = "-lto" ] || [[ "${BUILD:?}" = *asan* ]]; then
     flags=$(echo "$flags" | sed -E 's/[^ ]+lto[^ ]+ //g')
   else
     flags="$flags -flto=auto -ffat-lto-objects"
@@ -58,6 +58,15 @@ build_php() {
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
   EXTRA_CFLAGS="-Wall -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
   DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)"
+  if [[ "${BUILD:?}" = *asan* ]]; then
+    CC=clang-17
+    CXX=clang++-17
+    CFLAGS="$(echo "$CFLAGS" | sed -E 's/-O2/-O1/g')"
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=function -DZEND_TRACK_ARENA_ALLOC"
+    LDFLAGS="$LDFLAGS -Wl,-export-dynamic -fsanitize=address,undefined -fno-sanitize=function"
+    export CC
+    export CXX
+  fi
   export CFLAGS
   export CPPFLAGS
   export CXXFLAGS
@@ -248,10 +257,12 @@ definitions="$php_build_dir/definitions"
 default_options="$php_build_dir/default_configure_options"
 default_ini="production"
 
-# Set thread-safe options.
-if [ "${BUILD:?}" = "zts" ]; then
-  export PHP_PKG_SUFFIX=-zts
+# Set package suffix
+PHP_PKG_SUFFIX=
+if [ "${BUILD:?}" != "nts" ]; then
+  PHP_PKG_SUFFIX="-$BUILD"
 fi
+export PHP_PKG_SUFFIX
 
 # Import OS information to the environment.
 . /etc/os-release

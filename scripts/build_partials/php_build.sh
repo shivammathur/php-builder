@@ -22,12 +22,20 @@ configure_phpbuild() {
   # Patch the definition for the PHP version.
   patch_config_file configure_option "${definitions:?}"/"$PHP_VERSION"
 
-  # Path the definition for thread-safe.
+  # Get the definition for thread-safe.
   # Zend Signals are broken with ZTS: https://externals.io/message/118859
   zts=''
-  if [ "${BUILD:?}" = "zts" ]; then
+  if [[ "${BUILD:?}" = *zts* ]]; then
     patch_config_file configure_option "${definitions:?}"/zts/"$PHP_VERSION"
     zts="$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' "${definitions:?}"/zts/"$PHP_VERSION")"
+  fi
+
+  # Get the definition for asan.
+  asan=''
+  if [[ "${BUILD:?}" = *asan* ]]; then
+    patch_config_file configure_option "${definitions:?}"/asan
+    asan="$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' "${definitions:?}"/asan)"
+    sed -i '/snmp/d' "$definitions"/"$PHP_VERSION"
   fi
 
   # Copy all local patches to the php-build patches directory.
@@ -44,6 +52,7 @@ configure_phpbuild() {
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \
          -e "s|HOST_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_HOST_GNU_TYPE)|" \
          -e "s|ZTS|$zts|" \
+         -e "s|ASAN|$asan|" \
          -e "s|INSTALL|$install_command|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
