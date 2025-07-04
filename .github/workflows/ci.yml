@@ -187,17 +187,21 @@ jobs:
             /tmp/*.zst
 
       - name: Check php-cli version
+        if: contains(env.SAPI_LIST, 'cli')
         run: |
           php -v
           php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
 
       - name: Check php-cgi version
+        if: contains(env.SAPI_LIST, 'cgi')
         run: php-cgi -v
 
       - name: Check php-fpm version
+        if: contains(env.SAPI_LIST, 'fpm')
         run: php-fpm -v && php-fpm -t
 
       - name: Check phpdbg version
+        if: contains(env.SAPI_LIST, 'phpdbg')
         run: phpdbg -V
 
       - name: Check pecl version
