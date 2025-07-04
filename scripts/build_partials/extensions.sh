@@ -20,6 +20,7 @@ enable_extension() {
     # Link the extension mod file for all SAPI.
     priority="$(grep priority "$INSTALL_ROOT"/"$mod_file" | cut -d '=' -f 2)"
     link_ini_file "$mod_file" "$priority-$extension.ini"
+    "$INSTALL_ROOT"/usr/bin/php -v
   fi
 }
 
