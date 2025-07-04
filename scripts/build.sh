@@ -138,10 +138,12 @@ merge_sapi() {
   ln -sf /usr/bin/phar.phar"$PHP_VERSION" "$INSTALL_ROOT"/usr/bin/phar"$PHP_VERSION"
 
   # Copy switch_sapi and switch_jit scripts
+  mkdir -p "$INSTALL_ROOT"/usr/sbin
   cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/sbin/switch_sapi
   cp -fp scripts/switch_jit "$INSTALL_ROOT"/usr/sbin/switch_jit
 
   # Make sure the binaries are executable.
+  mkdir -p "$INSTALL_ROOT"/usr/bin
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
 
   # Copy nginx config to the build.
@@ -199,21 +201,27 @@ configure_ini() {
 switch_version() {
   echo "::group::switch_version"
   # Install and set cgi binaries.
-  update-alternatives --install /usr/lib/libphp"${PHP_VERSION/%.*}".so libphp"${PHP_VERSION/%.*}" /usr/lib/libphp"$PHP_VERSION".so "${PHP_VERSION/./}" && ldconfig
-  update-alternatives --install /usr/lib/cgi-bin/php php-cgi-bin /usr/lib/cgi-bin/php"$PHP_VERSION" "${PHP_VERSION/./}"
-  update-alternatives --set php-cgi-bin /usr/lib/cgi-bin/php"$PHP_VERSION"
+  [ -e /usr/lib/libphp"$PHP_VERSION".so ] && update-alternatives --install /usr/lib/libphp"${PHP_VERSION/%.*}".so libphp"${PHP_VERSION/%.*}" /usr/lib/libphp"$PHP_VERSION".so "${PHP_VERSION/./}" && ldconfig
+  if [ -e /usr/lib/cgi-bin/php"$PHP_VERSION"]; then
+    update-alternatives --install /usr/lib/cgi-bin/php php-cgi-bin /usr/lib/cgi-bin/php"$PHP_VERSION" "${PHP_VERSION/./}"
+    update-alternatives --set php-cgi-bin /usr/lib/cgi-bin/php"$PHP_VERSION"
+  fi
 
   # Install and set fpm binary.
-  update-alternatives --install /usr/bin/php-fpm php-fpm /usr/sbin/php-fpm"$PHP_VERSION" "${PHP_VERSION/./}"
-  update-alternatives --set php-fpm /usr/sbin/php-fpm"$PHP_VERSION"
+  if [ -e /usr/sbin/php-fpm"$PHP_VERSION"]; then
+    update-alternatives --install /usr/bin/php-fpm php-fpm /usr/sbin/php-fpm"$PHP_VERSION" "${PHP_VERSION/./}"
+    update-alternatives --set php-fpm /usr/sbin/php-fpm"$PHP_VERSION"
+  fi
 
   # Install and set other PHP binaries.
   to_wait_arr=()
   for tool in phar phar.phar php-config phpize php php-cgi phpdbg; do
     (
-      update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$PHP_VERSION" "${PHP_VERSION/./}" \
+      if [ -e /usr/bin/"$tool$PHP_VERSION" ]; then
+        update-alternatives --install /usr/bin/"$tool" "$tool" /usr/bin/"$tool$PHP_VERSION" "${PHP_VERSION/./}" \
                           --slave /usr/share/man/man1/"$tool".1 "$tool".1 /usr/share/man/man1/"$tool$PHP_VERSION".1
-      update-alternatives --set "$tool" /usr/bin/"$tool$PHP_VERSION"
+        update-alternatives --set "$tool" /usr/bin/"$tool$PHP_VERSION"
+      fi
     ) &
     to_wait_arr+=( $! )
   done
