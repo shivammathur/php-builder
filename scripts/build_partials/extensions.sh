@@ -19,8 +19,7 @@ enable_extension() {
 
     # Link the extension mod file for all SAPI.
     priority="$(grep priority "$INSTALL_ROOT"/"$mod_file" | cut -d '=' -f 2)"
-    link_ini_file "$mod_file" "$priority-$extension.ini"
-    "$INSTALL_ROOT"/usr/bin/php -v
+    link_ini_file "$mod_file" "$priority-$extension.ini"    
   fi
 }
 
@@ -83,6 +82,8 @@ configure_shared_extensions() {
     extension="$(basename "$extension_path" | cut -d '.' -f 1)"
     echo "Adding module file for $extension"
     enable_extension "$extension" &
+    link_php
+    php -v
     to_wait+=( $! )
   done
   wait "${to_wait[@]}"
