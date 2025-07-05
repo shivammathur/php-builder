@@ -1,3 +1,17 @@
+# Function to configure_environment for building extensions
+configure_extension_env() {
+  if [[ "${BUILD:?}" = *asan* ]]; then
+    CC=clang-17
+    CXX=clang++-17
+    CFLAGS="$(echo "$CFLAGS" | sed -E 's/-O2/-O1/g')"
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -DZEND_TRACK_ARENA_ALLOC"
+    LDFLAGS="$LDFLAGS -Wl,-export-dynamic -shared-libasan -Wl,-rpath,/usr/lib/llvm-17/lib/clang/17/lib/linux -fsanitize=address,undefined -fno-sanitize=function"
+    export CC
+    export CXX
+    export LD_LIBRARY_PATH
+  fi
+}
+
 # Function to enable the extensions in all SAPI.
 enable_extension() {
   extension=$1
@@ -48,6 +62,9 @@ setup_custom_extensions() {
       tag=$(echo "$extension_config" | cut -d ' ' -f 4)
       IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 5-)"
     fi
+
+    # Configure the environment
+    configure_extension_env
 
     # Add debug symbols to the extension build.
     args+=("--enable-debug")
