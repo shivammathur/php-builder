@@ -63,9 +63,10 @@ build_php() {
     CXX=clang++-17
     CFLAGS="$(echo "$CFLAGS" | sed -E 's/-O2/-O1/g')"
     CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=function -DZEND_TRACK_ARENA_ALLOC"
-    LDFLAGS="$LDFLAGS -Wl,-export-dynamic -fsanitize=address,undefined -fno-sanitize=function"
+    LDFLAGS="$LDFLAGS -Wl,-export-dynamic -shared-libasan -Wl,-rpath,/usr/lib/llvm-17/lib/clang/17/lib/linux -fsanitize=address,undefined -fno-sanitize=function"
     export CC
     export CXX
+    export LD_LIBRARY_PATH
   fi
   export CFLAGS
   export CPPFLAGS
