@@ -1,1 +1,4 @@
 --enable-debug
+--enable-address-sanitizer
+--disable-rpath
+--disable-static

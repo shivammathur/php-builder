@@ -4,7 +4,7 @@ configure_extension_env() {
     CC=clang-17
     CXX=clang++-17
     CFLAGS="$(echo "$CFLAGS" | sed -E 's/-O2/-O1/g')"
-    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -DZEND_TRACK_ARENA_ALLOC"
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -DZEND_TRACK_ARENA_ALLOC -DZEND_DONT_UNLOAD_MODULES"
     LDFLAGS="$LDFLAGS -Wl,-export-dynamic -shared-libasan -Wl,-rpath,/usr/lib/llvm-17/lib/clang/17/lib/linux -fsanitize=address,undefined -fno-sanitize=function"
     export CC
     export CXX
