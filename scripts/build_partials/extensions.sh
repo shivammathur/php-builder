@@ -100,6 +100,7 @@ configure_shared_extensions() {
     echo "Adding module file for $extension"
     enable_extension "$extension" &
     link_php
+    export ASAN_SYMBOLIZER_PATH=/usr/lib/llvm-17/bin/llvm-symbolizer
     php -v
     to_wait+=( $! )
   done
