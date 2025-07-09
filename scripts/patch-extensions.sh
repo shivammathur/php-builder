@@ -65,3 +65,8 @@ patch_redis() {
 patch_igbinary() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
 }
+
+# Function to path zmq source
+patch_zmq() {
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/zend_exception_get_default()/zend_ce_exception/' zmq.c
+}
