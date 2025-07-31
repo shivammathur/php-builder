@@ -64,6 +64,7 @@ patch_redis() {
 # Function to patch igbinary source.
 patch_igbinary() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/php7/php_igbinary.h
 }
 
 # Function to path zmq source
