@@ -71,6 +71,11 @@ patch_igbinary() {
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/php7/php_igbinary.h
 }
 
+# Function to path yaml source
+patch_yaml() {
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' php_yaml.h
+}
+
 # Function to path zmq source
 patch_zmq() {
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/zend_exception_get_default()/zend_ce_exception/' zmq.c
