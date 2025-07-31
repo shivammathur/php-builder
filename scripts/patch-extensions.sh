@@ -34,6 +34,7 @@ patch_pdo_sqlsrv() {
 # Function to patch xdebug source.
 patch_xdebug() {
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/80500/80600/g' config.m4
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/develop/stack.c src/lib/var.c
   [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
 }
 
