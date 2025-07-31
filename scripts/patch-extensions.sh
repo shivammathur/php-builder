@@ -61,7 +61,8 @@ patch_redis() {
     sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" library.c
     sed -i -e "s|ext/standard/php_rand.h|ext/random/php_random.h|" -e "/php_mt_rand.h/d" backoff.c
     sed -i -e "s|standard/php_random.h|ext/random/php_random.h|" redis.c
-  fi  
+  fi
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#zend_smart_string.h#' common.h
 }
 
 # Function to patch igbinary source.
