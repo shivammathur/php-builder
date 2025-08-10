@@ -58,12 +58,15 @@ build_php() {
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
   EXTRA_CFLAGS="-Wall -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
   DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)"
+  ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"
+  dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
   export CFLAGS
   export CPPFLAGS
   export CXXFLAGS
   export LDFLAGS
   export EXTRA_CFLAGS
   export DEB_HOST_MULTIARCH
+  export ICU_CXXFLAGS
 
   # Export inputs
   export INSTALL_ROOT
