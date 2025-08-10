@@ -9,10 +9,10 @@ Subject: php-5.3.3-macropen
  3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/ext/dba/dba.c b/ext/dba/dba.c
-index 2bfc368..6face3d 100644
+index e2a02ea..b1fa45a 100644
 --- a/ext/dba/dba.c
 +++ b/ext/dba/dba.c
-@@ -890,7 +890,7 @@ restart:
+@@ -889,7 +889,7 @@ restart:
  		}
  	}
  

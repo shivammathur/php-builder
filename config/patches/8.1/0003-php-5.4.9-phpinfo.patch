@@ -11,10 +11,10 @@ The available extensions are not related to this command.
  2 files changed, 4 deletions(-)
 
 diff --git a/ext/standard/info.c b/ext/standard/info.c
-index aff7a95..de3777a 100644
+index 58e2eee..f80eb07 100644
 --- a/ext/standard/info.c
 +++ b/ext/standard/info.c
-@@ -805,9 +805,6 @@ PHPAPI ZEND_COLD void php_print_info(int flag)
+@@ -827,9 +827,6 @@ PHPAPI ZEND_COLD void php_print_info(int flag)
  #ifdef PHP_BUILD_ARCH
  		php_info_print_table_row(2, "Architecture", PHP_BUILD_ARCH);
  #endif
@@ -25,7 +25,7 @@ index aff7a95..de3777a 100644
  		if (sapi_module.pretty_name) {
  			php_info_print_table_row(2, "Server API", sapi_module.pretty_name );
 diff --git a/ext/standard/tests/general_functions/phpinfo.phpt b/ext/standard/tests/general_functions/phpinfo.phpt
-index 5f4d99f..bb75dd2 100644
+index 57ba13b..2e2fae8 100644
 --- a/ext/standard/tests/general_functions/phpinfo.phpt
 +++ b/ext/standard/tests/general_functions/phpinfo.phpt
 @@ -17,7 +17,6 @@ PHP Version => %s

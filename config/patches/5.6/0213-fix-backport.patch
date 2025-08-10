@@ -1,0 +1,31 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 2 Aug 2023 11:36:13 +0200
+Subject: fix backport
+
+---
+ ext/dom/document.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/ext/dom/document.c b/ext/dom/document.c
+index d6d0d99..6f4ae26 100644
+--- a/ext/dom/document.c
++++ b/ext/dom/document.c
+@@ -2165,6 +2165,7 @@ static void dom_load_html(INTERNAL_FUNCTION_PARAMETERS, int mode) /* {{{ */
+ 		RETURN_FALSE;
+ 	}
+ 
++	php_libxml_sanitize_parse_ctxt_options(ctxt);
+ 	if (options) {
+ 		htmlCtxtUseOptions(ctxt, options);
+ 	}
+@@ -2175,10 +2176,6 @@ static void dom_load_html(INTERNAL_FUNCTION_PARAMETERS, int mode) /* {{{ */
+ 		ctxt->sax->error = php_libxml_ctx_error;
+ 		ctxt->sax->warning = php_libxml_ctx_warning;
+ 	}
+-	php_libxml_sanitize_parse_ctxt_options(ctxt);
+-	if (options) {
+- 		htmlCtxtUseOptions(ctxt, (int)options);
+- 	}
+ 	htmlParseDocument(ctxt);
+ 	newdoc = ctxt->myDoc;
+ 	htmlFreeParserCtxt(ctxt);

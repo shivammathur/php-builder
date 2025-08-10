@@ -1,0 +1,33 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 1 Aug 2023 07:22:33 +0200
+Subject: NEWS
+
+(cherry picked from commit ef1d507acf7be23d7624dc3c891683b2218feb51)
+(cherry picked from commit 3cf7c2b10e577136b267f2d90bfdff6743271c5c)
+(cherry picked from commit 79c0bf87711036b83f8ee1723c034ccc839d847b)
+(cherry picked from commit 3ac0ce8a462cb31815330d1410e1a8a615c395eb)
+---
+ NEWS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 8bcb6d5..c82aea8 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,16 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.0.30
++
++- Libxml:
++  . Fixed bug GHSA-3qrf-m4j2-pcrr (Security issue with external entity loading
++    in XML without enabling it). (CVE-2023-3823) (nielsdos, ilutov)
++
++- Phar:
++  . Fixed bug GHSA-jqcx-ccgc-xwhv (Buffer mismanagement in phar_dir_read()).
++    (CVE-2023-3824) (nielsdos)
++
+ Backported from 8.0.29
+ 
+ - Soap:

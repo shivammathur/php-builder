@@ -1,0 +1,106 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Fri, 8 Nov 2024 23:43:47 +0100
+Subject: Fix GHSA-c5f2-jwm7-mmq2: stream HTTP fulluri CRLF injection
+
+(cherry picked from commit 426a6d4539ebee34879ac5de857036bb6ff0e732)
+(cherry picked from commit bc1f192102dd8cbda028e40aa31604c4885d387c)
+(cherry picked from commit 8d130e16fbfda7d154fedfa0f1ff1d5ad5e26815)
+(cherry picked from commit 494de65139592da0e5e5b6fdf198c2f9c762f4d6)
+(cherry picked from commit dcb89ed9d0217510f3906ce0c517f704e6bd80dc)
+(cherry picked from commit 11787051a17d2fcea427cd66c3fcc5e99ab94a03)
+(cherry picked from commit 59bfc165234a2bb79916c340cd98d011deedc995)
+(cherry picked from commit 8dab7d0bb9c4133a082c70403af0c6a4c1b0025b)
+---
+ ext/standard/http_fopen_wrapper.c                | 29 ++++++++++++++----------
+ ext/standard/tests/http/ghsa-c5f2-jwm7-mmq2.phpt | 28 +++++++++++++++++++++++
+ 2 files changed, 45 insertions(+), 12 deletions(-)
+ create mode 100644 ext/standard/tests/http/ghsa-c5f2-jwm7-mmq2.phpt
+
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index 78bd935..157ffd7 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -178,6 +178,16 @@ php_stream *php_stream_url_wrap_http_ex(php_stream_wrapper *wrapper,
+ 			return NULL;
+ 		}
+ 
++		/* Should we send the entire path in the request line, default to no. */
++		if (context && php_stream_context_get_option(context, "http", "request_fulluri", &tmpzval) == SUCCESS) {
++			zval ztmp = **tmpzval;
++
++			zval_copy_ctor(&ztmp);
++			convert_to_boolean(&ztmp);
++			request_fulluri = Z_BVAL(ztmp) ? 1 : 0;
++			zval_dtor(&ztmp);
++		}
++
+ 		use_ssl = resource->scheme && (strlen(resource->scheme) > 4) && resource->scheme[4] == 's';
+ 		/* choose default ports */
+ 		if (use_ssl && resource->port == 0)
+@@ -197,6 +207,13 @@ php_stream *php_stream_url_wrap_http_ex(php_stream_wrapper *wrapper,
+ 		}
+ 	}
+ 
++	if (request_fulluri && (strchr(path, '\n') != NULL || strchr(path, '\r') != NULL)) {
++		php_stream_wrapper_log_error(wrapper, options TSRMLS_CC, "HTTP wrapper full URI path does not allow CR or LF characters");
++		php_url_free(resource);
++		efree(transport_string);
++		return NULL;
++	}
++
+ 	if (context && php_stream_context_get_option(context, wrapper->wops->label, "timeout", &tmpzval) == SUCCESS) {
+ 		SEPARATE_ZVAL(tmpzval);
+ 		convert_to_double_ex(tmpzval);
+@@ -382,18 +399,6 @@ finish:
+ 		strncpy(scratch, "GET ", scratch_len);
+ 	}
+ 
+-	/* Should we send the entire path in the request line, default to no. */
+-	if (!request_fulluri &&
+-		context &&
+-		php_stream_context_get_option(context, "http", "request_fulluri", &tmpzval) == SUCCESS) {
+-		zval ztmp = **tmpzval;
+-
+-		zval_copy_ctor(&ztmp);
+-		convert_to_boolean(&ztmp);
+-		request_fulluri = Z_BVAL(ztmp) ? 1 : 0;
+-		zval_dtor(&ztmp);
+-	}
+-
+ 	if (request_fulluri) {
+ 		/* Ask for everything */
+ 		strcat(scratch, path);
+diff --git a/ext/standard/tests/http/ghsa-c5f2-jwm7-mmq2.phpt b/ext/standard/tests/http/ghsa-c5f2-jwm7-mmq2.phpt
+new file mode 100644
+index 0000000..6e68f67
+--- /dev/null
++++ b/ext/standard/tests/http/ghsa-c5f2-jwm7-mmq2.phpt
+@@ -0,0 +1,28 @@
++--TEST--
++GHSA-c5f2-jwm7-mmq2 (Configuring a proxy in a stream context might allow for CRLF injection in URIs)
++--INI--
++allow_url_fopen=1
++--CONFLICTS--
++server
++--FILE--
++<?php
++$serverCode = <<<'CODE'
++echo $_SERVER['REQUEST_URI'];
++CODE;
++
++include __DIR__."/../../../../sapi/cli/tests/php_cli_server.inc";
++php_cli_server_start($serverCode, null);
++
++$host = PHP_CLI_SERVER_ADDRESS;
++$userinput = "index.php HTTP/1.1\r\nHost: $host\r\n\r\nGET /index2.php HTTP/1.1\r\nHost: $host\r\n\r\nGET /index.php";
++$context = stream_context_create(['http' => ['proxy' => 'tcp://' . $host, 'request_fulluri' => true]]);
++echo file_get_contents("http://$host/$userinput", false, $context);
++?>
++--EXPECTF--
++Warning: file_get_contents(http://localhost:%d/index.php HTTP/1.1
++Host: localhost:%d
++
++GET /index2.php HTTP/1.1
++Host: localhost:%d
++
++GET /index.php): failed to open stream: HTTP wrapper full URI path does not allow CR or LF characters in %s on line %d

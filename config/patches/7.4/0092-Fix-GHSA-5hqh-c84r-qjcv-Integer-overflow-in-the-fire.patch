@@ -1,0 +1,35 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Thu, 24 Oct 2024 22:02:36 +0200
+Subject: Fix GHSA-5hqh-c84r-qjcv: Integer overflow in the firebird quoter
+ causing OOB writes
+
+(cherry picked from commit 69c5f68fdc3deed9ebce2cc44b4bf5e0c47cd28f)
+(cherry picked from commit b4f73be75dbdde970a18cc7a636898b10400fb3f)
+---
+ ext/pdo_firebird/firebird_driver.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/ext/pdo_firebird/firebird_driver.c b/ext/pdo_firebird/firebird_driver.c
+index f16fdbc..6407cb1 100644
+--- a/ext/pdo_firebird/firebird_driver.c
++++ b/ext/pdo_firebird/firebird_driver.c
+@@ -242,7 +242,7 @@ free_statement:
+ static int firebird_handle_quoter(pdo_dbh_t *dbh, const char *unquoted, size_t unquotedlen, /* {{{ */
+ 	char **quoted, size_t *quotedlen, enum pdo_param_type paramtype)
+ {
+-	int qcount = 0;
++	size_t qcount = 0;
+ 	char const *co, *l, *r;
+ 	char *c;
+ 
+@@ -257,6 +257,10 @@ static int firebird_handle_quoter(pdo_dbh_t *dbh, const char *unquoted, size_t u
+ 	/* count the number of ' characters */
+ 	for (co = unquoted; (co = strchr(co,'\'')); qcount++, co++);
+ 
++	if (UNEXPECTED(unquotedlen + 2 > ZSTR_MAX_LEN - qcount)) {
++		return 0;
++	}
++
+ 	*quotedlen = unquotedlen + qcount + 2;
+ 	*quoted = c = emalloc(*quotedlen+1);
+ 	*c++ = '\'';

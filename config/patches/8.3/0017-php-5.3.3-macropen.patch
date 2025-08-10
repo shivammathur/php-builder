@@ -1,0 +1,55 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-5.3.3-macropen
+
+---
+ ext/dba/dba.c     | 2 +-
+ ext/dba/dba_db3.c | 4 ++--
+ ext/dba/dba_db4.c | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ext/dba/dba.c b/ext/dba/dba.c
+index 620097c..e827c10 100644
+--- a/ext/dba/dba.c
++++ b/ext/dba/dba.c
+@@ -873,7 +873,7 @@ static void php_dba_open(INTERNAL_FUNCTION_PARAMETERS, bool persistent)
+ 		}
+ 	}
+ 
+-	if (error || hptr->open(info, &error) == FAILURE) {
++	if (error || (hptr->open)(info, &error) == FAILURE) {
+ 		dba_close(info);
+ 		if (EXPECTED(!EG(exception))) {
+ 			if (error) {
+diff --git a/ext/dba/dba_db3.c b/ext/dba/dba_db3.c
+index 5d36d86..0e51657 100644
+--- a/ext/dba/dba_db3.c
++++ b/ext/dba/dba_db3.c
+@@ -81,9 +81,9 @@ DBA_OPEN_FUNC(db3)
+ 	    dbp->set_errcall(dbp, php_dba_db3_errcall_fcn);
+ 		if(
+ #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
+-			(err=dbp->open(dbp, 0, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, 0, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
+ #else
+-			(err=dbp->open(dbp, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
+ #endif
+ 			dba_db3_data *data;
+ 
+diff --git a/ext/dba/dba_db4.c b/ext/dba/dba_db4.c
+index a2dbd5d..d53f9eb 100644
+--- a/ext/dba/dba_db4.c
++++ b/ext/dba/dba_db4.c
+@@ -110,9 +110,9 @@ DBA_OPEN_FUNC(db4)
+ 	    dbp->set_errcall(dbp, php_dba_db4_errcall_fcn);
+ 	    if (
+ #if (DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 1))
+-			(err=dbp->open(dbp, 0, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, 0, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
+ #else
+-			(err=dbp->open(dbp, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
++			(err=(dbp->open)(dbp, ZSTR_VAL(info->path), NULL, type, gmode, filemode)) == 0) {
+ #endif
+ 			dba_db4_data *data;
+ 

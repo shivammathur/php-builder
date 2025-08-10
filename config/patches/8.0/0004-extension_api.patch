@@ -7,9 +7,11 @@ Subject: extension_api
  scripts/php-config.in | 4 ++++
  2 files changed, 8 insertions(+), 1 deletion(-)
 
+diff --git a/configure.ac b/configure.ac
+index d58ab17..0a07ccb 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1218,8 +1218,10 @@
+@@ -1218,8 +1218,10 @@ ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modul
  
  AC_SUBST(ZEND_MODULE_API_NO)
  
@@ -21,7 +23,7 @@ Subject: extension_api
    if test "$oldstyleextdir" = "yes"; then
      if test "$PHP_DEBUG" = "1"; then
        part1=debug
-@@ -1352,6 +1354,7 @@
+@@ -1352,6 +1354,7 @@ PHP_SUBST(CXX)
  PHP_SUBST(CXXFLAGS)
  PHP_SUBST(CXXFLAGS_CLEAN)
  PHP_SUBST_OLD(DEBUG_CFLAGS)
@@ -29,9 +31,11 @@ Subject: extension_api
  PHP_SUBST_OLD(EXTENSION_DIR)
  PHP_SUBST_OLD(EXTRA_LDFLAGS)
  PHP_SUBST_OLD(EXTRA_LDFLAGS_PROGRAM)
+diff --git a/scripts/php-config.in b/scripts/php-config.in
+index 355be04..cac95ac 100644
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
-@@ -19,6 +19,7 @@
+@@ -19,6 +19,7 @@ php_cli_binary=NONE
  php_cgi_binary=NONE
  configure_options="@CONFIGURE_OPTIONS@"
  php_sapis="@PHP_INSTALLED_SAPIS@"
@@ -39,7 +43,7 @@ Subject: extension_api
  ini_dir="@EXPANDED_PHP_CONFIG_FILE_SCAN_DIR@"
  ini_path="@EXPANDED_PHP_CONFIG_FILE_PATH@"
  
-@@ -59,6 +60,8 @@
+@@ -59,6 +60,8 @@ case "$1" in
    echo $include_dir;;
  --php-binary)
    echo $php_binary;;
@@ -48,7 +52,7 @@ Subject: extension_api
  --php-sapis)
    echo $php_sapis;;
  --configure-options)
-@@ -86,6 +89,7 @@
+@@ -86,6 +89,7 @@ Options:
    --man-dir           [$man_dir]
    --php-binary        [$php_binary]
    --php-sapis         [$php_sapis]

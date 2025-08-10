@@ -1,0 +1,24 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 24 Nov 2024 23:48:27 +0100
+Subject: Increase MySQLi fake server read timeout for ASAN job
+
+(cherry picked from commit eb951b3d11109aa16982a2132f8d1fd5129edc9e)
+---
+ ext/mysqli/tests/fake_server.inc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index b02fabc..1127f6c 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -552,8 +552,8 @@ class my_mysqli_fake_server_conn
+ 
+     public function read($bytes_len = 1024)
+     {
+-        // wait 10ms to fill the buffer
+-        usleep(10000);
++        // wait 20ms to fill the buffer
++        usleep(20000);
+         $data = fread($this->conn, $bytes_len);
+         if ($data) {
+             fprintf(STDERR, "[*] Received: %s\n", bin2hex($data));

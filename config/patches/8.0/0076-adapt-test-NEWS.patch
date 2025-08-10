@@ -1,0 +1,35 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 27 Nov 2024 11:17:48 +0100
+Subject: adapt test + NEWS
+
+---
+ NEWS                                                   | 4 ++++
+ ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt | 3 +--
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 0f82a65..e043901 100644
+--- a/NEWS
++++ b/NEWS
+@@ -11,6 +11,10 @@ Backported from 8.1.31
+   . Fixed bug GHSA-g665-fm4p-vhff (OOB access in ldap_escape). (CVE-2024-8932)
+     (nielsdos)
+ 
++- MySQLnd:
++  . Fixed bug GHSA-h35g-vwh6-m678 (Leak partial content of the heap through
++    heap buffer over-read). (CVE-2024-8929) (Jakub Zelenka)
++
+ - PDO DBLIB:
+   . Fixed bug GHSA-5hqh-c84r-qjcv (Integer overflow in the dblib quoter causing
+     OOB writes). (CVE-2024-11236) (nielsdos)
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+index 279aec6..161c9a5 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+@@ -34,5 +34,4 @@ print "done!";
+ [*] Sending - Malicious OK Auth Response [Extract heap through buffer over-read]: 0900000200000002000000fcff
+ 
+ Warning: mysqli::__construct(): OK packet message length is past the packet size in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:33305
+-done!
++%A

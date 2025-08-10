@@ -68,7 +68,7 @@ index 18b8106..3d1f63c 100644
  timelib_sources="lib/astro.c lib/dow.c lib/parse_date.c lib/parse_tz.c lib/parse_posix.c
                   lib/timelib.c lib/tm2unixtime.c lib/unixtime2tm.c lib/parse_iso_intervals.c lib/interval.c"
 diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
-index 4e31b9e..cc87b45 100644
+index e41315e..ba01fab 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
 @@ -26,9 +26,22 @@
@@ -174,7 +174,7 @@ index 4e31b9e..cc87b45 100644
 +
 +    /* Annoying encoding used by zone.tab has no decimal point, so use
 +     * the length to determine the format:
-+     *
++     * 
 +     * 4 = DDMM
 +     * 5 = DDDMM
 +     * 6 = DDMMSS
@@ -241,10 +241,10 @@ index 4e31b9e..cc87b45 100644
 +
 +        if (*p == '#' || *p == '\0' || *p == '\n')
 +            continue;
-+
++        
 +        if (!isalpha(p[0]) || !isalpha(p[1]) || p[2] != '\t')
 +            continue;
-+
++        
 +        /* code => AA */
 +        code = p;
 +        p[2] = 0;
@@ -278,7 +278,7 @@ index 4e31b9e..cc87b45 100644
 +
 +        if (*p == '\n' || *p == '\t')
 +            *p = '\0';
-+
++        
 +        hash = tz_hash(name);
 +        i = malloc(sizeof *i);
 +        memcpy(i->code, code, 2);
@@ -298,7 +298,7 @@ index 4e31b9e..cc87b45 100644
 +
 +/* Return location info from hash table, using given timezone name.
 + * Returns NULL if the name could not be found. */
-+const struct location_info *find_zone_info(struct location_info **li,
++const struct location_info *find_zone_info(struct location_info **li, 
 +                                           const char *name)
 +{
 +    uint32_t hash = tz_hash(name);
@@ -314,7 +314,7 @@ index 4e31b9e..cc87b45 100644
 +    }
 +
 +    return NULL;
-+}
++}    
 +
 +/* Filter out some non-tzdata files and the posix/right databases, if
 + * present. */
@@ -351,7 +351,7 @@ index 4e31b9e..cc87b45 100644
 +	dirstack = malloc(dirstack_size * sizeof *dirstack);
 +	dirstack_top = 1;
 +	dirstack[0] = strdup("");
-+
++	
 +	/* Index array. */
 +	index_size = 64;
 +	db_index = malloc(index_size * sizeof *db_index);
@@ -372,22 +372,22 @@ index 4e31b9e..cc87b45 100644
 +			struct stat st;
 +			const char *leaf = ents[count - 1]->d_name;
 +
-+			snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s/%s",
++			snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s/%s", 
 +				 top, leaf);
-+
++			
 +			if (strlen(name) && stat(name, &st) == 0) {
 +				/* Name, relative to the zoneinfo prefix. */
 +				const char *root = top;
 +
 +				if (root[0] == '/') root++;
 +
-+				snprintf(name, sizeof name, "%s%s%s", root,
++				snprintf(name, sizeof name, "%s%s%s", root, 
 +					 *root ? "/": "", leaf);
 +
 +				if (S_ISDIR(st.st_mode)) {
 +					if (dirstack_top == dirstack_size) {
 +						dirstack_size *= 2;
-+						dirstack = realloc(dirstack,
++						dirstack = realloc(dirstack, 
 +								   dirstack_size * sizeof *dirstack);
 +					}
 +					dirstack[dirstack_top++] = strdup(name);
@@ -405,7 +405,7 @@ index 4e31b9e..cc87b45 100644
 +
 +			free(ents[--count]);
 +		}
-+
++		
 +		if (count != -1) free(ents);
 +		free(top);
 +	} while (dirstack_top);
@@ -427,7 +427,7 @@ index 4e31b9e..cc87b45 100644
 +{
 +        size_t n;
 +        char *data, *p;
-+
++        
 +        data = malloc(3 * sysdb->index_size + 7);
 +
 +        p = mempcpy(data, FAKE_HEADER, sizeof(FAKE_HEADER) - 1);
@@ -460,7 +460,7 @@ index 4e31b9e..cc87b45 100644
 +                        ent->pos = 0;
 +                }
 +        }
-+
++        
 +        sysdb->data = (unsigned char *)data;
 +}
 +
@@ -509,7 +509,7 @@ index 4e31b9e..cc87b45 100644
 +	struct stat st;
 +	char *p;
 +	int fd;
-+
++	
 +	if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
 +		return NULL;
 +	}
@@ -527,7 +527,7 @@ index 4e31b9e..cc87b45 100644
 +	*length = st.st_size;
 +	p = mmap(NULL, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
 +	close(fd);
-+
++	
 +	return p != MAP_FAILED ? p : NULL;
 +}
 +

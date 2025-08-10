@@ -1,0 +1,35 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 11 Mar 2025 13:34:02 +0100
+Subject: Force POSIX readdir_r() semantics
+
+---
+ main/php_reentrancy.h | 2 +-
+ main/reentrancy.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/main/php_reentrancy.h b/main/php_reentrancy.h
+index c64e964..1989f26 100644
+--- a/main/php_reentrancy.h
++++ b/main/php_reentrancy.h
+@@ -51,7 +51,7 @@
+ 
+ BEGIN_EXTERN_C()
+ 
+-#if defined(HAVE_POSIX_READDIR_R)
++#if 1 || defined(HAVE_POSIX_READDIR_R)
+ #define php_readdir_r readdir_r
+ #else
+ PHPAPI int php_readdir_r(DIR *dirp, struct dirent *entry,
+diff --git a/main/reentrancy.c b/main/reentrancy.c
+index f0c6dac..87531d8 100644
+--- a/main/reentrancy.c
++++ b/main/reentrancy.c
+@@ -123,7 +123,7 @@ PHPAPI struct tm *php_gmtime_r(const time_t *const timep, struct tm *p_tm)
+ 
+ #endif /* BEOS */
+ 
+-#if !defined(HAVE_POSIX_READDIR_R)
++#if 0 && !defined(HAVE_POSIX_READDIR_R)
+ 
+ PHPAPI int php_readdir_r(DIR *dirp, struct dirent *entry,
+ 		struct dirent **result)

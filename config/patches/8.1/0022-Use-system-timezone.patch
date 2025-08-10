@@ -14,7 +14,7 @@ To be used in tandem with use_embedded_timezonedb.patch and use_embedded_timezon
  1 file changed, 17 insertions(+)
 
 diff --git a/ext/date/php_date.c b/ext/date/php_date.c
-index f113576..f98ecaf 100644
+index fe58eba..660af6b 100644
 --- a/ext/date/php_date.c
 +++ b/ext/date/php_date.c
 @@ -545,6 +545,23 @@ static char* guess_timezone(const timelib_tzdb *tzdb)

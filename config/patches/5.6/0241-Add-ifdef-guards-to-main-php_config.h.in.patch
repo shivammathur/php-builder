@@ -1,0 +1,31 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 11 Mar 2025 17:25:35 +0100
+Subject: Add #ifdef guards to main/php_config.h.in
+
+---
+ configure.in | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/configure.in b/configure.in
+index 982ea8c..64b0615 100644
+--- a/configure.in
++++ b/configure.in
+@@ -18,6 +18,9 @@ PHP_CANONICAL_HOST_TARGET
+ 
+ AC_CONFIG_HEADER(main/php_config.h)
+ AH_TOP([
++#ifndef PHP_CONFIG_H
++#define PHP_CONFIG_H
++
+ #if defined(__GNUC__) && __GNUC__ >= 4
+ # define ZEND_API __attribute__ ((visibility("default")))
+ # define ZEND_DLEXPORT __attribute__ ((visibility("default")))
+@@ -115,6 +118,8 @@ int zend_sprintf(char *buffer, const char *format, ...);
+ #endif
+ 
+ #undef PTHREADS
++
++#endif /* PHP_CONFIG_H */
+ ])
+ 
+ PHP_MAJOR_VERSION=5

@@ -1,0 +1,309 @@
+From: =?utf-8?q?Tim_D=C3=BCsterhus?= <tim@tideways-gmbh.com>
+Date: Wed, 20 Nov 2024 10:47:27 +0100
+Subject: Fix GHSA-p3x9-6h7p-cgfc: libxml streams wrong `content-type` on
+ redirect
+
+libxml streams use wrong content-type header when requesting a
+redirected resource.
+
+(cherry picked from commit b6004a043c16b211d462218fbb3f72db68ec2b18)
+---
+ ext/dom/tests/ghsa-p3x9-6h7p-cgfc_001.phpt | 60 +++++++++++++++++++++++
+ ext/dom/tests/ghsa-p3x9-6h7p-cgfc_002.phpt | 60 +++++++++++++++++++++++
+ ext/dom/tests/ghsa-p3x9-6h7p-cgfc_003.phpt | 60 +++++++++++++++++++++++
+ ext/libxml/libxml.c                        | 79 +++++++++++++++++-------------
+ 4 files changed, 225 insertions(+), 34 deletions(-)
+ create mode 100644 ext/dom/tests/ghsa-p3x9-6h7p-cgfc_001.phpt
+ create mode 100644 ext/dom/tests/ghsa-p3x9-6h7p-cgfc_002.phpt
+ create mode 100644 ext/dom/tests/ghsa-p3x9-6h7p-cgfc_003.phpt
+
+diff --git a/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_001.phpt b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_001.phpt
+new file mode 100644
+index 0000000..47212cb
+--- /dev/null
++++ b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_001.phpt
+@@ -0,0 +1,60 @@
++--TEST--
++GHSA-p3x9-6h7p-cgfc: libxml streams use wrong `content-type` header when requesting a redirected resource (Basic)
++--EXTENSIONS--
++dom
++--SKIPIF--
++<?php
++if (@!include "./ext/standard/tests/http/server.inc") die('skip server.inc not available');
++http_server_skipif();
++?>
++--FILE--
++<?php
++require "./ext/standard/tests/http/server.inc";
++
++function genResponses($server) {
++    $uri = 'http://' . stream_socket_get_name($server, false);
++    yield "data://text/plain,HTTP/1.1 302 Moved Temporarily\r\nLocation: $uri/document.xml\r\nContent-Type: text/html;charset=utf-16\r\n\r\n";
++    $xml = <<<'EOT'
++        <!doctype html>
++        <html>
++            <head>
++                <title>GHSA-p3x9-6h7p-cgfc</title>
++
++                <meta charset="utf-8" />
++                <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
++            </head>
++
++            <body>
++                <h1>GHSA-p3x9-6h7p-cgfc</h1>
++            </body>
++        </html>
++        EOT;
++    // Intentionally using non-standard casing for content-type to verify it is matched not case sensitively.
++    yield "data://text/plain,HTTP/1.1 200 OK\r\nconteNt-tyPe: text/html; charset=utf-8\r\n\r\n{$xml}";
++}
++
++['pid' => $pid, 'uri' => $uri] = http_server('genResponses', $output);
++$document = new \DOMDocument();
++$document->loadHTMLFile($uri);
++
++$h1 = $document->getElementsByTagName('h1');
++var_dump($h1->length);
++var_dump($document->saveHTML());
++http_server_kill($pid);
++?>
++--EXPECT--
++int(1)
++string(266) "<!DOCTYPE html>
++<html>
++    <head>
++        <title>GHSA-p3x9-6h7p-cgfc</title>
++
++        <meta charset="utf-8">
++        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
++    </head>
++
++    <body>
++        <h1>GHSA-p3x9-6h7p-cgfc</h1>
++    </body>
++</html>
++"
+diff --git a/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_002.phpt b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_002.phpt
+new file mode 100644
+index 0000000..a7eff3b
+--- /dev/null
++++ b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_002.phpt
+@@ -0,0 +1,60 @@
++--TEST--
++GHSA-p3x9-6h7p-cgfc: libxml streams use wrong `content-type` header when requesting a redirected resource (Missing content-type)
++--EXTENSIONS--
++dom
++--SKIPIF--
++<?php
++if (@!include "./ext/standard/tests/http/server.inc") die('skip server.inc not available');
++http_server_skipif();
++?>
++--FILE--
++<?php
++require "./ext/standard/tests/http/server.inc";
++
++function genResponses($server) {
++    $uri = 'http://' . stream_socket_get_name($server, false);
++    yield "data://text/plain,HTTP/1.1 302 Moved Temporarily\r\nLocation: $uri/document.xml\r\nContent-Type: text/html;charset=utf-16\r\n\r\n";
++    $xml = <<<'EOT'
++        <!doctype html>
++        <html>
++            <head>
++                <title>GHSA-p3x9-6h7p-cgfc</title>
++
++                <meta charset="utf-8" />
++                <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
++            </head>
++
++            <body>
++                <h1>GHSA-p3x9-6h7p-cgfc</h1>
++            </body>
++        </html>
++        EOT;
++    // Missing content-type in actual response.
++    yield "data://text/plain,HTTP/1.1 200 OK\r\n\r\n{$xml}";
++}
++
++['pid' => $pid, 'uri' => $uri] = http_server('genResponses', $output);
++$document = new \DOMDocument();
++$document->loadHTMLFile($uri);
++
++$h1 = $document->getElementsByTagName('h1');
++var_dump($h1->length);
++var_dump($document->saveHTML());
++http_server_kill($pid);
++?>
++--EXPECT--
++int(1)
++string(266) "<!DOCTYPE html>
++<html>
++    <head>
++        <title>GHSA-p3x9-6h7p-cgfc</title>
++
++        <meta charset="utf-8">
++        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
++    </head>
++
++    <body>
++        <h1>GHSA-p3x9-6h7p-cgfc</h1>
++    </body>
++</html>
++"
+diff --git a/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_003.phpt b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_003.phpt
+new file mode 100644
+index 0000000..178b35f
+--- /dev/null
++++ b/ext/dom/tests/ghsa-p3x9-6h7p-cgfc_003.phpt
+@@ -0,0 +1,60 @@
++--TEST--
++GHSA-p3x9-6h7p-cgfc: libxml streams use wrong `content-type` header when requesting a redirected resource (Reason with colon)
++--EXTENSIONS--
++dom
++--SKIPIF--
++<?php
++if (@!include "./ext/standard/tests/http/server.inc") die('skip server.inc not available');
++http_server_skipif();
++?>
++--FILE--
++<?php
++require "./ext/standard/tests/http/server.inc";
++
++function genResponses($server) {
++    $uri = 'http://' . stream_socket_get_name($server, false);
++    yield "data://text/plain,HTTP/1.1 302 Moved Temporarily\r\nLocation: $uri/document.xml\r\nContent-Type: text/html;charset=utf-16\r\n\r\n";
++    $xml = <<<'EOT'
++        <!doctype html>
++        <html>
++            <head>
++                <title>GHSA-p3x9-6h7p-cgfc</title>
++
++                <meta charset="utf-8" />
++                <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
++            </head>
++
++            <body>
++                <h1>GHSA-p3x9-6h7p-cgfc</h1>
++            </body>
++        </html>
++        EOT;
++    // Missing content-type in actual response.
++    yield "data://text/plain,HTTP/1.1 200 OK: This is fine\r\n\r\n{$xml}";
++}
++
++['pid' => $pid, 'uri' => $uri] = http_server('genResponses', $output);
++$document = new \DOMDocument();
++$document->loadHTMLFile($uri);
++
++$h1 = $document->getElementsByTagName('h1');
++var_dump($h1->length);
++var_dump($document->saveHTML());
++http_server_kill($pid);
++?>
++--EXPECT--
++int(1)
++string(266) "<!DOCTYPE html>
++<html>
++    <head>
++        <title>GHSA-p3x9-6h7p-cgfc</title>
++
++        <meta charset="utf-8">
++        <meta http-equiv="Content-type" content="text/html; charset=utf-8">
++    </head>
++
++    <body>
++        <h1>GHSA-p3x9-6h7p-cgfc</h1>
++    </body>
++</html>
++"
+diff --git a/ext/libxml/libxml.c b/ext/libxml/libxml.c
+index 28dd86a..7886ca7 100644
+--- a/ext/libxml/libxml.c
++++ b/ext/libxml/libxml.c
+@@ -372,42 +372,53 @@ php_libxml_input_buffer_create_filename(const char *URI, xmlCharEncoding enc)
+ 		if (Z_TYPE(s->wrapperdata) == IS_ARRAY) {
+ 			zval *header;
+ 
+-			ZEND_HASH_FOREACH_VAL_IND(Z_ARRVAL(s->wrapperdata), header) {
++			/* Scan backwards: The header array might contain the headers for multiple responses, if
++			 * a redirect was followed.
++			 */
++			ZEND_HASH_REVERSE_FOREACH_VAL_IND(Z_ARRVAL(s->wrapperdata), header) {
+ 				const char buf[] = "Content-Type:";
+-				if (Z_TYPE_P(header) == IS_STRING &&
+-						!zend_binary_strncasecmp(Z_STRVAL_P(header), Z_STRLEN_P(header), buf, sizeof(buf)-1, sizeof(buf)-1)) {
+-					char *needle = estrdup("charset=");
+-					char *haystack = estrndup(Z_STRVAL_P(header), Z_STRLEN_P(header));
+-					char *encoding = php_stristr(haystack, needle, Z_STRLEN_P(header), sizeof("charset=")-1);
+-
+-					if (encoding) {
+-						char *end;
+-						
+-						encoding += sizeof("charset=")-1;
+-						if (*encoding == '"') {
+-							encoding++;
+-						}
+-						end = strchr(encoding, ';');
+-						if (end == NULL) {
+-							end = encoding + strlen(encoding);
+-						}
+-						end--; /* end == encoding-1 isn't a buffer underrun */
+-						while (*end == ' ' || *end == '\t') {
+-							end--;
+-						}
+-						if (*end == '"') {
+-							end--;
+-						}
+-						if (encoding >= end) continue;
+-						*(end+1) = '\0';
+-						enc = xmlParseCharEncoding(encoding);
+-						if (enc <= XML_CHAR_ENCODING_NONE) {
+-							enc = XML_CHAR_ENCODING_NONE;
+-						}
++				if (Z_TYPE_P(header) == IS_STRING) {
++					/* If no colon is found in the header, we assume it's the HTTP status line and bail out. */
++					char *colon = memchr(Z_STRVAL_P(header), ':', Z_STRLEN_P(header));
++					char *space = memchr(Z_STRVAL_P(header), ' ', Z_STRLEN_P(header));
++					if (colon == NULL || space < colon) {
++						break;
++					}
++
++					if (!zend_binary_strncasecmp(Z_STRVAL_P(header), Z_STRLEN_P(header), buf, sizeof(buf)-1, sizeof(buf)-1)) {
++						char *needle = estrdup("charset=");
++						char *haystack = estrndup(Z_STRVAL_P(header), Z_STRLEN_P(header));
++						char *encoding = php_stristr(haystack, needle, Z_STRLEN_P(header), sizeof("charset=")-1);
++
++						if (encoding) {
++							char *end;
++
++							encoding += sizeof("charset=")-1;
++							if (*encoding == '"') {
++								encoding++;
++							}
++							end = strchr(encoding, ';');
++							if (end == NULL) {
++								end = encoding + strlen(encoding);
++							}
++							end--; /* end == encoding-1 isn't a buffer underrun */
++							while (*end == ' ' || *end == '\t') {
++								end--;
++							}
++							if (*end == '"') {
++								end--;
++							}
++							if (encoding >= end) continue;
++							*(end+1) = '\0';
++							enc = xmlParseCharEncoding(encoding);
++							if (enc <= XML_CHAR_ENCODING_NONE) {
++								enc = XML_CHAR_ENCODING_NONE;
++							}
++						}
++						efree(haystack);
++						efree(needle);
++						break; /* found content-type */
+ 					}
+-					efree(haystack);
+-					efree(needle);
+-					break; /* found content-type */
+ 				}
+ 			} ZEND_HASH_FOREACH_END();
+ 		}

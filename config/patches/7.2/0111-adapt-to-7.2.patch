@@ -1,0 +1,60 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 1 Aug 2023 15:45:24 +0200
+Subject: adapt to 7.2
+
+---
+ ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt       | 1 -
+ ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt | 1 -
+ ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt | 1 -
+ ext/zend_test/test.c                                              | 2 --
+ 4 files changed, 5 deletions(-)
+
+diff --git a/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
+index 7fc2a24..2549900 100644
+--- a/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -4,7 +4,6 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ <?php
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('dom')) die('skip dom extension not available');
+-if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
+ if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+diff --git a/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
+index 54f9d49..e09ecb5 100644
+--- a/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -4,7 +4,6 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ <?php
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('simplexml')) die('skip simplexml extension not available');
+-if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
+ if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+diff --git a/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
+index b0120b3..9824e10 100644
+--- a/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -4,7 +4,6 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ <?php
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('xmlreader')) die('skip xmlreader extension not available');
+-if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
+ if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+diff --git a/ext/zend_test/test.c b/ext/zend_test/test.c
+index 611bc9b..5181808 100644
+--- a/ext/zend_test/test.c
++++ b/ext/zend_test/test.c
+@@ -52,8 +52,6 @@ ZEND_END_ARG_INFO()
+ #if defined(HAVE_LIBXML) && !defined(PHP_WIN32)
+ static ZEND_FUNCTION(zend_test_override_libxml_global_state)
+ {
+-	ZEND_PARSE_PARAMETERS_NONE();
+-
+ 	xmlLoadExtDtdDefaultValue = 1;
+ 	xmlDoValidityCheckingDefaultValue = 1;
+ 	(void) xmlPedanticParserDefault(1);

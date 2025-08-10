@@ -6,9 +6,11 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  ext/date/lib/parse_tz.c | 55 ++++++++++++++++++++++++++++++++++++-------------
  1 file changed, 41 insertions(+), 14 deletions(-)
 
+diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
+index 5534485..746699b 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
-@@ -560,13 +560,19 @@
+@@ -560,13 +560,19 @@ static char *parse_iso6709(char *p, double *result)
  static struct location_info **create_location_table(void)
  {
      struct location_info **li, *i;
@@ -30,7 +32,7 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
      if (!fp) {
          return NULL;
      }
-@@ -701,12 +707,14 @@
+@@ -701,12 +707,14 @@ static void create_zone_index(timelib_tzdb *db)
  
  	do {
  		struct dirent **ents;
@@ -48,37 +50,37 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  
  		count = php_scandir(name, &ents, index_filter, php_alphasort);
  
-@@ -714,7 +722,9 @@
+@@ -714,7 +722,9 @@ static void create_zone_index(timelib_tzdb *db)
  			struct stat st;
  			const char *leaf = ents[count - 1]->d_name;
  
--			snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s/%s",
+-			snprintf(name, sizeof name, ZONEINFO_PREFIX "/%s/%s", 
 +			len = strlen(ZONEINFO_PREFIX) + 1 + strlen(top) + 1 + strlen(leaf) + 1;
 +			name = realloc(name, len);
 +			snprintf(name, len, ZONEINFO_PREFIX "/%s/%s",
  				 top, leaf);
- 
+ 			
  			if (strlen(name) && stat(name, &st) == 0) {
-@@ -723,7 +733,9 @@
+@@ -723,7 +733,9 @@ static void create_zone_index(timelib_tzdb *db)
  
  				if (root[0] == '/') root++;
  
--				snprintf(name, sizeof name, "%s%s%s", root,
+-				snprintf(name, sizeof name, "%s%s%s", root, 
 +				len = strlen(root) + 1 + strlen(leaf) + 1;
 +				name = realloc(name, len);
 +				snprintf(name, len, "%s%s%s", root,
  					 *root ? "/": "", leaf);
  
  				if (S_ISDIR(st.st_mode)) {
-@@ -749,6 +761,7 @@
+@@ -749,6 +761,7 @@ static void create_zone_index(timelib_tzdb *db)
  		}
- 
+ 		
  		if (count != -1) free(ents);
 +		free(name);
  		free(top);
  	} while (dirstack_top);
  
-@@ -847,18 +860,25 @@
+@@ -847,18 +860,24 @@ static const char *canonical_tzname(const char *timezone)
   * length of the mapped data is placed in *length. */
  static char *map_tzfile(const char *timezone, size_t *length)
  {
@@ -87,10 +89,10 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  	struct stat st;
  	char *p;
 -	int fd;
-+
+-	
 +	const char *c_tzname = canonical_tzname(timezone);
 +	int fd, len;
- 
++
  	if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
  		return NULL;
  	}
@@ -100,14 +102,14 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
 +	fname = malloc(len);
 +	if (!fname)
 +		return NULL;
-+	snprintf(fname, len, ZONEINFO_PREFIX "/%s", c_tzname);	
++	snprintf(fname, len, ZONEINFO_PREFIX "/%s", c_tzname);
  
  	fd = open(fname, O_RDONLY);
 +	free(fname);
  	if (fd == -1) {
  		return NULL;
  	} else if (fstat(fd, &st) != 0 || !is_valid_tzfile(&st, fd)) {
-@@ -957,7 +977,9 @@
+@@ -957,7 +976,9 @@ int timelib_timezone_id_is_valid(const char *timezone, const timelib_tzdb *tzdb)
  
  #ifdef HAVE_SYSTEM_TZDATA
  	if (tzdb == timezonedb_system) {
@@ -118,7 +120,7 @@ Subject: Fix ext/date/lib/parse_tz PATH_MAX HURD FTBFS
  		struct stat st;
  
  		if (timezone[0] == '\0' || strstr(timezone, "..") != NULL) {
-@@ -971,9 +993,15 @@
+@@ -971,9 +992,15 @@ int timelib_timezone_id_is_valid(const char *timezone, const timelib_tzdb *tzdb)
  			}
  		}
  

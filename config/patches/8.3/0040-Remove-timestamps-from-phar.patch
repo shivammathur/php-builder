@@ -1,0 +1,38 @@
+From: Vagrant Cascadian <vagrant@reproducible-builds.org>
+Date: Tue, 25 Apr 2023 11:20:24 -0700
+Subject: Remove timestamps from "phar".
+
+Thanks to Jelle van der Waa!
+
+https://gist.github.com/jelly/96847934239aac19c512c54ca65d6baa
+---
+ ext/phar/phar.c | 2 +-
+ ext/phar/util.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/phar/phar.c b/ext/phar/phar.c
+index ab54608..3d231d4 100644
+--- a/ext/phar/phar.c
++++ b/ext/phar/phar.c
+@@ -3002,7 +3002,7 @@ int phar_flush(phar_archive_data *phar, char *user_stub, zend_long len, int conv
+ 			4: metadata-len
+ 			+: metadata
+ 		*/
+-		mytime = time(NULL);
++		mytime = 0;
+ 		phar_set_32(entry_buffer, entry->uncompressed_filesize);
+ 		phar_set_32(entry_buffer+4, mytime);
+ 		phar_set_32(entry_buffer+8, entry->compressed_filesize);
+diff --git a/ext/phar/util.c b/ext/phar/util.c
+index 04efe89..416bcd8 100644
+--- a/ext/phar/util.c
++++ b/ext/phar/util.c
+@@ -584,7 +584,7 @@ phar_entry_data *phar_get_or_create_entry_data(char *fname, size_t fname_len, ch
+ 
+ 	phar_add_virtual_dirs(phar, path, path_len);
+ 	etemp.is_modified = 1;
+-	etemp.timestamp = time(0);
++	etemp.timestamp = 0;
+ 	etemp.is_crc_checked = 1;
+ 	etemp.phar = phar;
+ 	etemp.filename = estrndup(path, path_len);

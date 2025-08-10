@@ -1,0 +1,20 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 24 Apr 2024 23:06:48 +0200
+Subject: Add missing declaration of mbfl_filt_put_invalid_char()
+
+---
+ ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c b/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c
+index f9b643c..2898f43 100644
+--- a/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c
++++ b/ext/mbstring/libmbfl/filters/mbfilter_utf8_mobile.c
+@@ -183,6 +183,7 @@ const struct mbfl_convert_vtbl vtbl_wchar_utf8_sb = {
+ };
+ 
+ #define CK(statement)	do { if ((statement) < 0) return (-1); } while (0)
++int mbfl_filt_put_invalid_char(int c, mbfl_convert_filter *filter);
+ 
+ /*
+  * UTF-8 => wchar

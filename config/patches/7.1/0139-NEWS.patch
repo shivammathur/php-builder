@@ -1,26 +1,28 @@
 From: Remi Collet <remi@remirepo.net>
-Date: Mon, 19 Dec 2022 09:24:02 +0100
+Date: Mon, 13 Feb 2023 11:46:47 +0100
 Subject: NEWS
 
-(cherry picked from commit 7328f3a0344806b846bd05657bdce96e47810bf0)
+(cherry picked from commit 614468ce4056c0ef93aae09532dcffdf65b594b5)
 ---
- NEWS | 6 ++++++
- 1 file changed, 6 insertions(+)
+ NEWS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
 diff --git a/NEWS b/NEWS
-index 5653be9..4876ceb 100644
+index 4876ceb..6d8fb3f 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -1,6 +1,12 @@
+@@ -1,6 +1,14 @@
  PHP                                                                        NEWS
  |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
  
-+Backported from 8.0.27
++Backported from 8.0.28
 +
-+- PDO/SQLite:
-+  . Fixed bug #81740 (PDO::quote() may return unquoted string).
-+    (CVE-2022-31631) (cmb)
++- Core:
++  . Fixed bug #81744 (Password_verify() always return true with some hash).
++    (CVE-2023-0567). (Tim Düsterhus)
++  . Fixed bug #81746 (1-byte array overrun in common path resolve code).
++    (CVE-2023-0568). (Niels Dossche)
 +
- Backported from 7.4.32
+ Backported from 8.0.27
  
- - Core:
+ - PDO/SQLite:

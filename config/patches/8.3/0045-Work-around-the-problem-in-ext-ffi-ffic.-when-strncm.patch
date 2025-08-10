@@ -1,0 +1,32 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 15 Feb 2025 11:05:16 +0100
+Subject: Work around the problem in ext/ffi/ffic. when strncmp is macro
+
+---
+ ext/ffi/ffi.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/ffi/ffi.c b/ext/ffi/ffi.c
+index f9ad84a..5cf3ffe 100644
+--- a/ext/ffi/ffi.c
++++ b/ext/ffi/ffi.c
+@@ -5044,16 +5044,16 @@ static char *zend_ffi_parse_directives(const char *filename, char *code_pos, cha
+ 	*scope_name = NULL;
+ 	*lib = NULL;
+ 	while (*code_pos == '#') {
+-		if (strncmp(code_pos, ZEND_STRL("#define")) == 0) {
++		if ((strncmp)(code_pos, ZEND_STRL("#define")) == 0) {
+ 			p = zend_ffi_skip_ws_and_comments(code_pos + sizeof("#define") - 1, false);
+ 
+ 			char **target = NULL;
+ 			const char *target_name = NULL;
+-			if (strncmp(p, ZEND_STRL("FFI_SCOPE")) == 0) {
++			if ((strncmp)(p, ZEND_STRL("FFI_SCOPE")) == 0) {
+ 				p = zend_ffi_skip_ws_and_comments(p + sizeof("FFI_SCOPE") - 1, false);
+ 				target = scope_name;
+ 				target_name = "FFI_SCOPE";
+-			} else if (strncmp(p, ZEND_STRL("FFI_LIB")) == 0) {
++			} else if ((strncmp)(p, ZEND_STRL("FFI_LIB")) == 0) {
+ 				p = zend_ffi_skip_ws_and_comments(p + sizeof("FFI_LIB") - 1, false);
+ 				target = lib;
+ 				target_name = "FFI_LIB";

@@ -1,0 +1,27 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:54 +0200
+Subject: lp564920-fix-big-files
+
+---
+ main/streams/plain_wrapper.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
+index 85771ea..aaa8518 100644
+--- a/main/streams/plain_wrapper.c
++++ b/main/streams/plain_wrapper.c
+@@ -767,7 +767,13 @@ static int php_stdiop_set_option(php_stream *stream, int option, int value, void
+ 
+ 				switch (value) {
+ 					case PHP_STREAM_MMAP_SUPPORTED:
+-						return fd == -1 ? PHP_STREAM_OPTION_RETURN_ERR : PHP_STREAM_OPTION_RETURN_OK;
++						if (fd == -1)
++							return PHP_STREAM_OPTION_RETURN_ERR;
++						/* Don't mmap large files */
++						do_fstat(data, 1);
++						if (data->sb.st_size > 4 * 1024 * 1024)
++							return PHP_STREAM_OPTION_RETURN_ERR;
++						return PHP_STREAM_OPTION_RETURN_OK;
+ 
+ 					case PHP_STREAM_MMAP_MAP_RANGE:
+ 						if (do_fstat(data, 1) != 0) {

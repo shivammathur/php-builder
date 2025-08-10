@@ -35,7 +35,7 @@ index bc53aed..37627ac 100644
  ; Whether to use strict session mode.
  ; Strict session mode does not accept uninitialized session ID and regenerate
 diff --git a/php.ini-production b/php.ini-production
-index 853b621..c90a856 100644
+index 853b621..c90a856e 100644
 --- a/php.ini-production
 +++ b/php.ini-production
 @@ -1337,7 +1337,7 @@ session.save_handler = files

@@ -1,0 +1,204 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Sat, 5 Aug 2023 12:30:31 +0200
+Subject: Sanitize libxml2 globals before parsing: VC11 compatibility
+
+---
+ ext/dom/document.c            | 29 ++++++++++++++++++-----------
+ ext/dom/documentfragment.c    |  1 +
+ ext/libxml/php_libxml.h       | 20 ++++++++++++++------
+ ext/simplexml/simplexml.c     |  3 +++
+ ext/xmlreader/php_xmlreader.c |  4 ++++
+ ext/xsl/xsltprocessor.c       |  1 +
+ 6 files changed, 41 insertions(+), 17 deletions(-)
+
+diff --git a/ext/dom/document.c b/ext/dom/document.c
+index 6f4ae26..74f6ad0 100644
+--- a/ext/dom/document.c
++++ b/ext/dom/document.c
+@@ -1853,6 +1853,7 @@ PHP_FUNCTION(dom_document_xinclude)
+ 	long flags = 0;
+ 	int err;
+ 	dom_object *intern;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(xinclude);
+ 
+ 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "O|l", &id, dom_document_class_entry, &flags) == FAILURE) {
+ 		return;
+@@ -1894,6 +1895,7 @@ PHP_FUNCTION(dom_document_validate)
+ 	xmlDoc *docp;
+ 	dom_object *intern;
+ 	xmlValidCtxt *cvp;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(validate);
+ 
+ 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "O", &id, dom_document_class_entry) == FAILURE) {
+ 		return;
+@@ -1934,6 +1936,7 @@ static void _dom_document_schema_validate(INTERNAL_FUNCTION_PARAMETERS, int type
+ 	xmlSchemaValidCtxtPtr   vptr;
+ 	int                     is_valid;
+ 	char resolved_path[MAXPATHLEN + 1];
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(new_parser_ctxt);
+ 
+ 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "Os|l", &id, dom_document_class_entry, &source, &source_len, &flags) == FAILURE) {
+ 		return;
+@@ -1999,18 +2002,21 @@ static void _dom_document_schema_validate(INTERNAL_FUNCTION_PARAMETERS, int type
+ 	}
+ #endif
+ 
+-	PHP_LIBXML_SANITIZE_GLOBALS(validate);
+-	xmlSchemaSetValidOptions(vptr, valid_opts);
+-	xmlSchemaSetValidErrors(vptr, php_libxml_error_handler, php_libxml_error_handler, vptr);
+-	is_valid = xmlSchemaValidateDoc(vptr, docp);
+-	xmlSchemaFree(sptr);
+-	xmlSchemaFreeValidCtxt(vptr);
+-	PHP_LIBXML_RESTORE_GLOBALS(validate);
++	if (vptr) {
++		PHP_LIBXML_SANITIZE_GLOBALS_DECL(validate);
++		PHP_LIBXML_SANITIZE_GLOBALS(validate);
++		xmlSchemaSetValidOptions(vptr, valid_opts);
++		xmlSchemaSetValidErrors(vptr, php_libxml_error_handler, php_libxml_error_handler, vptr);
++		is_valid = xmlSchemaValidateDoc(vptr, docp);
++		xmlSchemaFree(sptr);
++		xmlSchemaFreeValidCtxt(vptr);
++		PHP_LIBXML_RESTORE_GLOBALS(validate);
+ 
+-	if (is_valid == 0) {
+-		RETURN_TRUE;
+-	} else {
+-		RETURN_FALSE;
++		if (is_valid == 0) {
++			RETURN_TRUE;
++		} else {
++			RETURN_FALSE;
++		}
+ 	}
+ }
+ /* }}} */
+@@ -2041,6 +2047,7 @@ static void _dom_document_relaxNG_validate(INTERNAL_FUNCTION_PARAMETERS, int typ
+ 	xmlRelaxNGValidCtxtPtr  vptr;
+ 	int                     is_valid;
+ 	char resolved_path[MAXPATHLEN + 1];
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(parse);
+ 
+ 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "Os", &id, dom_document_class_entry, &source, &source_len) == FAILURE) {
+ 		return;
+diff --git a/ext/dom/documentfragment.c b/ext/dom/documentfragment.c
+index 3ecc71d..131b150 100644
+--- a/ext/dom/documentfragment.c
++++ b/ext/dom/documentfragment.c
+@@ -140,6 +140,7 @@ PHP_METHOD(domdocumentfragment, appendXML) {
+ 	}
+ 
+ 	if (data) {
++		PHP_LIBXML_SANITIZE_GLOBALS_DECL(parse);
+ 		PHP_LIBXML_SANITIZE_GLOBALS(parse);
+ 		err = xmlParseBalancedChunkMemory(nodep->doc, NULL, NULL, 0, data, &lst);
+ 		PHP_LIBXML_RESTORE_GLOBALS(parse);
+diff --git a/ext/libxml/php_libxml.h b/ext/libxml/php_libxml.h
+index 0c8ab38..d0e72fa 100644
+--- a/ext/libxml/php_libxml.h
++++ b/ext/libxml/php_libxml.h
+@@ -115,15 +115,23 @@ PHP_LIBXML_API void php_libxml_shutdown(void);
+  * See libxml2 globals.c and parserInternals.c.
+  * The unique_name argument allows multiple sanitizes and restores within the
+  * same function, even nested is necessary. */
++#define PHP_LIBXML_SANITIZE_GLOBALS_DECL(unique_name) \
++	int xml_old_loadsubset_##unique_name; \
++	int xml_old_validate_##unique_name; \
++	int xml_old_pedantic_##unique_name; \
++	int xml_old_substitute_##unique_name; \
++	int xml_old_linenrs_##unique_name; \
++	int xml_old_blanks_##unique_name;
++
+ #define PHP_LIBXML_SANITIZE_GLOBALS(unique_name) \
+-	int xml_old_loadsubset_##unique_name = xmlLoadExtDtdDefaultValue; \
++	xml_old_loadsubset_##unique_name = xmlLoadExtDtdDefaultValue; \
+ 	xmlLoadExtDtdDefaultValue = 0; \
+-	int xml_old_validate_##unique_name = xmlDoValidityCheckingDefaultValue; \
++	xml_old_validate_##unique_name = xmlDoValidityCheckingDefaultValue; \
+ 	xmlDoValidityCheckingDefaultValue = 0; \
+-	int xml_old_pedantic_##unique_name = xmlPedanticParserDefault(0); \
+-	int xml_old_substitute_##unique_name = xmlSubstituteEntitiesDefault(0); \
+-	int xml_old_linenrs_##unique_name = xmlLineNumbersDefault(0); \
+-	int xml_old_blanks_##unique_name = xmlKeepBlanksDefault(1);
++	xml_old_pedantic_##unique_name = xmlPedanticParserDefault(0); \
++	xml_old_substitute_##unique_name = xmlSubstituteEntitiesDefault(0); \
++	xml_old_linenrs_##unique_name = xmlLineNumbersDefault(0); \
++	xml_old_blanks_##unique_name = xmlKeepBlanksDefault(1);
+ 
+ #define PHP_LIBXML_RESTORE_GLOBALS(unique_name) \
+ 	xmlLoadExtDtdDefaultValue = xml_old_loadsubset_##unique_name; \
+diff --git a/ext/simplexml/simplexml.c b/ext/simplexml/simplexml.c
+index 78ad43a..4cf86ca 100644
+--- a/ext/simplexml/simplexml.c
++++ b/ext/simplexml/simplexml.c
+@@ -2182,6 +2182,7 @@ PHP_FUNCTION(simplexml_load_file)
+ 	long            options = 0;
+ 	zend_class_entry *ce= sxe_class_entry;
+ 	zend_bool       isprefix = 0;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(read_file);
+ 
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p|C!lsb", &filename, &filename_len, &ce, &options, &ns, &ns_len, &isprefix) == FAILURE) {
+ 		return;
+@@ -2222,6 +2223,7 @@ PHP_FUNCTION(simplexml_load_string)
+ 	long            options = 0;
+ 	zend_class_entry *ce= sxe_class_entry;
+ 	zend_bool       isprefix = 0;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(read_memory);
+ 
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|C!lsb", &data, &data_len, &ce, &options, &ns, &ns_len, &isprefix) == FAILURE) {
+ 		return;
+@@ -2260,6 +2262,7 @@ SXE_METHOD(__construct)
+ 	long            options = 0;
+ 	zend_bool       is_url = 0, isprefix = 0;
+ 	zend_error_handling error_handling;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(read_file_or_memory);
+ 
+ 	zend_replace_error_handling(EH_THROW, NULL, &error_handling TSRMLS_CC);
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|lbsb", &data, &data_len, &options, &is_url, &ns, &ns_len, &isprefix) == FAILURE) {
+diff --git a/ext/xmlreader/php_xmlreader.c b/ext/xmlreader/php_xmlreader.c
+index 5570762..d99845e 100644
+--- a/ext/xmlreader/php_xmlreader.c
++++ b/ext/xmlreader/php_xmlreader.c
+@@ -283,6 +283,7 @@ static xmlRelaxNGPtr _xmlreader_get_relaxNG(char *source, int source_len, int ty
+ 	xmlRelaxNGParserCtxtPtr parser = NULL;
+ 	xmlRelaxNGPtr           sptr;
+ 	char resolved_path[MAXPATHLEN + 1];
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(parse);
+ 
+ 	switch (type) {
+ 	case XMLREADER_LOAD_FILE:
+@@ -888,6 +889,7 @@ PHP_METHOD(xmlreader, open)
+ 	valid_file = _xmlreader_get_valid_file_path(source, resolved_path, MAXPATHLEN  TSRMLS_CC);
+ 
+ 	if (valid_file) {
++		PHP_LIBXML_SANITIZE_GLOBALS_DECL(reader_for_file);
+ 		PHP_LIBXML_SANITIZE_GLOBALS(reader_for_file);
+ 		reader = xmlReaderForFile(valid_file, encoding, options);
+ 		PHP_LIBXML_RESTORE_GLOBALS(reader_for_file);
+@@ -967,6 +969,7 @@ PHP_METHOD(xmlreader, setSchema)
+ 
+ 	intern = (xmlreader_object *)zend_object_store_get_object(id TSRMLS_CC);
+ 	if (intern && intern->ptr) {
++		PHP_LIBXML_SANITIZE_GLOBALS_DECL(schema);
+ 		PHP_LIBXML_SANITIZE_GLOBALS(schema);
+ 		retval = xmlTextReaderSchemaValidate(intern->ptr, source);
+ 		PHP_LIBXML_RESTORE_GLOBALS(schema);
+@@ -1075,6 +1078,7 @@ PHP_METHOD(xmlreader, XML)
+ 	inputbfr = xmlParserInputBufferCreateMem(source, source_len, XML_CHAR_ENCODING_NONE);
+ 
+     if (inputbfr != NULL) {
++		PHP_LIBXML_SANITIZE_GLOBALS_DECL(text_reader);
+ /* Get the URI of the current script so that we can set the base directory in libxml */
+ #if HAVE_GETCWD
+ 		directory = VCWD_GETCWD(resolved_path, MAXPATHLEN);
+diff --git a/ext/xsl/xsltprocessor.c b/ext/xsl/xsltprocessor.c
+index e7012ed..6f06ccc 100644
+--- a/ext/xsl/xsltprocessor.c
++++ b/ext/xsl/xsltprocessor.c
+@@ -412,6 +412,7 @@ PHP_FUNCTION(xsl_xsltprocessor_import_stylesheet)
+ 	xmlNode *nodep = NULL;
+ 	zend_object_handlers *std_hnd;
+ 	zval *cloneDocu, *member;
++	PHP_LIBXML_SANITIZE_GLOBALS_DECL(parse);
+ 
+ 	if (zend_parse_method_parameters(ZEND_NUM_ARGS() TSRMLS_CC, getThis(), "Oo", &id, xsl_xsltprocessor_class_entry, &docp) == FAILURE) {
+ 		RETURN_FALSE;

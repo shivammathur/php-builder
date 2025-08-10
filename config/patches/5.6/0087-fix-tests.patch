@@ -6,7 +6,7 @@ Subject: fix tests
  ext/dom/tests/dom005.phpt                          |  3 +-
  ext/mysqli/tests/bug68077.phpt                     |  7 +-
  ext/mysqli/tests/mysqli_expire_password.phpt       |  5 +-
- ext/openssl/tests/openssl_error_string_basic.phpt  | 80 +++++++++++++---------
+ ext/openssl/tests/openssl_error_string_basic.phpt  | 84 +++++++++++++---------
  ext/phar/tests/bug69720.phpt                       |  3 +-
  ext/phar/tests/bug77396.phpt                       |  2 +-
  ext/phar/tests/create_path_error.phpt              | 10 +--
@@ -18,7 +18,7 @@ Subject: fix tests
  .../streams/stream_socket_enable_crypto-win32.phpt |  2 +
  ext/standard/tests/strings/bug65769.phpt           | 11 ++-
  ext/xmlreader/tests/bug64230.phpt                  |  4 +-
- 15 files changed, 101 insertions(+), 72 deletions(-)
+ 15 files changed, 103 insertions(+), 74 deletions(-)
 
 diff --git a/ext/dom/tests/dom005.phpt b/ext/dom/tests/dom005.phpt
 index 715aec4..d7e828c 100644
@@ -106,7 +106,6 @@ index d94048d..b800955 100644
 -			if (isset($expected_errors[$error_code])) {
 -				$expected_errors[$error_code] = true;
 -			}
--		}
 +    $expected_errors = array_fill_keys($expected_error_codes, false);
 +    $all_errors = array();
 +    while (($error_string = openssl_error_string()) !== false) {
@@ -118,16 +117,9 @@ index d94048d..b800955 100644
 +	    $all_errors[$error_code] = $error_string;
 +        } else {
 +		$all_errors[] = $error_string;
- 	}
++	}
 +    }
- 
--	$fail = false;
--	foreach ($expected_errors as $error_code => $error_code_found) {
--		if (!$error_code_found) {
--			$fail = true;
--			echo "$name: no error code $error_code\n";
--		}
--	}
++
 +    $fail = false;
 +    foreach ($expected_errors as $error_code => $error_code_found) {
 +        if (!$error_code_found) {
@@ -135,9 +127,7 @@ index d94048d..b800955 100644
 +            echo "$name: no error code $error_code\n";
 +        }
 +    }
- 
--	if (!$fail) {
--		echo "$name: ok\n";
++
 +    if (!$fail) {
 +        echo "$name: ok\n";
 +    } else {
@@ -145,8 +135,20 @@ index d94048d..b800955 100644
 +	foreach ($all_errors as $code => $str) {
 +		if (!isset($expected_errors[$code]) || !$expected_errors[$code]) {
 +			echo "\t", $code, ": ", $str, "\n";
-+		}
+ 		}
  	}
+-
+-	$fail = false;
+-	foreach ($expected_errors as $error_code => $error_code_found) {
+-		if (!$error_code_found) {
+-			$fail = true;
+-			echo "$name: no error code $error_code\n";
+-		}
+-	}
+-
+-	if (!$fail) {
+-		echo "$name: ok\n";
+-	}
 +    }
  }
  
@@ -267,7 +269,7 @@ index ede25ff..03a4684 100644
  #0 %s%ebug77396.php(%d): PharData->__construct(%s)
  #1 {main}
 diff --git a/ext/phar/tests/create_path_error.phpt b/ext/phar/tests/create_path_error.phpt
-index d457deb..3449b07 100644
+index d457deb2..3449b07 100644
 --- a/ext/phar/tests/create_path_error.phpt
 +++ b/ext/phar/tests/create_path_error.phpt
 @@ -75,10 +75,10 @@ string(5) "query"

@@ -1,0 +1,38 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Fri, 17 Nov 2023 19:45:40 +0100
+Subject: Fix GH-12702: libxml2 2.12.0 issue building from src
+
+Fixes GH-12702.
+
+Co-authored-by: nono303 <github@nono303.net>
+(cherry picked from commit 6a76e5d0a2dcf46b4ab74cc3ffcbfeb860c4fdb3)
+(cherry picked from commit d7ab2bb9856d938fca7989575695c14c25892589)
+---
+ ext/dom/document.c      | 1 +
+ ext/libxml/php_libxml.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/ext/dom/document.c b/ext/dom/document.c
+index af06fb4..f807177 100644
+--- a/ext/dom/document.c
++++ b/ext/dom/document.c
+@@ -25,6 +25,7 @@
+ #if HAVE_LIBXML && HAVE_DOM
+ #include "php_dom.h"
+ #include <libxml/SAX.h>
++#include <libxml/xmlsave.h>
+ #ifdef LIBXML_SCHEMAS_ENABLED
+ #include <libxml/relaxng.h>
+ #include <libxml/xmlschemas.h>
+diff --git a/ext/libxml/php_libxml.h b/ext/libxml/php_libxml.h
+index 92028d5..6f3295b 100644
+--- a/ext/libxml/php_libxml.h
++++ b/ext/libxml/php_libxml.h
+@@ -37,6 +37,7 @@ extern zend_module_entry libxml_module_entry;
+ 
+ #include "zend_smart_str.h"
+ #include <libxml/tree.h>
++#include <libxml/parser.h>
+ 
+ #define LIBXML_SAVE_NOEMPTYTAG 1<<2
+ 

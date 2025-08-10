@@ -1,0 +1,30 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 24 Nov 2024 20:13:47 +0100
+Subject: Change port for mysqli fake server auth message test
+
+(cherry picked from commit 51f5539914ae62ef8568ea1ed302dceda897c439)
+(cherry picked from commit 7e6af9c78d84d15880cfbc7867501f25ab982f5f)
+---
+ ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+index db54a6c..279aec6 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+@@ -6,7 +6,7 @@ mysqli
+ <?php
+ require_once 'fake_server.inc';
+ 
+-$port = 50001;
++$port = 33305;
+ $servername = "127.0.0.1";
+ $username = "root";
+ $password = "";
+@@ -34,5 +34,5 @@ print "done!";
+ [*] Sending - Malicious OK Auth Response [Extract heap through buffer over-read]: 0900000200000002000000fcff
+ 
+ Warning: mysqli::__construct(): OK packet message length is past the packet size in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:50001
++Unknown error while trying to connect via tcp://127.0.0.1:33305
+ done!

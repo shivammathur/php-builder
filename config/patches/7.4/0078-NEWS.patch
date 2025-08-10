@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 4 Jun 2024 16:48:08 +0200
+Subject: NEWS
+
+(cherry picked from commit a1ff81b786bd519597e770795be114f5171f0648)
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 8058eff..34ad33c 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.1.29
++
++- Filter:
++  . Fixed bug GHSA-w8qr-v226-r27w (Filter bypass in filter_var FILTER_VALIDATE_URL).
++    (CVE-2024-5458) (nielsdos)
++
+ Backported from 8.1.28
+ 
+ - Standard:

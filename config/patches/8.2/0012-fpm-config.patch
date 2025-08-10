@@ -3,9 +3,11 @@ Date: Sat, 2 May 2015 10:26:54 +0200
 Subject: fpm-config
 
 ---
- sapi/fpm/php-fpm.conf.in |    8 +++++---
+ sapi/fpm/php-fpm.conf.in | 8 +++++---
  1 file changed, 5 insertions(+), 3 deletions(-)
 
+diff --git a/sapi/fpm/php-fpm.conf.in b/sapi/fpm/php-fpm.conf.in
+index 4818f20..4997748 100644
 --- a/sapi/fpm/php-fpm.conf.in
 +++ b/sapi/fpm/php-fpm.conf.in
 @@ -14,14 +14,16 @@
@@ -15,7 +17,7 @@ Subject: fpm-config
 -;pid = run/php-fpm.pid
 +; Warning: if you change the value here, you need to modify systemd
 +; service PIDFile= setting to match the value here.
-+pid = @EXPANDED_LOCALSTATEDIR@/run/php/php8.1-fpm.pid
++pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
  
  ; Error log file
  ; If it's set to "syslog", log is sent to syslogd instead of being written
@@ -23,7 +25,7 @@ Subject: fpm-config
  ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
  ; Default Value: log/php-fpm.log
 -;error_log = log/php-fpm.log
-+error_log = @EXPANDED_LOCALSTATEDIR@/log/php8.1-fpm.log
++error_log = @EXPANDED_LOCALSTATEDIR@/log/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.log
  
  ; syslog_facility is used to specify what type of program is logging the
  ; message. This lets syslogd specify that messages from different facilities

@@ -3,13 +3,14 @@ Date: Thu, 3 Aug 2017 20:45:55 +0200
 Subject: Use-OpenSSL-1.1-compatibility-patch-when-built-with-
 
 ---
- ext/openssl/openssl.c                             | 683 ++++++++++++++++------
+ ext/openssl/openssl.c                             | 673 ++++++++++++++++------
  ext/openssl/tests/bug41033.phpt                   |   4 +-
+ ext/openssl/tests/bug66501.phpt                   |   2 +-
  ext/openssl/tests/openssl_error_string_basic.phpt |   2 +-
  ext/openssl/tests/sni_server.phpt                 |   3 +
  ext/openssl/xp_ssl.c                              |  18 +-
  ext/phar/util.c                                   |  13 +-
- 7 files changed, 534 insertions(+), 191 deletions(-)
+ 7 files changed, 529 insertions(+), 186 deletions(-)
 
 diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
 index a78a8fb..b53114c 100644
@@ -341,14 +342,13 @@ index a78a8fb..b53114c 100644
  		case EVP_PKEY_DSA3:
  		case EVP_PKEY_DSA4:
 -			assert(pkey->pkey.dsa != NULL);
--
--			if (NULL == pkey->pkey.dsa->p || NULL == pkey->pkey.dsa->q || NULL == pkey->pkey.dsa->priv_key){ 
--				return 0;
 +			{
 +				DSA *dsa = EVP_PKEY_get0_DSA(pkey);
 +				if (dsa != NULL) {
 +					const BIGNUM *p, *q, *g, *pub_key, *priv_key;
-+
+ 
+-			if (NULL == pkey->pkey.dsa->p || NULL == pkey->pkey.dsa->q || NULL == pkey->pkey.dsa->priv_key){ 
+-				return 0;
 +					DSA_get0_pqg(dsa, &p, &q, &g);
 +					if (p == NULL || q == NULL) {
 +						return 0;
@@ -365,14 +365,13 @@ index a78a8fb..b53114c 100644
  #ifndef NO_DH
  		case EVP_PKEY_DH:
 -			assert(pkey->pkey.dh != NULL);
--
--			if (NULL == pkey->pkey.dh->p || NULL == pkey->pkey.dh->priv_key) {
--				return 0;
 +			{
 +				DH *dh = EVP_PKEY_get0_DH(pkey);
 +				if (dh != NULL) {
 +					const BIGNUM *p, *q, *g, *pub_key, *priv_key;
-+
+ 
+-			if (NULL == pkey->pkey.dh->p || NULL == pkey->pkey.dh->priv_key) {
+-				return 0;
 +					DH_get0_pqg(dh, &p, &q, &g);
 +					if (p == NULL) {
 +						return 0;
@@ -432,6 +431,8 @@ index a78a8fb..b53114c 100644
 +		} \
  	} while (0);
  
+-/* {{{ php_openssl_pkey_init_dsa */
+-zend_bool php_openssl_pkey_init_dsa(DSA *dsa)
 +#define OPENSSL_PKEY_GET_BN(_type, _name) OPENSSL_GET_BN(_type, _name, _name)
 +
 +#define OPENSSL_PKEY_SET_BN(_data, _name) do { \
@@ -448,15 +449,18 @@ index a78a8fb..b53114c 100644
 +
 +/* {{{ php_openssl_pkey_init_rsa */
 +zend_bool php_openssl_pkey_init_and_assign_rsa(EVP_PKEY *pkey, RSA *rsa, zval *data)
-+{
+ {
+-	if (!dsa->p || !dsa->q || !dsa->g) {
 +	BIGNUM *n, *e, *d, *p, *q, *dmp1, *dmq1, *iqmp;
 +
 +	OPENSSL_PKEY_SET_BN(data, n);
 +	OPENSSL_PKEY_SET_BN(data, e);
 +	OPENSSL_PKEY_SET_BN(data, d);
 +	if (!n || !d || !RSA_set0_key(rsa, n, e, d)) {
-+		return 0;
-+	}
+ 		return 0;
+ 	}
+-	if (dsa->priv_key || dsa->pub_key) {
+-		return 1;
 +
 +	OPENSSL_PKEY_SET_BN(data, p);
 +	OPENSSL_PKEY_SET_BN(data, q);
@@ -479,11 +483,9 @@ index a78a8fb..b53114c 100644
 +}
 +/* }}} */
 +
- /* {{{ php_openssl_pkey_init_dsa */
--zend_bool php_openssl_pkey_init_dsa(DSA *dsa)
++/* {{{ php_openssl_pkey_init_dsa */
 +zend_bool php_openssl_pkey_init_dsa(DSA *dsa, zval *data)
- {
--	if (!dsa->p || !dsa->q || !dsa->g) {
++{
 +	BIGNUM *p, *q, *g, *priv_key, *pub_key;
 +	const BIGNUM *priv_key_const, *pub_key_const;
 +
@@ -491,10 +493,8 @@ index a78a8fb..b53114c 100644
 +	OPENSSL_PKEY_SET_BN(data, q);
 +	OPENSSL_PKEY_SET_BN(data, g);
 +	if (!p || !q || !g || !DSA_set0_pqg(dsa, p, q, g)) {
- 		return 0;
- 	}
--	if (dsa->priv_key || dsa->pub_key) {
--		return 1;
++		return 0;
++	}
 +
 +	OPENSSL_PKEY_SET_BN(data, pub_key);
 +	OPENSSL_PKEY_SET_BN(data, priv_key);
@@ -517,9 +517,12 @@ index a78a8fb..b53114c 100644
  }
  /* }}} */
  
+-/* {{{ php_openssl_pkey_init_dh */
+-zend_bool php_openssl_pkey_init_dh(DH *dh)
 +/* {{{ php_openssl_dh_pub_from_priv */
 +static BIGNUM *php_openssl_dh_pub_from_priv(BIGNUM *priv_key, BIGNUM *g, BIGNUM *p)
-+{
+ {
+-	if (!dh->p || !dh->g) {
 +	BIGNUM *pub_key, *priv_key_const_time;
 +	BN_CTX *ctx;
 +
@@ -554,11 +557,9 @@ index a78a8fb..b53114c 100644
 +}
 +/* }}} */
 +
- /* {{{ php_openssl_pkey_init_dh */
--zend_bool php_openssl_pkey_init_dh(DH *dh)
++/* {{{ php_openssl_pkey_init_dh */
 +zend_bool php_openssl_pkey_init_dh(DH *dh, zval *data)
- {
--	if (!dh->p || !dh->g) {
++{
 +	BIGNUM *p, *q, *g, *priv_key, *pub_key;
 +
 +	OPENSSL_PKEY_SET_BN(data, p);
@@ -663,10 +664,16 @@ index a78a8fb..b53114c 100644
  		case EVP_PKEY_RSA:
  		case EVP_PKEY_RSA2:
 -			ktype = OPENSSL_KEYTYPE_RSA;
--
++			{
++				RSA *rsa = EVP_PKEY_get0_RSA(pkey);
++				ktype = OPENSSL_KEYTYPE_RSA;
+ 
 -			if (pkey->pkey.rsa != NULL) {
 -				zval *rsa;
--
++				if (rsa != NULL) {
++					zval *z_rsa;
++					const BIGNUM *n, *e, *d, *p, *q, *dmp1, *dmq1, *iqmp;
+ 
 -				ALLOC_INIT_ZVAL(rsa);
 -				array_init(rsa);
 -				OPENSSL_PKEY_GET_BN(rsa, n);
@@ -678,14 +685,6 @@ index a78a8fb..b53114c 100644
 -				OPENSSL_PKEY_GET_BN(rsa, dmq1);
 -				OPENSSL_PKEY_GET_BN(rsa, iqmp);
 -				add_assoc_zval(return_value, "rsa", rsa);
-+			{
-+				RSA *rsa = EVP_PKEY_get0_RSA(pkey);
-+				ktype = OPENSSL_KEYTYPE_RSA;
-+
-+				if (rsa != NULL) {
-+					zval *z_rsa;
-+					const BIGNUM *n, *e, *d, *p, *q, *dmp1, *dmq1, *iqmp;
-+
 +					RSA_get0_key(rsa, &n, &e, &d);
 +					RSA_get0_factors(rsa, &p, &q);
 +					RSA_get0_crt_params(rsa, &dmp1, &dmq1, &iqmp);
@@ -710,10 +709,16 @@ index a78a8fb..b53114c 100644
  		case EVP_PKEY_DSA3:
  		case EVP_PKEY_DSA4:
 -			ktype = OPENSSL_KEYTYPE_DSA;
--
++			{
++				DSA *dsa = EVP_PKEY_get0_DSA(pkey);
++				ktype = OPENSSL_KEYTYPE_DSA;
+ 
 -			if (pkey->pkey.dsa != NULL) {
 -				zval *dsa;
--
++				if (dsa != NULL) {
++					zval *z_dsa;
++					const BIGNUM *p, *q, *g, *priv_key, *pub_key;
+ 
 -				ALLOC_INIT_ZVAL(dsa);
 -				array_init(dsa);
 -				OPENSSL_PKEY_GET_BN(dsa, p);
@@ -722,14 +727,6 @@ index a78a8fb..b53114c 100644
 -				OPENSSL_PKEY_GET_BN(dsa, priv_key);
 -				OPENSSL_PKEY_GET_BN(dsa, pub_key);
 -				add_assoc_zval(return_value, "dsa", dsa);
-+			{
-+				DSA *dsa = EVP_PKEY_get0_DSA(pkey);
-+				ktype = OPENSSL_KEYTYPE_DSA;
-+
-+				if (dsa != NULL) {
-+					zval *z_dsa;
-+					const BIGNUM *p, *q, *g, *priv_key, *pub_key;
-+
 +					DSA_get0_pqg(dsa, &p, &q, &g);
 +					DSA_get0_key(dsa, &pub_key, &priv_key);
 +
@@ -747,10 +744,16 @@ index a78a8fb..b53114c 100644
  		case EVP_PKEY_DH:
 -			
 -			ktype = OPENSSL_KEYTYPE_DH;
--
++			{
++				DH *dh = EVP_PKEY_get0_DH(pkey);
++				ktype = OPENSSL_KEYTYPE_DH;
+ 
 -			if (pkey->pkey.dh != NULL) {
 -				zval *dh;
--
++				if (dh != NULL) {
++					zval *z_dh;
++					const BIGNUM *p, *q, *g, *priv_key, *pub_key;
+ 
 -				ALLOC_INIT_ZVAL(dh);
 -				array_init(dh);
 -				OPENSSL_PKEY_GET_BN(dh, p);
@@ -758,14 +761,6 @@ index a78a8fb..b53114c 100644
 -				OPENSSL_PKEY_GET_BN(dh, priv_key);
 -				OPENSSL_PKEY_GET_BN(dh, pub_key);
 -				add_assoc_zval(return_value, "dh", dh);
-+			{
-+				DH *dh = EVP_PKEY_get0_DH(pkey);
-+				ktype = OPENSSL_KEYTYPE_DH;
-+
-+				if (dh != NULL) {
-+					zval *z_dh;
-+					const BIGNUM *p, *q, *g, *priv_key, *pub_key;
-+
 +					DH_get0_pqg(dh, &p, &q, &g);
 +					DH_get0_key(dh, &pub_key, &priv_key);
 +
@@ -1049,17 +1044,18 @@ index a78a8fb..b53114c 100644
  	outbuf = safe_emalloc(outlen, 1, 1);
  
 -	EVP_EncryptInit(&cipher_ctx, cipher_type, NULL, NULL);
+-	if (password_len > keylen) {
+-		EVP_CIPHER_CTX_set_key_length(&cipher_ctx, password_len);
 +	cipher_ctx = EVP_CIPHER_CTX_new();
 +	if (!cipher_ctx) {
 +		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to create cipher context");
 +		RETURN_FALSE;
-+	}
-+	EVP_EncryptInit(cipher_ctx, cipher_type, NULL, NULL);
- 	if (password_len > keylen) {
--		EVP_CIPHER_CTX_set_key_length(&cipher_ctx, password_len);
-+		EVP_CIPHER_CTX_set_key_length(cipher_ctx, password_len);
  	}
 -	EVP_EncryptInit_ex(&cipher_ctx, NULL, NULL, key, (unsigned char *)iv);
++	EVP_EncryptInit(cipher_ctx, cipher_type, NULL, NULL);
++	if (password_len > keylen) {
++		EVP_CIPHER_CTX_set_key_length(cipher_ctx, password_len);
++	}
 +	EVP_EncryptInit_ex(cipher_ctx, NULL, NULL, key, (unsigned char *)iv);
  	if (options & OPENSSL_ZERO_PADDING) {
 -		EVP_CIPHER_CTX_set_padding(&cipher_ctx, 0);
@@ -1184,7 +1180,20 @@ index 4aeae66..50c78fe 100644
 +$valid = openssl_verify($ct, $signature, $pukeyid, OPENSSL_VERSION_NUMBER < 0x10100000 ? OPENSSL_ALGO_DSS1 : OPENSSL_ALGO_SHA1);
  echo "Signature validity: " . $valid . "\n";
  
-
+ 
+diff --git a/ext/openssl/tests/bug66501.phpt b/ext/openssl/tests/bug66501.phpt
+index 7ad5e21..c2146ab 100644
+--- a/ext/openssl/tests/bug66501.phpt
++++ b/ext/openssl/tests/bug66501.phpt
+@@ -16,7 +16,7 @@ AwEHoUQDQgAEPq4hbIWHvB51rdWr8ejrjWo4qVNWVugYFtPg/xLQw0mHkIPZ4DvK
+ sqOTOnMoezkbSmVVMuwz9flvnqHGmQvmug==
+ -----END EC PRIVATE KEY-----';
+ $key = openssl_pkey_get_private($pkey);
+-$res = openssl_sign($data ='alpha', $sign, $key, 'ecdsa-with-SHA1');
++$res = openssl_sign($data ='alpha', $sign, $key, OPENSSL_VERSION_NUMBER < 0x10100000 ? 'ecdsa-with-SHA1' : 'SHA1');
+ var_dump($res);
+ --EXPECTF--
+ bool(true)
 diff --git a/ext/openssl/tests/openssl_error_string_basic.phpt b/ext/openssl/tests/openssl_error_string_basic.phpt
 index 82f3099..d94048d 100644
 --- a/ext/openssl/tests/openssl_error_string_basic.phpt

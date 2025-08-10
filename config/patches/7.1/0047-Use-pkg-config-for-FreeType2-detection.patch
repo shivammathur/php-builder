@@ -3,14 +3,14 @@ Date: Mon, 22 Oct 2018 06:54:31 +0000
 Subject: Use pkg-config for FreeType2 detection
 
 ---
- ext/gd/config.m4 | 30 +++++++++++++++++++-----------
- 1 file changed, 19 insertions(+), 11 deletions(-)
+ ext/gd/config.m4 | 32 ++++++++++++++++++++------------
+ 1 file changed, 20 insertions(+), 12 deletions(-)
 
 diff --git a/ext/gd/config.m4 b/ext/gd/config.m4
 index 7ed155e..0f527fe 100644
 --- a/ext/gd/config.m4
 +++ b/ext/gd/config.m4
-@@ -189,21 +189,29 @@ AC_DEFUN([PHP_GD_XPM],[
+@@ -189,20 +189,28 @@ AC_DEFUN([PHP_GD_XPM],[
  AC_DEFUN([PHP_GD_FREETYPE2],[
    if test "$PHP_FREETYPE_DIR" != "no"; then
  
@@ -19,9 +19,14 @@ index 7ed155e..0f527fe 100644
 -        FREETYPE2_DIR=$i
 -        FREETYPE2_CONFIG="$i/bin/freetype-config"
 -        break
+-      fi
+-    done
+-
+-    if test -z "$FREETYPE2_DIR"; then
+-      AC_MSG_ERROR([freetype-config not found.])
 +    if test -z "$PKG_CONFIG"; then
 +      AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-+    fi
+     fi
 +    if test -x "$PKG_CONFIG" && $PKG_CONFIG --exists freetype2 ; then
 +      FREETYPE2_CFLAGS=`$PKG_CONFIG --cflags freetype2`
 +      FREETYPE2_LIBS=`$PKG_CONFIG --libs freetype2`
@@ -33,21 +38,16 @@ index 7ed155e..0f527fe 100644
 +          break
 +        fi
 +      done
-+
-+      if test -z "$FREETYPE2_DIR"; then
-+        AC_MSG_ERROR([freetype-config not found.])
-       fi
--    done
- 
--    if test -z "$FREETYPE2_DIR"; then
--      AC_MSG_ERROR([freetype-config not found.])
-+      FREETYPE2_CFLAGS=`$FREETYPE2_CONFIG --cflags`
-+      FREETYPE2_LIBS=`$FREETYPE2_CONFIG --libs`
-     fi
  
 -    FREETYPE2_CFLAGS=`$FREETYPE2_CONFIG --cflags`
 -    FREETYPE2_LIBS=`$FREETYPE2_CONFIG --libs`
--
++      if test -z "$FREETYPE2_DIR"; then
++        AC_MSG_ERROR([freetype-config not found.])
++      fi
++
++      FREETYPE2_CFLAGS=`$FREETYPE2_CONFIG --cflags`
++      FREETYPE2_LIBS=`$FREETYPE2_CONFIG --libs`
++    fi
+ 
      PHP_EVAL_INCLINE($FREETYPE2_CFLAGS)
      PHP_EVAL_LIBLINE($FREETYPE2_LIBS, GD_SHARED_LIBADD)
-     AC_DEFINE(USE_GD_IMGSTRTTF, 1, [ ])

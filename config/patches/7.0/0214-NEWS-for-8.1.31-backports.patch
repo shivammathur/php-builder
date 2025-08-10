@@ -1,0 +1,48 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Fri, 22 Nov 2024 08:58:10 +0100
+Subject: NEWS for 8.1.31 backports
+
+(cherry picked from commit 22bdb43da0ecd6e72d63b63aa6c1f3a25d1bca3a)
+(cherry picked from commit d8d682d3d6a4d027771806c8fc77128cae078d29)
+(cherry picked from commit b97a41a47f77df92771b3c01fbf7cf445c0e7a1b)
+(cherry picked from commit 46f3d442aae8d8caca33a4d4ff9c9470568aee80)
+(cherry picked from commit 49783ab65131f0af188ea41a74db4af56a41c323)
+---
+ NEWS | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 46207f0..d42e92e 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,30 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.1.31
++
++- CLI:
++  . Fixed bug GHSA-4w77-75f9-2c8w (Heap-Use-After-Free in sapi_read_post_data
++    Processing in CLI SAPI Interface). (nielsdos)
++
++- LDAP:
++  . Fixed bug GHSA-g665-fm4p-vhff (OOB access in ldap_escape). (CVE-2024-8932)
++    (nielsdos)
++
++- PDO DBLIB:
++  . Fixed bug GHSA-5hqh-c84r-qjcv (Integer overflow in the dblib quoter causing
++    OOB writes). (CVE-2024-11236) (nielsdos)
++
++- PDO Firebird:
++  . Fixed bug GHSA-5hqh-c84r-qjcv (Integer overflow in the firebird quoter
++    causing OOB writes). (CVE-2024-11236) (nielsdos)
++
++- Streams:
++  . Fixed bug GHSA-c5f2-jwm7-mmq2 (Configuring a proxy in a stream context
++    might allow for CRLF injection in URIs). (CVE-2024-11234) (Jakub Zelenka)
++  . Fixed bug GHSA-r977-prxv-hc43 (Single byte overread with
++    convert.quoted-printable-decode filter). (CVE-2024-11233) (nielsdos)
++
+ Backported from 8.1.30
+ 
+ - CGI:

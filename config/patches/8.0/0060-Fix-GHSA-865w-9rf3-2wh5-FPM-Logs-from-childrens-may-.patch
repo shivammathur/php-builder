@@ -1,0 +1,132 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Thu, 12 Sep 2024 13:11:11 +0100
+Subject: Fix GHSA-865w-9rf3-2wh5: FPM: Logs from childrens may be altered
+
+(cherry picked from commit 1f8e16172c7961045c2b0f34ba7613e3f21cdee8)
+---
+ sapi/fpm/fpm/fpm_stdio.c                           |  2 +-
+ .../tests/log-bwp-msg-flush-split-sep-pos-end.phpt | 47 ++++++++++++++++++++++
+ .../log-bwp-msg-flush-split-sep-pos-start.phpt     | 47 ++++++++++++++++++++++
+ 3 files changed, 95 insertions(+), 1 deletion(-)
+ create mode 100644 sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
+ create mode 100644 sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
+
+diff --git a/sapi/fpm/fpm/fpm_stdio.c b/sapi/fpm/fpm/fpm_stdio.c
+index d75f915..7983d62 100644
+--- a/sapi/fpm/fpm/fpm_stdio.c
++++ b/sapi/fpm/fpm/fpm_stdio.c
+@@ -228,7 +228,7 @@ stdio_read:
+ 			if 	((sizeof(FPM_STDIO_CMD_FLUSH) - cmd_pos) <= in_buf &&
+ 					!memcmp(buf, &FPM_STDIO_CMD_FLUSH[cmd_pos], sizeof(FPM_STDIO_CMD_FLUSH) - cmd_pos)) {
+ 				zlog_stream_finish(log_stream);
+-				start = cmd_pos;
++				start = sizeof(FPM_STDIO_CMD_FLUSH) - cmd_pos;
+ 			} else {
+ 				zlog_stream_str(log_stream, &FPM_STDIO_CMD_FLUSH[0], cmd_pos);
+ 			}
+diff --git a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
+new file mode 100644
+index 0000000..5282632
+--- /dev/null
++++ b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
+@@ -0,0 +1,47 @@
++--TEST--
++FPM: Buffered worker output plain log with msg with flush split position towards separator end
++--SKIPIF--
++<?php include "skipif.inc"; ?>
++--FILE--
++<?php
++
++require_once "tester.inc";
++
++$cfg = <<<EOT
++[global]
++error_log = {{FILE:LOG}}
++[unconfined]
++listen = {{ADDR}}
++pm = dynamic
++pm.max_children = 5
++pm.start_servers = 1
++pm.min_spare_servers = 1
++pm.max_spare_servers = 3
++catch_workers_output = yes
++decorate_workers_output = no
++EOT;
++
++$code = <<<EOT
++<?php
++file_put_contents('php://stderr', str_repeat('a', 1013) . "Quarkslab\0fscf\0Quarkslab");
++EOT;
++
++$tester = new FPM\Tester($cfg, $code);
++$tester->start();
++$tester->expectLogStartNotices();
++$tester->request()->expectEmptyBody();
++$tester->expectLogLine(str_repeat('a', 1013)  . "Quarkslab", decorated: false);
++$tester->expectLogLine("Quarkslab", decorated: false);
++$tester->terminate();
++$tester->expectLogTerminatingNotices();
++$tester->close();
++
++?>
++Done
++--EXPECT--
++Done
++--CLEAN--
++<?php
++require_once "tester.inc";
++FPM\Tester::clean();
++?>
+diff --git a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
+new file mode 100644
+index 0000000..3490593
+--- /dev/null
++++ b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
+@@ -0,0 +1,47 @@
++--TEST--
++FPM: Buffered worker output plain log with msg with flush split position towards separator start
++--SKIPIF--
++<?php include "skipif.inc"; ?>
++--FILE--
++<?php
++
++require_once "tester.inc";
++
++$cfg = <<<EOT
++[global]
++error_log = {{FILE:LOG}}
++[unconfined]
++listen = {{ADDR}}
++pm = dynamic
++pm.max_children = 5
++pm.start_servers = 1
++pm.min_spare_servers = 1
++pm.max_spare_servers = 3
++catch_workers_output = yes
++decorate_workers_output = no
++EOT;
++
++$code = <<<EOT
++<?php
++file_put_contents('php://stderr', str_repeat('a', 1009) . "Quarkslab\0fscf\0Quarkslab");
++EOT;
++
++$tester = new FPM\Tester($cfg, $code);
++$tester->start();
++$tester->expectLogStartNotices();
++$tester->request()->expectEmptyBody();
++$tester->expectLogLine(str_repeat('a', 1009)  . "Quarkslab", decorated: false);
++$tester->expectLogLine("Quarkslab", decorated: false);
++$tester->terminate();
++$tester->expectLogTerminatingNotices();
++$tester->close();
++
++?>
++Done
++--EXPECT--
++Done
++--CLEAN--
++<?php
++require_once "tester.inc";
++FPM\Tester::clean();
++?>

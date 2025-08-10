@@ -1,0 +1,37 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 26 Sep 2024 11:50:54 +0200
+Subject: NEWS for 8.1.30 backports
+
+(cherry picked from commit af3fb385e7b328ab89db26ec712d89c7096f0743)
+---
+ NEWS | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index a965186..62616d6 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,23 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.1.30
++
++- CGI:
++  . Fixed bug GHSA-p99j-rfp4-xqvq (Bypass of CVE-2024-4577, Parameter Injection
++    Vulnerability). (CVE-2024-8926) (nielsdos)
++  . Fixed bug GHSA-94p6-54jq-9mwp (cgi.force_redirect configuration is
++    bypassable due to the environment variable collision). (CVE-2024-8927)
++    (nielsdos)
++
++- FPM:
++  . Fixed bug GHSA-865w-9rf3-2wh5 (Logs from childrens may be altered).
++    (CVE-2024-9026) (Jakub Zelenka)
++
++- SAPI:
++  . Fixed bug GHSA-9pqp-7h25-4f32 (Erroneous parsing of multipart form data).
++    (CVE-2024-8925) (Arnaud)
++
+ Backported from 8.1.29
+ 
+ - CGI:

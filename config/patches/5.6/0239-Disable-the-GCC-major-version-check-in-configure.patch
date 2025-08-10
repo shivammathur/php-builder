@@ -1,0 +1,31 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 11 Mar 2025 16:17:01 +0100
+Subject: Disable the GCC major version check in configure
+
+---
+ configure.in | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
+
+diff --git a/configure.in b/configure.in
+index 6e0f317..982ea8c 100644
+--- a/configure.in
++++ b/configure.in
+@@ -289,17 +289,7 @@ esac
+ 
+ dnl activate some gcc specific optimizations for gcc >= 4
+ if test "$GCC" = "yes"; then
+-  case $host_alias in
+-  *darwin*)
+-    GCC_MAJOR_VERSION=`$CC -dumpversion | /usr/bin/sed -nE '1s/([[0-9]]+)\.[[0-9]]+\..*/\1/;1p'`
+-    ;;
+-  *)
+-    GCC_MAJOR_VERSION=`$CC --version | $SED -n '1s/[[^0-9]]*//;1s/\..*//;1p'`
+-    ;;
+-  esac
+-  if test $GCC_MAJOR_VERSION -ge 4; then
+-    CFLAGS="$CFLAGS -fvisibility=hidden"
+-  fi
++  CFLAGS="$CFLAGS -fvisibility=hidden"
+ fi
+ 
+ case $host_alias in

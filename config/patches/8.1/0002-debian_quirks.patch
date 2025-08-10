@@ -13,10 +13,10 @@ Subject: debian_quirks
  7 files changed, 21 insertions(+), 16 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 2e4df7b..fac749e 100644
+index 554aa4d..c000cf0 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1155,7 +1155,7 @@ fi
+@@ -1163,7 +1163,7 @@ fi
  PHP_ARG_WITH([pear],
    [whether to install PEAR],
    [AS_HELP_STRING([[--with-pear[=DIR]]],
@@ -25,7 +25,7 @@ index 2e4df7b..fac749e 100644
    [no],
    [yes])
  
-@@ -1186,6 +1186,8 @@ if test "$PHP_PEAR" != "no"; then
+@@ -1194,6 +1194,8 @@ if test "$PHP_PEAR" != "no"; then
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -34,7 +34,7 @@ index 2e4df7b..fac749e 100644
  dnl Configuring Zend and TSRM.
  dnl ----------------------------------------------------------------------------
  
-@@ -1315,6 +1317,8 @@ datadir=`eval eval echo $datadir`
+@@ -1335,6 +1337,8 @@ datadir=`eval eval echo $datadir`
  dnl Build extension directory path.
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|"${SED}" 's/#define ZEND_MODULE_API_NO //'`
  
@@ -44,10 +44,10 @@ index 2e4df7b..fac749e 100644
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
 diff --git a/php.ini-development b/php.ini-development
-index 84c0832..83a06e1 100644
+index c1aca13..442919a 100644
 --- a/php.ini-development
 +++ b/php.ini-development
-@@ -735,7 +735,7 @@ default_charset = "UTF-8"
+@@ -740,7 +740,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"
@@ -57,10 +57,10 @@ index 84c0832..83a06e1 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/php.ini-production b/php.ini-production
-index c9cacae..c729c6a 100644
+index a90451f..321b1b3 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -737,7 +737,7 @@ default_charset = "UTF-8"
+@@ -742,7 +742,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"
@@ -70,25 +70,25 @@ index c9cacae..c729c6a 100644
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
 diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
-index 98c8dc7..0c5e920 100644
+index 227e4f2..93b5628 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
-@@ -365,13 +365,14 @@ Shows configuration for extension
+@@ -374,13 +374,14 @@ Shows configuration for extension
  Show configuration file names
  .SH FILES
  .TP 15
 -.B php\-cli.ini
-+.B /etc/php/8.1/cli/php.ini
++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cli/php.ini
  The configuration file for the CLI version of PHP.
  .TP
 -.B php.ini
 -The standard configuration file will only be used when
 -.B php\-cli.ini
 -cannot be found.
-++.B /etc/php/8.1/cgi/php.ini
+++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cgi/php.ini
 ++The configuration file for the CGI version of PHP.
 ++.TP
-++.B /etc/php/8.1/apache2/php.ini
+++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/apache2/php.ini
 ++The configuration file for the version of PHP that apache2 uses.
  .SH EXAMPLES
  .TP 5

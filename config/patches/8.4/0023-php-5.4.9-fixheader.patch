@@ -1,0 +1,24 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:56 +0200
+Subject: php-5.4.9-fixheader
+
+Make generated php_config.h constant across rebuilds.
+---
+ configure.ac | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 1ade7e7..6b0d761 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1398,8 +1398,8 @@ EXTRA_LDFLAGS_PROGRAM="$EXTRA_LDFLAGS_PROGRAM $PHP_LDFLAGS"
+ 
+ AC_ARG_VAR([PHP_UNAME],
+   [System information (defaults to the 'uname -a' output)])
+-AS_VAR_IF([PHP_UNAME],, [PHP_UNAME=$(uname -a | xargs)])
+-AC_DEFINE_UNQUOTED([PHP_UNAME], ["$PHP_UNAME"], [The 'uname -a' output.])
++AS_VAR_IF([PHP_UNAME],, [PHP_UNAME=$(uname | xargs)])
++AC_DEFINE_UNQUOTED([PHP_UNAME], ["$PHP_UNAME"], [The 'uname' output.])
+ 
+ PHP_OS=$(uname | xargs)
+ AC_DEFINE_UNQUOTED([PHP_OS], ["$PHP_OS"], [The 'uname' output.])

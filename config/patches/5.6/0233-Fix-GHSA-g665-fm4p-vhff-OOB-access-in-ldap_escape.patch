@@ -1,0 +1,126 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Thu, 26 Sep 2024 22:22:27 +0200
+Subject: Fix GHSA-g665-fm4p-vhff: OOB access in ldap_escape
+
+(cherry picked from commit f9ecf90070a11dad09ca7671a712f81cc2a7d52f)
+(cherry picked from commit 9f367d847989b339c33369737daf573e30bab5f1)
+(cherry picked from commit 50e9e72530a4805980384b8ea6672877af816145)
+(cherry picked from commit 9822bfae85607dffc13848d40a2340daf090f39b)
+(cherry picked from commit f8756a7a1d185727a5bfd212b1442a6d153a9471)
+(cherry picked from commit c8a7aed24cd977a578fd7f1ae60cfdf0032cce26)
+(cherry picked from commit 0ad928e34b6462c83c53cb1d98271db9f2633410)
+---
+ ext/ldap/ldap.c                           | 13 ++++++++++++-
+ ext/ldap/tests/GHSA-g665-fm4p-vhff-1.phpt | 28 ++++++++++++++++++++++++++++
+ ext/ldap/tests/GHSA-g665-fm4p-vhff-2.phpt | 29 +++++++++++++++++++++++++++++
+ 3 files changed, 69 insertions(+), 1 deletion(-)
+ create mode 100644 ext/ldap/tests/GHSA-g665-fm4p-vhff-1.phpt
+ create mode 100644 ext/ldap/tests/GHSA-g665-fm4p-vhff-2.phpt
+
+diff --git a/ext/ldap/ldap.c b/ext/ldap/ldap.c
+index 03ca03d..0b508e6 100644
+--- a/ext/ldap/ldap.c
++++ b/ext/ldap/ldap.c
+@@ -60,6 +60,7 @@
+ 
+ #include "ext/standard/php_string.h"
+ #include "ext/standard/info.h"
++#include "Zend/zend_exceptions.h"
+ 
+ #ifdef HAVE_LDAP_SASL_H
+ #include <sasl.h>
+@@ -2648,7 +2649,12 @@ static void php_ldap_do_escape(const zend_bool *map, const char *value, size_t v
+ 	size_t len = 0;
+ 
+ 	for (i = 0; i < valuelen; i++) {
+-		len += (map[(unsigned char) value[i]]) ? 3 : 1;
++		size_t addend = (map[(unsigned char) value[i]]) ? 3 : 1;
++		if (len > INT_MAX - addend) {
++			*result = NULL;
++			return;
++		}
++		len += addend;
+ 	}
+ 
+ 	(*result) = (char *) safe_emalloc_string(1, len, 1);
+@@ -2715,6 +2721,11 @@ PHP_FUNCTION(ldap_escape)
+ 
+ 	php_ldap_do_escape(map, value, valuelen, &result, &resultlen);
+ 
++	if (UNEXPECTED(!result)) {
++		zend_throw_exception(NULL, "Argument #1 ($value) is too long", 0 TSRMLS_CC);
++		return;
++	}
++
+ 	RETURN_STRINGL(result, resultlen, 0);
+ }
+ 
+diff --git a/ext/ldap/tests/GHSA-g665-fm4p-vhff-1.phpt b/ext/ldap/tests/GHSA-g665-fm4p-vhff-1.phpt
+new file mode 100644
+index 0000000..734bbe9
+--- /dev/null
++++ b/ext/ldap/tests/GHSA-g665-fm4p-vhff-1.phpt
+@@ -0,0 +1,28 @@
++--TEST--
++GHSA-g665-fm4p-vhff (OOB access in ldap_escape)
++--EXTENSIONS--
++ldap
++--INI--
++memory_limit=-1
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 4) die("skip only for 32-bit");
++if (getenv("SKIP_SLOW_TESTS")) die("skip slow test");
++?>
++--FILE--
++<?php
++try {
++    ldap_escape(' '.str_repeat("#", 1431655758), "", LDAP_ESCAPE_DN);
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++
++try {
++    ldap_escape(str_repeat("#", 1431655758).' ', "", LDAP_ESCAPE_DN);
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++?>
++--EXPECT--
++ldap_escape(): Argument #1 ($value) is too long
++ldap_escape(): Argument #1 ($value) is too long
+diff --git a/ext/ldap/tests/GHSA-g665-fm4p-vhff-2.phpt b/ext/ldap/tests/GHSA-g665-fm4p-vhff-2.phpt
+new file mode 100644
+index 0000000..5c1b0fb
+--- /dev/null
++++ b/ext/ldap/tests/GHSA-g665-fm4p-vhff-2.phpt
+@@ -0,0 +1,29 @@
++--TEST--
++GHSA-g665-fm4p-vhff (OOB access in ldap_escape)
++--EXTENSIONS--
++ldap
++--INI--
++memory_limit=-1
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 4) die("skip only for 32-bit");
++if (getenv("SKIP_SLOW_TESTS")) die("skip slow test");
++?>
++--FILE--
++<?php
++try {
++    ldap_escape(str_repeat("*", 1431655759), "", LDAP_ESCAPE_FILTER);
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++
++// would allocate a string of length 2
++try {
++    ldap_escape(str_repeat("*", 1431655766), "", LDAP_ESCAPE_FILTER);
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++?>
++--EXPECT--
++ldap_escape(): Argument #1 ($value) is too long
++ldap_escape(): Argument #1 ($value) is too long

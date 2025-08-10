@@ -4,8 +4,8 @@ Subject: Use pkg-config for PHP_SETUP_LIBXML
 
 ---
  acinclude.m4 | 76 ++++++------------------------------------------------------
- aclocal.m4   | 55 +++++++------------------------------------
- 2 files changed, 16 insertions(+), 115 deletions(-)
+ aclocal.m4   | 53 +++++++-----------------------------------
+ 2 files changed, 15 insertions(+), 114 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
 index 733ad8b..ebfc80d 100644
@@ -24,7 +24,8 @@ index 733ad8b..ebfc80d 100644
  dnl
  AC_DEFUN([PHP_SETUP_LIBXML], [
 -  found_libxml=no
--
++  PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.7.6])
+ 
 -  dnl First try to find xml2-config
 -  AC_CACHE_CHECK([for xml2-config path], ac_cv_php_xml2_config_path,
 -  [
@@ -35,7 +36,9 @@ index 733ad8b..ebfc80d 100644
 -      fi
 -    done
 -  ])
--
++  PHP_EVAL_INCLINE($LIBXML_CFLAGS)
++  PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
+ 
 -  if test -x "$ac_cv_php_xml2_config_path"; then
 -    XML2_CONFIG="$ac_cv_php_xml2_config_path"
 -    libxml_full_version=`$XML2_CONFIG --version`
@@ -52,14 +55,14 @@ index 733ad8b..ebfc80d 100644
 -      AC_MSG_ERROR([libxml2 version 2.6.11 or greater required.])
 -    fi
 -  fi
--
++  AC_DEFINE(HAVE_LIBXML, 1, [ ])
+ 
 -  dnl If xml2-config fails, try pkg-config
 -  if test "$found_libxml" = "no"; then
 -    if test -z "$PKG_CONFIG"; then
 -      AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 -    fi
-+  PKG_CHECK_MODULES([LIBXML], [libxml-2.0 >= 2.7.6])
- 
+-
 -    dnl If pkg-config is found try using it
 -    if test -x "$PKG_CONFIG" && $PKG_CONFIG --exists libxml-2.0; then
 -      if $PKG_CONFIG --atleast-version=2.6.11 libxml-2.0; then
@@ -71,14 +74,11 @@ index 733ad8b..ebfc80d 100644
 -      fi
 -    fi
 -  fi
-+  PHP_EVAL_INCLINE($LIBXML_CFLAGS)
-+  PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
- 
+-
 -  if test "$found_libxml" = "yes"; then
 -    PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
 -    PHP_EVAL_INCLINE($LIBXML_INCS)
-+  AC_DEFINE(HAVE_LIBXML, 1, [ ])
- 
+-
 -    dnl Check that build works with given libs
 -    AC_CACHE_CHECK(whether libxml build works, php_cv_libxml_build_works, [
 -      PHP_TEST_BUILD(xmlInitParser,
@@ -141,7 +141,9 @@ index 47f05b2..d07dcb0 100644
 -      LIBXML_INCS=`$XML2_CONFIG --cflags`
 -      PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
 -      PHP_EVAL_INCLINE($LIBXML_INCS)
--
++  PHP_EVAL_INCLINE($LIBXML_CFLAGS)
++  PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
+ 
 -      dnl Check that build works with given libs
 -      AC_CACHE_CHECK(whether libxml build works, php_cv_libxml_build_works, [
 -        PHP_TEST_BUILD(xmlInitParser,
@@ -163,9 +165,6 @@ index 47f05b2..d07dcb0 100644
 -    fi
 -ifelse([$3],[],,[else $3])
 -  fi
-+  PHP_EVAL_INCLINE($LIBXML_CFLAGS)
-+  PHP_EVAL_LIBLINE($LIBXML_LIBS, $1)
-+
 +  AC_DEFINE(HAVE_LIBXML, 1, [ ])
 +
 +  $2

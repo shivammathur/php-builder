@@ -9,8 +9,8 @@ In order to rename safer, we do the following:
 
 (cherry picked from commit e3133e4db70476fb7adfdedb738483e2255ce0e1)
 ---
- main/streams/plain_wrapper.c | 48 +++++++++++++++++++++++++++++---------------
- 1 file changed, 32 insertions(+), 16 deletions(-)
+ main/streams/plain_wrapper.c | 54 ++++++++++++++++++++++++++++----------------
+ 1 file changed, 35 insertions(+), 19 deletions(-)
 
 diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
 index 9805bfc..a5a09e2 100644
@@ -30,6 +30,14 @@ index 9805bfc..a5a09e2 100644
 +					success = 1;
  #  if !defined(TSRM_WIN32) && !defined(NETWARE)
 -					if (VCWD_CHMOD(url_to, sb.st_mode)) {
+-						if (errno == EPERM) {
+-							php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
+-							VCWD_UNLINK(url_from);
+-							return 1;
+-						}
+-						php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
+-						return 0;
+-					}
 +					/*
 +					 * Try to set user and permission info on the target.
 +					 * If we're not root, then some of these may fail.
@@ -37,30 +45,25 @@ index 9805bfc..a5a09e2 100644
 +					 * on the system environment to have proper umask to not allow
 +					 * access to the file in the meantime.
 +					 */
-+					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
-+						php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
- 						if (errno == EPERM) {
+ 					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
+-						if (errno == EPERM) {
 -							php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
 -							VCWD_UNLINK(url_from);
 -							return 1;
-+							success = 0;
- 						}
--						php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
+-						}
+ 						php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
 -						return 0;
- 					}
--					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
--						if (errno == EPERM) {
++						if (errno == EPERM) {
++							success = 0;
++						}
++					}
 +					if (success) {
 +						if (VCWD_CHMOD(url_to, sb.st_mode)) {
- 							php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
--							VCWD_UNLINK(url_from);
--							return 1;
++							php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
 +							if (errno == EPERM) {
 +								success = 0;
 +							}
- 						}
--						php_error_docref2(NULL TSRMLS_CC, url_from, url_to, E_WARNING, "%s", strerror(errno));
--						return 0;
++						}
  					}
  #  endif
 -					VCWD_UNLINK(url_from);

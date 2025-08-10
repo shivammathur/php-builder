@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 10 Apr 2024 09:01:09 +0200
+Subject: NEWS
+
+---
+ NEWS | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 14fda3a..8b4801d 100644
+--- a/NEWS
++++ b/NEWS
+@@ -6,6 +6,8 @@ Backported from 8.1.28
+ - Standard:
+   . Fixed bug GHSA-wpj3-hf5j-x4v4 (__Host-/__Secure- cookie bypass due to
+     partial CVE-2022-31629 fix). (CVE-2024-2756) (nielsdos)
++  . Fixed bug GHSA-h746-cjrr-wfmr (password_verify can erroneously return true,
++    opening ATO risk). (CVE-2024-3096) (Jakub Zelenka)
+ 
+ 03 Aug 2023, PHP 8.0.30
+ 

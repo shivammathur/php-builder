@@ -1,0 +1,23 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Sun, 9 Jun 2024 20:14:22 +0200
+Subject: NEWS: Add backport from 8.1.29
+
+---
+ NEWS | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index ee6d776..dc6fdf8 100644
+--- a/NEWS
++++ b/NEWS
+@@ -3,6 +3,10 @@ PHP                                                                        NEWS
+ 
+ Backported from 8.1.29
+ 
++- CGI:
++  . Fixed bug GHSA-3qgc-jrrr-25jv (Bypass of CVE-2012-1823, Argument Injection
++    in PHP-CGI). (CVE-2024-4577) (nielsdos)
++
+ - Filter:
+   . Fixed bug GHSA-w8qr-v226-r27w (Filter bypass in filter_var FILTER_VALIDATE_URL).
+     (CVE-2024-5458) (nielsdos)

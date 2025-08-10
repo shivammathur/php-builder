@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 29 Aug 2023 12:14:09 +0200
+Subject: Change the default OPcache optimization to 7FFEBF5F to workaround
+ known bugs in OPcache
+
+---
+ ext/opcache/Optimizer/zend_optimizer.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/opcache/Optimizer/zend_optimizer.h b/ext/opcache/Optimizer/zend_optimizer.h
+index bcb0f71..64f58f2 100644
+--- a/ext/opcache/Optimizer/zend_optimizer.h
++++ b/ext/opcache/Optimizer/zend_optimizer.h
+@@ -44,7 +44,7 @@
+ 
+ #define ZEND_OPTIMIZER_ALL_PASSES	0x7FFFFFFF
+ 
+-#define DEFAULT_OPTIMIZATION_LEVEL  "0x7FFFBFFF"
++#define DEFAULT_OPTIMIZATION_LEVEL  "0x7FFEBF5F"
+ 
+ 
+ #define ZEND_DUMP_AFTER_PASS_1		ZEND_OPTIMIZER_PASS_1

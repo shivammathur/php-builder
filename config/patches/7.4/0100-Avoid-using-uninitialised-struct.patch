@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 27 Nov 2024 10:54:10 +0100
+Subject: Avoid using uninitialised struct
+
+    (cherry picked from commit 7e7817bc2f82570bbc510a2bf5e4e0ec09dbc774)
+
+(cherry picked from commit 69853e12b73a989e2383452356cdc07172427ae3)
+---
+ ext/mysqlnd/mysqlnd_result.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/mysqlnd/mysqlnd_result.c b/ext/mysqlnd/mysqlnd_result.c
+index c0f65f8..9f19adb 100644
+--- a/ext/mysqlnd/mysqlnd_result.c
++++ b/ext/mysqlnd/mysqlnd_result.c
+@@ -549,8 +549,8 @@ mysqlnd_query_read_result_set_header(MYSQLND_CONN_DATA * conn, MYSQLND_STMT * s)
+ 					}
+ 					MYSQLND_INC_CONN_STATISTIC(conn->stats, statistic);
+ 				}
++				PACKET_FREE(&fields_eof);
+ 			} while (0);
+-			PACKET_FREE(&fields_eof);
+ 			break; /* switch break */
+ 		}
+ 	} while (0);

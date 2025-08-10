@@ -1,0 +1,34 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 3 Jul 2025 09:32:25 +0200
+Subject: NEWS
+
+(cherry picked from commit 970548b94b7f23be32154d05a9545b10c98bfd62)
+---
+ NEWS | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index fda646c..a9dd716 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,20 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.1.33
++
++- PGSQL:
++  . Fixed GHSA-hrwm-9436-5mv3 (pgsql extension does not check for errors during
++    escaping). (CVE-2025-1735) (Jakub Zelenka)
++
++- SOAP:
++  . Fixed GHSA-453j-q27h-5p8x (NULL Pointer Dereference in PHP SOAP Extension
++    via Large XML Namespace Prefix). (CVE-2025-6491) (Lekssays, nielsdos)
++
++- Standard:
++  . Fixed GHSA-3cr5-j632-f35r (Null byte termination in hostnames).
++    (CVE-2025-1220) (Jakub Zelenka)
++
+ Backported from 8.1.32
+ 
+ - LibXML:

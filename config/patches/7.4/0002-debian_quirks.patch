@@ -13,7 +13,7 @@ Subject: debian_quirks
  7 files changed, 21 insertions(+), 16 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 9d21596..a1d688f 100644
+index edb58ca..d62b1d2 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -1133,7 +1133,7 @@ fi

@@ -1,0 +1,29 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Sat, 5 Aug 2023 12:31:35 +0200
+Subject: Fix buffer mismanagement in phar_dir_read(): VC11 compatibility
+
+---
+ ext/phar/dirstream.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ext/phar/dirstream.c b/ext/phar/dirstream.c
+index 411a2b0..bd706b5 100644
+--- a/ext/phar/dirstream.c
++++ b/ext/phar/dirstream.c
+@@ -96,6 +96,7 @@ static size_t phar_dir_read(php_stream *stream, char *buf, size_t count TSRMLS_D
+ 	char *str_key;
+ 	uint keylen;
+ 	ulong unused;
++	php_stream_dirent *dirent;
+ 
+ 	if (count != sizeof(php_stream_dirent)) {
+ 		return -1;
+@@ -107,7 +108,7 @@ static size_t phar_dir_read(php_stream *stream, char *buf, size_t count TSRMLS_D
+ 
+ 	zend_hash_move_forward(data);
+ 
+-	php_stream_dirent *dirent = (php_stream_dirent *) buf;
++	dirent = (php_stream_dirent *) buf;
+ 
+ 	if (sizeof(dirent->d_name) <= keylen) {
+ 		return 0;

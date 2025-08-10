@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Fri, 22 Nov 2024 09:41:12 +0100
+Subject: fix transport_string release
+
+---
+ ext/standard/http_fopen_wrapper.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index 6859a4e..40e6f3d 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -211,7 +211,7 @@ static php_stream *php_stream_url_wrap_http_ex(php_stream_wrapper *wrapper,
+ 	if (request_fulluri && (strchr(path, '\n') != NULL || strchr(path, '\r') != NULL)) {
+ 		php_stream_wrapper_log_error(wrapper, options, "HTTP wrapper full URI path does not allow CR or LF characters");
+ 		php_url_free(resource);
+-		zend_string_release(transport_string);
++		efree(transport_string);
+ 		return NULL;
+ 	}
+ 

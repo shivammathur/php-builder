@@ -3,18 +3,20 @@ Date: Sat, 2 May 2015 10:26:51 +0200
 Subject: debian_quirks
 
 ---
- configure.ac          |    6 +++++-
- php.ini-development   |    2 +-
- php.ini-production    |    2 +-
- sapi/cli/php.1.in     |   11 ++++++-----
- scripts/Makefile.frag |    4 ++--
- scripts/php-config.in |    8 ++++----
- scripts/phpize.in     |    4 ++--
+ configure.ac          |  6 +++++-
+ php.ini-development   |  2 +-
+ php.ini-production    |  2 +-
+ sapi/cli/php.1.in     | 11 ++++++-----
+ scripts/Makefile.frag |  4 ++--
+ scripts/php-config.in |  8 ++++----
+ scripts/phpize.in     |  4 ++--
  7 files changed, 21 insertions(+), 16 deletions(-)
 
+diff --git a/configure.ac b/configure.ac
+index cfab53c..939defb 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1159,7 +1159,7 @@ fi
+@@ -1230,7 +1230,7 @@ fi
  PHP_ARG_WITH([pear],
    [whether to install PEAR],
    [AS_HELP_STRING([[--with-pear[=DIR]]],
@@ -23,7 +25,7 @@ Subject: debian_quirks
    [no],
    [yes])
  
-@@ -1190,6 +1190,8 @@ if test "$PHP_PEAR" != "no"; then
+@@ -1261,6 +1261,8 @@ if test "$PHP_PEAR" != "no"; then
    PHP_ADD_MAKEFILE_FRAGMENT($abs_srcdir/pear/Makefile.frag,$abs_srcdir/pear,pear)
  fi
  
@@ -32,7 +34,7 @@ Subject: debian_quirks
  dnl Configuring Zend and TSRM.
  dnl ----------------------------------------------------------------------------
  
-@@ -1319,6 +1321,8 @@ datadir=`eval eval echo $datadir`
+@@ -1426,6 +1428,8 @@ datadir=`eval eval echo $datadir`
  dnl Build extension directory path.
  ZEND_MODULE_API_NO=`$EGREP '#define ZEND_MODULE_API_NO ' $srcdir/Zend/zend_modules.h|"${SED}" 's/#define ZEND_MODULE_API_NO //'`
  
@@ -41,9 +43,11 @@ Subject: debian_quirks
  if test -z "$EXTENSION_DIR"; then
    extbasedir=$ZEND_MODULE_API_NO
    if test "$oldstyleextdir" = "yes"; then
+diff --git a/php.ini-development b/php.ini-development
+index 445bedf..1333afa 100644
 --- a/php.ini-development
 +++ b/php.ini-development
-@@ -735,7 +735,7 @@ default_charset = "UTF-8"
+@@ -750,7 +750,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"
@@ -52,9 +56,11 @@ Subject: debian_quirks
  ;
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
+diff --git a/php.ini-production b/php.ini-production
+index 20e4883..3b27dba 100644
 --- a/php.ini-production
 +++ b/php.ini-production
-@@ -737,7 +737,7 @@ default_charset = "UTF-8"
+@@ -752,7 +752,7 @@ default_charset = "UTF-8"
  ;;;;;;;;;;;;;;;;;;;;;;;;;
  
  ; UNIX: "/path1:/path2"
@@ -63,28 +69,32 @@ Subject: debian_quirks
  ;
  ; Windows: "\path1;\path2"
  ;include_path = ".;c:\php\includes"
+diff --git a/sapi/cli/php.1.in b/sapi/cli/php.1.in
+index a49e9ca..32ca73d 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
-@@ -365,13 +365,14 @@ Shows configuration for extension
+@@ -374,13 +374,14 @@ Shows configuration for extension
  Show configuration file names
  .SH FILES
  .TP 15
 -.B php\-cli.ini
-+.B /etc/php/8.1/cli/php.ini
++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cli/php.ini
  The configuration file for the CLI version of PHP.
  .TP
 -.B php.ini
 -The standard configuration file will only be used when
 -.B php\-cli.ini
 -cannot be found.
-++.B /etc/php/8.1/cgi/php.ini
+++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/cgi/php.ini
 ++The configuration file for the CGI version of PHP.
 ++.TP
-++.B /etc/php/8.1/apache2/php.ini
+++.B /etc/php/@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@/apache2/php.ini
 ++The configuration file for the version of PHP that apache2 uses.
  .SH EXAMPLES
  .TP 5
  \fI@program_prefix@php \-r 'echo "Hello World\\n";'\fP
+diff --git a/scripts/Makefile.frag b/scripts/Makefile.frag
+index 1049832..e543263 100644
 --- a/scripts/Makefile.frag
 +++ b/scripts/Makefile.frag
 @@ -2,8 +2,8 @@
@@ -98,6 +108,8 @@ Subject: debian_quirks
  
  BUILD_FILES = \
  	scripts/phpize.m4 \
+diff --git a/scripts/php-config.in b/scripts/php-config.in
+index 9271e87..355be04 100644
 --- a/scripts/php-config.in
 +++ b/scripts/php-config.in
 @@ -6,11 +6,11 @@ datarootdir="@datarootdir@"
@@ -116,6 +128,8 @@ Subject: debian_quirks
  man_dir=`eval echo @mandir@`
  program_prefix="@program_prefix@"
  program_suffix="@program_suffix@"
+diff --git a/scripts/phpize.in b/scripts/phpize.in
+index 7d9c1df..0846bf2 100644
 --- a/scripts/phpize.in
 +++ b/scripts/phpize.in
 @@ -4,8 +4,8 @@

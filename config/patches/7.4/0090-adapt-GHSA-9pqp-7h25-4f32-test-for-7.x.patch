@@ -1,0 +1,33 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 26 Sep 2024 15:49:03 +0200
+Subject: adapt GHSA-9pqp-7h25-4f32 test for 7.x
+
+---
+ tests/basic/GHSA-9pqp-7h25-4f32.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tests/basic/GHSA-9pqp-7h25-4f32.phpt b/tests/basic/GHSA-9pqp-7h25-4f32.phpt
+index 29bcb65..a1ead91 100644
+--- a/tests/basic/GHSA-9pqp-7h25-4f32.phpt
++++ b/tests/basic/GHSA-9pqp-7h25-4f32.phpt
+@@ -21,6 +21,7 @@ function test($boundaryLen) {
+         getenv('TEST_PHP_CGI_EXECUTABLE'),
+         '-C',
+         '-n',
++        '-dlog_errors=1',
+         __DIR__ . '/GHSA-9pqp-7h25-4f32.inc',
+     ];
+ 
+@@ -92,11 +93,10 @@ array(1) {
+ 
+ Boundary len: 5117
+ Starting...
++PHP Warning:  Boundary too large in multipart/form-data POST data in Unknown on line 0
+ X-Powered-By: %s
+ Content-type: text/html; charset=UTF-8
+ 
+-<br />
+-<b>Warning</b>:  Boundary too large in multipart/form-data POST data in <b>Unknown</b> on line <b>0</b><br />
+ Hello world
+ array(0) {
+ }

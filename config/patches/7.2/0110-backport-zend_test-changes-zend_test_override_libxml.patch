@@ -1,0 +1,110 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 1 Aug 2023 07:37:25 +0200
+Subject: backport zend_test changes (zend_test_override_libxml_global_state)
+
+(cherry picked from commit 24e669e790e6aebd219c9a9fa19017455c8646b4)
+(cherry picked from commit 79a97d0e2b93c40c3728d587046266989c5acc42)
+---
+ .../libxml_global_state_entity_loader_bypass.phpt  |  1 +
+ .../libxml_global_state_entity_loader_bypass.phpt  |  1 +
+ .../libxml_global_state_entity_loader_bypass.phpt  |  5 +++--
+ ext/zend_test/test.c                               | 22 ++++++++++++++++++++++
+ 4 files changed, 27 insertions(+), 2 deletions(-)
+
+diff --git a/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
+index b28afd4..7fc2a24 100644
+--- a/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/dom/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -5,6 +5,7 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('dom')) die('skip dom extension not available');
+ if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
++if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
+index 2152e01..54f9d49 100644
+--- a/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/simplexml/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -5,6 +5,7 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('simplexml')) die('skip simplexml extension not available');
+ if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
++if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt b/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
+index e9ffb04..b0120b3 100644
+--- a/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
++++ b/ext/xmlreader/tests/libxml_global_state_entity_loader_bypass.phpt
+@@ -5,6 +5,7 @@ GHSA-3qrf-m4j2-pcrr (libxml global state entity loader bypass)
+ if (!extension_loaded('libxml')) die('skip libxml extension not available');
+ if (!extension_loaded('xmlreader')) die('skip xmlreader extension not available');
+ if (!extension_loaded('zend-test')) die('skip zend-test extension not available');
++if (!function_exists('zend_test_override_libxml_global_state')) die('skip not for Windows');
+ ?>
+ --FILE--
+ <?php
+@@ -15,11 +16,11 @@ libxml_use_internal_errors(true);
+ zend_test_override_libxml_global_state();
+ 
+ echo "--- String test ---\n";
+-$reader = XMLReader::xml($xml);
++$reader = @XMLReader::xml($xml);
+ $reader->read();
+ echo "--- File test ---\n";
+ file_put_contents("libxml_global_state_entity_loader_bypass.tmp", $xml);
+-$reader = XMLReader::open("libxml_global_state_entity_loader_bypass.tmp");
++$reader = @XMLReader::open("libxml_global_state_entity_loader_bypass.tmp");
+ $reader->read();
+ 
+ echo "Done\n";
+diff --git a/ext/zend_test/test.c b/ext/zend_test/test.c
+index 4a7fe54..611bc9b 100644
+--- a/ext/zend_test/test.c
++++ b/ext/zend_test/test.c
+@@ -25,6 +25,11 @@
+ #include "ext/standard/info.h"
+ #include "php_test.h"
+ 
++#if defined(HAVE_LIBXML) && !defined(PHP_WIN32)
++# include <libxml/globals.h>
++# include <libxml/parser.h>
++#endif
++
+ static zend_class_entry *zend_test_interface;
+ static zend_class_entry *zend_test_class;
+ static zend_class_entry *zend_test_trait;
+@@ -44,6 +49,20 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_zend_leak_variable, 0, 0, 1)
+ 	ZEND_ARG_INFO(0, variable)
+ ZEND_END_ARG_INFO()
+ 
++#if defined(HAVE_LIBXML) && !defined(PHP_WIN32)
++static ZEND_FUNCTION(zend_test_override_libxml_global_state)
++{
++	ZEND_PARSE_PARAMETERS_NONE();
++
++	xmlLoadExtDtdDefaultValue = 1;
++	xmlDoValidityCheckingDefaultValue = 1;
++	(void) xmlPedanticParserDefault(1);
++	(void) xmlSubstituteEntitiesDefault(1);
++	(void) xmlLineNumbersDefault(1);
++	(void) xmlKeepBlanksDefault(0);
++}
++#endif
++
+ ZEND_FUNCTION(zend_test_func)
+ {
+ 	/* dummy */
+@@ -251,6 +270,9 @@ const zend_function_entry zend_test_functions[] = {
+ 	ZEND_FE(zend_terminate_string, arginfo_zend_terminate_string)
+ 	ZEND_FE(zend_leak_bytes, NULL)
+ 	ZEND_FE(zend_leak_variable, arginfo_zend_leak_variable)
++#if defined(HAVE_LIBXML) && !defined(PHP_WIN32)
++	ZEND_FE(zend_test_override_libxml_global_state, NULL)
++#endif
+ 	ZEND_FE_END
+ };
+ 

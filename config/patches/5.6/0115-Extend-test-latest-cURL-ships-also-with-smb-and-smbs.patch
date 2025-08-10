@@ -1,0 +1,22 @@
+From: Anatol Belski <ab@php.net>
+Date: Fri, 12 Jan 2018 12:17:23 +0100
+Subject: Extend test, latest cURL ships also with smb and smbs
+
+(cherry picked from commit 4bb46c133d896f09b2ffbaa35598054ce6bf9e6c)
+---
+ ext/curl/tests/check_win_config.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/curl/tests/check_win_config.phpt b/ext/curl/tests/check_win_config.phpt
+index d82fe6f..76e732d 100644
+--- a/ext/curl/tests/check_win_config.phpt
++++ b/ext/curl/tests/check_win_config.phpt
+@@ -40,7 +40,7 @@ SPNEGO => Yes
+ SSL => Yes
+ SSPI => Yes
+ TLS-SRP => No
+-Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, pop3, pop3s, rtsp, scp, sftp, smtp, smtps, telnet, tftp
++Protocols => dict, file, ftp, ftps, gopher, http, https, imap, imaps, ldap, pop3, pop3s, rtsp, scp, sftp, smb, smbs, smtp, smtps, telnet, tftp
+ Host => %s-pc-win32
+ SSL Version => OpenSSL/%s
+ ZLib Version => %s

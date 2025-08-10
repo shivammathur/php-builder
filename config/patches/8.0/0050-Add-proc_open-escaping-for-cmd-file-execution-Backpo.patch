@@ -1,0 +1,252 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Wed, 10 Apr 2024 14:21:47 +0200
+Subject: Add proc_open escaping for cmd file execution Backport
+ CVE-2024-1874: Command injection via array-ish $command parameter of
+ proc_open See https://github.com/remicollet/php-src-security/issues/14
+
+---
+ ext/standard/proc_open.c                           | 87 ++++++++++++++++++++--
+ .../general_functions/ghsa-pc52-254m-w9w7_1.phpt   | 29 ++++++++
+ .../general_functions/ghsa-pc52-254m-w9w7_2.phpt   | 29 ++++++++
+ .../general_functions/ghsa-pc52-254m-w9w7_3.phpt   | 29 ++++++++
+ 4 files changed, 169 insertions(+), 5 deletions(-)
+ create mode 100644 ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_1.phpt
+ create mode 100644 ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_2.phpt
+ create mode 100644 ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_3.phpt
+
+diff --git a/ext/standard/proc_open.c b/ext/standard/proc_open.c
+index 03b55c3..f26cbd1 100644
+--- a/ext/standard/proc_open.c
++++ b/ext/standard/proc_open.c
+@@ -492,11 +492,33 @@ static void append_backslashes(smart_string *str, size_t num_bs)
+ 	}
+ }
+ 
+-/* See https://docs.microsoft.com/en-us/cpp/cpp/parsing-cpp-command-line-arguments */
+-static void append_win_escaped_arg(smart_string *str, char *arg)
++/* See https://docs.microsoft.com/en-us/cpp/cpp/parsing-cpp-command-line-arguments and
++ * https://learn.microsoft.com/en-us/archive/blogs/twistylittlepassagesallalike/everyone-quotes-command-line-arguments-the-wrong-way */
++const char *special_chars = "()!^\"<>&|%";
++
++static bool is_special_character_present(const char *arg)
++{
++	for (size_t i = 0; i < strlen(arg); ++i) {
++		if (strchr(special_chars, arg[i]) != NULL) {
++			return true;
++		}
++	}
++	return false;
++}
++
++static void append_win_escaped_arg(smart_string *str, char *arg, bool is_cmd_argument)
+ {
+ 	char c;
+ 	size_t num_bs = 0;
++	bool has_special_character = false;
++
++	if (is_cmd_argument) {
++		has_special_character = is_special_character_present(arg);
++		if (has_special_character) {
++			/* Escape double quote with ^ if executed by cmd.exe. */
++			smart_string_appendc(str, '^');
++		}
++	}
+ 	smart_string_appendc(str, '"');
+ 	while ((c = *arg)) {
+ 		if (c == '\\') {
+@@ -507,20 +529,73 @@ static void append_win_escaped_arg(smart_string *str, char *arg)
+ 				num_bs = num_bs * 2 + 1;
+ 			}
+ 			append_backslashes(str, num_bs);
++			if (has_special_character && strchr(special_chars, c) != NULL) {
++				/* Escape special chars with ^ if executed by cmd.exe. */
++				smart_string_appendc(str, '^');
++			}
+ 			smart_string_appendc(str, c);
+ 			num_bs = 0;
+ 		}
+ 		arg++;
+ 	}
+ 	append_backslashes(str, num_bs * 2);
++	if (has_special_character) {
++		/* Escape double quote with ^ if executed by cmd.exe. */
++		smart_string_appendc(str, '^');
++	}
+ 	smart_string_appendc(str, '"');
+ }
+ 
++static inline int stricmp_end(const char* suffix, const char* str) {
++    size_t suffix_len = strlen(suffix);
++    size_t str_len = strlen(str);
++
++    if (suffix_len > str_len) {
++        return -1; /* Suffix is longer than string, cannot match. */
++    }
++
++    /* Compare the end of the string with the suffix, ignoring case. */
++    return _stricmp(str + (str_len - suffix_len), suffix);
++}
++
++static bool is_executed_by_cmd(const char *prog_name)
++{
++	/* If program name is cmd.exe, then return true. */
++	if (_stricmp("cmd.exe", prog_name) == 0 || _stricmp("cmd", prog_name) == 0
++			|| stricmp_end("\\cmd.exe", prog_name) == 0 || stricmp_end("\\cmd", prog_name) == 0) {
++		return true;
++	}
++
++    /* Find the last occurrence of the directory separator (backslash or forward slash). */
++    char *last_separator = strrchr(prog_name, '\\');
++    char *last_separator_fwd = strrchr(prog_name, '/');
++    if (last_separator_fwd && (!last_separator || last_separator < last_separator_fwd)) {
++        last_separator = last_separator_fwd;
++    }
++
++    /* Find the last dot in the filename after the last directory separator. */
++    char *extension = NULL;
++    if (last_separator != NULL) {
++        extension = strrchr(last_separator, '.');
++    } else {
++        extension = strrchr(prog_name, '.');
++    }
++
++    if (extension == NULL || extension == prog_name) {
++        /* No file extension found, it is not batch file. */
++        return false;
++    }
++
++    /* Check if the file extension is ".bat" or ".cmd" which is always executed by cmd.exe. */
++    return _stricmp(extension, ".bat") == 0 || _stricmp(extension, ".cmd") == 0;
++}
++
+ static char *create_win_command_from_args(HashTable *args)
+ {
+ 	smart_string str = {0};
+ 	zval *arg_zv;
+-	zend_bool is_prog_name = 1;
++	bool is_prog_name = true;
++	bool is_cmd_execution = false;
+ 	int elem_num = 0;
+ 
+ 	ZEND_HASH_FOREACH_VAL(args, arg_zv) {
+@@ -530,11 +605,13 @@ static char *create_win_command_from_args(HashTable *args)
+ 			return NULL;
+ 		}
+ 
+-		if (!is_prog_name) {
++		if (is_prog_name) {
++			is_cmd_execution = is_executed_by_cmd(ZSTR_VAL(arg_str));
++		} else {
+ 			smart_string_appendc(&str, ' ');
+ 		}
+ 
+-		append_win_escaped_arg(&str, ZSTR_VAL(arg_str));
++		append_win_escaped_arg(&str, ZSTR_VAL(arg_str), !is_prog_name && is_cmd_execution);
+ 
+ 		is_prog_name = 0;
+ 		zend_string_release(arg_str);
+diff --git a/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_1.phpt b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_1.phpt
+new file mode 100644
+index 0000000..8d0939c
+--- /dev/null
++++ b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_1.phpt
+@@ -0,0 +1,29 @@
++--TEST--
++GHSA-54hq-v5wp-fqgv - proc_open does not correctly escape args for bat files
++--SKIPIF--
++<?php
++if( substr(PHP_OS, 0, 3) != "WIN" )
++  die('skip Run only on Windows');
++?>
++--FILE--
++<?php
++
++$batch_file_content = <<<EOT
++@echo off
++powershell -Command "Write-Output '%1%'"
++EOT;
++$batch_file_path = __DIR__ . '/ghsa-54hq-v5wp-fqgv.bat';
++
++file_put_contents($batch_file_path, $batch_file_content);
++
++$descriptorspec = [STDIN, STDOUT, STDOUT];
++$proc = proc_open([$batch_file_path, "\"&notepad.exe"], $descriptorspec, $pipes);
++proc_close($proc);
++
++?>
++--EXPECT--
++"&notepad.exe
++--CLEAN--
++<?php
++@unlink(__DIR__ . '/ghsa-54hq-v5wp-fqgv.bat');
++?>
+diff --git a/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_2.phpt b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_2.phpt
+new file mode 100644
+index 0000000..a1e39d7
+--- /dev/null
++++ b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_2.phpt
+@@ -0,0 +1,29 @@
++--TEST--
++GHSA-54hq-v5wp-fqgv - proc_open does not correctly escape args for cmd files
++--SKIPIF--
++<?php
++if( substr(PHP_OS, 0, 3) != "WIN" )
++  die('skip Run only on Windows');
++?>
++--FILE--
++<?php
++
++$batch_file_content = <<<EOT
++@echo off
++powershell -Command "Write-Output '%1%'"
++EOT;
++$batch_file_path = __DIR__ . '/ghsa-54hq-v5wp-fqgv.cmd';
++
++file_put_contents($batch_file_path, $batch_file_content);
++
++$descriptorspec = [STDIN, STDOUT, STDOUT];
++$proc = proc_open([$batch_file_path, "\"&notepad<>^()!.exe"], $descriptorspec, $pipes);
++proc_close($proc);
++
++?>
++--EXPECT--
++"&notepad<>^()!.exe
++--CLEAN--
++<?php
++@unlink(__DIR__ . '/ghsa-54hq-v5wp-fqgv.cmd');
++?>
+diff --git a/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_3.phpt b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_3.phpt
+new file mode 100644
+index 0000000..69f12d7
+--- /dev/null
++++ b/ext/standard/tests/general_functions/ghsa-pc52-254m-w9w7_3.phpt
+@@ -0,0 +1,29 @@
++--TEST--
++GHSA-54hq-v5wp-fqgv - proc_open does not correctly escape args for cmd executing batch files
++--SKIPIF--
++<?php
++if( substr(PHP_OS, 0, 3) != "WIN" )
++  die('skip Run only on Windows');
++?>
++--FILE--
++<?php
++
++$batch_file_content = <<<EOT
++@echo off
++powershell -Command "Write-Output '%1%'"
++EOT;
++$batch_file_path = __DIR__ . '/ghsa-54hq-v5wp-fqgv.bat';
++
++file_put_contents($batch_file_path, $batch_file_content);
++
++$descriptorspec = [STDIN, STDOUT, STDOUT];
++$proc = proc_open(["cmd.exe", "/c", $batch_file_path, "\"&notepad.exe"], $descriptorspec, $pipes);
++proc_close($proc);
++
++?>
++--EXPECT--
++"&notepad.exe
++--CLEAN--
++<?php
++@unlink(__DIR__ . '/ghsa-54hq-v5wp-fqgv.bat');
++?>

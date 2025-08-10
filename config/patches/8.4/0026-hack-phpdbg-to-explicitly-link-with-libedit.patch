@@ -1,0 +1,21 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:57 +0200
+Subject: hack-phpdbg-to-explicitly-link-with-libedit
+
+---
+ sapi/phpdbg/config.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sapi/phpdbg/config.m4 b/sapi/phpdbg/config.m4
+index 55f8fa3..612ed26 100644
+--- a/sapi/phpdbg/config.m4
++++ b/sapi/phpdbg/config.m4
+@@ -32,7 +32,7 @@ if test "$PHP_PHPDBG" != "no"; then
+     if test "$PHP_READLINE" != "no" || test "$PHP_LIBEDIT" != "no"; then
+       AC_DEFINE([HAVE_PHPDBG_READLINE], [1],
+         [Define to 1 if the phpdbg SAPI has libedit/readline integration.])
+-      PHPDBG_EXTRA_LIBS="$PHP_READLINE_LIBS"
++      PHPDBG_EXTRA_LIBS="-ledit -ltermcap"
+       AC_MSG_RESULT([ok])
+     else
+       AC_MSG_RESULT([readline is not available])

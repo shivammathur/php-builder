@@ -1,0 +1,74 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Thu, 24 Oct 2024 22:02:17 +0200
+Subject: Fix GHSA-5hqh-c84r-qjcv: Integer overflow in the dblib quoter
+ causing OOB writes
+
+(cherry picked from commit d9baa9fed8c3ba692a36b388c0c7762e5102e2e0)
+(cherry picked from commit 5d9e54065ed18c51e4f25d8900635f90810c7394)
+(cherry picked from commit 97546df8d6900b115536c17af9213f1da837b82e)
+(cherry picked from commit 5e7cd3e7ed7c894550ca35514708ffe1874a31ad)
+(cherry picked from commit c6ee9a7d0385e4cd6cf9dcd0104dd6714e2a968d)
+(cherry picked from commit cee60784e8c25da9a5be7c6012ffef483d124d33)
+---
+ ext/pdo_dblib/dblib_driver.c                 |  8 +++++++-
+ ext/pdo_dblib/tests/GHSA-5hqh-c84r-qjcv.phpt | 24 ++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 1 deletion(-)
+ create mode 100644 ext/pdo_dblib/tests/GHSA-5hqh-c84r-qjcv.phpt
+
+diff --git a/ext/pdo_dblib/dblib_driver.c b/ext/pdo_dblib/dblib_driver.c
+index c53ac89..9a539ae 100644
+--- a/ext/pdo_dblib/dblib_driver.c
++++ b/ext/pdo_dblib/dblib_driver.c
+@@ -154,15 +154,21 @@ static int dblib_handle_quoter(pdo_dbh_t *dbh, const char *unquoted, size_t unqu
+ 
+ 	size_t i;
+ 	char * q;
++	size_t extralen = 0;
+ 	*quotedlen = 0;
+ 
+ 	/* Detect quoted length, adding extra char for doubled single quotes */
+ 	for(i=0;i<unquotedlen;i++) {
+-		if(unquoted[i] == '\'') ++*quotedlen;
++		if(unquoted[i] == '\'') ++extralen;
+ 		++*quotedlen;
+ 	}
+ 
+ 	*quotedlen += 2; /* +2 for opening, closing quotes */
++	if (UNEXPECTED(*quotedlen > ZSTR_MAX_LEN - extralen)) {
++		return 0;
++	}
++
++	*quotedlen += extralen;
+ 	q  = *quoted = emalloc(*quotedlen+1); /* Add byte for terminal null */
+ 	*q++ = '\'';
+ 
+diff --git a/ext/pdo_dblib/tests/GHSA-5hqh-c84r-qjcv.phpt b/ext/pdo_dblib/tests/GHSA-5hqh-c84r-qjcv.phpt
+new file mode 100644
+index 0000000..431c619
+--- /dev/null
++++ b/ext/pdo_dblib/tests/GHSA-5hqh-c84r-qjcv.phpt
+@@ -0,0 +1,24 @@
++--TEST--
++GHSA-5hqh-c84r-qjcv (Integer overflow in the dblib quoter causing OOB writes)
++--EXTENSIONS--
++pdo_dblib
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE != 4) die("skip for 32bit platforms only");
++if (PHP_OS_FAMILY === "Windows") die("skip not for Windows because the virtual address space for application is only 2GiB");
++if (getenv("SKIP_SLOW_TESTS")) die("skip slow test");
++require __DIR__ . '/config.inc';
++getDbConnection();
++?>
++--INI--
++memory_limit=-1
++--FILE--
++<?php
++
++require __DIR__ . '/config.inc';
++$db = getDbConnection();
++var_dump($db->quote(str_repeat("'", 2147483646)));
++
++?>
++--EXPECT--
++bool(false)

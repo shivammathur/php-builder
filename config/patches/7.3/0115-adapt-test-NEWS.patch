@@ -1,0 +1,626 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 27 Nov 2024 11:17:48 +0100
+Subject: adapt test + NEWS
+
+(cherry picked from commit 016ffd6131a6174fe5ca5f4af3c66ad9f59ed879)
+---
+ NEWS                                               |   4 +
+ ext/mysqli/tests/fake_server.inc                   | 107 ++++++++++++---------
+ .../tests/ghsa-h35g-vwh6-m678-auth-message.phpt    |   3 +-
+ .../ghsa-h35g-vwh6-m678-query-len-overflow.phpt    |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-bit.phpt    |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-date.phpt   |   2 +-
+ .../ghsa-h35g-vwh6-m678-stmt-row-datetime.phpt     |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-double.phpt |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-float.phpt  |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-int.phpt    |   2 +-
+ .../ghsa-h35g-vwh6-m678-stmt-row-no-space.phpt     |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-string.phpt |   2 +-
+ .../tests/ghsa-h35g-vwh6-m678-stmt-row-time.phpt   |   2 +-
+ ext/mysqli/tests/mysqli_change_user_new.phpt       |   5 +-
+ ext/mysqli/tests/mysqli_pconn_max_links.phpt       |   4 +-
+ ...ysqli_stmt_get_result_metadata_fetch_field.phpt |   2 +-
+ 16 files changed, 80 insertions(+), 65 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 9efc061..11c09c8 100644
+--- a/NEWS
++++ b/NEWS
+@@ -11,6 +11,10 @@ Backported from 8.1.31
+   . Fixed bug GHSA-g665-fm4p-vhff (OOB access in ldap_escape). (CVE-2024-8932)
+     (nielsdos)
+ 
++- MySQLnd:
++  . Fixed bug GHSA-h35g-vwh6-m678 (Leak partial content of the heap through
++    heap buffer over-read). (CVE-2024-8929) (Jakub Zelenka)
++
+ - PDO DBLIB:
+   . Fixed bug GHSA-5hqh-c84r-qjcv (Integer overflow in the dblib quoter causing
+     OOB writes). (CVE-2024-11236) (nielsdos)
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 1127f6c..8a9a045 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -1,6 +1,6 @@
+ <?php
+ 
+-function my_mysqli_data_fields(): array
++function my_mysqli_data_fields()
+ {
+     return [
+         'intval' => [
+@@ -107,14 +107,17 @@ function my_mysqli_data_field(string $field): array
+ 
+ class my_mysqli_fake_packet_item
+ {
+-    public function __construct(public string|null $name, public string $value, public bool $is_hex = true)
++    public function __construct($name, string $value, bool $is_hex = true)
+     {
++        $this->name   = $name;
++        $this->value  = $value;
++        $this->is_hex = $is_hex;
+     }
+ }
+ 
+ class my_mysqli_fake_packet
+ {
+-    private array $data = array();
++    private $data = array();
+ 
+     public function __get(string $name)
+     {
+@@ -126,7 +129,7 @@ class my_mysqli_fake_packet
+         return null;
+     }
+ 
+-    public function __set(string $name, string|my_mysqli_fake_packet_item $value)
++    public function __set(string $name, $value)
+     {
+         if ($value instanceof my_mysqli_fake_packet_item) {
+             if ($value->name === null) {
+@@ -146,7 +149,7 @@ class my_mysqli_fake_packet
+         $this->data[] = $value;
+     }
+ 
+-    public function to_bytes(): string
++    public function to_bytes()
+     {
+         $bytes = '';
+         foreach ($this->data as $item) {
+@@ -158,7 +161,7 @@ class my_mysqli_fake_packet
+ 
+ class my_mysqli_fake_packet_generator
+ {
+-    public static function create_packet_item(int|string $value, bool $is_hex = false, string $format = 'v'): my_mysqli_fake_packet_item
++    public static function create_packet_item($value, bool $is_hex = false, string $format = 'v')
+     {
+         if (is_string($value)) {
+             $packed_value = $value;
+@@ -168,7 +171,7 @@ class my_mysqli_fake_packet_generator
+         return new my_mysqli_fake_packet_item(null, $packed_value, $is_hex);
+     }
+ 
+-    public function server_ok(): my_mysqli_fake_packet
++    public function server_ok()
+     {
+         $packet = new my_mysqli_fake_packet();
+         $packet->packet_length = "070000";
+@@ -181,7 +184,7 @@ class my_mysqli_fake_packet_generator
+         return $packet;
+     }
+ 
+-    public function server_greetings(): my_mysqli_fake_packet
++    public function server_greetings()
+     {
+         $packet = new my_mysqli_fake_packet();
+         $packet->packet_length = "580000";
+@@ -204,7 +207,7 @@ class my_mysqli_fake_packet_generator
+         return $packet;
+     }
+ 
+-    public function server_tabular_query_response(): array
++    public function server_tabular_query_response()
+     {
+         $qr1 = new my_mysqli_fake_packet();
+         $qr1->packet_length = "010000";
+@@ -239,7 +242,7 @@ class my_mysqli_fake_packet_generator
+         return [$qr1, $qr2, $qr3, $qr4, $qr5];
+     }
+ 
+-    public function server_upsert_query_response(): array
++    public function server_upsert_query_response()
+     {
+         $qr1 = new my_mysqli_fake_packet();
+         $qr1->packet_length = "010000";
+@@ -257,7 +260,7 @@ class my_mysqli_fake_packet_generator
+         return [$qr1];
+     }
+ 
+-    public function server_stmt_prepare_response_start($num_field): my_mysqli_fake_packet
++    public function server_stmt_prepare_response_start($num_field)
+     {
+         $pr1 = new my_mysqli_fake_packet();
+         $pr1->packet_length = "0c0000";
+@@ -272,7 +275,7 @@ class my_mysqli_fake_packet_generator
+         return $pr1;
+     }
+ 
+-    public function server_stmt_prepare_response_end($packer_number): my_mysqli_fake_packet
++    public function server_stmt_prepare_response_end($packer_number)
+     {
+         $pr3 = new my_mysqli_fake_packet();
+         $pr3->packet_length = "050000";
+@@ -284,7 +287,7 @@ class my_mysqli_fake_packet_generator
+         return $pr3;
+     }
+ 
+-    public function server_stmt_prepare_items_response(): array
++    public function server_stmt_prepare_items_response()
+     {
+         $pr1 = $this->server_stmt_prepare_response_start('0100');
+ 
+@@ -316,7 +319,7 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3];
+     }
+ 
+-    public function server_stmt_prepare_data_response_field($packet_number, $field_name): my_mysqli_fake_packet
++    public function server_stmt_prepare_data_response_field($packet_number, $field_name)
+     {
+         if (strlen($field_name) != 6) {
+             throw new Exception("Invalid field length - only 6 is allowed");
+@@ -350,7 +353,7 @@ class my_mysqli_fake_packet_generator
+         return $pr;
+     }
+ 
+-    public function server_stmt_prepare_data_response(string $field_name): array
++    public function server_stmt_prepare_data_response(string $field_name)
+     {
+         $pr1 = $this->server_stmt_prepare_response_start('0200');
+ 
+@@ -362,7 +365,7 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3, $pr4];
+     }
+ 
+-    public function server_stmt_execute_items_response(): array
++    public function server_stmt_execute_items_response()
+     {
+         $pr1 = new my_mysqli_fake_packet();
+         $pr1->packet_length = "010000";
+@@ -413,7 +416,7 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3, $pr4, $pr5];
+     }
+ 
+-    private function server_execute_data_response_start(string $field_name): array
++    private function server_execute_data_response_start(string $field_name)
+     {
+         $pr1 = new my_mysqli_fake_packet();
+         $pr1->packet_length = "010000";
+@@ -478,7 +481,7 @@ class my_mysqli_fake_packet_generator
+         return [$field, $pr1, $pr2, $pr3, $pr4];
+     }
+ 
+-    private function server_execute_data_response_end(): my_mysqli_fake_packet
++    private function server_execute_data_response_end()
+     {
+         $pr6 = new my_mysqli_fake_packet();
+         $pr6->packet_length = '050000';
+@@ -490,7 +493,7 @@ class my_mysqli_fake_packet_generator
+         return $pr6;
+     }
+ 
+-    public function server_stmt_execute_data_response(string $field_name): array
++    public function server_stmt_execute_data_response(string $field_name)
+     {
+         [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
+ 
+@@ -506,7 +509,7 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3, $pr4, $pr5, $this->server_execute_data_response_end()];
+     }
+ 
+-    public function server_query_execute_data_response(string $field_name): array
++    public function server_query_execute_data_response(string $field_name)
+     {
+         [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
+ 
+@@ -537,12 +540,15 @@ class my_mysqli_fake_server_conn
+         }
+     }
+ 
+-    public function packets_to_bytes(array $packets): string
++    public function packets_to_bytes(array $packets)
+     {
+-        return implode('', array_map(fn($s) => $s->to_bytes(), $packets));
++        $func = function($s) {
++	    return $s->to_bytes();
++	};
++        return implode('', array_map($func, $packets));
+     }
+ 
+-    public function send($payload, $message = null): void
++    public function send($payload, $message = null)
+     {
+         if ($message) {
+             fprintf(STDERR, "[*] Sending - %s: %s\n", $message, bin2hex($payload));
+@@ -575,38 +581,38 @@ class my_mysqli_fake_server_conn
+         $this->send($this->packet_generator->server_ok()->to_bytes(), "Server OK");
+     }
+ 
+-    public function send_server_tabular_query_response(): void
++    public function send_server_tabular_query_response()
+     {
+         $packets = $this->packet_generator->server_tabular_query_response();
+         $this->send($this->packets_to_bytes($packets), "Tabular response");
+     }
+ 
+-    public function send_server_stmt_prepare_items_response(): void
++    public function send_server_stmt_prepare_items_response()
+     {
+         $packets = $this->packet_generator->server_stmt_prepare_items_response();
+         $this->send($this->packets_to_bytes($packets), "Stmt prepare items");
+     }
+ 
+ 
+-    public function send_server_stmt_prepare_data_response(string $field_name): void
++    public function send_server_stmt_prepare_data_response(string $field_name)
+     {
+         $packets = $this->packet_generator->server_stmt_prepare_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Stmt prepare data $field_name");
+     }
+ 
+-    public function send_server_stmt_execute_items_response(): void
++    public function send_server_stmt_execute_items_response()
+     {
+         $packets = $this->packet_generator->server_stmt_execute_items_response();
+         $this->send($this->packets_to_bytes($packets), "Stmt execute items");
+     }
+ 
+-    public function send_server_stmt_execute_data_response(string $field_name): void
++    public function send_server_stmt_execute_data_response(string $field_name)
+     {
+         $packets = $this->packet_generator->server_stmt_execute_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Stmt execute data $field_name");
+     }
+ 
+-    public function send_server_query_execute_data_response(string $field_name): void
++    public function send_server_query_execute_data_response(string $field_name)
+     {
+         $packets = $this->packet_generator->server_query_execute_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Query execute data $field_name");
+@@ -615,7 +621,11 @@ class my_mysqli_fake_server_conn
+ 
+ class my_mysqli_fake_server_process
+ {
+-    public function __construct(private $process, private array $pipes) {}
++    public function __construct($process, array $pipes)
++    {
++	    $this->process = $process;
++	    $this->pipes = $pipes;
++    }
+ 
+     public function terminate(bool $wait = false)
+     {
+@@ -631,7 +641,7 @@ class my_mysqli_fake_server_process
+     }
+ }
+ 
+-function my_mysqli_test_tabular_response_def_over_read(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_tabular_response_def_over_read(my_mysqli_fake_server_conn $conn)
+ {
+     $rh = $conn->packet_generator->server_tabular_query_response();
+ 
+@@ -655,7 +665,7 @@ function my_mysqli_test_tabular_response_def_over_read(my_mysqli_fake_server_con
+     $conn->read(65536);
+ }
+ 
+-function my_mysqli_test_upsert_response_filename_over_read(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_upsert_response_filename_over_read(my_mysqli_fake_server_conn $conn)
+ {
+     $rh = $conn->packet_generator->server_upsert_query_response();
+ 
+@@ -672,7 +682,7 @@ function my_mysqli_test_upsert_response_filename_over_read(my_mysqli_fake_server
+     $conn->read(65536);
+ }
+ 
+-function my_mysqli_test_auth_response_message_over_read(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_auth_response_message_over_read(my_mysqli_fake_server_conn $conn)
+ {
+     $p = $conn->packet_generator->server_ok();
+     $p->packet_length = "090000";
+@@ -684,7 +694,7 @@ function my_mysqli_test_auth_response_message_over_read(my_mysqli_fake_server_co
+     $conn->read();
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_string(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_string(my_mysqli_fake_server_conn $conn)
+ {
+     $rh = $conn->packet_generator->server_stmt_execute_items_response();
+ 
+@@ -705,7 +715,7 @@ function my_mysqli_test_stmt_response_row_over_read_two_fields(
+     my_mysqli_fake_server_conn $conn,
+     string $field_name,
+     string $row_field1_len = '06'
+-): void {
++) {
+     $rh = $conn->packet_generator->server_stmt_execute_data_response($field_name);
+ 
+     // Set extra length to overread by two bytes
+@@ -724,47 +734,47 @@ function my_mysqli_test_stmt_response_row_over_read_two_fields(
+     $conn->read(65536);
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_int(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_int(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'intval');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_float(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_float(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'fltval');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_double(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_double(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'dblval');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_date(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_date(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'datval');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_time(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_time(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'timval', '0c');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_datetime(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_datetime(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'dtival');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_no_space(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_no_space(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'strval', '09');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_over_read_bit(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_over_read_bit(my_mysqli_fake_server_conn $conn)
+ {
+     my_mysqli_test_stmt_response_row_over_read_two_fields($conn, 'bitval');
+ }
+ 
+-function my_mysqli_test_stmt_response_row_read_two_fields(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_stmt_response_row_read_two_fields(my_mysqli_fake_server_conn $conn)
+ {
+     $conn->send_server_greetings();
+     $conn->read();
+@@ -779,7 +789,7 @@ function my_mysqli_test_stmt_response_row_read_two_fields(my_mysqli_fake_server_
+     }
+ }
+ 
+-function my_mysqli_test_query_response_row_length_overflow(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_query_response_row_length_overflow(my_mysqli_fake_server_conn $conn)
+ {
+     $rh = $conn->packet_generator->server_query_execute_data_response('strval');
+ 
+@@ -794,7 +804,7 @@ function my_mysqli_test_query_response_row_length_overflow(my_mysqli_fake_server
+     $conn->read(65536);
+ }
+ 
+-function my_mysqli_test_query_response_row_read_two_fields(my_mysqli_fake_server_conn $conn): void
++function my_mysqli_test_query_response_row_read_two_fields(my_mysqli_fake_server_conn $conn)
+ {
+     $conn->send_server_greetings();
+     $conn->read();
+@@ -807,7 +817,7 @@ function my_mysqli_test_query_response_row_read_two_fields(my_mysqli_fake_server
+     }
+ }
+ 
+-function run_fake_server(string $test_function, $port = 33305): void
++function run_fake_server(string $test_function, $port = 33305)
+ {
+     $address = '127.0.0.1';
+ 
+@@ -832,9 +842,10 @@ function run_fake_server(string $test_function, $port = 33305): void
+ }
+ 
+ 
+-function run_fake_server_in_background($test_function, $port = 33305): my_mysqli_fake_server_process
++function run_fake_server_in_background($test_function, $port = 33305)
+ {
+     $command = [PHP_BINARY, '-n', __FILE__, 'mysqli_fake_server', $test_function, $port];
++    $command = implode(' ', $command);
+ 
+     $descriptorspec = array(
+         0 => array("pipe", "r"),
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+index 279aec6..161c9a5 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+@@ -34,5 +34,4 @@ print "done!";
+ [*] Sending - Malicious OK Auth Response [Extract heap through buffer over-read]: 0900000200000002000000fcff
+ 
+ Warning: mysqli::__construct(): OK packet message length is past the packet size in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:33305
+-done!
++%A
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-query-len-overflow.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-query-len-overflow.phpt
+index f141a79..6c44358 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-query-len-overflow.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-query-len-overflow.phpt
+@@ -42,7 +42,7 @@ print "done!";
+ [*] Received: 200000000353454c4543542073747276616c2c2073747276616c2046524f4d2064617461
+ [*] Sending - Malicious Query Response for data strval field [length overflow]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd011000000005000004fe000022000a0000050474657374fefefefefe05000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after end of packet in %s on line %A
+ [*] Received: 0100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-bit.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-bit.phpt
+index e435182..f5fdf6f 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-bit.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-bit.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data bitval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610662697476616c0662697476616c0c3f004000000010211000000005000004fe00002200100000050000067465737408080808080808080805000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-date.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-date.phpt
+index 76158e9..74f452d 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-date.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-date.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data datval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610664617476616c0664617476616c0c3f000a0000000a811000000005000004fe000022000c0000050000067465737404de070c0f05000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-datetime.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-datetime.phpt
+index f53d5b8..6e88765 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-datetime.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-datetime.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data dtival [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610664746976616c0664746976616c0c3f00130000000c811000000005000004fe000022000f0000050000067465737407de070c100d000105000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-double.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-double.phpt
+index 03c9b04..f7a599a 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-double.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-double.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data dblval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610664626c76616c0664626c76616c0c3f00160000000501101f000005000004fe000022000f00000500000674657374333333333333f33f05000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-float.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-float.phpt
+index b1ec9aa..4c28de6 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-float.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-float.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data fltval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f746573740464617461046461746106666c7476616c06666c7476616c0c3f000c0000000401101f000005000004fe000022000b000005000006746573743333134005000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-int.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-int.phpt
+index 426d9ea..4c7cb15 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-int.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-int.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data intval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f746573740464617461046461746106696e7476616c06696e7476616c0c3f000b00000003011000000005000004fe000022000b000005000006746573740e00000005000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-no-space.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-no-space.phpt
+index 6db6952..242669e 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-no-space.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-no-space.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data strval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd011000000005000004fe000022000c00000500000974657374047465737405000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. No packet space left for the field in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. No packet space left for the field in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-string.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-string.phpt
+index 55bad4c..9433a81 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-string.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-string.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for items [Extract heap through buffer over-read]: 01000001013000000203646566087068705f74657374056974656d73056974656d73046974656d046974656d0ce000c8000000fd011000000005000003fe00002200070000040000fa7465737405000005fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-time.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-time.phpt
+index 06918c3..82c2014 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-time.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-stmt-row-time.phpt
+@@ -47,7 +47,7 @@ print "done!";
+ [*] Received: 0a00000017010000000001000000
+ [*] Sending - Malicious Stmt Response for data timval [Extract heap through buffer over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610674696d76616c0674696d76616c0c3f000a0000000b811000000005000004fe000022001000000500000c7465737408000000000015080105000006fe00002200
+ 
+-Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %d
++Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after the end of packet in %s on line %A
+ [*] Received: 0500000019010000000100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/mysqli_change_user_new.phpt b/ext/mysqli/tests/mysqli_change_user_new.phpt
+index ec6b3e3..c56b5c0 100644
+--- a/ext/mysqli/tests/mysqli_change_user_new.phpt
++++ b/ext/mysqli/tests/mysqli_change_user_new.phpt
+@@ -11,7 +11,10 @@ if (!$link = my_mysqli_connect($host, $user, $passwd, $db, $port, $socket))
+ 		$host, $user, $db, $port, $socket));
+ 
+ if (mysqli_get_server_version($link) < 50600)
+-	die("SKIP For MySQL >= 5.6.0");
++    die("SKIP For MySQL >= 5.6.0");
++
++if (mysqli_get_server_version($link) >= 100000)
++    die("SKIP Not applicable for MariaDB");
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/mysqli/tests/mysqli_pconn_max_links.phpt b/ext/mysqli/tests/mysqli_pconn_max_links.phpt
+index 4b610c3..37e5859 100644
+--- a/ext/mysqli/tests/mysqli_pconn_max_links.phpt
++++ b/ext/mysqli/tests/mysqli_pconn_max_links.phpt
+@@ -235,9 +235,7 @@ Before second pconnect:array(3) {
+   int(0)
+ }
+ 
+-Warning: main(): MySQL server has gone away in %s on line %d
+-
+-Warning: main(): Error reading result set's header in %s line %d
++Warning: %A
+ After second pconnect:array(3) {
+   ["total"]=>
+   int(1)
+diff --git a/ext/mysqli/tests/mysqli_stmt_get_result_metadata_fetch_field.phpt b/ext/mysqli/tests/mysqli_stmt_get_result_metadata_fetch_field.phpt
+index 5481db0..2ccac52 100644
+--- a/ext/mysqli/tests/mysqli_stmt_get_result_metadata_fetch_field.phpt
++++ b/ext/mysqli/tests/mysqli_stmt_get_result_metadata_fetch_field.phpt
+@@ -176,6 +176,6 @@ object(stdClass)#%d (13) {
+   ["type"]=>
+   int(253)
+   ["decimals"]=>
+-  int(31)
++  int(3%d)
+ }
+ done!

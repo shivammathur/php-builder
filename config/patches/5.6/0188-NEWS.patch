@@ -1,27 +1,29 @@
 From: Remi Collet <remi@remirepo.net>
-Date: Thu, 21 Oct 2021 08:30:53 +0200
+Date: Mon, 15 Nov 2021 09:05:33 +0100
 Subject: NEWS
 
-(cherry picked from commit 515df60d2d4f9e7514061aa11ad8141f35f5a44a)
-(cherry picked from commit 40d2da33a91a8de9fc6e7c4a93c986e4b976fa44)
+(cherry picked from commit c032381da0bfb6457aa9cfa7a430790f6eab8178)
+(cherry picked from commit 0a37872d5393c56ff60df108aabd003b9d9378f2)
 ---
- NEWS | 6 ++++++
- 1 file changed, 6 insertions(+)
+ NEWS | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
 diff --git a/NEWS b/NEWS
-index 3525cf9..0d4f439 100644
+index 0d4f439..34d463e 100644
 --- a/NEWS
 +++ b/NEWS
-@@ -7,6 +7,12 @@ Backported from 7.4.25
+@@ -1,7 +1,13 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
+-Backported from 7.4.25
++Backported from 7.3.33
++
++- XML:
++  . Fix #79971: special character is breaking the path in xml function.
++    (CVE-2021-21707) (cmb)
++
++Backported from 7.3.32
+ 
+ - FPM:
    . Fixed bug #81026 (PHP-FPM oob R/W in root process leading to privilege
-     escalation) (CVE-2021-21703). (Jakub Zelenka)
- 
-+Backported from 7.3.31
-+
-+- Zip:
-+  . Fixed bug #81420 (ZipArchive::extractTo extracts outside of destination).
-+    (CVE-2021-21706) (cmb)
-+
- Backported from 7.3.30
- 
- - Phar:

@@ -143,7 +143,7 @@ index 37627ac..5d6a703 100644
  ;PCRE library backtracking limit.
  ; http://php.net/pcre.backtrack-limit
 diff --git a/php.ini-production b/php.ini-production
-index c90a856..4501f73 100644
+index c90a856e..4501f73 100644
 --- a/php.ini-production
 +++ b/php.ini-production
 @@ -969,8 +969,19 @@ cli_server.color = On

@@ -1,0 +1,48 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sat, 2 Dec 2023 22:09:36 +0100
+Subject: Disable assembly detection in Zend arithmetic with gcc < 5
+
+---
+ Zend/zend_operators.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Zend/zend_operators.h b/Zend/zend_operators.h
+index 6a3d54a..057f911 100644
+--- a/Zend/zend_operators.h
++++ b/Zend/zend_operators.h
+@@ -528,7 +528,7 @@ ZEND_API void zend_reset_lc_ctype_locale(void);
+ 
+ static zend_always_inline void fast_long_increment_function(zval *op1)
+ {
+-#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && !(4 == __GNUC__ && 8 == __GNUC_MINOR__)
++#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && (__GNUC__ > 4)
+ 	__asm__ goto(
+ 		"addl $1,(%0)\n\t"
+ 		"jo  %l1\n"
+@@ -591,7 +591,7 @@ overflow: ZEND_ATTRIBUTE_COLD_LABEL
+ 
+ static zend_always_inline void fast_long_decrement_function(zval *op1)
+ {
+-#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && !(4 == __GNUC__ && 8 == __GNUC_MINOR__)
++#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && (__GNUC__ > 4)
+ 	__asm__ goto(
+ 		"subl $1,(%0)\n\t"
+ 		"jo  %l1\n"
+@@ -654,7 +654,7 @@ overflow: ZEND_ATTRIBUTE_COLD_LABEL
+ 
+ static zend_always_inline void fast_long_add_function(zval *result, zval *op1, zval *op2)
+ {
+-#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && !(4 == __GNUC__ && 8 == __GNUC_MINOR__)
++#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && (__GNUC__ > 4)
+ 	__asm__ goto(
+ 		"movl	(%1), %%eax\n\t"
+ 		"addl   (%2), %%eax\n\t"
+@@ -744,7 +744,7 @@ overflow: ZEND_ATTRIBUTE_COLD_LABEL
+ 
+ static zend_always_inline void fast_long_sub_function(zval *result, zval *op1, zval *op2)
+ {
+-#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && !(4 == __GNUC__ && 8 == __GNUC_MINOR__)
++#if ZEND_USE_ASM_ARITHMETIC && defined(__i386__) && (__GNUC__ > 4)
+ 	__asm__ goto(
+ 		"movl	(%1), %%eax\n\t"
+ 		"subl   (%2), %%eax\n\t"

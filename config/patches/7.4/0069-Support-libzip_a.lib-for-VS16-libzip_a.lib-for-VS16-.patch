@@ -1,0 +1,25 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Sun, 3 Dec 2023 02:59:44 +0100
+Subject: Support libzip_a.lib for VS16 libzip_a.lib for VS16 has
+ zip_algorithm_xz enabled and needs lzma symbols See downloads at
+ https://windows.php.net/downloads/php-sdk/deps/vs16/x64/
+
+---
+ ext/zip/config.w32 | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ext/zip/config.w32 b/ext/zip/config.w32
+index 034543f..179ab79 100644
+--- a/ext/zip/config.w32
++++ b/ext/zip/config.w32
+@@ -7,6 +7,10 @@ if (PHP_ZIP != "no") {
+ 		CHECK_HEADER_ADD_INCLUDE("zipconf.h", "CFLAGS_ZIP", PHP_PHP_BUILD + "\\lib\\libzip\\include;" + PHP_EXTRA_LIBS + "\\libzip\\include;" + PHP_ZIP) &&
+ 		(PHP_ZIP_SHARED && CHECK_LIB("libzip.lib", "zip", PHP_ZIP) || CHECK_LIB("libzip_a.lib", "zip", PHP_ZIP) && CHECK_LIB("libbz2_a.lib", "zip", PHP_ZIP) && CHECK_LIB("zlib_a.lib", "zip", PHP_ZIP))
+ 	) {
++		if (VS_TOOLSET && VCVERS >= 1920) {
++			// lipzip_a.lib for VS16 ships with zip_algorithm_xz and needs symbols for lzma_*
++			CHECK_LIB("liblzma_a.lib", "zip", PHP_ZIP);
++		}
+ 		EXTENSION('zip', 'php_zip.c zip_stream.c');
+ 
+ 		if (get_define("LIBS_ZIP").match("libzip_a(?:_debug)?\.lib")) {

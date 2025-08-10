@@ -1,0 +1,96 @@
+From: Jan Ehrhardt <github@ehrhardt.nl>
+Date: Wed, 5 Jun 2024 20:30:49 +0200
+Subject: Fix GHSA-3qgc-jrrr-25jv
+
+---
+ sapi/cgi/cgi_main.c                     | 23 +++++++++++++++++++-
+ sapi/cgi/tests/ghsa-3qgc-jrrr-25jv.phpt | 38 +++++++++++++++++++++++++++++++++
+ 2 files changed, 60 insertions(+), 1 deletion(-)
+ create mode 100644 sapi/cgi/tests/ghsa-3qgc-jrrr-25jv.phpt
+
+diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
+index ab32d93..551c1f9 100644
+--- a/sapi/cgi/cgi_main.c
++++ b/sapi/cgi/cgi_main.c
+@@ -1839,8 +1839,13 @@ int main(int argc, char *argv[])
+ 		}
+ 	}
+ 
++	/* Apache CGI will pass the query string to the command line if it doesn't contain a '='.
++	 * This can create an issue where a malicious request can pass command line arguments to
++	 * the executable. Ideally we skip argument parsing when we're in cgi or fastcgi mode,
++	 * but that breaks PHP scripts on Linux with a hashbang: `#!/php-cgi -d option=value`.
++	 * Therefore, this code only prevents passing arguments if the query string starts with a '-'.
++	 * Similarly, scripts spawned in subprocesses on Windows may have the same issue. */
+ 	if((query_string = getenv("QUERY_STRING")) != NULL && strchr(query_string, '=') == NULL) {
+-		/* we've got query string that has no = - apache CGI will pass it to command line */
+ 		unsigned char *p;
+ 		decoded_query_string = strdup(query_string);
+ 		php_url_decode(decoded_query_string, strlen(decoded_query_string));
+@@ -1850,6 +1855,22 @@ int main(int argc, char *argv[])
+ 		if(*p == '-') {
+ 			skip_getopt = 1;
+ 		}
++
++		/* On Windows we have to take into account the "best fit" mapping behaviour. */
++#ifdef PHP_WIN32
++		if (*p >= 0x80) {
++			wchar_t wide_buf[1];
++			wide_buf[0] = *p;
++			char char_buf[4];
++			size_t wide_buf_len = sizeof(wide_buf) / sizeof(wide_buf[0]);
++			size_t char_buf_len = sizeof(char_buf) / sizeof(char_buf[0]);
++			if (WideCharToMultiByte(CP_ACP, 0, wide_buf, wide_buf_len, char_buf, char_buf_len, NULL, NULL) == 0
++				|| char_buf[0] == '-') {
++				skip_getopt = 1;
++			}
++		}
++#endif
++
+ 		free(decoded_query_string);
+ 	}
+ 
+diff --git a/sapi/cgi/tests/ghsa-3qgc-jrrr-25jv.phpt b/sapi/cgi/tests/ghsa-3qgc-jrrr-25jv.phpt
+new file mode 100644
+index 0000000..fd2fcdf
+--- /dev/null
++++ b/sapi/cgi/tests/ghsa-3qgc-jrrr-25jv.phpt
+@@ -0,0 +1,38 @@
++--TEST--
++GHSA-3qgc-jrrr-25jv
++--SKIPIF--
++<?php
++include 'skipif.inc';
++if (PHP_OS_FAMILY !== "Windows") die("skip Only for Windows");
++
++$codepage = trim(shell_exec("powershell Get-ItemPropertyValue HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Nls\\CodePage ACP"));
++if ($codepage !== '932' && $codepage !== '936' && $codepage !== '950') die("skip Wrong codepage");
++?>
++--FILE--
++<?php
++include 'include.inc';
++
++$filename = __DIR__."/GHSA-3qgc-jrrr-25jv_tmp.php";
++$script = '<?php echo "hello "; echo "world"; ?>';
++file_put_contents($filename, $script);
++
++$php = get_cgi_path();
++reset_env_vars();
++
++putenv("SERVER_NAME=Test");
++putenv("SCRIPT_FILENAME=$filename");
++putenv("QUERY_STRING=%ads");
++putenv("REDIRECT_STATUS=1");
++
++passthru("$php -s");
++
++?>
++--CLEAN--
++<?php
++@unlink(__DIR__."/GHSA-3qgc-jrrr-25jv_tmp.php");
++?>
++--EXPECTF--
++X-Powered-By: PHP/%s
++Content-type: %s
++
++hello world

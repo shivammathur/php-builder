@@ -41,18 +41,18 @@ index 7c78487..6d8cf04 100644
 -		if (!pwd) {
 -			zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
 -			return -1;
--		}
 +			pwd = getpwnam(c->listen_owner);
 +			if (!pwd) {
 +				zlog(ZLOG_SYSERROR, "[pool %s] cannot get uid for user '%s'", wp->config->name, c->listen_owner);
 +				return -1;
 +			}
- 
--		wp->socket_uid = pwd->pw_uid;
--		wp->socket_gid = pwd->pw_gid;
++
 +			wp->socket_uid = pwd->pw_uid;
 +			wp->socket_gid = pwd->pw_gid;
-+		}
+ 		}
+-
+-		wp->socket_uid = pwd->pw_uid;
+-		wp->socket_gid = pwd->pw_gid;
  	}
  
  	if (c->listen_group && *c->listen_group) {

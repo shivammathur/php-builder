@@ -1,0 +1,87 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Mon, 8 Jun 2020 23:19:43 +0200
+Subject: Fix #74267: segfault with streams and invalid data
+
+If the current character is a line break character, it cannot be a tab
+or space character, so we would always fail with an invalid sequence
+error.  Obviously, these `scan_stat == 4` conditions are meant to be
+exclusive.
+
+Furthermore, if `in_pp == NULL || in_left_p == NULL` is true, we hit a
+segfault if we are not returning right away.  Obviously, the additional
+constraints don't make sense, so we remove them.
+
+(cherry picked from commit 12c59f6660706321f9d42c55421ff6864439c8b7)
+(cherry picked from commit d149a44b005e0d24208b0bd0f7179dfbbfffefb1)
+(cherry picked from commit c173da70f301433a5d49df1d53a7930f92974820)
+(cherry picked from commit 0535796c578ac643141db13d95ef4cd82b5dcef9)
+---
+ ext/standard/filters.c                   |  7 +++----
+ ext/standard/tests/filters/bug74267.phpt | 26 ++++++++++++++++++++++++++
+ 2 files changed, 29 insertions(+), 4 deletions(-)
+ create mode 100644 ext/standard/tests/filters/bug74267.phpt
+
+diff --git a/ext/standard/filters.c b/ext/standard/filters.c
+index ee02a84..2a256a3 100644
+--- a/ext/standard/filters.c
++++ b/ext/standard/filters.c
+@@ -800,7 +800,7 @@ static php_conv_err_t php_conv_qprint_encode_convert(php_conv_qprint_encode *ins
+ 	lb_ptr = inst->lb_ptr;
+ 	lb_cnt = inst->lb_cnt;
+ 
+-	if ((in_pp == NULL || in_left_p == NULL) && (lb_ptr >=lb_cnt)) {
++	if (in_pp == NULL || in_left_p == NULL) {
+ 		return PHP_CONV_ERR_SUCCESS;
+ 	}
+ 
+@@ -1027,7 +1027,7 @@ static php_conv_err_t php_conv_qprint_decode_convert(php_conv_qprint_decode *ins
+ 	lb_ptr = inst->lb_ptr;
+ 	lb_cnt = inst->lb_cnt;
+ 
+-	if ((in_pp == NULL || in_left_p == NULL) && lb_cnt == lb_ptr) {
++	if (in_pp == NULL || in_left_p == NULL) {
+ 		if (inst->scan_stat != 0) {
+ 			return PHP_CONV_ERR_UNEXPECTED_EOS;
+ 		}
+@@ -1124,8 +1124,7 @@ static php_conv_err_t php_conv_qprint_decode_convert(php_conv_qprint_decode *ins
+ 					*ps == (unsigned char)inst->lbchars[lb_cnt]) {
+ 					lb_cnt++;
+ 					scan_stat = 5;
+-				}
+-				if (*ps != '\t' && *ps != ' ') {
++				} else if (*ps != '\t' && *ps != ' ') {
+ 					err = PHP_CONV_ERR_INVALID_SEQ;
+ 					goto out;
+ 				}
+diff --git a/ext/standard/tests/filters/bug74267.phpt b/ext/standard/tests/filters/bug74267.phpt
+new file mode 100644
+index 0000000..17d7996
+--- /dev/null
++++ b/ext/standard/tests/filters/bug74267.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++Bug #74267 (segfault with streams and invalid data)
++--FILE--
++<?php
++$stream = fopen('php://memory', 'w');
++stream_filter_append($stream, 'convert.quoted-printable-decode', STREAM_FILTER_WRITE, ['line-break-chars' => "\r\n"]);
++
++$lines = [
++	"\r\n",
++	" -=()\r\n",
++	" -=\r\n",
++	"\r\n"
++	];
++
++foreach ($lines as $line) {
++	fwrite($stream, $line);
++}
++
++fclose($stream);
++echo "done\n";
++?>
++--EXPECTF--
++Warning: fwrite(): stream filter (convert.quoted-printable-decode): invalid byte sequence in %s on line %d
++
++Warning: fwrite(): stream filter (convert.quoted-printable-decode): invalid byte sequence in %s on line %d
++done

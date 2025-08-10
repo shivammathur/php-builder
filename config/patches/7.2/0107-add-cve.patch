@@ -1,0 +1,23 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 15 Jun 2023 08:47:55 +0200
+Subject: add cve
+
+(cherry picked from commit f3021d66d7bb42d2578530cc94f9bde47e58eb10)
+---
+ NEWS | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/NEWS b/NEWS
+index 263f1b2..8cdd8a7 100644
+--- a/NEWS
++++ b/NEWS
+@@ -5,7 +5,8 @@ Backported from 8.0.29
+ 
+ - Soap:
+   . Fixed bug GHSA-76gg-c692-v2mw (Missing error check and insufficient random
+-    bytes in HTTP Digest authentication for SOAP). (nielsdos, timwolla)
++    bytes in HTTP Digest authentication for SOAP).
++    (CVE-2023-3247) (nielsdos, timwolla)
+ 
+ Backported from 8.0.28
+ 

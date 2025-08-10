@@ -9,11 +9,10 @@ Subject: php-5.3.9-gnusrc
  ext/pdo_firebird/firebird_driver.c | 1 -
  ext/standard/file.c                | 3 ---
  ext/zlib/zlib_fopen_wrapper.c      | 2 --
- main/php.h                         | 1 +
  main/streams/cast.c                | 1 -
  main/streams/memory.c              | 1 -
  main/streams/streams.c             | 1 -
- 10 files changed, 5 insertions(+), 10 deletions(-)
+ 9 files changed, 4 insertions(+), 10 deletions(-)
 
 diff --git a/Zend/zend_language_parser.c b/Zend/zend_language_parser.c
 index 24beeb9..ea8bd3c 100644
@@ -92,18 +91,6 @@ index ff242736..82109bf 100644
  #include "php.h"
  #include "php_zlib.h"
  #include "fopen_wrappers.h"
-diff --git a/main/php.h b/main/php.h
-index 62312de..c7d8541 100644
---- a/main/php.h
-+++ b/main/php.h
-@@ -31,6 +31,7 @@
- #define YYDEBUG 0
- #define PHP_DEFAULT_CHARSET "UTF-8"
- 
-+#include "php_config.h"
- #include "php_version.h"
- #include "zend.h"
- #include "zend_sort.h"
 diff --git a/main/streams/cast.c b/main/streams/cast.c
 index 9ef5420..6f5baa3 100644
 --- a/main/streams/cast.c

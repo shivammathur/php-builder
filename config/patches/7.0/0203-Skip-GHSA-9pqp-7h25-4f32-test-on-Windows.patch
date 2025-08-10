@@ -1,0 +1,28 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Mon, 23 Sep 2024 18:54:31 +0100
+Subject: Skip GHSA-9pqp-7h25-4f32 test on Windows
+
+(cherry picked from commit c70e25630832fa10d421328eed2b8e1a36af7a64)
+(cherry picked from commit c75683864f6e4188439e8ca2adbb05824918be12)
+(cherry picked from commit 2fd1b83817d20523e72bef3ad524cd5797f51acf)
+(cherry picked from commit 79eace3a64544088738d2fd341407cc32fe3ecaf)
+(cherry picked from commit 0c9258e4914695ca21b3d0cd3b1746bfc926f02e)
+(cherry picked from commit 2d5ff57eb7a36f9f0655c7073c4c702a903d9005)
+---
+ tests/basic/GHSA-9pqp-7h25-4f32.phpt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tests/basic/GHSA-9pqp-7h25-4f32.phpt b/tests/basic/GHSA-9pqp-7h25-4f32.phpt
+index af81916..29bcb65 100644
+--- a/tests/basic/GHSA-9pqp-7h25-4f32.phpt
++++ b/tests/basic/GHSA-9pqp-7h25-4f32.phpt
+@@ -5,6 +5,9 @@ GHSA-9pqp-7h25-4f32
+ if (!getenv('TEST_PHP_CGI_EXECUTABLE')) {
+     die("skip php-cgi not available");
+ }
++if (substr(PHP_OS, 0, 3) == 'WIN') {
++    die("skip not for Windows in CI - probably resource issue");
++}
+ ?>
+ --FILE--
+ <?php

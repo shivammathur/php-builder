@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Wed, 10 Apr 2024 09:01:09 +0200
+Subject: NEWS
+
+(cherry picked from commit 24f77904ee2259d722559f129f96a1f145a2367b)
+(cherry picked from commit 027bdbc636632be49ecfad8d4191509faacb34ac)
+(cherry picked from commit fbeed182bb0b0c4c453e064198b5cc3814a10de0)
+(cherry picked from commit be830600a8e4c33a25e965d0782903e885e91c6d)
+(cherry picked from commit 9ec5a1ed8bed7ca5a14e991ff3e767dbfa773dcd)
+---
+ NEWS | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 216d8ee..7d5d84f 100644
+--- a/NEWS
++++ b/NEWS
+@@ -6,6 +6,8 @@ Backported from 8.1.28
+ - Standard:
+   . Fixed bug GHSA-wpj3-hf5j-x4v4 (__Host-/__Secure- cookie bypass due to
+     partial CVE-2022-31629 fix). (CVE-2024-2756) (nielsdos)
++  . Fixed bug GHSA-h746-cjrr-wfmr (password_verify can erroneously return true,
++    opening ATO risk). (CVE-2024-3096) (Jakub Zelenka)
+ 
+ Backported from 8.0.30
+ 

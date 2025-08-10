@@ -9,9 +9,11 @@ Subject: temporary-path-fixes-for-multiarch
  ext/pdo_dblib/config.m4 | 2 +-
  4 files changed, 6 insertions(+), 8 deletions(-)
 
+diff --git a/ext/dba/config.m4 b/ext/dba/config.m4
+index 79136d5..bbd6bad 100644
 --- a/ext/dba/config.m4
 +++ b/ext/dba/config.m4
-@@ -302,7 +302,7 @@
+@@ -302,7 +302,7 @@ AC_DEFUN([PHP_DBA_DB_CHECK],[
      AC_MSG_ERROR([DBA: Could not find necessary header file(s).])
    fi
    for LIB in $2; do
@@ -20,9 +22,11 @@ Subject: temporary-path-fixes-for-multiarch
        lib_found="";
        PHP_TEMP_LDFLAGS(-L$THIS_PREFIX/$PHP_LIBDIR, -l$LIB,[
          AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+diff --git a/ext/gmp/config.m4 b/ext/gmp/config.m4
+index fa55751..1efacd8 100644
 --- a/ext/gmp/config.m4
 +++ b/ext/gmp/config.m4
-@@ -12,7 +12,7 @@
+@@ -12,7 +12,7 @@ if test "$PHP_GMP" != "no"; then
  
      PHP_ADD_LIBRARY(gmp,,GMP_SHARED_LIBADD)
    else
@@ -31,7 +35,7 @@ Subject: temporary-path-fixes-for-multiarch
        AC_MSG_ERROR(Unable to locate gmp.h)
      fi
  
-@@ -25,6 +25,7 @@
+@@ -25,6 +25,7 @@ if test "$PHP_GMP" != "no"; then
  
      PHP_ADD_LIBRARY_WITH_PATH(gmp, $PHP_GMP/$PHP_LIBDIR, GMP_SHARED_LIBADD)
      PHP_ADD_INCLUDE($PHP_GMP/include)
@@ -39,9 +43,11 @@ Subject: temporary-path-fixes-for-multiarch
    fi
  
    PHP_INSTALL_HEADERS([ext/gmp/php_gmp_int.h])
+diff --git a/ext/ldap/config.m4 b/ext/ldap/config.m4
+index 89c4b19..2c3b524 100644
 --- a/ext/ldap/config.m4
 +++ b/ext/ldap/config.m4
-@@ -65,14 +65,11 @@
+@@ -65,14 +65,11 @@ if test "$PHP_LDAP" != "no"; then
      AC_MSG_ERROR(Cannot find ldap.h)
    fi
  
@@ -58,9 +64,11 @@ Subject: temporary-path-fixes-for-multiarch
      PHP_ADD_LIBRARY_WITH_PATH(ldap, $LDAP_LIBDIR, LDAP_SHARED_LIBADD)
  
    elif test -f $LDAP_LIBDIR/libclntsh.$SHLIB_SUFFIX_NAME.12.1 || test -f $LDAP_LIBDIR/$MACHINE_INCLUDES/libclntsh.$SHLIB_SUFFIX_NAME.12.1; then
+diff --git a/ext/pdo_dblib/config.m4 b/ext/pdo_dblib/config.m4
+index b6cbc01..4dc3774 100644
 --- a/ext/pdo_dblib/config.m4
 +++ b/ext/pdo_dblib/config.m4
-@@ -44,7 +44,7 @@
+@@ -44,7 +44,7 @@ if test "$PHP_PDO_DBLIB" != "no"; then
      PHP_LIBDIR=lib
    fi
  

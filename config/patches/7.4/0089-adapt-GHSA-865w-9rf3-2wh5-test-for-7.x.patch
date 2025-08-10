@@ -1,0 +1,62 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 26 Sep 2024 15:48:11 +0200
+Subject: adapt GHSA-865w-9rf3-2wh5 test for 7.x
+
+---
+ sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt   | 4 ++--
+ sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt | 4 ++--
+ sapi/fpm/tests/tester.inc                                 | 4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
+index 5282632..bdd6178 100644
+--- a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
++++ b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-end.phpt
+@@ -30,8 +30,8 @@ $tester = new FPM\Tester($cfg, $code);
+ $tester->start();
+ $tester->expectLogStartNotices();
+ $tester->request()->expectEmptyBody();
+-$tester->expectLogLine(str_repeat('a', 1013)  . "Quarkslab", decorated: false);
+-$tester->expectLogLine("Quarkslab", decorated: false);
++$tester->expectLogLine(str_repeat('a', 1013)  . "Quarkslab", true, false);
++$tester->expectLogLine("Quarkslab", true, false);
+ $tester->terminate();
+ $tester->expectLogTerminatingNotices();
+ $tester->close();
+diff --git a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
+index 3490593..f3461e4 100644
+--- a/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
++++ b/sapi/fpm/tests/log-bwp-msg-flush-split-sep-pos-start.phpt
+@@ -30,8 +30,8 @@ $tester = new FPM\Tester($cfg, $code);
+ $tester->start();
+ $tester->expectLogStartNotices();
+ $tester->request()->expectEmptyBody();
+-$tester->expectLogLine(str_repeat('a', 1009)  . "Quarkslab", decorated: false);
+-$tester->expectLogLine("Quarkslab", decorated: false);
++$tester->expectLogLine(str_repeat('a', 1009)  . "Quarkslab", true, false);
++$tester->expectLogLine("Quarkslab", true, false);
+ $tester->terminate();
+ $tester->expectLogTerminatingNotices();
+ $tester->close();
+diff --git a/sapi/fpm/tests/tester.inc b/sapi/fpm/tests/tester.inc
+index 7868afc..fe5f0c2 100644
+--- a/sapi/fpm/tests/tester.inc
++++ b/sapi/fpm/tests/tester.inc
+@@ -1315,7 +1315,7 @@ class Tester
+      * @param string $message
+      * @return bool
+      */
+-    public function expectLogLine(string $message, bool $is_stderr = true)
++    public function expectLogLine(string $message, bool $is_stderr = true, bool $decorated = true)
+     {
+         $messageLen = strlen($message);
+         $limit = $messageLen > 1024 ? $messageLen + 16 : 1024;
+@@ -1325,7 +1325,7 @@ class Tester
+             $this->message("LOG LINE: " . ($logLines[0] ?? ''));
+         }
+ 
+-        return $this->logTool->checkWrappedMessage($logLines, false, true, $is_stderr);
++        return $this->logTool->checkWrappedMessage($logLines, false, $decorated, $is_stderr);
+     }
+ 
+     /**

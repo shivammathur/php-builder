@@ -9,8 +9,8 @@ In order to rename safer, we do the following:
 
 (cherry picked from commit e3133e4db70476fb7adfdedb738483e2255ce0e1)
 ---
- main/streams/plain_wrapper.c | 51 +++++++++++++++++++++++++++++---------------
- 1 file changed, 34 insertions(+), 17 deletions(-)
+ main/streams/plain_wrapper.c | 55 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 36 insertions(+), 19 deletions(-)
 
 diff --git a/main/streams/plain_wrapper.c b/main/streams/plain_wrapper.c
 index 8133d7d..8c6c65b 100644
@@ -35,6 +35,9 @@ index 8133d7d..8c6c65b 100644
 -							VCWD_UNLINK(url_from);
 -							return 1;
 -						}
+-						php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
+-						return 0;
+-					}
 +					/*
 +					 * Try to set user and permission info on the target.
 +					 * If we're not root, then some of these may fail.
@@ -42,27 +45,26 @@ index 8133d7d..8c6c65b 100644
 +					 * on the system environment to have proper umask to not allow
 +					 * access to the file in the meantime.
 +					 */
-+					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
+ 					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
+-						if (errno == EPERM) {
+-							php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
+-							VCWD_UNLINK(url_from);
+-							return 1;
+-						}
  						php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
 -						return 0;
 +						if (errno != EPERM) {
 +							success = 0;
 +						}
- 					}
--					if (VCWD_CHOWN(url_to, sb.st_uid, sb.st_gid)) {
--						if (errno == EPERM) {
++					}
 +
 +					if (success) {
 +						if (VCWD_CHMOD(url_to, sb.st_mode)) {
- 							php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
--							VCWD_UNLINK(url_from);
--							return 1;
++							php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
 +							if (errno != EPERM) {
 +								success = 0;
 +							}
- 						}
--						php_error_docref2(NULL, url_from, url_to, E_WARNING, "%s", strerror(errno));
--						return 0;
++						}
  					}
  #  endif
 -					VCWD_UNLINK(url_from);

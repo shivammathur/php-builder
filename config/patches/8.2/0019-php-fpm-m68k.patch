@@ -1,0 +1,60 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-fpm-m68k
+
+---
+ sapi/fpm/fpm/fpm_atomic.h | 34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
+
+diff --git a/sapi/fpm/fpm/fpm_atomic.h b/sapi/fpm/fpm/fpm_atomic.h
+index e3926e7..b2855a1 100644
+--- a/sapi/fpm/fpm/fpm_atomic.h
++++ b/sapi/fpm/fpm/fpm_atomic.h
+@@ -3,6 +3,12 @@
+ #ifndef FPM_ATOMIC_H
+ #define FPM_ATOMIC_H 1
+ 
++#if defined(__m68k__)
++#define _GNU_SOURCE
++#include <unistd.h>
++#include <sys/syscall.h>
++#endif
++
+ #include <inttypes.h>
+ #include <sched.h>
+ 
+@@ -131,6 +137,34 @@ static inline atomic_uint_t atomic_cmp_set(atomic_t *lock, atomic_uint_t old, at
+ #error Sparc v8 and predecessors are not and will not be supported (see bug report 53310)
+ #endif /* #if (__sparcv9 || __sparcv9__) */
+ 
++#elif defined(__m68k__) && defined(__linux__)
++
++typedef signed int atomic_int_t __attribute__((__aligned__(4)));
++typedef unsigned int atomic_uint_t __attribute__((__aligned__(4)));
++typedef volatile unsigned int atomic_t __attribute__((__aligned__(4)));
++
++#ifndef SYS_atomic_cmpxchg_32
++#define SYS_atomic_cmpxchg_32 335
++#endif
++
++static inline atomic_uint_t atomic_cas_32(atomic_t *lock, atomic_uint_t old, atomic_uint_t new) /* {{{ */
++{
++	register atomic_t *a0 asm("a0") = lock;
++	register atomic_uint_t d2 asm("d2") = old;
++	register atomic_uint_t d1 asm("d1") = new;
++	register atomic_uint_t d0 asm("d0") = SYS_atomic_cmpxchg_32;
++
++	asm volatile("trap #0" : "+r" (d0), "+r" (d1), "+r" (a0) : "r" (d2) : "memory", "a1");
++	return (d0);
++}
++/* }}} */
++
++static inline atomic_uint_t atomic_cmp_set(atomic_t *lock, atomic_uint_t old, atomic_uint_t set) /* {{{ */
++{
++	return (atomic_cas_32(lock, old, set) == old);
++}
++/* }}} */
++
+ #else
+ 
+ #error Unsupported processor. Please open a bug report (https://github.com/php/php-src/issues).

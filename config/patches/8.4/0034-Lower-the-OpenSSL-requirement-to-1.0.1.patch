@@ -1,0 +1,120 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Fri, 31 Dec 2021 07:40:21 +0100
+Subject: Lower the OpenSSL requirement to 1.0.1
+
+---
+ build/php.m4              | 2 +-
+ ext/openssl/config0.m4    | 2 +-
+ ext/openssl/openssl.c     | 9 ++++++++-
+ ext/openssl/php_openssl.h | 4 +++-
+ ext/openssl/xp_ssl.c      | 9 +++++++++
+ 5 files changed, 22 insertions(+), 4 deletions(-)
+
+diff --git a/build/php.m4 b/build/php.m4
+index d8a5cbf..74a9989 100644
+--- a/build/php.m4
++++ b/build/php.m4
+@@ -1808,7 +1808,7 @@ dnl
+ AC_DEFUN([PHP_SETUP_OPENSSL],[
+   found_openssl=no
+ 
+-  PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.1.1], [found_openssl=yes])
++  PKG_CHECK_MODULES([OPENSSL], [openssl >= 1.0.1], [found_openssl=yes])
+ 
+   if test "$found_openssl" = "yes"; then
+     PHP_EVAL_LIBLINE([$OPENSSL_LIBS], [$1])
+diff --git a/ext/openssl/config0.m4 b/ext/openssl/config0.m4
+index 70ecb0a..62a92aa 100644
+--- a/ext/openssl/config0.m4
++++ b/ext/openssl/config0.m4
+@@ -1,7 +1,7 @@
+ PHP_ARG_WITH([openssl],
+   [for OpenSSL support],
+   [AS_HELP_STRING([--with-openssl],
+-    [Include OpenSSL support (requires OpenSSL >= 1.1.1)])])
++    [Include OpenSSL support (requires OpenSSL >= 1.0.1)])])
+ 
+ PHP_ARG_WITH([system-ciphers],
+   [whether to use system default cipher list instead of hardcoded value],
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 8a0d58d..5a47c09 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -96,7 +96,7 @@
+ #endif
+ #define DEBUG_SMIME	0
+ 
+-#if !defined(OPENSSL_NO_EC) && defined(EVP_PKEY_EC)
++#if !defined(OPENSSL_NO_EC) && defined(EVP_PKEY_EC) && OPENSSL_VERSION_NUMBER >= 0x10002000L
+ #define HAVE_EVP_PKEY_EC 1
+ 
+ /* the OPENSSL_EC_EXPLICIT_CURVE value was added
+@@ -1293,6 +1293,13 @@ PHP_MINIT_FUNCTION(openssl)
+ 	OpenSSL_add_all_ciphers();
+ 	OpenSSL_add_all_digests();
+ 	OpenSSL_add_all_algorithms();
++
++#if !defined(OPENSSL_NO_AES) && defined(EVP_CIPH_CCM_MODE) && OPENSSL_VERSION_NUMBER < 0x100020000
++	EVP_add_cipher(EVP_aes_128_ccm());
++	EVP_add_cipher(EVP_aes_192_ccm());
++	EVP_add_cipher(EVP_aes_256_ccm());
++#endif
++
+ 	SSL_load_error_strings();
+ #else
+ #if PHP_OPENSSL_API_VERSION >= 0x30000 && defined(LOAD_OPENSSL_LEGACY_PROVIDER)
+diff --git a/ext/openssl/php_openssl.h b/ext/openssl/php_openssl.h
+index 134081f..f4ded12 100644
+--- a/ext/openssl/php_openssl.h
++++ b/ext/openssl/php_openssl.h
+@@ -35,7 +35,9 @@ extern zend_module_entry openssl_module_entry;
+ #endif
+ #else
+ /* OpenSSL version check */
+-#if OPENSSL_VERSION_NUMBER < 0x30000000L
++#if OPENSSL_VERSION_NUMBER < 0x10002000L
++#define PHP_OPENSSL_API_VERSION 0x10001
++#elif OPENSSL_VERSION_NUMBER < 0x30000000L
+ #define PHP_OPENSSL_API_VERSION 0x10100
+ #elif OPENSSL_VERSION_NUMBER < 0x30200000L
+ #define PHP_OPENSSL_API_VERSION 0x30000
+diff --git a/ext/openssl/xp_ssl.c b/ext/openssl/xp_ssl.c
+index ec41379..ebc8313 100644
+--- a/ext/openssl/xp_ssl.c
++++ b/ext/openssl/xp_ssl.c
+@@ -33,8 +33,11 @@
+ #include <openssl/x509.h>
+ #include <openssl/x509v3.h>
+ #include <openssl/err.h>
++
++#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+ #include <openssl/bn.h>
+ #include <openssl/dh.h>
++#endif
+ 
+ #ifdef PHP_WIN32
+ #include "win32/winutil.h"
+@@ -86,8 +89,10 @@
+ 
+ #ifndef OPENSSL_NO_TLSEXT
+ #define HAVE_TLS_SNI 1
++#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+ #define HAVE_TLS_ALPN 1
+ #endif
++#endif
+ 
+ #ifndef LIBRESSL_VERSION_NUMBER
+ #define HAVE_SEC_LEVEL 1
+@@ -1312,8 +1317,12 @@ static zend_result php_openssl_set_server_ecdh_curve(php_stream *stream, SSL_CTX
+ 
+ 	zvcurve = php_stream_context_get_option(PHP_STREAM_CONTEXT(stream), "ssl", "ecdh_curve");
+ 	if (zvcurve == NULL) {
++#if OPENSSL_VERSION_NUMBER >= 0x10002000L
+ 		SSL_CTX_set_ecdh_auto(ctx, 1);
+ 		return SUCCESS;
++#else
++		curve_nid = NID_X9_62_prime256v1;
++#endif
+ 	} else {
+ 		if (!try_convert_to_string(zvcurve)) {
+ 			return FAILURE;

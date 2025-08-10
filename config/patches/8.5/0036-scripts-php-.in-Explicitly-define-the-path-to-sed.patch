@@ -1,0 +1,42 @@
+From: Vagrant Cascadian <vagrant@reproducible-builds.org>
+Date: Thu, 13 Apr 2023 15:59:57 -0700
+Subject: scripts/php*.in: Explicitly define the path to sed.
+
+The full path is detected by configure, resulting in a different build
+depending on if it is built on a usrmerge or non-usrmerge system.
+
+Since usrmerge systems contain compatibility symlinks for the
+non-usrmerge paths, use the non-usrmerge path which is compatible in
+both systems.
+
+https://tests.reproducible-builds.org/debian/issues/bookworm/paths_vary_due_to_usrmerge_issue.html
+---
+ scripts/php-config.in | 2 +-
+ scripts/phpize.in     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/scripts/php-config.in b/scripts/php-config.in
+index 9e415da..5fb2a92 100644
+--- a/scripts/php-config.in
++++ b/scripts/php-config.in
+@@ -1,6 +1,6 @@
+ #! /bin/sh
+ 
+-SED="@SED@"
++SED="/bin/sed"
+ prefix="@prefix@"
+ datarootdir="@datarootdir@"
+ exec_prefix="@exec_prefix@"
+diff --git a/scripts/phpize.in b/scripts/phpize.in
+index 66086aa..a7c9f9d 100644
+--- a/scripts/phpize.in
++++ b/scripts/phpize.in
+@@ -7,7 +7,7 @@ exec_prefix="`eval echo @exec_prefix@`"
+ phpdir="$prefix/lib/php/@DEBIAN_PHP_API@/build"
+ includedir="$prefix/include/php/@DEBIAN_PHP_API@"
+ builddir="`pwd`"
+-SED="@SED@"
++SED="/bin/sed"
+ 
+ libtool_version=$(dpkg-query -f'${Version}' -W libtool)
+ aclocaldir="$prefix/share/aclocal"

@@ -7,10 +7,10 @@ Subject: php-fpm-sysconfdir
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/sapi/fpm/fpm/fpm_conf.c b/sapi/fpm/fpm/fpm_conf.c
-index 0464a36..d08d2eb 100644
+index cc7102e..c1b6c47 100644
 --- a/sapi/fpm/fpm/fpm_conf.c
 +++ b/sapi/fpm/fpm/fpm_conf.c
-@@ -1784,7 +1784,7 @@ int fpm_conf_init_main(int test_conf, int force_daemon) /* {{{ */
+@@ -1786,7 +1786,7 @@ int fpm_conf_init_main(int test_conf, int force_daemon) /* {{{ */
  		char *tmp;
  
  		if (fpm_globals.prefix == NULL) {
