@@ -52,14 +52,27 @@ build_php() {
   SAPI=$1
 
   # Set and export FLAGS
-  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
+  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
+  CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
+  CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
+
   CPPFLAGS="$(get_buildflags CPPFLAGS "$lto")"
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto")"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
-  EXTRA_CFLAGS="-Wall -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
+    
+  if [[ "$PHP_VERSION" =~ 5.6|7.[0-4]|8.0 ]]; then
+    EXTRA_CFLAGS="-fpermissive -Wno-deprecated -Wno-deprecated-declarations"
+  else
+    EXTRA_CFLAGS="-Wall -pedantic"
+  fi
+  EXTRA_CFLAGS="$EXTRA_CFLAGS -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
+
   DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)"
-  ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"
+  
+  # Set ICU Version
+  ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
   dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
+
   export CFLAGS
   export CPPFLAGS
   export CXXFLAGS
