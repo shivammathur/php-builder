@@ -30,6 +30,7 @@ tar xf "/tmp/$extension.tar.gz" -C /tmp
     tag=${tag#v}
     cd /tmp/"$(basename "$repo")"-"${tag/\//-}" || exit 1
   fi
+  export SED=$(command -v sed)
   patch_"${extension}" 2>/dev/null || true
   phpize
   ./configure "--with-php-config=/usr/bin/php-config" "${params[@]}"

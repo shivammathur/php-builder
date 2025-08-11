@@ -73,6 +73,8 @@ build_php() {
   ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
   dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
 
+  SED=$(command -v sed)
+
   export CFLAGS
   export CPPFLAGS
   export CXXFLAGS
@@ -80,6 +82,7 @@ build_php() {
   export EXTRA_CFLAGS
   export DEB_HOST_MULTIARCH
   export ICU_CXXFLAGS
+  export SED
 
   # Export inputs
   export INSTALL_ROOT
