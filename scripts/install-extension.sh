@@ -27,6 +27,7 @@ tar xf "/tmp/$extension.tar.gz" -C /tmp
   if [ "$repo" = "pecl" ]; then
     cd /tmp/"$extension"-* || exit 1
   else
+    tag=${tag#v}
     cd /tmp/"$(basename "$repo")"-"${tag/\//-}" || exit 1
   fi
   patch_"${extension}" 2>/dev/null || true
