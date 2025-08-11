@@ -4,8 +4,23 @@ patch_ast() {
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i -e '/ZEND_AST_EXIT/d' -e '/ZEND_AST_CLONE/d'  ast_data.c
 }
 
+# Function to configure imagick.
+configure_imagick() {
+  if pkg-config --exists MagickWand-7.Q16; then
+    PKG_WAND=MagickWand-7.Q16
+  elif pkg-config --exists MagickWand-6.Q16; then
+    PKG_WAND=MagickWand-6.Q16
+  else
+    echo "MagickWand not found — install libmagickwand-dev" >&2
+    exit 1
+  fi
+  export CPPFLAGS="$(pkg-config --cflags "$PKG_WAND")"
+  export LDFLAGS="$(pkg-config --libs "$PKG_WAND")"
+}
+
 # Function to patch imagick source.
 patch_imagick() {
+  configure_imagick
   sed -i 's/spl_ce_Countable/zend_ce_countable/' imagick.c util/checkSymbols.php
   sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' package.xml)/" php_imagick.h
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' imagick.c
