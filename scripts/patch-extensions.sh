@@ -96,3 +96,7 @@ patch_yaml() {
 patch_zmq() {
   [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/zend_exception_get_default()/zend_ce_exception/' zmq.c
 }
+
+patch_mongodb() {
+  [[ "$PHP_VERSION" = "8.5" ]] && sed -i 's/IS_INTERNED/ZSTR_IS_INTERNED/' src/contrib/php_array_api.h
+}
