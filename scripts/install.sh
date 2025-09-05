@@ -100,7 +100,7 @@ check_lists() {
 
 ubuntu_fingerprint() {
   local ppa=$1
-  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
+  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/ubuntu/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
 }
 
 debian_fingerprint() {

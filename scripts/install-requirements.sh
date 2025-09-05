@@ -44,7 +44,7 @@ update_lists() {
 # Function to get the fingerprint from a Ubuntu repository.
 ubuntu_fingerprint() {
   ppa=$1
-  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
+  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/ubuntu/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
 }
 
 # Function to get the fingerprint from a Debian repository.
