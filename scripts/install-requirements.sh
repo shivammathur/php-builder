@@ -43,8 +43,11 @@ update_lists() {
 
 # Function to get the fingerprint from a Ubuntu repository.
 ubuntu_fingerprint() {
-  ppa=$1
-  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/ubuntu/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
+  ppa="$1"
+  ppa_uri="~${ppa%/*}/+archive/ubuntu/${ppa##*/}"
+  get -s "" "${lp_api[0]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
+  || get -s "" "${lp_api[1]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
+  || get -s "" "$ppa_sp/keys/$ppa.fingerprint"
 }
 
 # Function to get the fingerprint from a Debian repository.
@@ -70,6 +73,7 @@ add_key() {
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
+  key_urls+=("$ppa_sp/keys/$ppa.gpg")
   [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     gpg --homedir /tmp --batch --yes --dearmor "$key_file" && rm -f "$key_file" >/dev/null 2>&1
@@ -161,6 +165,7 @@ lp_api=(
 lp_ppa='http://ppa.launchpad.net'
 lpc_ppa='https://ppa.launchpadcontent.net'
 key_dir='/usr/share/keyrings'
+ppa_sp='https://ppa.setup-php.com'
 sks=(
   'https://keyserver.ubuntu.com'
   'https://pgp.mit.edu'
