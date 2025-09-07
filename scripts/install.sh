@@ -99,8 +99,11 @@ check_lists() {
 }
 
 ubuntu_fingerprint() {
-  local ppa=$1
-  get -s "" "${lp_api[@]/%//~${ppa%/*}/+archive/ubuntu/${ppa##*/}}" | jq -r '.signing_key_fingerprint'
+  ppa="$1"
+  ppa_uri="~${ppa%/*}/+archive/ubuntu/${ppa##*/}"
+  get -s "" "${lp_api[0]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
+  || get -s "" "${lp_api[1]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
+  || get -s "" "$ppa_sp/keys/$ppa.fingerprint"
 }
 
 debian_fingerprint() {
@@ -124,6 +127,7 @@ add_key() {
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
+  key_urls+=("$ppa_sp/keys/$ppa.gpg")
   [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     sudo gpg --batch --yes --dearmor "$key_file" >/dev/null 2>&1 && sudo mv "$key_file".gpg "$key_file"
@@ -431,6 +435,7 @@ lpc_ppa='https://ppa.launchpadcontent.net'
 key_dir='/usr/share/keyrings'
 dist_info_dir='/usr/share/distro-info'
 sury='https://packages.sury.org'
+ppa_sp='https://ppa.setup-php.com'
 sks=(
   'https://keyserver.ubuntu.com'
   'https://pgp.mit.edu'
