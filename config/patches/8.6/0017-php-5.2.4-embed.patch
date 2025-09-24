@@ -1,0 +1,21 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:55 +0200
+Subject: php-5.2.4-embed
+
+---
+ sapi/embed/config.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sapi/embed/config.m4 b/sapi/embed/config.m4
+index 2bb5ed4..6cdcb9c 100644
+--- a/sapi/embed/config.m4
++++ b/sapi/embed/config.m4
+@@ -15,7 +15,7 @@ if test "$PHP_EMBED" != "no"; then
+         SAPI_SHARED="libs/libphp.dylib"
+         PHP_EMBED_TYPE=shared-dylib
+       ], [PHP_EMBED_TYPE=shared])
+-      INSTALL_IT="\$(mkinstalldirs) \$(INSTALL_ROOT)\$(orig_libdir); \$(INSTALL) -m 0755 $SAPI_SHARED \$(INSTALL_ROOT)\$(orig_libdir)"
++      INSTALL_IT="\$(mkinstalldirs) \$(INSTALL_ROOT)\$(orig_libdir); \$(LIBTOOL) --mode=install \$(INSTALL) -m 0755 $SAPI_SHARED \$(INSTALL_ROOT)\$(orig_libdir)"
+     ],
+     [static], [
+       LIBPHP_CFLAGS="-static"
