@@ -2,7 +2,7 @@
 
 <a href="https://github.com/shivammathur/php-builder" title="PHP Builder"><img alt="Build status" src="https://github.com/shivammathur/php-builder/workflows/Build%20PHP/badge.svg"></a>
 <a href="https://github.com/shivammathur/php-builder/blob/main/LICENSE" title="license"><img alt="LICENSE" src="https://img.shields.io/badge/license-MIT-428f7e.svg"></a>
-<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-5.6 to 8.5-8892BF.svg"></a>
+<a href="https://github.com/shivammathur/php-builder/tree/main/builds" title="builds"><img alt="PHP Versions Supported" src="https://img.shields.io/badge/php-5.6 to 8.6-8892BF.svg"></a>
 
 - This projects builds PHP 5.6 and above (including a nightly build from the master branch of PHP) on `Ubuntu` and `Debian`.
 - To install PHP, follow the instructions in the [install](#install) section.
@@ -161,6 +161,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols.
 
+- [PHP 8.6.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.6)
 - [PHP 8.5.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.5)
 - [PHP 8.4.x](https://github.com/shivammathur/php-builder/releases/tag/8.4)
 - [PHP 8.3.x](https://github.com/shivammathur/php-builder/releases/tag/8.3)
