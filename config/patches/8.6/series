@@ -39,3 +39,4 @@
 0039-Disable-avx-detection-with-gcc-6.patch
 0040-Disable-garbage-collection-routine.patch
 0041-Add-missing-header-includes.patch
+0042-intl-make-IntlNumberRangeFormatter-build-on-ICU-63-6.patch

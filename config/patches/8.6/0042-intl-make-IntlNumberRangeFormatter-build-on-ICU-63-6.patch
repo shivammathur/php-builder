@@ -1,0 +1,29 @@
+From ae83c0e612d1911c29352bf2449c322aeae522ac Mon Sep 17 00:00:00 2001
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Sat, 27 Sep 2025 09:31:20 +0530
+Subject: [PATCH] intl: make IntlNumberRangeFormatter build on ICU 63–67
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ ext/intl/rangeformatter/rangeformatter_class.cpp | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/ext/intl/rangeformatter/rangeformatter_class.cpp b/ext/intl/rangeformatter/rangeformatter_class.cpp
+index a19bbb451d8..5ffdf938aad 100644
+--- a/ext/intl/rangeformatter/rangeformatter_class.cpp
++++ b/ext/intl/rangeformatter/rangeformatter_class.cpp
+@@ -20,7 +20,9 @@ extern "C" {
+ 
+ #if U_ICU_VERSION_MAJOR_NUM >= 63
+ #include <unicode/numberrangeformatter.h>
++#if U_ICU_VERSION_MAJOR_NUM >= 68
+ #include <unicode/unumberrangeformatter.h>
++#endif
+ #include <unicode/numberformatter.h>
+ #include <unicode/unistr.h>
+ #include "../intl_convertcpp.h"
+-- 
+2.51.0
+
