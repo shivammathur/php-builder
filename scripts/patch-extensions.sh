@@ -99,5 +99,6 @@ patch_zmq() {
 }
 
 patch_mongodb() {
-  [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's/IS_INTERNED/ZSTR_IS_INTERNED/' src/contrib/php_array_api.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/ZVAL_IS_NULL/Z_ISNULL_P/' src/MongoDB/ServerApi.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_is_true/zend_is_true/' src/MongoDB/ServerApi.c
 }
