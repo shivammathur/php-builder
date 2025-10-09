@@ -80,6 +80,11 @@ patch_redis() {
     sed -i -e "s|standard/php_random.h|ext/random/php_random.h|" redis.c
   fi
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#zend_smart_string.h#' common.h
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for file in library.c redis_commands.c cluster_library.c; do
+      sed -i 's/zval_is_true/zend_is_true/' $file
+    done
+  fi
 }
 
 # Function to patch igbinary source.
