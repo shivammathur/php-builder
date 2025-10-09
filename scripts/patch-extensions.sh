@@ -101,6 +101,7 @@ patch_yaml() {
 # Function to path zmq source
 patch_zmq() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's/zend_exception_get_default()/zend_ce_exception/' zmq.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_is_true/zend_is_true/' zmq_device.c
 }
 
 patch_mongodb() {
