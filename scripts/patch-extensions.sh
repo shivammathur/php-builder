@@ -1,9 +1,3 @@
-# Function to patch ast source.
-patch_ast() {
-  [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i '/ast_register_flag_constant("DIM_ALTERNATIVE_SYNTAX/d' ast.c
-  [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i -e '/ZEND_AST_EXIT/d' -e '/ZEND_AST_CLONE/d'  ast_data.c
-}
-
 # Function to configure imagick.
 configure_imagick() {
   if pkg-config --exists MagickWand-7.Q16; then
