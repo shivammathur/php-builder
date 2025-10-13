@@ -72,6 +72,7 @@ build_php() {
   # Set ICU Version
   ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
   dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
+  [[ "$VERSION_ID" = "11" && "$PHP_VERSION" = "8.6" ]] && export CXXFLAGS="$CXXFLAGS -include unicode/localpointer.h"
 
   SED=$(command -v sed)
 
