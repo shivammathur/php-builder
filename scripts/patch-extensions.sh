@@ -46,6 +46,11 @@ patch_xdebug() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/develop/stack.c src/lib/var.c
   [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/ZSTR_INIT_LITERAL(tmp_name, false)/zend_string_init(tmp_name, strlen(tmp_name), false)/g' src/profiler/profiler.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for file in src/debugger/debugger.c src/debugger/handler_dbgp.c src/base/base.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+  fi
 }
 
 # Function to patch amqp source.
@@ -58,11 +63,17 @@ patch_memcache() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/memcache_ascii_protocol.c src/memcache_binary_protocol.c src/memcache_pool.c src/memcache_session.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string_public.h#Zend/zend_smart_string.h#' src/memcache_pool.h
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for file in src/memcache_pool.c src/memcache_session.c src/memcache_binary_protocol.c src/memcache.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+  fi
 }
 
 # Function to patch memcached source.
 patch_memcached() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' php_memcached.c
 }
 
 # Function to patch redis source.
@@ -78,6 +89,9 @@ patch_redis() {
     for file in library.c redis_commands.c cluster_library.c; do
       sed -i 's/zval_is_true/zend_is_true/' $file
     done
+    for file in redis_array_impl.c redis_array.c redis_commands.c redis_cluster.c cluster_library.c library.c redis.c redis_session.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
   fi
 }
 
@@ -85,20 +99,47 @@ patch_redis() {
 patch_igbinary() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/php7/php_igbinary.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/php7/igbinary.c
 }
 
 # Function to path yaml source
 patch_yaml() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' php_yaml.h
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for file in yaml.c parse.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+  fi
 }
 
 # Function to path zmq source
 patch_zmq() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's/zend_exception_get_default()/zend_ce_exception/' zmq.c
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_is_true/zend_is_true/' zmq_device.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for file in zmq_pollset.c php5/zmq_pollset.c php5/zmq.c zmq.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+  fi
 }
 
+# Function to patch mongodb source.
 patch_mongodb() {
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/ZVAL_IS_NULL/Z_ISNULL_P/' src/MongoDB/ServerApi.c
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_is_true/zend_is_true/' src/MongoDB/ServerApi.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/MongoDB/Cursor.c
+}
+
+# Function to patch apcu source.
+patch_apcu() {
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
+}
+
+# Function to patch msgpack source.
+patch_msgpack() {
+ if [[ "$PHP_VERSION" = "8.6" ]]; then
+   for file in msgpack.c msgpack_unpack.c; do
+     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+   done
+ fi
 }
