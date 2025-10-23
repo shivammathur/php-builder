@@ -76,7 +76,7 @@ update_lists() {
   if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
     if [[ -n "$ppa" && -n "$ppa_search" ]]; then
       list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
-    elif [ -e "$list_file" ] && grep -Eq '^deb |^Types deb' "$list_file"; then
+    elif [ -e "$list_file" ] && grep -Eq '^deb |^Types: *deb' "$list_file"; then
       list="$list_file"
     fi
     update_lists_helper "$list"
@@ -84,18 +84,61 @@ update_lists() {
   fi
 }
 
+get_sources_format() {
+  if [ -n "$sources_format" ]; then
+    echo "$sources_format"
+    return
+  fi
+  sources_format=deb
+  if [ -e "$list_dir"/ubuntu.sources ] || [ -e "$list_dir"/debian.sources ]; then
+    sources_format="deb822"
+  elif ! [[ "$ID" =~ ubuntu|debian ]]; then
+    find "$list_dir" -type f -name '*.sources' | grep -q . && sources_format="deb822"
+  fi
+  echo "$sources_format"
+}
+
+get_repo_patterns() {
+  local list_format=$1
+  local ppa_url=$2
+  local package_dist=$3
+  local branches=$4
+  local deb_pattern="^deb .*$ppa_url $package_dist .*$branches$"
+  local deb822_pattern="^URIs: $ppa_url$"
+  if [ "$list_format" = "deb822" ]; then
+    printf '%s|%s\n' "$deb822_pattern" "$deb_pattern"
+  else
+    printf '%s|%s\n' "$deb_pattern" "$deb822_pattern"
+  fi
+}
+
 check_lists() {
   local ppa=$1
-  local ppa_search=$2
-  if grep -Eqr "$ppa_search" "$list_dir"; then
+  local primary=${2:-}
+  local secondary=${3:-}
+  local match_pattern=
+  local match_file=
+  check_lists_file=
+  check_lists_pattern=
+  if [ -n "$primary" ]; then
+    match_file=$(grep -Elr "$primary" "$list_dir" 2>/dev/null | head -n 1)
+    [ -n "$match_file" ] && match_pattern="$primary"
+  fi
+  if [ -z "$match_file" ] && [ -n "$secondary" ]; then
+    match_file=$(grep -Elr "$secondary" "$list_dir" 2>/dev/null | head -n 1)
+    [ -n "$match_file" ] && match_pattern="$secondary"
+  fi
+  if [ -n "$match_file" ]; then
+    local list_count
     list_count="$(sudo find /var/lib/apt/lists -type f -name "*${ppa/\//_}*" | wc -l)"
     if [ "$list_count" = "0" ]; then
-      update_lists "$ppa" "$ppa_search"
+      update_lists "$ppa" "$match_pattern"
     fi
-    return 0;
-  else
-    return 1;
+    check_lists_file=$match_file
+    check_lists_pattern=$match_pattern
+    return 0
   fi
+  return 1
 }
 
 ubuntu_fingerprint() {
@@ -140,18 +183,39 @@ add_list() {
   local key_source=${3:-"$ppa_url"}
   local package_dist=${4:-"$VERSION_CODENAME"}
   local branches=${5:-main}
-  local ppa_search="deb .*$ppa_url $package_dist .*$branches"
-  if check_lists "$ppa" "$ppa_search"; then
-    echo "Repository $ppa already exists";
-    return 1;
-  else
-    arch=$(dpkg --print-architecture)
-    [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
-    add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
-    echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee -a "$list_dir"/"${ppa%%/*}"-"$ID"-"${ppa#*/}"-"$package_dist".list >/dev/null 2>&1
-    update_lists "$ppa" "$ppa_search"
-    . /etc/os-release
+  local list_format
+  list_format="$(get_sources_format)"
+  IFS='|' read -r primary_pattern secondary_pattern <<< "$(get_repo_patterns "$list_format" "$ppa_url" "$package_dist" "$branches")"
+  if check_lists "$ppa" "$primary_pattern" "$secondary_pattern"; then
+    if [ "$list_format" = "deb822" ] && [ -n "$check_lists_file" ] && [[ "$check_lists_file" = *.list ]]; then
+      sudo rm -f "$check_lists_file"
+    else
+      echo "Repository $ppa already exists";
+      return 1;
+    fi
   fi
+  arch=$(dpkg --print-architecture)
+  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
+  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
+  local list_basename="${ppa%%/*}"-"$ID"-"${ppa#*/}"-"$package_dist"
+  sudo rm -f "$list_dir"/"${ppa/\//-}".list "$list_dir"/"${ppa/\//-}".sources "$list_dir"/"$list_basename".list "$list_dir"/"$list_basename".sources || true
+  local list_path
+  if [ "$list_format" = "deb822" ]; then
+    list_path="$list_dir"/"$list_basename".sources
+    cat <<EOF | sudo tee "$list_path" >/dev/null
+Types: deb
+URIs: $ppa_url
+Suites: $package_dist
+Components: $branches
+Architectures: $arch
+Signed-By: $key_file
+EOF
+  else
+    list_path="$list_dir"/"$list_basename".list
+    echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee "$list_path" >/dev/null 2>&1
+  fi
+  update_lists "$ppa" "$primary_pattern"
+  . /etc/os-release
   return 0;
 }
 
@@ -178,8 +242,15 @@ update_ppa() {
   local ppa_url=$lp_ppa/$ppa/ubuntu
   local package_dist=$VERSION_CODENAME
   local branches=main
-  local ppa_search="deb .*$ppa_url $package_dist .*$branches"
-  update_lists "$ppa" "$ppa_search"
+  local list_format
+  list_format="$(get_sources_format)"
+  IFS='|' read -r primary_pattern secondary_pattern <<< "$(get_repo_patterns "$list_format" "$ppa_url" "$package_dist" "$branches")"
+  if ! grep -Elr "$primary_pattern" "$list_dir" >/dev/null 2>&1 && [ -n "$secondary_pattern" ]; then
+    if grep -Elr "$secondary_pattern" "$list_dir" >/dev/null 2>&1; then
+      primary_pattern=$secondary_pattern
+    fi
+  fi
+  update_lists "$ppa" "$primary_pattern"
   . /etc/os-release
 }
 
@@ -419,11 +490,14 @@ fi
 if [ "$debug" = "debug" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
 fi
-
+. /etc/os-release
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
 list_dir='/etc/apt/sources.list.d'
-list_file="$list_dir/ubuntu.sources"
+list_file="$list_dir/$ID.sources"
 [ -e "$list_file" ] || list_file='/etc/apt/sources.list'
+sources_format=
+check_lists_file=
+check_lists_pattern=
 debconf_fix='DEBIAN_FRONTEND=noninteractive'
 upstream_lsb='/etc/upstream-release/lsb-release'
 lp_api=(
@@ -441,7 +515,6 @@ sks=(
   'https://pgp.mit.edu'
   'https://keys.openpgp.org'
 )
-. /etc/os-release
 install "$runner"
 switch_version
 add_pear
