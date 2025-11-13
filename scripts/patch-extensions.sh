@@ -46,6 +46,7 @@ patch_xdebug() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/develop/stack.c src/lib/var.c
   [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i -e "s|ext/standard/php_lcg.h|ext/random/php_random.h|" src/lib/usefulstuff.c
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/ZSTR_INIT_LITERAL(tmp_name, false)/zend_string_init(tmp_name, strlen(tmp_name), false)/g' src/profiler/profiler.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' src/develop/php_functions.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     for file in src/debugger/debugger.c src/debugger/handler_dbgp.c src/base/base.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
@@ -63,6 +64,7 @@ patch_memcache() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/memcache_ascii_protocol.c src/memcache_binary_protocol.c src/memcache_pool.c src/memcache_session.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string_public.h#Zend/zend_smart_string.h#' src/memcache_pool.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' src/memcache.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     for file in src/memcache_pool.c src/memcache_session.c src/memcache_binary_protocol.c src/memcache.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
@@ -85,12 +87,16 @@ patch_redis() {
     sed -i -e "s|standard/php_random.h|ext/random/php_random.h|" redis.c
   fi
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#zend_smart_string.h#' common.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' redis_cluster.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     for file in library.c redis_commands.c cluster_library.c; do
       sed -i 's/zval_is_true/zend_is_true/' $file
     done
     for file in redis_array_impl.c redis_array.c redis_commands.c redis_cluster.c cluster_library.c library.c redis.c redis_session.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+    for file in redis.c redis_cluster.c; do
+      sed -i 's/ZEND_WRONG_PARAM_COUNT();/zend_wrong_param_count();RETURN_THROWS();/' $file
     done
   fi
 }
