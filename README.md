@@ -23,10 +23,11 @@
 
 ## OS Support
 
-- Ubuntu 22.04 (Jammy) amd64
-- Ubuntu 24.04 (Noble) amd64
-- Debian 11 (Bullseye) amd64
-- Debian 12 (Bookworm) amd64
+- Ubuntu 22.04 (Jammy) amd64/arm64
+- Ubuntu 24.04 (Noble) amd64/arm64
+- Debian 11 (Bullseye) amd64/arm64
+- Debian 12 (Bookworm) amd64/arm64
+- Debian 13 (Trixie) amd64/arm64
 
 All other distributions based on the above operating systems will also be supported on best effort basis.
 
