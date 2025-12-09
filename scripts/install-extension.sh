@@ -9,6 +9,42 @@ params=("$@")
 
 . scripts/patch-extensions.sh
 
+get_latest_git_tag() {
+  local repo_url="$1"
+  local repo_slug repo_owner repo_name latest_tag graph_query
+
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "GitHub CLI (gh) is required to resolve latest tags" >&2
+    exit 1
+  fi
+
+  repo_slug="$(echo "$repo_url" | sed -E 's|^https?://github.com/||; s|^git@github.com:||; s|\.git$||; s|/$||')"
+  if [[ -z "$repo_slug" || "$repo_slug" = "$repo_url" || "$repo_slug" != */* ]]; then
+    echo "Unsupported repository URL: $repo_url" >&2
+    exit 1
+  fi
+
+  repo_owner="${repo_slug%%/*}"
+  repo_name="${repo_slug##*/}"
+  graph_query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){refs(refPrefix:"refs/tags/",first:1,orderBy:{field:TAG_COMMIT_DATE,direction:DESC}){nodes{name}}}}'
+
+  latest_tag=$(gh api graphql -f owner="$repo_owner" -f name="$repo_name" -f query="$graph_query" --jq '.data.repository.refs.nodes[0].name' 2>/dev/null || true)
+  if [ -z "$latest_tag" ]; then
+    latest_tag=$(gh release list --repo "$repo_slug" --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+  fi
+
+  if [ -z "$latest_tag" ]; then
+    echo "Could not determine latest tag for $repo_url" >&2
+    exit 1
+  fi
+
+  printf '%s' "$latest_tag"
+}
+
+if [[ "$repo" != "pecl" && "$tag" = "latest" ]]; then
+  tag="$(get_latest_git_tag "$repo")"
+fi
+
 # Fetch the extension source.
 if [ "$repo" = "pecl" ]; then
   if [ -n "${tag// }" ]; then

@@ -207,6 +207,7 @@ if [ "${BUILD:?}" = "debug" ]; then
   sed -i '2s/main$/main\/debug/' /etc/apt/sources.list.d/ondrej-*.list
   apt-get update
 fi
+add_list github/cli https://cli.github.com/packages https://cli.github.com/packages/githubcli-archive-keyring.gpg stable
 
 # Install PHP build requirements.
 install_packages apache2 \
@@ -217,6 +218,7 @@ install_packages apache2 \
                  dpkg-dev \
                  firebird-dev \
                  freetds-dev \
+                 gh \
                  libapparmor-dev \
                  libacl1-dev \
                  libaio-dev \
