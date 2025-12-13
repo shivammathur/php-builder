@@ -31,7 +31,7 @@ index 0639481..9b683f2 100644
  
  	phar_add_virtual_dirs(phar, path, path_len);
  	etemp.is_modified = 1;
--	etemp.timestamp = time(0);
+-	etemp.timestamp = timestamp;
 +	etemp.timestamp = 0;
  	etemp.is_crc_checked = 1;
  	etemp.phar = phar;
