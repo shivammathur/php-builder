@@ -167,7 +167,7 @@ The following releases have `nts` and `zts` builds for the following PHP version
 - [PHP 8.4.x](https://github.com/shivammathur/php-builder/releases/tag/8.4)
 - [PHP 8.3.x](https://github.com/shivammathur/php-builder/releases/tag/8.3)
 - [PHP 8.2.x](https://github.com/shivammathur/php-builder/releases/tag/8.2)
-- [PHP 8.1.x](https://github.com/shivammathur/php-builder/releases/tag/8.1)
+- [PHP 8.1.34](https://github.com/shivammathur/php-builder/releases/tag/8.1)
 - [PHP 8.0.30](https://github.com/shivammathur/php-builder/releases/tag/8.0)
 - [PHP 7.4.33](https://github.com/shivammathur/php-builder/releases/tag/7.4)
 - [PHP 7.3.33](https://github.com/shivammathur/php-builder/releases/tag/7.3)
