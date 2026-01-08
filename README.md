@@ -14,6 +14,7 @@
 - [Install](#install)
 - [Extensions](#extensions)
 - [JIT](#jit)
+- [ASAN](#asan-addresssanitizer)
 - [SAPI Support](#sapi-support)
 - [Builds](#builds)
 - [Uninstall](#uninstall)
@@ -42,15 +43,16 @@ chmod a+x ./install.sh
 
 The installer takes the following options:
 ```bash
-./install.sh <php-version> <release|debug> <nts|zts>
+./install.sh <php-version> [release|debug] [nts|zts] [asan]
 ```
 
-The `php-version` is required, and `release` and `nts` are the defaults. 
+The `php-version` is required, and `release` and `nts` are the defaults.
 
 - release: No debugging symbols
 - debug: With debugging symbols
 - nts: Non Thread Safe
 - zts: Thread Safe
+- asan: AddressSanitizer build (PHP 8.0+ only)
 
 ### Examples
 
@@ -64,6 +66,12 @@ The `php-version` is required, and `release` and `nts` are the defaults.
 
 ```bash
 ./install.sh 8.4 debug zts
+```
+
+- or, to install `PHP 8.4` with AddressSanitizer (for memory error detection):
+
+```bash
+./install.sh 8.4 asan
 ```
 
 - Finally, test your PHP version:
@@ -134,6 +142,35 @@ To disable JIT:
 switch_jit -v <php-version> -s <ALL|sapi-name> disable
 ```
 
+## ASAN (AddressSanitizer)
+
+PHP 8.0 and above versions have builds with AddressSanitizer (ASAN) and UndefinedBehaviorSanitizer (UBSan) enabled. These builds are useful for detecting memory issues.
+
+To install an ASAN build:
+
+```bash
+./install.sh 8.4 asan
+```
+
+You can combine ASAN with other options:
+
+```bash
+# ASAN + Thread Safe
+./install.sh 8.4 zts asan
+
+# ASAN + Debug symbols
+./install.sh 8.4 debug asan
+```
+
+**Notes:**
+
+- ASAN builds are only available for PHP 8.0 and above.
+- Running PHP with ASAN will be slower than regular builds due to the instrumentation overhead.
+- You can configure ASAN behavior using the `ASAN_OPTIONS` environment variable:
+```bash
+ASAN_OPTIONS=detect_leaks=1 php your_script.php
+```
+
 ## SAPI support
 
 These SAPIs are installed by default:
@@ -160,7 +197,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 ## Builds
 
-The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols.
+The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols. PHP 8.0+ versions also include AddressSanitizer (ASAN) builds for memory error detection.
 
 - [PHP 8.6.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.6)
 - [PHP 8.5.x](https://github.com/shivammathur/php-builder/releases/tag/8.5)
