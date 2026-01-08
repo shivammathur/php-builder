@@ -470,6 +470,8 @@ for arg in "$@"; do
     debug="$arg"
   elif [[ "$arg" =~ nts|zts ]]; then
     build="$arg"
+  elif [[ "$arg" =~ asan ]]; then
+    asan="asan"
   fi
 done
 
@@ -486,6 +488,9 @@ fi
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then
   PHP_PKG_SUFFIX="-zts"
+fi
+if [ "${asan:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-asan"
 fi
 if [ "$debug" = "debug" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"

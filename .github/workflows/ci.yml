@@ -73,6 +73,7 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
     env:
+      ASAN: ${{ matrix.asan }}
       BUILD: ${{ matrix.build }}
       GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
       GITHUB_REPOSITORY: ${{ github.repository }}
@@ -127,7 +128,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/debian/*.zst
 
   merge:
@@ -151,7 +152,7 @@ jobs:
 
       - uses: actions/download-artifact@v5
         with:
-          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
 
       - name: Stage builds
@@ -166,6 +167,7 @@ jobs:
       - name: Build and package
         run: bash scripts/build.sh merge
         env:
+          ASAN: ${{ matrix.asan }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
@@ -181,7 +183,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: |
             /tmp/*.xz
             /tmp/*.zst
@@ -230,13 +232,13 @@ jobs:
 
       - uses: actions/download-artifact@v5
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }} ${{ matrix.asan }}
 
       - name: Test
         run: |
@@ -271,13 +273,13 @@ jobs:
 
       - uses: actions/download-artifact@v5
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.os }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.os }}
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }} ${{ matrix.asan }}
 
       - name: Test
         run: |

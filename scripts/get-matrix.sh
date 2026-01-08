@@ -31,10 +31,16 @@ get_dist() {
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      dist="$(get_dist "$os")"
-      dist_version="$(get_dist_version "$os")"
-      os_base="$(get_container_base "$os")"
-      container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\"}")
+      for asan in "" "asan"; do
+        # Skip ASAN for PHP < 8.0
+        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
+          continue
+        fi
+        dist="$(get_dist "$os")"
+        dist_version="$(get_dist_version "$os")"
+        os_base="$(get_container_base "$os")"
+        container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"asan\": \"$asan\"}")
+      done
     done
   done
 done
@@ -43,7 +49,13 @@ done
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\"}")
+      for asan in "" "asan"; do
+        # Skip ASAN for PHP < 8.0
+        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
+          continue
+        fi
+        runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\"}")
+      done
     done
   done
 done
@@ -52,11 +64,17 @@ done
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      for debug in debug release; do
-        dist="$(get_dist "$os")"
-        dist_version="$(get_dist_version "$os")"
-        os_base="$(get_container_base "$os")"
-        test_container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      for asan in "" "asan"; do
+        # Skip ASAN for PHP < 8.0
+        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
+          continue
+        fi
+        for debug in debug release; do
+          dist="$(get_dist "$os")"
+          dist_version="$(get_dist_version "$os")"
+          os_base="$(get_container_base "$os")"
+          test_container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
+        done
       done
     done
   done
@@ -66,8 +84,14 @@ done
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      for debug in debug release; do
-        test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      for asan in "" "asan"; do
+        # Skip ASAN for PHP < 8.0
+        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
+          continue
+        fi
+        for debug in debug release; do
+          test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
+        done
       done
     done
   done
