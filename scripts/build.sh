@@ -72,7 +72,13 @@ configure_build_flags() {
   extra_warning_flags="-Wall -pedantic"
   [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
 
-  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
+  # Force disable LTO for ASAN builds (incompatible)
+  if [ "${ASAN:-}" = "asan" ]; then
+    lto="-lto"
+  fi
+
+  # Set and export FLAGS
+  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
 
@@ -80,6 +86,13 @@ configure_build_flags() {
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
+
+  # Add ASAN/UBSan flags
+  if [ "${ASAN:-}" = "asan" ]; then
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
+    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
+    LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
+  fi
 
   if [ "$build_target" = "extensions" ] && [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.[01])$ ]]; then
     c23_flag="$(get_c23_standard_flag)"
@@ -337,6 +350,12 @@ default_ini="production"
 # Set thread-safe options.
 if [ "${BUILD:?}" = "zts" ]; then
   export PHP_PKG_SUFFIX=-zts
+fi
+
+# Set ASAN options.
+if [ "${ASAN:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="${PHP_PKG_SUFFIX:-}-asan"
+  export PHP_PKG_SUFFIX
 fi
 
 # Import OS information to the environment.
