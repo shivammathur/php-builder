@@ -41,6 +41,7 @@ setup_custom_extensions() {
       fi
       extension="${extension%-*}"
       repo=pecl
+      IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 3-)"
     # Else install from git repository as per the config.
     elif [ "$type" = "git" ]; then
       # Get repository, tag and compile arguments from the config

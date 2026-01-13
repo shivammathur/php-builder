@@ -7,7 +7,7 @@ pecl imagick
 pecl memcache-4.0.5.2
 pecl mongodb-1.9.2
 pecl msgpack
-pecl redis-5.3.7
+pecl redis-5.3.7 --enable-redis --enable-redis-igbinary --enable-redis-lz4 --enable-redis-lzf --enable-redis-msgpack --enable-redis-zstd --with-liblz4=/usr --with-libzstd=/usr
 pecl sqlsrv-5.9.0
 pecl pdo_sqlsrv-5.9.0
 pecl xdebug-2.9.0
