@@ -240,3 +240,5 @@
 0240-Force-using-POSIX-threads-on-Linux.patch
 0241-Add-ifdef-guards-to-main-php_config.h.in.patch
 0242-Actually-use-ICU_CXXFLAGS-when-compiling-ext-intl.patch
+0243-Fix-autoconf-errors.patch
+0244-Fix-AC_PROG_SED-error-and-other-autoconf-warnings.patch

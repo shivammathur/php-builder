@@ -1,0 +1,369 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 17 Aug 2025 08:49:03 +0200
+Subject: Fix autoconf errors
+
+---
+ Zend/Zend.m4           |  5 ++++
+ Zend/acinclude.m4      |  7 ++++-
+ Zend/zend_sprintf.c    |  2 +-
+ acinclude.m4           | 69 ++++++++++++++++++++++++++++++++------------------
+ configure.in           |  2 ++
+ ext/curl/config.m4     |  2 ++
+ ext/standard/config.m4 | 23 +++++++++++++++++
+ 7 files changed, 83 insertions(+), 27 deletions(-)
+
+diff --git a/Zend/Zend.m4 b/Zend/Zend.m4
+index 9a7d38e..a9263bd 100644
+--- a/Zend/Zend.m4
++++ b/Zend/Zend.m4
+@@ -110,6 +110,7 @@ dnl test whether double cast to long preserves least significant bits
+ AC_MSG_CHECKING(whether double cast to long preserves least significant bits)
+ 
+ AC_TRY_RUN([
++#include <stdlib.h>
+ #include <limits.h>
+ 
+ int main()
+@@ -247,6 +248,7 @@ dnl this also does the logarithmic test for ZEND_MM.
+ AC_MSG_CHECKING(for MM alignment and log values)
+ 
+ AC_TRY_RUN([
++#include <stdlib.h>
+ #include <stdio.h>
+ 
+ typedef union _mm_align_test {
+@@ -341,6 +343,9 @@ AC_MSG_CHECKING(for memory allocation using mmap("/dev/zero"))
+ AC_TRY_RUN([
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#if HAVE_UNISTD_H
++#include <unistd.h>
++#endif
+ #include <fcntl.h>
+ #include <sys/mman.h>
+ #include <stdlib.h>
+diff --git a/Zend/acinclude.m4 b/Zend/acinclude.m4
+index 7fa8c99..40d34e5 100644
+--- a/Zend/acinclude.m4
++++ b/Zend/acinclude.m4
+@@ -67,7 +67,12 @@ dnl Check for broken sprintf()
+ dnl
+ AC_DEFUN([AC_ZEND_BROKEN_SPRINTF],[
+   AC_CACHE_CHECK(whether sprintf is broken, ac_cv_broken_sprintf,[
+-    AC_TRY_RUN([main() {char buf[20];exit(sprintf(buf,"testing 123")!=11); }],[
++    AC_RUN_IFELSE([AC_LANG_PROGRAM([[
++#include <stdlib.h>
++#include <stdio.h>
++    ]],[[
++char buf[20]; exit(sprintf(buf,"testing 123")!=11)
++    ]])],[
+       ac_cv_broken_sprintf=no
+     ],[
+       ac_cv_broken_sprintf=yes
+diff --git a/Zend/zend_sprintf.c b/Zend/zend_sprintf.c
+index efa21ac..998e181 100644
+--- a/Zend/zend_sprintf.c
++++ b/Zend/zend_sprintf.c
+@@ -28,7 +28,7 @@
+ #endif
+ 
+ #if ZEND_BROKEN_SPRINTF
+-int zend_sprintf(char *buffer, const char *format, ...)
++ZEND_API int zend_sprintf(char *buffer, const char *format, ...)
+ {
+ 	va_list args;
+ 
+diff --git a/acinclude.m4 b/acinclude.m4
+index ebfc80d..fffa0a9 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -1172,7 +1172,7 @@ AC_CACHE_CHECK(for type of reentrant time-related functions, ac_cv_time_r_type,[
+ AC_TRY_RUN([
+ #include <time.h>
+ 
+-main() {
++int main() {
+ char buf[27];
+ struct tm t;
+ time_t old = 0;
+@@ -1188,7 +1188,7 @@ return (1);
+ ],[
+   AC_TRY_RUN([
+ #include <time.h>
+-main() {
++int main() {
+   struct tm t, *s;
+   time_t old = 0;
+   char buf[27], *p;
+@@ -1220,13 +1220,14 @@ dnl PHP_DOES_PWRITE_WORK
+ dnl internal
+ AC_DEFUN([PHP_DOES_PWRITE_WORK],[
+   AC_TRY_RUN([
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <errno.h>
+ $1
+-    main() {
++    int main() {
+     int fd = open("conftest_in", O_WRONLY|O_CREAT, 0600);
+ 
+     if (fd < 0) exit(1);
+@@ -1250,13 +1251,14 @@ dnl internal
+ AC_DEFUN([PHP_DOES_PREAD_WORK],[
+   echo test > conftest_in
+   AC_TRY_RUN([
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <errno.h>
+ $1
+-    main() {
++    int main() {
+     char buf[3]; 
+     int fd = open("conftest_in", O_RDONLY);
+     if (fd < 0) exit(1);
+@@ -1362,6 +1364,7 @@ AC_DEFUN([PHP_READDIR_R_TYPE],[
+   AC_CACHE_CHECK(for type of readdir_r, ac_cv_what_readdir_r,[
+     AC_TRY_RUN([
+ #define _REENTRANT
++#include <stdlib.h>
+ #include <sys/types.h>
+ #include <dirent.h>
+ 
+@@ -1369,7 +1372,7 @@ AC_DEFUN([PHP_READDIR_R_TYPE],[
+ #define PATH_MAX 1024
+ #endif
+ 
+-main() {
++int main() {
+   DIR *dir;
+   char entry[sizeof(struct dirent)+PATH_MAX];
+   struct dirent *pentry = (struct dirent *) &entry;
+@@ -1485,7 +1488,12 @@ dnl Check for broken sprintf(), C99 conformance
+ dnl
+ AC_DEFUN([PHP_AC_BROKEN_SPRINTF],[
+   AC_CACHE_CHECK(whether sprintf is broken, ac_cv_broken_sprintf,[
+-    AC_TRY_RUN([main() {char buf[20];exit(sprintf(buf,"testing 123")!=11); }],[
++    AC_RUN_IFELSE([AC_LANG_PROGRAM([[
++#include <stdlib.h>
++#include <stdio.h>
++    ]],[[
++char buf[20]; exit(sprintf(buf,"testing 123")!=11)
++    ]])],[
+       ac_cv_broken_sprintf=no
+     ],[
+       ac_cv_broken_sprintf=yes
+@@ -1507,22 +1515,26 @@ dnl Check for broken snprintf(), C99 conformance
+ dnl
+ AC_DEFUN([PHP_AC_BROKEN_SNPRINTF],[
+   AC_CACHE_CHECK(whether snprintf is broken, ac_cv_broken_snprintf,[
+-    AC_TRY_RUN([
++    AC_RUN_IFELSE([AC_LANG_PROGRAM([[
++#include <stdlib.h>
++#include <stdio.h>
++
++#ifndef NULL
+ #define NULL (0L)
+-main() {
+-  char buf[20];
+-  int res = 0;
+-  res = res || (snprintf(buf, 2, "marcus") != 6); 
+-  res = res || (buf[1] != '\0');
+-  /* Implementations may consider this as an encoding error */
+-  snprintf(buf, 0, "boerger");
+-  /* However, they MUST ignore the pointer */
+-  res = res || (buf[0] != 'm');
+-  res = res || (snprintf(NULL, 0, "boerger") != 7);
+-  res = res || (snprintf(buf, sizeof(buf), "%f", 0.12345678) != 8);
+-  exit(res); 
+-}
+-    ],[
++#endif
++    ]],[[
++char buf[20];
++int res = 0;
++res = res || (snprintf(buf, 2, "marcus") != 6); 
++res = res || (buf[1] != '\0');
++/* Implementations may consider this as an encoding error */
++snprintf(buf, 0, "boerger");
++/* However, they MUST ignore the pointer */
++res = res || (buf[0] != 'm');
++res = res || (snprintf(NULL, 0, "boerger") != 7);
++res = res || (snprintf(buf, sizeof(buf), "%f", 0.12345678) != 8);
++exit(res)
++    ]])],[
+       ac_cv_broken_snprintf=no
+     ],[
+       ac_cv_broken_snprintf=yes
+@@ -1708,7 +1720,13 @@ AC_DEFUN([PHP_BROKEN_GLIBC_FOPEN_APPEND], [
+   AC_MSG_CHECKING([for broken libc stdio])
+   AC_CACHE_VAL(_cv_have_broken_glibc_fopen_append,[
+   AC_TRY_RUN([
++#include <stdlib.h>
+ #include <stdio.h>
++
++#if HAVE_UNISTD_H
++#include <unistd.h>
++#endif
++
+ int main(int argc, char *argv[])
+ {
+   FILE *fp;
+@@ -1775,6 +1793,7 @@ AC_TRY_COMPILE([
+ dnl even newer glibcs have a different seeker definition...
+ AC_TRY_RUN([
+ #define _GNU_SOURCE
++#include <stdlib.h>
+ #include <stdio.h>
+ 
+ struct cookiedata {
+@@ -1792,7 +1811,7 @@ int seeker(void *cookie, __off64_t *position, int whence)
+ 
+ cookie_io_functions_t funcs = {reader, writer, seeker, closer};
+ 
+-main() {
++int main() {
+   struct cookiedata g = { 0 };
+   FILE *fp = fopencookie(&g, "r", funcs);
+ 
+@@ -1909,7 +1928,7 @@ AC_DEFUN([PHP_CHECK_FUNC_LIB],[
+   if test "$found" = "yes"; then
+     ac_libs=$LIBS
+     LIBS="$LIBS -l$2"
+-    AC_TRY_RUN([main() { return (0); }],[found=yes],[found=no],[found=no])
++    AC_TRY_RUN([int main() { return (0); }],[found=yes],[found=no],[found=no])
+     LIBS=$ac_libs
+   fi
+ 
+@@ -2643,7 +2662,7 @@ uname -a:   `uname -a`
+ 
+ X
+     cat >conftest.$ac_ext <<X
+-main()
++int main()
+ {
+   exit(0);
+ }
+@@ -2883,7 +2902,7 @@ AC_DEFUN([PHP_TEST_WRITE_STDOUT],[
+ 
+ #define TEXT "This is the test message -- "
+ 
+-main()
++int main()
+ {
+   int n;
+ 
+diff --git a/configure.in b/configure.in
+index 64b0615..abb3a34 100644
+--- a/configure.in
++++ b/configure.in
+@@ -696,6 +696,8 @@ AC_CACHE_CHECK([for getaddrinfo], ac_cv_func_getaddrinfo,
+ [AC_TRY_LINK([#include <netdb.h>],
+                 [struct addrinfo *g,h;g=&h;getaddrinfo("","",g,&g);], 
+   AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
+ #include <netdb.h>
+ #include <sys/types.h>
+ #ifndef AF_INET
+diff --git a/ext/curl/config.m4 b/ext/curl/config.m4
+index f785770..67ef69a 100644
+--- a/ext/curl/config.m4
++++ b/ext/curl/config.m4
+@@ -61,6 +61,7 @@ if test "$PHP_CURL" != "no"; then
+     AC_PROG_CPP
+     AC_MSG_CHECKING([for openssl support in libcurl])
+     AC_TRY_RUN([
++#include <string.h>
+ #include <curl/curl.h>
+ 
+ int main(int argc, char *argv[])
+@@ -88,6 +89,7 @@ int main(int argc, char *argv[])
+    
+     AC_MSG_CHECKING([for gnutls support in libcurl])
+     AC_TRY_RUN([
++#include <string.h>
+ #include <curl/curl.h>
+ 
+ int main(int argc, char *argv[])
+diff --git a/ext/standard/config.m4 b/ext/standard/config.m4
+index 6e0c921..87f6cb3 100644
+--- a/ext/standard/config.m4
++++ b/ext/standard/config.m4
+@@ -7,6 +7,11 @@ AC_CACHE_CHECK([whether flush should be called explicitly after a buffered io],
+ AC_TRY_RUN( [
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
++
++#if HAVE_UNISTD_H
++#include <unistd.h>
++#endif
+ 
+ int main(int argc, char **argv)
+ {
+@@ -61,6 +66,9 @@ fi
+   
+ AC_CACHE_CHECK(for standard DES crypt, ac_cv_crypt_des,[
+   AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -86,6 +94,9 @@ int main() {
+ 
+ AC_CACHE_CHECK(for extended DES crypt, ac_cv_crypt_ext_des,[
+   AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -111,6 +122,9 @@ int main() {
+ 
+ AC_CACHE_CHECK(for MD5 crypt, ac_cv_crypt_md5,[
+ AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -146,6 +160,9 @@ int main() {
+ 
+ AC_CACHE_CHECK(for Blowfish crypt, ac_cv_crypt_blowfish,[
+ AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -178,6 +195,9 @@ int main() {
+ 
+ AC_CACHE_CHECK(for SHA512 crypt, ac_cv_crypt_sha512,[
+ AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -209,6 +229,9 @@ int main() {
+ 
+ AC_CACHE_CHECK(for SHA256 crypt, ac_cv_crypt_sha256,[
+ AC_TRY_RUN([
++#include <stdlib.h>
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
