@@ -8,6 +8,7 @@ configure_imagick() {
     echo "MagickWand not found — install libmagickwand-dev" >&2
     exit 1
   fi
+  [[ "$PHP_VERSION" = "5.6" ]] && export CFLAGS="$CFLAGS -Wno-incompatible-pointer-types -Wno-int-conversion"
   export CPPFLAGS="$(pkg-config --cflags "$PKG_WAND")"
   export LDFLAGS="$(pkg-config --libs "$PKG_WAND")"
 }
