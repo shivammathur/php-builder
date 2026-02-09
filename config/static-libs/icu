@@ -1,0 +1,33 @@
+# ICU - International Components for Unicode
+# Required for PHP intl extension
+# Large library - takes significant time to build
+LIB_NAME=icu
+LIB_VERSION=75-1
+LIB_SOURCE=build
+LIB_URL="https://github.com/unicode-org/icu/releases/download/release-75-1/icu4c-75_1-src.tgz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR/source"
+CFLAGS="-fPIC -O2" \
+CXXFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --disable-tests \
+  --disable-samples \
+  --disable-extras \
+  --with-data-packaging=static
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libicu*.so* 2>/dev/null || true
+# Create combined static lib for convenience
+cd "$STATIC_PREFIX/lib"
+ar -M <<ARSCRIPT
+CREATE libicuall.a
+ADDLIB libicudata.a
+ADDLIB libicuuc.a
+ADDLIB libicui18n.a
+ADDLIB libicuio.a
+SAVE
+END
+ARSCRIPT
+'

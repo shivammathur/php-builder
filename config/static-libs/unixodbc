@@ -1,0 +1,30 @@
+# unixODBC - ODBC driver manager for Unix
+# Used for PHP odbc, pdo_odbc extensions
+LIB_NAME=unixodbc
+LIB_VERSION=2.3.12
+LIB_SOURCE=build
+LIB_URL="https://www.unixodbc.org/unixODBC-2.3.12.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared \
+  --disable-gui --disable-drivers \
+  --enable-iconv --with-iconv-char-enc=UTF8
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libodbc*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/odbc.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: unixODBC
+Description: ODBC driver manager
+Version: 2.3.12
+Libs: -L\${libdir} -lodbc -lodbcinst
+Cflags: -I\${includedir}
+PKGEOF
+'

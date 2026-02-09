@@ -1,0 +1,46 @@
+# Static PECL Extension Configuration
+# Format: extension_name repo_url [tag] [configure_options...]
+#
+# These extensions are built with static library dependencies linked into the .so
+# For extensions with no external dependencies, standard PECL build is used
+# For extensions with libraries, the corresponding static libs from config/static-libs are used
+
+# Pure PHP extensions (no external dependencies)
+apcu pecl
+ast pecl
+ds pecl
+igbinary pecl
+msgpack pecl
+pcov pecl
+
+# Redis - optional hiredis, but works without it (pure PHP socket implementation)
+redis pecl --enable-redis-igbinary --enable-redis-msgpack --enable-redis-lzf --enable-redis-zstd
+
+# YAML - requires libyaml
+yaml pecl
+
+# Memcached - requires libmemcached
+memcached https://github.com/php-memcached-dev/php-memcached master --enable-memcached-igbinary --enable-memcached-msgpack --disable-memcached-sasl
+
+# ZMQ - requires zeromq/libzmq
+zmq https://github.com/zeromq/php-zmq master
+
+# ImageMagick - requires imagemagick (complex deps: png, jpeg, webp, freetype, etc.)
+imagick pecl
+
+# MongoDB - bundles its own libraries, links to openssl/zlib
+mongodb pecl
+
+# IMAP - requires c-client library (available in static-libs)
+imap https://github.com/php/pecl-mail-imap main --with-kerberos --with-imap-ssl
+
+# Xdebug - no external dependencies
+xdebug https://github.com/xdebug/xdebug latest
+
+# Memcache (classic) - pure socket implementation, no external deps
+memcache pecl
+
+# Microsoft SQL Server extensions - requires unixODBC (statically available)
+# Note: These need special handling as they use ODBC
+sqlsrv pecl
+pdo_sqlsrv pecl

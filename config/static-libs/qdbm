@@ -1,0 +1,26 @@
+# qdbm - Quick database manager library
+# Used for PHP dba extension
+LIB_NAME=qdbm
+LIB_VERSION=1.8.78
+LIB_SOURCE=build
+LIB_URL="https://dbmx.net/qdbm/qdbm-1.8.78.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+./configure --prefix="$STATIC_PREFIX" --enable-static --disable-shared
+sed -i "s/MYLIBS = libqdbm.a.*/MYLIBS = libqdbm.a/" Makefile
+make -j"$JOBS"
+make install
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/qdbm.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: QDBM
+Description: Quick Database Manager library
+Version: 1.8.78
+Libs: -L\${libdir} -lqdbm
+Cflags: -I\${includedir}
+PKGEOF
+'

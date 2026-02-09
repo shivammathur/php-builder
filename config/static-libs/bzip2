@@ -1,0 +1,25 @@
+# bzip2 - Block compression library
+# Required for PHP bz2 extension
+LIB_NAME=bzip2
+LIB_VERSION=1.0.8
+LIB_SOURCE=build
+LIB_URL="https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+make -j"$JOBS" CFLAGS="-fPIC -O2" libbz2.a
+mkdir -p "$STATIC_PREFIX/include" "$STATIC_PREFIX/lib" "$STATIC_PREFIX/lib/pkgconfig"
+cp bzlib.h "$STATIC_PREFIX/include/"
+cp libbz2.a "$STATIC_PREFIX/lib/"
+cat > "$STATIC_PREFIX/lib/pkgconfig/bzip2.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: bzip2
+Description: bzip2 compression library
+Version: 1.0.8
+Libs: -L\${libdir} -lbz2
+Cflags: -I\${includedir}
+PKGEOF
+'

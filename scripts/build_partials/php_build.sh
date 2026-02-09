@@ -7,6 +7,115 @@ patch_config_file() {
           -e "s/^($command.*)/\1\"/" "$file"
 }
 
+# Function to configure static library paths in definitions
+configure_static_paths() {
+  local def_file=$1
+  STATIC_PREFIX="${STATIC_PREFIX:-/opt/static}"
+  
+  # Only modify if static build environment exists
+  if [ ! -f "$STATIC_PREFIX/lib/libssl.a" ]; then
+    return 0
+  fi
+  
+  echo "Configuring definition for static library paths..."
+  
+  # Replace /usr paths with static prefix for libraries we have statically
+  # Only replace specific known library paths, not all /usr references
+  
+  # Libraries to link statically - replace their paths
+  if [ -f "$STATIC_PREFIX/lib/libbz2.a" ]; then
+    sed -i "s|--with-bz2=shared,/usr|--with-bz2=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libz.a" ]; then
+    sed -i "s|--with-zlib=/usr|--with-zlib=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libssl.a" ]; then
+    sed -i "s|--with-openssl-dir=/usr|--with-openssl-dir=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libgmp.a" ]; then
+    sed -i "s|--with-gmp=shared|--with-gmp=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libtidy.a" ]; then
+    sed -i "s|--with-tidy=shared,/usr|--with-tidy=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libxslt.a" ]; then
+    sed -i "s|--with-xsl=shared|--with-xsl=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libsqlite3.a" ]; then
+    sed -i "s|--with-sqlite3=shared|--with-sqlite3=shared,$STATIC_PREFIX|g" "$def_file"
+    sed -i "s|--with-pdo-sqlite=shared|--with-pdo-sqlite=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libpq.a" ]; then
+    sed -i "s|--with-pgsql=shared,/usr|--with-pgsql=shared,$STATIC_PREFIX|g" "$def_file"
+    sed -i "s|--with-pdo-pgsql=shared,/usr|--with-pdo-pgsql=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libldap.a" ]; then
+    sed -i "s|--with-ldap=shared,/usr|--with-ldap=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libodbc.a" ]; then
+    sed -i "s|--with-unixODBC=shared,/usr|--with-unixODBC=shared,$STATIC_PREFIX|g" "$def_file"
+    sed -i "s|--with-pdo-odbc=shared,unixODBC,/usr|--with-pdo-odbc=shared,unixODBC,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libedit.a" ]; then
+    sed -i "s|--with-libedit=shared|--with-libedit=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libnetsnmp.a" ]; then
+    sed -i "s|--with-snmp=shared,/usr|--with-snmp=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libqdbm.a" ]; then
+    sed -i "s|--with-qdbm=/usr|--with-qdbm=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/liblmdb.a" ]; then
+    sed -i "s|--with-lmdb=/usr|--with-lmdb=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libdb.a" ] || [ -f "$STATIC_PREFIX/lib/libdb-4.8.a" ]; then
+    sed -i "s|--with-db4=/usr|--with-db4=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  if [ -f "$STATIC_PREFIX/lib/libsybdb.a" ]; then
+    sed -i "s|--with-pdo-dblib=shared,/usr|--with-pdo-dblib=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  # Use external GD with static paths if we have the libraries
+  if [ -f "$STATIC_PREFIX/lib/libpng.a" ] && [ -f "$STATIC_PREFIX/lib/libjpeg.a" ]; then
+    sed -i "s|--enable-gd=shared,/usr|--enable-gd=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  # PCRE - use static pcre2 if available
+  if [ -f "$STATIC_PREFIX/lib/libpcre2-8.a" ]; then
+    sed -i "s|--with-external-pcre|--with-external-pcre=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  # mhash - use static path if available
+  if [ -f "$STATIC_PREFIX/lib/libmhash.a" ] || [ -f "$STATIC_PREFIX/lib/libcrypto.a" ]; then
+    sed -i "s|--with-mhash=/usr|--with-mhash=$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  # gettext - use static path if available
+  # Note: gettext is system library, typically not statically linked
+  
+  # ffi - use static libffi if available
+  if [ -f "$STATIC_PREFIX/lib/libffi.a" ]; then
+    sed -i "s|--with-ffi=shared|--with-ffi=shared,$STATIC_PREFIX|g" "$def_file"
+  fi
+  
+  echo "Static paths configured in definition file."
+}
+
 # Function to configure php-build.
 configure_phpbuild() {
   # Set install command based on PHP version.
@@ -49,6 +158,9 @@ configure_phpbuild() {
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "/PATCHES/{r./$patches_dir/~series" -e "d}" "$definitions"/"$PHP_VERSION"
 
+  # Configure static library paths if static build environment exists
+  configure_static_paths "$definitions"/"$PHP_VERSION"
+
   # Print the definition file.
   cat "$definitions"/"$PHP_VERSION"
 
@@ -59,7 +171,11 @@ configure_phpbuild() {
 # Function to install php-build.
 setup_phpbuild() {
   echo "::group::php-build"
-  git clone -b debian https://github.com/shivammathur/php-build ~/php-build
+  rm -rf ~/php-build
+  git clone -b debian https://github.com/shivammathur/php-build ~/php-build || {
+    rm -rf ~/php-build
+    git clone -b debian https://github.com/shivammathur/php-build ~/php-build
+  }
   ~/php-build/install.sh
   configure_phpbuild
   echo "::endgroup::"

@@ -1,0 +1,18 @@
+# libltdl - GNU libtool dynamic module loader library
+# Required for static unixODBC consumers (sqlsrv/pdo_sqlsrv) when linking libodbc.a into a shared extension.
+LIB_NAME=libltdl
+LIB_VERSION=2.4.7
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/gnu/libtool/libtool-2.4.7.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR/libltdl"
+export CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-ltdl-install \
+  --enable-static --disable-shared \
+  --with-pic
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libltdl.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+'

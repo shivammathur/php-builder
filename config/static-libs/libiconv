@@ -1,0 +1,15 @@
+# libiconv - character set conversion library
+# Used by sqlsrv/pdo_sqlsrv extensions
+LIB_NAME=libiconv
+LIB_VERSION=1.17
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.17.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libiconv*.so* "$STATIC_PREFIX/lib"/libiconv*.la 2>/dev/null || true
+'

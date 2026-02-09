@@ -1,5 +1,8 @@
 # Check that a build of the stable PHP version already exists.
 check_stable() {
+  if [ -z "${GITHUB_REPOSITORY:-}" ]; then
+    return 0
+  fi
   # Set release URL
   RELEASE="https://github.com/${GITHUB_REPOSITORY:?}/releases/download/$PHP_VERSION"
 
@@ -42,6 +45,10 @@ get_version_from_branch() {
 # Function to get new version from php.net releases and set PHP branch if nightly.
 get_version() {
   new_version=$(get_stable_release_tag "$PHP_SOURCE")
+  if [ -z "$new_version" ] && [ "$PHP_SOURCE" != "--web-php" ]; then
+    # Fallback to php.net feed if GitHub API is unavailable or rate-limited.
+    new_version=$(get_stable_release_tag --web-php)
+  fi
   if [ "$new_version" = "" ]; then
     # Since the version is not in stable releases, it has to be nightly or RC
     # Checking if there is a PHP-$PHP_VERSION branch and we can parse the version from it

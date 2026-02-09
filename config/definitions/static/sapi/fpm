@@ -1,0 +1,6 @@
+--enable-cli
+--enable-fpm
+--disable-cgi
+--disable-phpdbg
+--with-fpm-user=www-data
+--with-fpm-group=www-data

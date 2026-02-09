@@ -1,0 +1,18 @@
+# GMP - GNU Multiple Precision Arithmetic Library
+# Required for PHP gmp extension
+LIB_NAME=gmp
+LIB_VERSION=6.3.0
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/gnu/gmp/gmp-6.3.0.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2" \
+CXXFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --enable-cxx
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libgmp.so* "$STATIC_PREFIX/lib"/libgmpxx.so* "$STATIC_PREFIX/lib"/libgmp.la "$STATIC_PREFIX/lib"/libgmpxx.la 2>/dev/null || true
+'

@@ -1,0 +1,29 @@
+# freetype - Font rendering library
+# Required for PHP gd extension
+# Depends on: zlib, bzip2, libpng
+LIB_NAME=freetype
+LIB_VERSION=2.13.3
+LIB_SOURCE=build
+LIB_URL="https://download.savannah.gnu.org/releases/freetype/freetype-2.13.3.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-zlib=yes \
+  --with-bzip2=yes \
+  --with-png=yes \
+  --with-harfbuzz=no \
+  --with-brotli=no \
+  ZLIB_CFLAGS="-I$STATIC_PREFIX/include" \
+  ZLIB_LIBS="-L$STATIC_PREFIX/lib -lz" \
+  BZIP2_CFLAGS="-I$STATIC_PREFIX/include" \
+  BZIP2_LIBS="-L$STATIC_PREFIX/lib -lbz2" \
+  LIBPNG_CFLAGS="-I$STATIC_PREFIX/include" \
+  LIBPNG_LIBS="-L$STATIC_PREFIX/lib -lpng -lz"
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libfreetype.so* "$STATIC_PREFIX/lib"/libfreetype.la 2>/dev/null || true
+'

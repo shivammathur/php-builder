@@ -1,0 +1,79 @@
+# glib - GLib library (core of GTK+/GNOME)
+# Dependency for enchant library
+LIB_NAME="glib"
+LIB_VERSION="2.80.4"
+LIB_SOURCE="build"
+LIB_URL="https://download.gnome.org/sources/glib/2.80/glib-2.80.4.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+
+# Install meson if not available
+command -v meson >/dev/null || pip3 install meson
+
+# Install pcre2 if not present
+if [ ! -f "$STATIC_PREFIX/lib/libpcre2-8.a" ]; then
+  echo "Building pcre2..."
+  curl -fsSL "https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.44/pcre2-10.44.tar.bz2" | tar -xj -C /tmp
+  cd /tmp/pcre2-10.44
+  ./configure --prefix="$STATIC_PREFIX" --enable-static --disable-shared
+  make -j"$JOBS" && make install
+  cd "$SRC_DIR"
+fi
+
+# Create meson cross file for static build
+cat > cross_file.txt << CROSSEOF
+[binaries]
+c = '\''gcc'\''
+cpp = '\''g++'\''
+ar = '\''ar'\''
+strip = '\''strip'\''
+pkg-config = '\''pkg-config'\''
+
+[properties]
+c_args = ['\''-fPIC'\'', '\''-I$STATIC_PREFIX/include'\'']
+c_link_args = ['\''-L$STATIC_PREFIX/lib'\'']
+cpp_args = ['\''-fPIC'\'', '\''-I$STATIC_PREFIX/include'\'']
+cpp_link_args = ['\''-L$STATIC_PREFIX/lib'\'']
+pkg_config_path = '\''$STATIC_PREFIX/lib/pkgconfig'\''
+
+[built-in options]
+default_library = '\''static'\''
+prefix = '\''$STATIC_PREFIX'\''
+CROSSEOF
+
+export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig:$STATIC_PREFIX/lib64/pkgconfig"
+
+meson setup builddir \
+  --prefix="$STATIC_PREFIX" \
+  --default-library=static \
+  --buildtype=release \
+  -Dtests=false \
+  -Dinstalled_tests=false \
+  -Dglib_debug=disabled \
+  -Dintrospection=disabled \
+  -Dgtk_doc=false \
+  -Dman-pages=disabled \
+  -Dlibmount=disabled \
+  -Dselinux=disabled \
+  -Dsysprof=disabled \
+  -Dxattr=false \
+  -Dlibelf=disabled \
+  -Dglib_assert=false \
+  -Dglib_checks=false \
+  -Dbsymbolic_functions=false \
+  -Ddtrace=false \
+  -Dsystemtap=false \
+  || {
+    # Fallback for older glib versions
+    meson setup builddir \
+      --prefix="$STATIC_PREFIX" \
+      --default-library=static \
+      --buildtype=release \
+      -Dtests=false \
+      -Dintrospection=disabled
+  }
+
+meson compile -C builddir
+meson install -C builddir
+rm -f "$STATIC_PREFIX/lib"/libglib*.so* "$STATIC_PREFIX/lib"/libgio*.so* "$STATIC_PREFIX/lib"/libgobject*.so* "$STATIC_PREFIX/lib"/libgmodule*.so* "$STATIC_PREFIX/lib"/libgthread*.so* 2>/dev/null || true
+'

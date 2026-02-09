@@ -1,0 +1,41 @@
+# zstd - Zstandard compression library
+
+LIB_SOURCE="build"
+LIB_NAME="zstd"
+LIB_VERSION="1.5.7"
+LIB_URL="https://github.com/facebook/zstd/releases/download/v${LIB_VERSION}/zstd-${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+set -e
+
+export CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export CPPFLAGS="-I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+
+make -C lib clean
+make -C lib -j"$JOBS" libzstd.a CC="${CC:-gcc}" CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS"
+
+mkdir -p "$STATIC_PREFIX/lib" "$STATIC_PREFIX/include" "$STATIC_PREFIX/lib/pkgconfig"
+cp -f lib/libzstd.a "$STATIC_PREFIX/lib/"
+cp -f lib/zstd.h lib/zdict.h "$STATIC_PREFIX/include/"
+if [ -f lib/libzstd.pc ]; then
+  sed "s|^prefix=.*|prefix=$STATIC_PREFIX|g" lib/libzstd.pc > "$STATIC_PREFIX/lib/pkgconfig/libzstd.pc"
+fi
+if [ ! -f "$STATIC_PREFIX/lib/pkgconfig/libzstd.pc" ]; then
+  cat > "$STATIC_PREFIX/lib/pkgconfig/libzstd.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: libzstd
+Description: Zstandard compression library
+Version: ${LIB_VERSION}
+Libs: -L\${libdir} -lzstd
+Cflags: -I\${includedir}
+PKGEOF
+fi
+
+rm -f "$STATIC_PREFIX/lib"/libzstd.so* "$STATIC_PREFIX/lib"/libzstd.la 2>/dev/null || true
+
+echo "zstd ${LIB_VERSION} built successfully"
+'

@@ -1,0 +1,46 @@
+# db4 - Berkeley DB 4 (Oracle Berkeley DB)
+# Used for PHP DBA extension db4 handler
+# Note: Berkeley DB 4.8.30 is the last version with simple licensing
+LIB_NAME=db4
+LIB_VERSION=4.8.30
+LIB_SOURCE=build
+LIB_URL="https://download.oracle.com/berkeley-db/db-4.8.30.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+
+# Berkeley DB builds from the build_unix directory
+cd build_unix
+
+# Configure for static build
+../dist/configure \
+  --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --enable-cxx \
+  --disable-java \
+  --disable-tcl \
+  --disable-replication \
+  --with-pic
+
+make -j"$JOBS"
+make install
+
+# Clean up shared libs if any were created
+rm -f "$STATIC_PREFIX/lib"/libdb*.so* 2>/dev/null || true
+rm -f "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+
+# Create pkgconfig file
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/db4.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: Berkeley DB
+Description: Berkeley DB embedded database library
+Version: 4.8.30
+Libs: -L\${libdir} -ldb
+Cflags: -I\${includedir}
+PKGEOF
+'

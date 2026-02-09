@@ -1,0 +1,9 @@
+# Firebird - Firebird client library
+# Used for PHP pdo_firebird extension
+# Note: Firebird client is complex to build statically. For ARM64, use system libfbclient.
+# We create a minimal stub to satisfy PHP build, but rely on libtomcrypt/libtommath.
+LIB_NAME=firebird
+LIB_VERSION=3.0.11
+LIB_SOURCE=skip
+# Skip building firebird - too complex for static build
+# Use system package: firebird-dev or libfirebird3.0-dev

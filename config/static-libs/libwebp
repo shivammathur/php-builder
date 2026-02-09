@@ -1,0 +1,25 @@
+# libwebp - WebP image library
+# Required for PHP gd extension
+# Depends on: libpng, libjpeg
+LIB_NAME=libwebp
+LIB_VERSION=1.4.0
+LIB_SOURCE=build
+LIB_URL="https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.4.0.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --enable-libwebpmux \
+  --enable-libwebpdemux \
+  --with-pngincludedir="$STATIC_PREFIX/include" \
+  --with-pnglibdir="$STATIC_PREFIX/lib" \
+  --with-jpegincludedir="$STATIC_PREFIX/include" \
+  --with-jpeglibdir="$STATIC_PREFIX/lib"
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libwebp*.so* "$STATIC_PREFIX/lib"/libwebp*.la 2>/dev/null || true
+rm -f "$STATIC_PREFIX/lib"/libsharpyuv.so* "$STATIC_PREFIX/lib"/libsharpyuv.la 2>/dev/null || true
+'

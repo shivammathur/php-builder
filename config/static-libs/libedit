@@ -1,0 +1,22 @@
+# libedit - BSD editline library (readline alternative)
+# Required for PHP readline extension
+# Depends on: ncurses
+LIB_NAME=libedit
+LIB_VERSION=20240808-3.1
+LIB_SOURCE=build
+LIB_URL="https://thrysoee.dk/editline/libedit-20240808-3.1.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include -I$STATIC_PREFIX/include/ncursesw" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libedit.so* "$STATIC_PREFIX/lib"/libedit.la 2>/dev/null || true
+# Update pkgconfig to include ncurses dependency
+if [ -f "$STATIC_PREFIX/lib/pkgconfig/libedit.pc" ]; then
+  sed -i "s/Libs:.*/Libs: -L\${libdir} -ledit -lncursesw/" "$STATIC_PREFIX/lib/pkgconfig/libedit.pc"
+fi
+'

@@ -1,0 +1,38 @@
+# net-snmp - Simple Network Management Protocol library
+# Used for PHP snmp extension
+LIB_NAME=netsnmp
+LIB_VERSION=5.9.4
+LIB_SOURCE=build
+LIB_URL="https://downloads.sourceforge.net/project/net-snmp/net-snmp/5.9.4/net-snmp-5.9.4.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export CPPFLAGS="-I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+ssl_opt="--without-openssl"
+[ -f "$STATIC_PREFIX/lib/libssl.a" ] && ssl_opt="--with-openssl=$STATIC_PREFIX"
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared --with-defaults \
+  --disable-agent --disable-applications --disable-manuals \
+  --disable-scripts --disable-mibs --disable-mib-loading \
+  --disable-debugging --disable-deprecated --disable-embedded-perl \
+  --without-perl-modules $ssl_opt \
+  --with-transports="Callback,Unix,UDP,TCP" \
+  --with-security-modules=usm --with-out-mib-modules="" --enable-ipv6
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libnetsnmp*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/netsnmp.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include/net-snmp
+Name: netsnmp
+Description: Net-SNMP library
+Version: 5.9.4
+Libs: -L\${libdir} -lnetsnmp
+Libs.private: -lssl -lcrypto -lz
+Cflags: -I\${includedir}
+PKGEOF
+'

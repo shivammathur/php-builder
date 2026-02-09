@@ -1,0 +1,17 @@
+# sqlite - Embeddable SQL database
+# Required for PHP sqlite3 and pdo_sqlite
+LIB_NAME=sqlite
+LIB_VERSION=3470200
+LIB_SOURCE=build
+LIB_URL="https://www.sqlite.org/2024/sqlite-autoconf-3470200.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -DSQLITE_ENABLE_COLUMN_METADATA" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --enable-threadsafe
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libsqlite3.so* 2>/dev/null || true
+'

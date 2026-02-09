@@ -1,0 +1,24 @@
+# libxml2 - XML parsing library  
+# Required for PHP DOM, SimpleXML, XML extensions
+# Depends on: zlib, liblzma
+LIB_NAME=libxml2
+LIB_VERSION=2.13.4
+LIB_SOURCE=build
+LIB_URL="https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.4.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-zlib="$STATIC_PREFIX" \
+  --without-python \
+  --without-readline \
+  --without-lzma \
+  --without-icu
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libxml2.so* 2>/dev/null || true
+'

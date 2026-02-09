@@ -1,0 +1,48 @@
+# libsasl2 - Cyrus SASL library
+# Required for LDAP SASL, memcached SASL and MongoDB SASL support
+LIB_NAME=libsasl2
+LIB_VERSION=2.1.28
+LIB_SOURCE=build
+LIB_URL="https://github.com/cyrusimap/cyrus-sasl/releases/download/cyrus-sasl-${LIB_VERSION}/cyrus-sasl-${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+CPPFLAGS="-I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+LIBS="-lcrypto -lssl -ldl -lpthread -lresolv" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-openssl="$STATIC_PREFIX" \
+  --without-saslauthd \
+  --without-authdaemond \
+  --disable-sample \
+  --disable-auth-sasldb \
+  --disable-cram \
+  --disable-digest \
+  --disable-scram \
+  --disable-ldapdb \
+  --disable-otp \
+  --disable-sql \
+  --disable-anon \
+  --disable-gssapi \
+  --with-dblib=none \
+  --enable-login \
+  --enable-plain
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libsasl2.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/libsasl2.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: libsasl2
+Description: Cyrus SASL
+Version: ${LIB_VERSION}
+Libs: -L\${libdir} -lsasl2
+Libs.private: -lssl -lcrypto -ldl -lpthread
+Cflags: -I\${includedir}
+PKGEOF
+'

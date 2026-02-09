@@ -1,0 +1,20 @@
+# libpng - PNG image library
+# Required for PHP gd extension
+# Depends on: zlib
+LIB_NAME=libpng
+LIB_VERSION=1.6.44
+LIB_SOURCE=build
+LIB_URL="https://download.sourceforge.net/libpng/libpng-1.6.44.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+CPPFLAGS="-I$STATIC_PREFIX/include" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-zlib-prefix="$STATIC_PREFIX"
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libpng*.so* "$STATIC_PREFIX/lib"/libpng*.la 2>/dev/null || true
+'

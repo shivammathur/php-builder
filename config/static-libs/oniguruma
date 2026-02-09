@@ -1,0 +1,16 @@
+# oniguruma - Regular expression library
+# Required for PHP mbstring (mbregex)
+LIB_NAME=oniguruma
+LIB_VERSION=6.9.9
+LIB_SOURCE=build
+LIB_URL="https://github.com/kkos/oniguruma/releases/download/v6.9.9/onig-6.9.9.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libonig.so* 2>/dev/null || true
+'

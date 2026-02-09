@@ -1,0 +1,25 @@
+diff --git a/src/pwl.c b/src/pwl.c
+--- a/src/pwl.c
++++ b/src/pwl.c
+@@ -67,8 +67,19 @@ static void enchant_pwl_add_to_table(EnchantPWL *pwl,
+ 					const char *const word, size_t len);
+ static void enchant_pwl_refresh_from_file(EnchantPWL* pwl);
+ 
+-#define enchant_lock_file(f) flock (fileno (f), LOCK_EX)
+-#define enchant_unlock_file(f) flock (fileno (f), LOCK_UN)
++/* Static inline functions instead of macros to avoid symbol collisions
++   when statically linking with PHP opcache (which also defines lock_file).
++   The original code generated global lock_file/unlock_file symbols. */
++static inline void enchant_lock_file(FILE *f) {
++	if (f != NULL) {
++		flock(fileno(f), LOCK_EX);
++	}
++}
++static inline void enchant_unlock_file(FILE *f) {
++	if (f != NULL) {
++		flock(fileno(f), LOCK_UN);
++	}
++}
+ 
+ /**
+  * enchant_pwl_init

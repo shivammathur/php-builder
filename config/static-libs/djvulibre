@@ -1,0 +1,28 @@
+# djvulibre - DjVu format delegate library for ImageMagick
+
+LIB_SOURCE="build"
+LIB_NAME="djvulibre"
+LIB_VERSION="3.5.28"
+LIB_URL="https://downloads.sourceforge.net/project/djvu/DjVuLibre/${LIB_VERSION}/djvulibre-${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+set -e
+
+export CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export CXXFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export CPPFLAGS="-I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig"
+
+./configure \
+  --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+
+make -j"$JOBS"
+make install
+
+rm -f "$STATIC_PREFIX/lib"/libdjvulibre.so* "$STATIC_PREFIX/lib"/libdjvulibre.la 2>/dev/null || true
+
+echo "djvulibre ${LIB_VERSION} built successfully"
+'

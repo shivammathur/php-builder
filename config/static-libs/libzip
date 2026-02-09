@@ -1,0 +1,40 @@
+# libzip - ZIP archive library
+# Required for PHP zip extension
+# Depends on: zlib, bzip2, openssl
+LIB_NAME=libzip
+LIB_VERSION=1.11.2
+LIB_SOURCE=build
+LIB_URL="https://libzip.org/download/libzip-1.11.2.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+mkdir -p build && cd build
+cmake -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DBUILD_SHARED_LIBS=OFF \
+  -DENABLE_COMMONCRYPTO=OFF \
+  -DENABLE_GNUTLS=OFF \
+  -DENABLE_MBEDTLS=OFF \
+  -DENABLE_OPENSSL=ON \
+  -DENABLE_BZIP2=ON \
+  -DENABLE_LZMA=OFF \
+  -DENABLE_ZSTD=OFF \
+  -DBUILD_TOOLS=OFF \
+  -DBUILD_REGRESS=OFF \
+  -DBUILD_DOC=OFF \
+  -DBUILD_EXAMPLES=OFF \
+  -DZLIB_INCLUDE_DIR="$STATIC_PREFIX/include" \
+  -DZLIB_LIBRARY_RELEASE="$STATIC_PREFIX/lib/libz.a" \
+  -DOPENSSL_ROOT_DIR="$STATIC_PREFIX" \
+  -DBZIP2_INCLUDE_DIR="$STATIC_PREFIX/include" \
+  -DBZIP2_LIBRARY_RELEASE="$STATIC_PREFIX/lib/libbz2.a" \
+  ..
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libzip.so* 2>/dev/null || true
+# Handle lib vs lib64
+if [ ! -f "$STATIC_PREFIX/lib/libzip.a" ] && [ -f "$STATIC_PREFIX/lib64/libzip.a" ]; then
+  cp "$STATIC_PREFIX/lib64/libzip.a" "$STATIC_PREFIX/lib/"
+  cp -r "$STATIC_PREFIX/lib64/pkgconfig/"* "$STATIC_PREFIX/lib/pkgconfig/" 2>/dev/null || true
+fi
+'

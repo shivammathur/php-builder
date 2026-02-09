@@ -1,0 +1,143 @@
+# Static PHP 8.5 Build Definition
+# Uses static libraries from /opt/static
+# PCRE2 is bundled in PHP
+# Static C++ linking is handled by static environment setup
+
+# Core extensions (built-in)
+--enable-bcmath
+--enable-calendar
+--enable-ctype
+--enable-exif
+--enable-fileinfo
+--enable-filter
+--enable-ftp
+--enable-pdo
+--enable-phar
+--enable-posix
+--enable-session
+--enable-shmop
+--enable-sockets
+--enable-sysvmsg
+--enable-sysvsem
+--enable-sysvshm
+--enable-tokenizer
+
+# Compression and string
+--with-bz2=/opt/static
+--with-zlib=/opt/static
+--enable-mbstring
+--enable-mbregex
+--with-iconv=/opt/static
+--with-gettext
+
+# Crypto and SSL
+--with-openssl=/opt/static
+--with-openssl-dir=/opt/static
+--with-sodium=/opt/static
+--with-openssl-argon2
+
+# FFI (for advanced users)
+--with-ffi=/opt/static
+
+# Math
+--with-gmp=/opt/static
+
+# Internationalization
+--enable-intl
+
+# Database - Core
+--with-sqlite3=/opt/static
+--with-pdo-sqlite=/opt/static
+--enable-mysqlnd
+--enable-mysqlnd-compression-support
+--with-mysqli=mysqlnd
+--with-pdo-mysql=mysqlnd
+--with-mysql-sock=/var/run/mysqld/mysqld.sock
+
+# Database - PostgreSQL - disabled for static builds (configure check can't link static deps properly)
+# --with-pgsql=/opt/static
+# --with-pdo-pgsql=/opt/static
+
+# Database - dba (with available handlers)
+# Note: db4 disabled - Berkeley DB static build not available
+--enable-dba
+--with-qdbm=/opt/static
+--without-gdbm
+--with-lmdb=/opt/static
+--enable-inifile
+--enable-flatfile
+
+# ODBC - disabled for static builds (linking issues)
+# --with-unixODBC=/opt/static
+# --with-pdo-odbc=unixODBC,/opt/static
+
+# FreeTDS/MS SQL Server - disabled for static builds
+# --with-pdo-dblib=/opt/static
+
+# Firebird - dynamically linked (complex static build requirements)
+--with-pdo-firebird=shared,/usr
+
+# LDAP - disabled for static builds (requires complex dependency chain)
+# --with-ldap
+
+# SNMP - disabled for static builds (netsnmp requires OpenSSL at configure time)
+# --with-snmp
+
+# Enchant - dynamically linked (GLib requires pcre2-8 which conflicts with bundled PCRE2)
+--with-enchant=shared
+
+# Networking
+--with-curl=/opt/static
+--with-libedit
+
+# XML
+--enable-dom
+--enable-simplexml
+--enable-xml
+--enable-xmlreader
+--enable-xmlwriter
+--with-libxml=/opt/static
+--enable-soap
+--with-xsl=/opt/static
+
+# Archive
+--with-zip=/opt/static
+
+# Graphics
+--enable-gd
+--with-jpeg=/opt/static
+--with-webp=/opt/static
+--with-freetype=/opt/static
+--with-png-dir=/opt/static
+
+# HTML/Tidying
+--with-tidy=/opt/static
+
+# Opcache
+--enable-opcache
+--enable-huge-code-pages
+
+# Process control
+--enable-pcntl
+
+# Other build options
+--without-external-pcre
+# --with-password-argon2 not needed: --with-openssl-argon2 uses OpenSSL 3.2+ argon2 support
+--build=BUILD_MACHINE_SYSTEM_TYPE
+--host=HOST_MACHINE_SYSTEM_TYPE
+--with-libdir=lib
+--libdir=/usr/lib/php
+--program-suffix=PHP_VERSION
+--sysconfdir=/etc
+--localstatedir=/var
+--disable-rpath
+--enable-static
+--disable-shared
+--with-pic
+--with-layout=GNU
+--without-pear
+--without-valgrind
+--enable-rtld-deepbind
+ZTS
+PATCHES
+INSTALL

@@ -1,0 +1,82 @@
+# libtiff - TIFF image library
+# Dependency for ImageMagick
+# Based on static-php-cli patterns
+
+NAME="libtiff"
+VERSION="4.6.0"
+URL="https://download.osgeo.org/libtiff/tiff-${VERSION}.tar.xz"
+STATIC_LIB="libtiff.a"
+PKGCONFIG="libtiff-4.pc"
+
+# Source type - try prebuilt first
+LIB_SOURCE="prebuilt"
+LIB_NAME="libtiff"
+LIB_VERSION="$VERSION"
+
+# Dependencies: zlib, libjpeg, xz (already in /opt/static)
+
+build_library() {
+    cd "$BUILD_DIR" || return 1
+    
+    # Download source
+    curl -fsSL "$URL" -o tiff.tar.xz || return 1
+    tar xJf tiff.tar.xz
+    cd tiff-* || return 1
+    
+    # Use CMake for static build
+    mkdir -p build
+    cd build
+    
+    # Build cmake args - detect available dependencies
+    local CMAKE_ARGS=(
+        -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX"
+        -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_SHARED_LIBS=OFF
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+        -DCMAKE_C_FLAGS="-I$STATIC_PREFIX/include"
+        -DCMAKE_CXX_FLAGS="-I$STATIC_PREFIX/include"
+        -Dtiff-tools=OFF
+        -Dtiff-tests=OFF
+        -Dtiff-contrib=OFF
+        -Dtiff-docs=OFF
+    )
+    
+    # Add dependency paths if they exist
+    if [ -f "$STATIC_PREFIX/lib/libz.a" ]; then
+        CMAKE_ARGS+=(-DZLIB_ROOT="$STATIC_PREFIX")
+    fi
+    
+    if [ -f "$STATIC_PREFIX/lib/libjpeg.a" ] && [ -f "$STATIC_PREFIX/include/jerror.h" ]; then
+        CMAKE_ARGS+=(
+            -DJPEG_INCLUDE_DIR="$STATIC_PREFIX/include"
+            -DJPEG_LIBRARY="$STATIC_PREFIX/lib/libjpeg.a"
+        )
+    else
+        CMAKE_ARGS+=(-Djpeg=OFF)
+    fi
+    
+    if [ -f "$STATIC_PREFIX/lib/liblzma.a" ]; then
+        CMAKE_ARGS+=(
+            -DLIBLZMA_INCLUDE_DIR="$STATIC_PREFIX/include"
+            -DLIBLZMA_LIBRARY="$STATIC_PREFIX/lib/liblzma.a"
+        )
+    else
+        CMAKE_ARGS+=(-Dlzma=OFF)
+    fi
+    
+    cmake .. "${CMAKE_ARGS[@]}"
+    
+    make -j"$(nproc)"
+    make install
+    
+    # Remove any .so files
+    rm -f "$STATIC_PREFIX/lib"/libtiff*.so* 2>/dev/null || true
+    
+    # Verify static library was created
+    if [ ! -f "$STATIC_PREFIX/lib/$STATIC_LIB" ]; then
+        echo "Error: $STATIC_LIB not found"
+        return 1
+    fi
+    
+    echo "libtiff $VERSION built successfully"
+}

@@ -1,0 +1,29 @@
+# libyaml - YAML 1.1 parser and emitter library
+# Used for PHP yaml extension
+LIB_NAME=libyaml
+LIB_VERSION=0.2.5
+LIB_SOURCE=build
+LIB_URL="https://github.com/yaml/libyaml/releases/download/0.2.5/yaml-0.2.5.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+# Use autoconf build (cmake is not available in older releases)
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libyaml*.so* "$STATIC_PREFIX/lib"/libyaml*.la 2>/dev/null || true
+# Create pkg-config file if not created
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/yaml-0.1.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: yaml-0.1
+Description: YAML 1.1 parser and emitter library
+Version: 0.2.5
+Libs: -L\${libdir} -lyaml
+Cflags: -I\${includedir}
+PKGEOF
+'

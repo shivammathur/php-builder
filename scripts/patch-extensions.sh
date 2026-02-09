@@ -1,16 +1,20 @@
 # Function to configure imagick.
 configure_imagick() {
-  if pkg-config --exists MagickWand-7.Q16; then
+  local pc_bin="${PKG_CONFIG:-pkg-config}"
+  if "$pc_bin" --exists MagickWand-7.Q16HDRI; then
+    PKG_WAND=MagickWand-7.Q16HDRI
+  elif "$pc_bin" --exists MagickWand-6.Q16HDRI; then
+    PKG_WAND=MagickWand-6.Q16HDRI
+  elif "$pc_bin" --exists MagickWand-7.Q16; then
     PKG_WAND=MagickWand-7.Q16
-  elif pkg-config --exists MagickWand-6.Q16; then
+  elif "$pc_bin" --exists MagickWand-6.Q16; then
     PKG_WAND=MagickWand-6.Q16
   else
     echo "MagickWand not found — install libmagickwand-dev" >&2
-    exit 1
+    return 1
   fi
-  [[ "$PHP_VERSION" = "5.6" ]] && export CFLAGS="$CFLAGS -Wno-incompatible-pointer-types -Wno-int-conversion"
-  export CPPFLAGS="$(pkg-config --cflags "$PKG_WAND")"
-  export LDFLAGS="$(pkg-config --libs "$PKG_WAND")"
+  export CPPFLAGS="${CPPFLAGS:-} $("$pc_bin" --cflags "$PKG_WAND")"
+  export LDFLAGS="${LDFLAGS:-} $("$pc_bin" --libs "$PKG_WAND")"
 }
 
 # Function to patch imagick source.
@@ -62,7 +66,6 @@ patch_amqp() {
 
 # Function to patch memcache source.
 patch_memcache() {
-  [[ "$PHP_VERSION" = "5.6" ]] && export CFLAGS="$CFLAGS -Wno-incompatible-pointer-types"
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/memcache_ascii_protocol.c src/memcache_binary_protocol.c src/memcache_pool.c src/memcache_session.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string_public.h#Zend/zend_smart_string.h#' src/memcache_pool.h

@@ -293,6 +293,7 @@ install_packages apache2 \
                  pkg-config \
                  re2c \
                  shtool \
+                 systemd \
                  systemtap-sdt-dev \
                  tzdata \
                  unixodbc-dev \

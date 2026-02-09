@@ -1,0 +1,34 @@
+# libmemcached - Memcached client library
+# Used for PHP memcached PECL extension
+LIB_NAME=libmemcached
+LIB_VERSION=1.1.4
+LIB_SOURCE=build
+LIB_URL="https://github.com/awesomized/libmemcached/archive/refs/tags/1.1.4.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+mkdir -p build && cd build
+CMAKE_ARGS="-DCMAKE_INSTALL_PREFIX=$STATIC_PREFIX -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF -DENABLE_SASL=OFF -DENABLE_DTRACE=OFF -DCMAKE_INSTALL_RPATH= -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_C_FLAGS=-fPIC -DCMAKE_CXX_FLAGS=-fPIC"
+[ -f "$STATIC_PREFIX/lib/libz.a" ] && CMAKE_ARGS="$CMAKE_ARGS -DZLIB_ROOT=$STATIC_PREFIX"
+if [ -f "$STATIC_PREFIX/lib/libssl.a" ]; then
+  CMAKE_ARGS="$CMAKE_ARGS -DOPENSSL_ROOT_DIR=$STATIC_PREFIX"
+else
+  CMAKE_ARGS="$CMAKE_ARGS -DENABLE_OPENSSL=OFF"
+fi
+cmake .. $CMAKE_ARGS
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libmemcached*.so* "$STATIC_PREFIX/lib"/libhashkit*.so* 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/libmemcached.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: libmemcached
+Description: Memcached client library
+Version: 1.1.4
+Libs: -L\${libdir} -lmemcached -lmemcachedutil -lhashkit
+Libs.private: -lpthread
+Cflags: -I\${includedir}
+PKGEOF
+'

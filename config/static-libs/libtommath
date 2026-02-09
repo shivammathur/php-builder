@@ -1,0 +1,13 @@
+# libtommath - Multi-precision integer library
+# Dependency for libtomcrypt and Firebird
+LIB_NAME=libtommath
+LIB_VERSION=1.3.0
+LIB_SOURCE=build
+LIB_URL="https://github.com/libtom/libtommath/releases/download/v1.3.0/ltm-1.3.0.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC"
+make -j"$JOBS" CFLAGS="-fPIC" PREFIX="$STATIC_PREFIX"
+make PREFIX="$STATIC_PREFIX" install
+rm -f "$STATIC_PREFIX/lib"/libtommath*.so* 2>/dev/null || true
+'

@@ -67,6 +67,13 @@ service_restart() {
   done
 }
 
+# Function to ensure runtime directory for php-fpm sockets.
+ensure_fpm_runtime_dir() {
+  mkdir -p /run/php
+  chown www-data:www-data /run/php >/dev/null 2>&1 || true
+  chmod 755 /run/php >/dev/null 2>&1 || true
+}
+
 # Function to install apache2.
 install_apache2() {
   service nginx stop 2>/dev/null || true
@@ -121,6 +128,7 @@ setup_apache_apache() {
 setup_fpm_apache() {
   install_apache2
   install_php_sapi fpm
+  ensure_fpm_runtime_dir
   a2dismod php"$php" 2>/dev/null || true
   a2enmod proxy_fcgi
   a2enconf php"$php"-fpm
@@ -142,6 +150,7 @@ setup_cgi_apache() {
 setup_fpm_nginx() {
   install_nginx
   install_php_sapi fpm
+  ensure_fpm_runtime_dir
   service_restart php"$php"-fpm nginx
 }
 
@@ -194,6 +203,7 @@ apache*)
   ;;
 fpm)
   install_php_sapi fpm
+  ensure_fpm_runtime_dir
   service_restart php"$php"-fpm >/dev/null 2>&1
   ;;
 embed | cgi | phpdbg)

@@ -1,0 +1,59 @@
+# libaom - AV1 video codec library
+# Dependency for libheif (used by ImageMagick)
+# Based on static-php-cli patterns - C++ library
+
+NAME="libaom"
+VERSION="3.8.1"
+URL="https://storage.googleapis.com/aom-releases/libaom-${VERSION}.tar.gz"
+ALT_URL="https://aomedia.googlesource.com/aom/+archive/v${VERSION}.tar.gz"
+STATIC_LIB="libaom.a"
+PKGCONFIG="aom.pc"
+
+# Source type - try prebuilt first
+LIB_SOURCE="prebuilt"
+LIB_NAME="libaom"
+LIB_VERSION="$VERSION"
+
+build_library() {
+    cd "$BUILD_DIR" || return 1
+    
+    # Download source
+    if ! curl -fsSL "$URL" -o libaom.tar.gz 2>/dev/null; then
+        # Clone from git as fallback
+        git clone --depth 1 --branch v${VERSION} https://aomedia.googlesource.com/aom libaom-src
+        cd libaom-src
+    else
+        tar xzf libaom.tar.gz
+        cd libaom-* 2>/dev/null || mkdir -p libaom-src && tar xzf libaom.tar.gz -C libaom-src && cd libaom-src
+    fi
+    
+    # Use CMake for static build
+    mkdir -p build
+    cd build
+    
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+        -DENABLE_DOCS=OFF \
+        -DENABLE_EXAMPLES=OFF \
+        -DENABLE_TESTDATA=OFF \
+        -DENABLE_TESTS=OFF \
+        -DENABLE_TOOLS=OFF \
+        -DCONFIG_WEBM_IO=0
+    
+    make -j"$(nproc)"
+    make install
+    
+    # Remove any .so files
+    rm -f "$STATIC_PREFIX/lib"/libaom*.so* 2>/dev/null || true
+    
+    # Verify static library was created
+    if [ ! -f "$STATIC_PREFIX/lib/$STATIC_LIB" ]; then
+        echo "Error: $STATIC_LIB not found"
+        return 1
+    fi
+    
+    echo "libaom $VERSION built successfully"
+}

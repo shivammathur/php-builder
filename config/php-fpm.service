@@ -1,13 +1,13 @@
 [Unit]
-Description=The PHP PHP_VERSION FastCGI Process Manager
-Documentation=man:php-fpmPHP_VERSION(8)
+Description=The PHP 8.5 FastCGI Process Manager
+Documentation=man:php-fpm8.5(8)
 After=network.target
 
 [Service]
 Type=notify
-ExecStart=/usr/sbin/php-fpmPHP_VERSION --nodaemonize --fpm-config /etc/php/PHP_VERSION/fpm/php-fpm.conf
-ExecStartPost=-/usr/lib/php/php-fpm-socket-helper install /run/php/php-fpm.sock /etc/php/PHP_VERSION/fpm/pool.d/www.conf NO_DOT
-ExecStopPost=-/usr/lib/php/php-fpm-socket-helper remove /run/php/php-fpm.sock /etc/php/PHP_VERSION/fpm/pool.d/www.conf NO_DOT
+ExecStart=/usr/sbin/php-fpm8.5 --nodaemonize --fpm-config /etc/php/8.5/fpm/php-fpm.conf
+ExecStartPost=-/usr/lib/php/php-fpm-socket-helper install /run/php/php-fpm.sock /etc/php/8.5/fpm/pool.d/www.conf 85
+ExecStopPost=-/usr/lib/php/php-fpm-socket-helper remove /run/php/php-fpm.sock /etc/php/8.5/fpm/pool.d/www.conf 85
 ExecReload=/bin/kill -USR2 $MAINPID
 Restart=on-failure
 

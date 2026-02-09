@@ -1,0 +1,60 @@
+# krb5 - MIT Kerberos libraries
+# Required for IMAP kerberos and curl GSSAPI support
+LIB_NAME=krb5
+LIB_VERSION=1.21.3
+LIB_SOURCE=build
+LIB_URL="https://web.mit.edu/kerberos/dist/krb5/1.21/krb5-${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR/src"
+KRB_SRC="$PWD"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+CPPFLAGS="-I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --without-system-verto \
+  --without-keyutils \
+  --without-libedit
+make -j"$JOBS"
+make -C include install
+mkdir -p "$STATIC_PREFIX/include/gssapi" "$STATIC_PREFIX/include/gssrpc" "$STATIC_PREFIX/include/kadm5"
+make -C lib install || true
+# Ensure key static archives are present even if the upstream install target
+# bails out late while installing optional headers.
+for libname in libgssapi_krb5.a libkrb5.a libk5crypto.a libkrb5support.a libcom_err.a; do
+  libsrc="$(find "$KRB_SRC" -type f -name "$libname" 2>/dev/null | head -n1 || true)"
+  if [ -n "$libsrc" ] && [ -f "$libsrc" ]; then
+    cp -f "$libsrc" "$STATIC_PREFIX/lib/"
+  fi
+done
+for libname in libgssapi_krb5.a libkrb5.a libk5crypto.a libkrb5support.a libcom_err.a; do
+  [ -f "$STATIC_PREFIX/lib/$libname" ] && ranlib "$STATIC_PREFIX/lib/$libname"
+done
+rm -f "$STATIC_PREFIX/lib"/libkrb5*.so* "$STATIC_PREFIX/lib"/libgssapi_krb5*.so* \
+      "$STATIC_PREFIX/lib"/libk5crypto*.so* "$STATIC_PREFIX/lib"/libkrb5support*.so* \
+      "$STATIC_PREFIX/lib"/libcom_err*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/mit-krb5-gssapi.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: mit-krb5-gssapi
+Description: MIT Kerberos GSSAPI
+Version: ${LIB_VERSION}
+Libs: -L\${libdir} -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lcom_err -lresolv
+Cflags: -I\${includedir}
+PKGEOF
+cat > "$STATIC_PREFIX/lib/pkgconfig/krb5-gssapi.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: krb5-gssapi
+Description: MIT Kerberos GSSAPI
+Version: ${LIB_VERSION}
+Libs: -L\${libdir} -lgssapi_krb5 -lkrb5 -lk5crypto -lkrb5support -lcom_err -lresolv
+Cflags: -I\${includedir}
+PKGEOF
+'

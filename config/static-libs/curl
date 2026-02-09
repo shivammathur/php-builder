@@ -1,0 +1,36 @@
+# curl - HTTP client library
+# Required for PHP curl extension
+# Depends on: openssl, zlib
+LIB_NAME=curl
+LIB_VERSION=8.11.1
+LIB_SOURCE=build
+LIB_URL="https://curl.se/download/curl-8.11.1.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+autoreconf -fi >/dev/null 2>&1 || true
+CFLAGS="-fPIC -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-openssl="$STATIC_PREFIX" \
+  --with-zlib="$STATIC_PREFIX" \
+  --without-libpsl \
+  --without-libssh \
+  --without-libssh2 \
+  --without-brotli \
+  --without-zstd \
+  --without-libidn2 \
+  --without-nghttp2 \
+  --without-librtmp \
+  --disable-ldap \
+  --disable-manual
+# Fix libtool build_root_path placeholder on some distros
+if [ -f libtool ]; then
+  sed -i "s|@build_root_path@|$SRC_DIR|g" libtool
+fi
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libcurl.so* 2>/dev/null || true
+'

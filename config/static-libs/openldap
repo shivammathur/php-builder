@@ -1,0 +1,43 @@
+# openldap - OpenLDAP client libraries
+# Used for PHP ldap extension
+LIB_NAME=openldap
+LIB_VERSION=2.6.8
+LIB_SOURCE=build
+LIB_URL="https://www.openldap.org/software/download/OpenLDAP/openldap-release/openldap-2.6.8.tgz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -Wno-date-time -I$STATIC_PREFIX/include"
+export CPPFLAGS="-I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+TLS_OPT="--without-tls"
+if [ -f "$STATIC_PREFIX/lib/libssl.a" ]; then
+  TLS_OPT="--with-tls=openssl"
+  # Link all OpenSSL static dependencies including zlib
+  export LIBS="-lssl -lcrypto -lz -ldl -lpthread"
+  # Fix configure to link additional deps for OpenSSL static linking
+  sed -i "s/-lssl -lcrypto/-lssl -lcrypto -lz -ldl -lpthread -lm -lresolv -lutil/g" configure
+fi
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared --disable-slapd \
+  --without-systemd --without-cyrus-sasl $TLS_OPT \
+  ac_cv_func_pthread_kill_other_threads_np=no
+# Disable tests and docs to speed up build
+sed -i "s/SUBDIRS= include libraries clients servers tests doc/SUBDIRS= include libraries clients servers/" Makefile
+make depend
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libldap*.so* "$STATIC_PREFIX/lib"/liblber*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/ldap.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: OpenLDAP
+Description: OpenLDAP client library
+Version: 2.6.8
+Libs: -L\${libdir} -lldap -llber
+Libs.private: -lssl -lcrypto
+Cflags: -I\${includedir}
+PKGEOF
+'

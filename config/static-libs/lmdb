@@ -1,0 +1,39 @@
+# lmdb - Lightning Memory-Mapped Database
+# Fast key-value database used for PHP DBA extension
+LIB_NAME=lmdb
+LIB_VERSION=0.9.32
+LIB_SOURCE=build
+LIB_URL="https://github.com/LMDB/lmdb/archive/refs/tags/LMDB_0.9.32.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+
+# LMDB source is in the libraries/liblmdb subdirectory
+cd libraries/liblmdb
+
+# Apply fix for static build
+sed -i "s/^CC.*=.*/CC = gcc/" Makefile
+sed -i "s/^AR.*=.*/AR = ar/" Makefile
+
+# Build static library only
+make liblmdb.a XCFLAGS="-fPIC"
+
+# Install manually
+mkdir -p "$STATIC_PREFIX/lib" "$STATIC_PREFIX/include"
+cp liblmdb.a "$STATIC_PREFIX/lib/"
+cp lmdb.h midl.h "$STATIC_PREFIX/include/"
+
+# Create pkgconfig file
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/lmdb.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: LMDB
+Description: Lightning Memory-Mapped Database
+Version: 0.9.32
+Libs: -L\${libdir} -llmdb -lpthread
+Cflags: -I\${includedir}
+PKGEOF
+'

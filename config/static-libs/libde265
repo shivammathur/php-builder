@@ -1,0 +1,50 @@
+# libde265 - HEVC/H.265 video decoder
+# Dependency for libheif (used by ImageMagick)
+# Based on static-php-cli patterns - C++ library
+
+NAME="libde265"
+VERSION="1.0.15"
+URL="https://github.com/strukturag/libde265/releases/download/v${VERSION}/libde265-${VERSION}.tar.gz"
+STATIC_LIB="libde265.a"
+PKGCONFIG="libde265.pc"
+
+# Source type - try prebuilt first
+LIB_SOURCE="prebuilt"
+LIB_NAME="libde265"
+LIB_VERSION="$VERSION"
+
+build_library() {
+    cd "$BUILD_DIR" || return 1
+    
+    # Download source
+    curl -fsSL "$URL" -o libde265.tar.gz || return 1
+    tar xzf libde265.tar.gz
+    cd libde265-* || return 1
+    
+    # Use CMake for static build
+    mkdir -p build
+    cd build
+    
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+        -DENABLE_SDL=OFF \
+        -DENABLE_DECODER=ON \
+        -DENABLE_ENCODER=OFF
+    
+    make -j"$(nproc)"
+    make install
+    
+    # Remove any .so files
+    rm -f "$STATIC_PREFIX/lib"/libde265*.so* 2>/dev/null || true
+    
+    # Verify static library was created
+    if [ ! -f "$STATIC_PREFIX/lib/$STATIC_LIB" ]; then
+        echo "Error: $STATIC_LIB not found"
+        return 1
+    fi
+    
+    echo "libde265 $VERSION built successfully"
+}

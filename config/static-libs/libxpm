@@ -1,0 +1,19 @@
+# libxpm - X PixMap library
+# Required for PHP gd XPM support
+LIB_NAME=libxpm
+LIB_VERSION=3.5.17
+LIB_SOURCE=build
+LIB_URL="https://xorg.freedesktop.org/releases/individual/lib/libXpm-${LIB_VERSION}.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+CPPFLAGS="-I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --without-x
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libXpm.so* "$STATIC_PREFIX/lib"/libXpm.la 2>/dev/null || true
+'

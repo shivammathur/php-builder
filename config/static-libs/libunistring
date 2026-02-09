@@ -1,0 +1,16 @@
+# libunistring - Unicode string library
+# Needed for libidn2/curl static linking
+LIB_NAME=libunistring
+LIB_VERSION=1.2
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/gnu/libunistring/libunistring-${LIB_VERSION}.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libunistring.so* "$STATIC_PREFIX/lib"/libunistring.la 2>/dev/null || true
+'

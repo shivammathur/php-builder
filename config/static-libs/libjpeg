@@ -1,0 +1,25 @@
+# libjpeg-turbo - JPEG image library (faster than IJG libjpeg)
+# Required for PHP gd extension
+LIB_NAME=libjpeg
+LIB_VERSION=3.0.4
+LIB_SOURCE=build
+LIB_URL="https://github.com/libjpeg-turbo/libjpeg-turbo/releases/download/3.0.4/libjpeg-turbo-3.0.4.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+mkdir -p build && cd build
+cmake -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+  -DENABLE_SHARED=OFF \
+  -DENABLE_STATIC=ON \
+  -DWITH_TURBOJPEG=ON \
+  ..
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libjpeg.so* "$STATIC_PREFIX/lib"/libturbojpeg.so* 2>/dev/null || true
+# Ensure the library is found
+if [ ! -f "$STATIC_PREFIX/lib/libjpeg.a" ] && [ -f "$STATIC_PREFIX/lib64/libjpeg.a" ]; then
+  cp "$STATIC_PREFIX/lib64/libjpeg.a" "$STATIC_PREFIX/lib/"
+  cp "$STATIC_PREFIX/lib64/libturbojpeg.a" "$STATIC_PREFIX/lib/" 2>/dev/null || true
+fi
+'

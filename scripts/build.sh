@@ -50,6 +50,17 @@ get_buildflags() {
 build_php() {
   echo "::group::$1"
   SAPI=$1
+  export PHP_BUILD_EXTRA_MAKE_ARGUMENTS="${PHP_BUILD_EXTRA_MAKE_ARGUMENTS:--j1}"
+
+  # Check for static build environment
+  STATIC_PREFIX="${STATIC_PREFIX:-/opt/static}"
+  USE_STATIC_LIBS="no"
+  if [ -f "$STATIC_PREFIX/setup-env.sh" ] && [ -f "$STATIC_PREFIX/lib/libssl.a" ]; then
+    USE_STATIC_LIBS="yes"
+    echo "Static build environment detected at $STATIC_PREFIX"
+    # Source the static environment setup
+    source "$STATIC_PREFIX/setup-env.sh"
+  fi
 
   # Set and export FLAGS
   CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
@@ -59,6 +70,97 @@ build_php() {
   CPPFLAGS="$(get_buildflags CPPFLAGS "$lto")"
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto")"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
+
+  # Add static library paths if using static build
+  if [ "$USE_STATIC_LIBS" = "yes" ]; then
+    CFLAGS="-I$STATIC_PREFIX/include $CFLAGS"
+    CPPFLAGS="-I$STATIC_PREFIX/include $CPPFLAGS"
+    # Put static lib path first
+    LDFLAGS="-L$STATIC_PREFIX/lib -L$STATIC_PREFIX/lib64 $LDFLAGS"
+    
+    # Build LIBS with explicit full paths to static archives
+    # For static linking, order matters: libraries that USE symbols first,
+    # libraries that PROVIDE symbols after. Using --start-group/--end-group
+    # to handle circular dependencies between static archives.
+    LIBS=""
+    
+    # Allow multiple definitions to handle libargon2/libsodium symbol conflicts
+    # (libsodium has internal argon2, but PHP needs the public argon2 API)
+    LIBS="$LIBS -Wl,--allow-multiple-definition"
+    
+    # Start a link group to handle circular dependencies in static archives
+    LIBS="$LIBS -Wl,--start-group"
+    
+    # High-level libraries that depend on others (curl, ldap, pq depend on ssl/crypto)
+    [ -f "$STATIC_PREFIX/lib/libcurl.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libcurl.a"
+    [ -f "$STATIC_PREFIX/lib/libldap.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libldap.a"
+    [ -f "$STATIC_PREFIX/lib/liblber.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/liblber.a"
+    # PostgreSQL requires libpq plus libpgcommon and libpgport for static linking
+    [ -f "$STATIC_PREFIX/lib/libpq.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libpq.a"
+    [ -f "$STATIC_PREFIX/lib/libpgcommon.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libpgcommon.a"
+    [ -f "$STATIC_PREFIX/lib/libpgport.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libpgport.a"
+    
+    # Mid-level libraries (xslt->xml2->z/lzma, zip->z/bz2/lzma/ssl)
+    [ -f "$STATIC_PREFIX/lib/libxslt.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libxslt.a"
+    [ -f "$STATIC_PREFIX/lib/libexslt.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libexslt.a"
+    [ -f "$STATIC_PREFIX/lib/libzip.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libzip.a"
+    [ -f "$STATIC_PREFIX/lib/libxml2.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libxml2.a"
+    
+    # SSL/Crypto (many things depend on these)
+    [ -f "$STATIC_PREFIX/lib/libssl.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libssl.a"
+    [ -f "$STATIC_PREFIX/lib/libcrypto.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libcrypto.a"
+    
+    # Compression and encoding libraries
+    [ -f "$STATIC_PREFIX/lib/liblzma.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/liblzma.a"
+    [ -f "$STATIC_PREFIX/lib/libz.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libz.a"
+    [ -f "$STATIC_PREFIX/lib/libbz2.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libbz2.a"
+    
+    # Standalone libraries with minimal dependencies
+    # argon2 before sodium - PHP needs argon2's public API (argon2_encodedlen, argon2_error_message)
+    # but libsodium also has internal argon2 symbols, so --allow-multiple-definition is needed
+    [ -f "$STATIC_PREFIX/lib/libargon2.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libargon2.a"
+    [ -f "$STATIC_PREFIX/lib/libsodium.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libsodium.a"
+    [ -f "$STATIC_PREFIX/lib/libpcre2-8.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libpcre2-8.a"
+    [ -f "$STATIC_PREFIX/lib/libonig.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libonig.a"
+    [ -f "$STATIC_PREFIX/lib/libsqlite3.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libsqlite3.a"
+    [ -f "$STATIC_PREFIX/lib/libffi.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libffi.a"
+    [ -f "$STATIC_PREFIX/lib/libtidy.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libtidy.a"
+    [ -f "$STATIC_PREFIX/lib/libedit.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libedit.a"
+    # ncurses/terminfo - libedit depends on these
+    if [ -f "$STATIC_PREFIX/lib/libncursesw.a" ]; then
+        LIBS="$LIBS $STATIC_PREFIX/lib/libncursesw.a"
+    elif [ -f "$STATIC_PREFIX/lib/libncurses.a" ]; then
+        LIBS="$LIBS $STATIC_PREFIX/lib/libncurses.a"
+    fi
+    [ -f "$STATIC_PREFIX/lib/libtinfo.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libtinfo.a"
+    [ -f "$STATIC_PREFIX/lib/libgmp.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libgmp.a"
+    [ -f "$STATIC_PREFIX/lib/libqdbm.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libqdbm.a"
+    [ -f "$STATIC_PREFIX/lib/liblmdb.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/liblmdb.a"
+    
+    # ICU libraries (order: io -> i18n -> uc -> data)
+    [ -f "$STATIC_PREFIX/lib/libicuio.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libicuio.a"
+    [ -f "$STATIC_PREFIX/lib/libicui18n.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libicui18n.a"
+    [ -f "$STATIC_PREFIX/lib/libicuuc.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libicuuc.a"
+    [ -f "$STATIC_PREFIX/lib/libicudata.a" ] && LIBS="$LIBS $STATIC_PREFIX/lib/libicudata.a"
+    
+    # End the link group
+    LIBS="$LIBS -Wl,--end-group"
+    
+    # Note: Image libraries (freetype, png, jpeg, webp) are NOT included in LIBS
+    # because the GD extension uses external system libgd which has its own
+    # dynamic dependencies on these libraries.
+    
+    # System libs that must be linked dynamically
+    LIBS="$LIBS -lm -ldl -lpthread -lstdc++"
+    
+    # Set pkg-config to use static mode
+    export PKG_CONFIG="$STATIC_PREFIX/bin/pkg-config-static"
+    export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig:$STATIC_PREFIX/lib64/pkgconfig"
+    
+    echo "Using static libraries from $STATIC_PREFIX"
+    echo "PKG_CONFIG=$PKG_CONFIG"
+    echo "Static LIBS: $LIBS"
+  fi
     
   if [[ "$PHP_VERSION" =~ 5.6|7.[0-4]|8.0 ]]; then
     EXTRA_CFLAGS="-fpermissive -Wno-deprecated -Wno-deprecated-declarations"
@@ -69,9 +171,20 @@ build_php() {
 
   DEB_HOST_MULTIARCH="$(dpkg-architecture -q DEB_HOST_MULTIARCH)"
   
-  # Set ICU Version
-  ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
-  dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
+  # Set ICU Version - check static ICU first, then system ICU
+  if [ "$USE_STATIC_LIBS" = "yes" ] && [ -f "$STATIC_PREFIX/lib/pkgconfig/icu-uc.pc" ]; then
+    # Use static ICU version
+    ICU_VERSION="$(grep '^Version:' "$STATIC_PREFIX/lib/pkgconfig/icu-uc.pc" | sed 's/^Version: //' | cut -d. -f1)"
+    echo "Using static ICU version: $ICU_VERSION"
+  else
+    ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
+  fi
+  # ICU 75+ requires C++17 for features like std::u16string_view
+  if [ -n "$ICU_VERSION" ] && [ "$ICU_VERSION" -ge 75 ] 2>/dev/null; then
+    ICU_CXXFLAGS=-std=c++17
+  else
+    ICU_CXXFLAGS=-std=c++11
+  fi
   [[ "$VERSION_ID" = "11" && "$PHP_VERSION" = "8.6" ]] && export CXXFLAGS="$CXXFLAGS -include unicode/localpointer.h"
 
   SED=$(command -v sed)
@@ -84,11 +197,26 @@ build_php() {
   export DEB_HOST_MULTIARCH
   export ICU_CXXFLAGS
   export SED
+  
+  # Export LIBS if using static build
+  if [ -n "${LIBS:-}" ]; then
+    export LIBS
+  fi
 
   # Export inputs
   export INSTALL_ROOT
   export PHP_VERSION
   export SAPI
+
+  # Pre-fetch stable release tarball to avoid php-build download flakiness.
+  if [ "${stable:-}" = "true" ] && [ -n "${new_version:-}" ]; then
+    tar_name="${new_version}.tar.gz"
+    tar_path="/tmp/php-build/$tar_name"
+    if [ ! -f "$tar_path" ]; then
+      mkdir -p /tmp/php-build
+      curl -sL "https://github.com/php/web-php-distributions/raw/master/$tar_name" -o "$tar_path"
+    fi
+  fi
 
   # Build PHP using php-build.
   if ! php-build -v -i "$default_ini" "$PHP_VERSION" "$prefix"; then
@@ -234,6 +362,8 @@ switch_version() {
 
 cleanup_environment() {
   rm -rf ~/php-build "${INSTALL_ROOT:?}" "${php_build_dir:?}"
+  # Ensure php-build source tree is clean between SAPIs
+  rm -rf /tmp/php-build 2>/dev/null || true
   mkdir -p ~/php-build "${INSTALL_ROOT:?}" "${php_build_dir:?}"
 }
 

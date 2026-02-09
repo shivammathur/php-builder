@@ -1,0 +1,37 @@
+# freetds - FreeTDS library for TDS protocol (MS SQL/Sybase)
+# Used for PHP pdo_dblib extension
+LIB_NAME=freetds
+LIB_VERSION=1.4.10
+LIB_SOURCE=build
+LIB_URL="https://www.freetds.org/files/stable/freetds-1.4.10.tar.bz2"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig"
+
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared \
+  --disable-odbc --disable-apps --disable-server --disable-pool \
+  --with-tdsver=auto
+
+make -j"$JOBS"
+make install
+
+# Remove any .so files
+rm -f "$STATIC_PREFIX/lib"/libct*.so* "$STATIC_PREFIX/lib"/libsybdb*.so* "$STATIC_PREFIX/lib"/libtds*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+
+# Create pkgconfig file
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/freetds.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+Name: FreeTDS
+Description: FreeTDS TDS protocol library
+Version: 1.4.10
+Libs: -L\${libdir} -lsybdb -lct -ltds
+Cflags: -I\${includedir}
+PKGEOF
+'

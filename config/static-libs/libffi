@@ -1,0 +1,16 @@
+# libffi - Foreign function interface library
+# Required for PHP FFI extension
+LIB_NAME=libffi
+LIB_VERSION=3.4.6
+LIB_SOURCE=build
+LIB_URL="https://github.com/libffi/libffi/releases/download/v3.4.6/libffi-3.4.6.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libffi.so* 2>/dev/null || true
+'

@@ -1,0 +1,52 @@
+# enchant - Spell checking library (abstraction layer)
+# Used for PHP enchant extension
+# Depends on: glib
+LIB_NAME=enchant
+LIB_VERSION=2.8.2
+LIB_SOURCE=build
+LIB_URL="https://github.com/AbiWord/enchant/releases/download/v2.8.2/enchant-2.8.2.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include -I$STATIC_PREFIX/include/glib-2.0 -I$STATIC_PREFIX/lib/glib-2.0/include"
+export CXXFLAGS="-fPIC -I$STATIC_PREFIX/include -I$STATIC_PREFIX/include/glib-2.0 -I$STATIC_PREFIX/lib/glib-2.0/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig:$STATIC_PREFIX/lib64/pkgconfig"
+
+# Build hunspell first if not present (enchant backend)
+if [ ! -f "$STATIC_PREFIX/lib/libhunspell-1.7.a" ]; then
+  echo "Building hunspell..."
+  curl -fsSL "https://github.com/hunspell/hunspell/releases/download/v1.7.2/hunspell-1.7.2.tar.gz" | tar -xz -C /tmp
+  cd /tmp/hunspell-1.7.2
+  ./configure --prefix="$STATIC_PREFIX" --enable-static --disable-shared
+  make -j"$JOBS" && make install
+  cd "$SRC_DIR"
+fi
+
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared \
+  --with-hunspell \
+  --without-aspell \
+  --without-voikko \
+  --without-hspell \
+  --without-nuspell \
+  --without-applespell \
+  --without-zemberek
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libenchant*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+
+# Create/update pkgconfig file
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+cat > "$STATIC_PREFIX/lib/pkgconfig/enchant-2.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include/enchant-2
+Name: enchant
+Description: Enchant spell checking library
+Version: 2.8.2
+Requires: glib-2.0
+Libs: -L\${libdir} -lenchant-2 -lhunspell-1.7
+Cflags: -I\${includedir}
+PKGEOF
+'

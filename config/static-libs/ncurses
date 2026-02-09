@@ -1,0 +1,32 @@
+# ncurses - Terminal handling library
+# Required for libedit (readline)
+LIB_NAME=ncurses
+LIB_VERSION=6.5
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.5.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2" \
+CXXFLAGS="-fPIC -O2" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-pic \
+  --with-normal \
+  --without-debug \
+  --without-ada \
+  --without-manpages \
+  --without-tests \
+  --enable-widec \
+  --enable-pc-files \
+  --with-pkg-config-libdir="$STATIC_PREFIX/lib/pkgconfig"
+make -j"$JOBS"
+make install
+# Create non-wide symlinks for compatibility
+cd "$STATIC_PREFIX/lib"
+for lib in ncurses form panel menu; do
+  [ -f lib${lib}w.a ] && ln -sf lib${lib}w.a lib${lib}.a
+done
+cd "$STATIC_PREFIX/include"
+[ -d ncursesw ] && ln -sf ncursesw/* . 2>/dev/null || true
+'

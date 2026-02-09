@@ -1,0 +1,18 @@
+# pcre2 - Perl Compatible Regular Expressions v2
+# Dependency for glib and can be used by PHP
+LIB_NAME=pcre2
+LIB_VERSION=10.44
+LIB_SOURCE=build
+LIB_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.44/pcre2-10.44.tar.bz2"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static --disable-shared \
+  --enable-pcre2-8 --enable-pcre2-16 --enable-pcre2-32 \
+  --enable-jit --enable-unicode
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libpcre2*.so* "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+'

@@ -1,11 +1,11 @@
 #!/bin/sh
 ### BEGIN INIT INFO
-# Provides:          phpPHP_VERSION-fpm
+# Provides:          php8.5-fpm
 # Required-Start:    $remote_fs $network
 # Required-Stop:     $remote_fs $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: starts phpPHP_VERSION-fpm
+# Short-Description: starts php8.5-fpm
 # Description:       Starts The PHP FastCGI Process Manager Daemon
 ### END INIT INFO
 
@@ -13,13 +13,13 @@
 # Edited by Shivam Mathur <contact@shivammathur.com>
 
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
-DESC="PHP PHP_VERSION FastCGI Process Manager"
-NAME=php-fpmPHP_VERSION
-CONFFILE=/etc/php/PHP_VERSION/fpm/php-fpm.conf
+DESC="PHP 8.5 FastCGI Process Manager"
+NAME=php-fpm8.5
+CONFFILE=/etc/php/8.5/fpm/php-fpm.conf
 DAEMON=/usr/sbin/$NAME
 DAEMON_ARGS="--daemonize --fpm-config $CONFFILE"
 CONF_PIDFILE=$(sed -n 's/^pid[ =]*//p' $CONFFILE)
-PIDFILE=${CONF_PIDFILE:-/run/php/phpPHP_VERSION-fpm.pid}
+PIDFILE=${CONF_PIDFILE:-/run/php/php8.5-fpm.pid}
 TIMEOUT=5
 SCRIPTNAME=/etc/init.d/$NAME
 
@@ -98,7 +98,7 @@ do_reload() {
 case "$1" in
     start)
 	[ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-	systemd-tmpfiles --remove --create /usr/lib/tmpfiles.d/phpPHP_VERSION-fpm.conf
+	systemd-tmpfiles --remove --create /usr/lib/tmpfiles.d/php8.5-fpm.conf
 	case "$?" in
 	    0)
 		do_start

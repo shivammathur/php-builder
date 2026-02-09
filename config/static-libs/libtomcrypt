@@ -1,0 +1,14 @@
+# libtomcrypt - Cryptographic library
+# Dependency for Firebird
+LIB_NAME=libtomcrypt
+LIB_VERSION=1.18.2
+LIB_SOURCE=build
+LIB_URL="https://github.com/libtom/libtomcrypt/releases/download/v1.18.2/crypt-1.18.2.tar.xz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -DLTM_DESC -I$STATIC_PREFIX/include"
+export EXTRALIBS="-ltommath"
+make -j"$JOBS" CFLAGS="-fPIC -DLTM_DESC -I$STATIC_PREFIX/include" EXTRALIBS="-ltommath" PREFIX="$STATIC_PREFIX"
+make PREFIX="$STATIC_PREFIX" install
+rm -f "$STATIC_PREFIX/lib"/libtomcrypt*.so* 2>/dev/null || true
+'

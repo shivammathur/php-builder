@@ -1,0 +1,91 @@
+# imagemagick - Image processing library
+# Used for PHP imagick PECL extension
+# Based on static-php-cli patterns - C++ library with many dependencies
+
+# Source type - try prebuilt first, then build from source
+LIB_SOURCE="build"
+LIB_NAME="imagemagick"
+LIB_VERSION="7.1.1-43"
+
+# Build from source if prebuilt unavailable
+# Required dependencies: zlib, libjpeg, libpng, libwebp, freetype, libtiff, libheif, bzip2
+LIB_URL="https://github.com/ImageMagick/ImageMagick/archive/refs/tags/${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+
+# Set environment for static build
+export CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export CXXFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include"
+export CPPFLAGS="-I$STATIC_PREFIX/include -I$STATIC_PREFIX/include/freetype2"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+export PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig"
+export PKG_CONFIG="pkg-config --static"
+
+# Configure for static build (from static-php-cli)
+./configure \
+    --prefix="$STATIC_PREFIX" \
+    --enable-static \
+    --disable-shared \
+    --disable-openmp \
+    --without-x \
+    --without-magick-plus-plus \
+    --without-perl \
+    --without-djvu \
+    --without-dps \
+    --without-fftw \
+    --without-flif \
+    --without-fpx \
+    --without-gslib \
+    --without-gvc \
+    --without-jbig \
+    --without-openjp2 \
+    --without-lqr \
+    --without-openexr \
+    --without-pango \
+    --without-raqm \
+    --without-raw \
+    --without-rsvg \
+    --without-wmf \
+    --with-zlib="$STATIC_PREFIX" \
+    --with-jpeg="$STATIC_PREFIX" \
+    --with-png="$STATIC_PREFIX" \
+    --with-webp="$STATIC_PREFIX" \
+    --with-freetype="$STATIC_PREFIX" \
+    --with-heic="$STATIC_PREFIX" \
+    --with-bzlib="$STATIC_PREFIX" \
+    --with-lzma="$STATIC_PREFIX" \
+    --with-xml="$STATIC_PREFIX"
+
+make -j"$JOBS"
+make install
+
+# Remove any .so/.la files
+rm -f "$STATIC_PREFIX/lib"/libMagick*.so* "$STATIC_PREFIX/lib"/libMagick*.la 2>/dev/null || true
+
+# Create pkg-config files if not created by configure
+mkdir -p "$STATIC_PREFIX/lib/pkgconfig"
+if [ ! -f "$STATIC_PREFIX/lib/pkgconfig/MagickWand-7.Q16HDRI.pc" ]; then
+  cat > "$STATIC_PREFIX/lib/pkgconfig/MagickWand-7.Q16HDRI.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${prefix}/lib
+includedir=\${prefix}/include/ImageMagick-7
+Name: MagickWand
+Description: ImageMagick MagickWand library
+Version: ${LIB_VERSION}
+Requires.private: MagickCore-7.Q16HDRI
+Libs: -L\${libdir} -lMagickWand-7.Q16HDRI
+Cflags: -I\${includedir}
+PKGEOF
+fi
+
+# Fix pkg-config files (from static-php-cli)  
+for pc_file in "$STATIC_PREFIX/lib/pkgconfig"/Magick*.pc "$STATIC_PREFIX/lib/pkgconfig"/ImageMagick*.pc; do
+    if [ -f "$pc_file" ]; then
+        sed -i "s|^prefix=.*|prefix=$STATIC_PREFIX|g" "$pc_file"
+        sed -i "s|includearchdir=/include/ImageMagick-7|includearchdir=\${prefix}/include/ImageMagick-7|g" "$pc_file"
+    fi
+done
+
+echo "imagemagick ${LIB_VERSION} built successfully"
+'

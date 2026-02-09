@@ -1,0 +1,25 @@
+# zeromq - High-performance messaging library
+# Used for PHP zmq PECL extension
+LIB_NAME=zeromq
+LIB_VERSION=4.3.5
+LIB_SOURCE=build
+LIB_URL="https://github.com/zeromq/libzmq/releases/download/v4.3.5/zeromq-4.3.5.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+mkdir -p build && cd build
+cmake .. \
+  -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DBUILD_SHARED=OFF \
+  -DBUILD_STATIC=ON \
+  -DBUILD_TESTS=OFF \
+  -DWITH_LIBSODIUM=ON \
+  -DSODIUM_INCLUDE_DIRS="$STATIC_PREFIX/include" \
+  -DSODIUM_LIBRARIES="$STATIC_PREFIX/lib/libsodium.a" \
+  -DWITH_TLS=OFF \
+  -DWITH_DOCS=OFF \
+  -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libzmq.so* 2>/dev/null || true
+'

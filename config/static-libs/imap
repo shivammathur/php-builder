@@ -1,0 +1,35 @@
+# imap - University of Washington IMAP c-client library
+# Used for PHP imap PECL extension
+LIB_NAME=imap
+LIB_VERSION=2007f
+LIB_SOURCE=build
+LIB_URL="https://github.com/static-php/imap/archive/refs/heads/master.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+target="lnx"
+ssl_args="SSLTYPE=none"
+if [ -f "$STATIC_PREFIX/include/openssl/ssl.h" ]; then
+  target="slx"
+  ssl_args="SSLTYPE=unix SSLDIR=$STATIC_PREFIX SSLINCLUDE=$STATIC_PREFIX/include SSLLIB=$STATIC_PREFIX/lib"
+fi
+yes | make $target EXTRACFLAGS="$CFLAGS -DIGNSTRSTRINCLUDESSTRPBRK" \
+  EXTRALDFLAGS="$LDFLAGS" $ssl_args IP=6 PASSWDTYPE=std || true
+mkdir -p "$STATIC_PREFIX/include/imap" "$STATIC_PREFIX/lib/pkgconfig"
+cp c-client/*.h "$STATIC_PREFIX/include/imap/"
+cp c-client/c-client.a "$STATIC_PREFIX/lib/libc-client.a"
+ln -sf libc-client.a "$STATIC_PREFIX/lib/libimap.a" 2>/dev/null || true
+cat > "$STATIC_PREFIX/lib/pkgconfig/imap.pc" << PKGEOF
+prefix=$STATIC_PREFIX
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include/imap
+Name: c-client
+Description: UW IMAP c-client library
+Version: 2007f
+Libs: -L\${libdir} -lc-client
+Libs.private: -lssl -lcrypto -lcrypt
+Cflags: -I\${includedir}
+PKGEOF
+'

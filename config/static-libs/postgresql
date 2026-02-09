@@ -1,0 +1,33 @@
+# postgresql - PostgreSQL client library (libpq)
+# Used for PHP pgsql and pdo_pgsql extensions
+LIB_NAME=postgresql
+LIB_VERSION=16.3
+LIB_SOURCE=build
+LIB_URL="https://ftp.postgresql.org/pub/source/v16.3/postgresql-16.3.tar.bz2"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+sed -i "s/haslibarule =  yes/haslibarule = no/" src/Makefile.shlib
+sed -i "s/\$(COMPILER) -shared/echo skip/g" src/Makefile.shlib
+export CFLAGS="-fPIC -I$STATIC_PREFIX/include"
+export LDFLAGS="-L$STATIC_PREFIX/lib"
+export LIBS="-lpthread"
+ssl_opt="--without-openssl"
+zlib_opt="--without-zlib"
+[ -f "$STATIC_PREFIX/lib/libssl.a" ] && ssl_opt="--with-ssl=openssl"
+[ -f "$STATIC_PREFIX/lib/libz.a" ] && zlib_opt="--with-zlib"
+./configure --prefix="$STATIC_PREFIX" \
+  --with-includes="$STATIC_PREFIX/include" \
+  --with-libraries="$STATIC_PREFIX/lib" \
+  $ssl_opt $zlib_opt \
+  --without-readline --without-lz4 --without-zstd \
+  --without-perl --without-python --without-tcl --without-icu
+cd src/bin/pg_config && make -j"$JOBS" && make install && cd ../../..
+cd src/include && make -j"$JOBS" && make install && cd ../..
+cd src/common && make -j"$JOBS" && make install && cd ../..
+cd src/port && make -j"$JOBS" && make install && cd ../..
+cd src/interfaces/libpq && make -j"$JOBS" && cd ../../..
+mkdir -p "$STATIC_PREFIX/lib" "$STATIC_PREFIX/include" "$STATIC_PREFIX/lib/pkgconfig"
+cp src/interfaces/libpq/libpq.a "$STATIC_PREFIX/lib/"
+cp src/interfaces/libpq/libpq-fe.h src/interfaces/libpq/libpq-events.h "$STATIC_PREFIX/include/"
+[ -f src/interfaces/libpq/libpq.pc ] && cp src/interfaces/libpq/libpq.pc "$STATIC_PREFIX/lib/pkgconfig/"
+'

@@ -1,0 +1,19 @@
+# libidn2 - IDNA2008 library
+# Needed for curl static protocol/feature parity
+LIB_NAME=libidn2
+LIB_VERSION=2.3.7
+LIB_SOURCE=build
+LIB_URL="https://ftp.gnu.org/gnu/libidn/libidn2-${LIB_VERSION}.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+CFLAGS="-fPIC -O2 -I$STATIC_PREFIX/include" \
+LDFLAGS="-L$STATIC_PREFIX/lib" \
+PKG_CONFIG_PATH="$STATIC_PREFIX/lib/pkgconfig" \
+./configure --prefix="$STATIC_PREFIX" \
+  --enable-static \
+  --disable-shared \
+  --with-libunistring-prefix="$STATIC_PREFIX"
+make -j"$JOBS"
+make install
+rm -f "$STATIC_PREFIX/lib"/libidn2.so* "$STATIC_PREFIX/lib"/libidn2.la 2>/dev/null || true
+'

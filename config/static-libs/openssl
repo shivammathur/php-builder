@@ -1,0 +1,34 @@
+# OpenSSL - Cryptography library
+# Required for HTTPS, TLS, and crypto operations
+LIB_NAME=openssl
+LIB_VERSION=3.4.1
+LIB_SOURCE=build
+LIB_URL="https://github.com/openssl/openssl/releases/download/openssl-3.4.1/openssl-3.4.1.tar.gz"
+LIB_BUILD_CMD='
+cd "$SRC_DIR"
+
+# Detect architecture for OpenSSL target
+OPENSSL_TARGET=""
+case "$(uname -m)" in
+  x86_64)  OPENSSL_TARGET="linux-x86_64" ;;
+  aarch64) OPENSSL_TARGET="linux-aarch64" ;;
+  *)       OPENSSL_TARGET="linux-generic64" ;;
+esac
+
+./Configure "$OPENSSL_TARGET" \
+  --prefix="$STATIC_PREFIX" \
+  --openssldir="$STATIC_PREFIX/ssl" \
+  --libdir=lib \
+  no-shared \
+  no-tests \
+  no-legacy \
+  enable-ktls \
+  -fPIC
+
+make -j"$JOBS"
+make install_sw
+
+# Remove any shared libs that might have been created
+rm -f "$STATIC_PREFIX/lib"/libssl.so* "$STATIC_PREFIX/lib"/libcrypto.so* 2>/dev/null || true
+rm -f "$STATIC_PREFIX/lib"/*.la 2>/dev/null || true
+'

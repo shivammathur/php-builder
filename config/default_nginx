@@ -13,7 +13,7 @@ server {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/phpPHP_VERSION-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.5-fpm.sock;
     }
 
     location ~ /\.ht {

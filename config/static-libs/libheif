@@ -1,0 +1,65 @@
+# libheif - HEIF/HEIC image format library
+# Dependency for ImageMagick
+# Based on static-php-cli patterns
+
+NAME="libheif"
+VERSION="1.17.6"
+URL="https://github.com/strukturag/libheif/releases/download/v${VERSION}/libheif-${VERSION}.tar.gz"
+STATIC_LIB="libheif.a"
+PKGCONFIG="libheif.pc"
+
+# Source type - try prebuilt first
+LIB_SOURCE="prebuilt"
+LIB_NAME="libheif"
+LIB_VERSION="$VERSION"
+
+# Dependencies: libde265, libwebp, libaom (already in /opt/static)
+
+build_library() {
+    cd "$BUILD_DIR" || return 1
+    
+    # Download source
+    curl -fsSL "$URL" -o libheif.tar.gz || return 1
+    tar xzf libheif.tar.gz
+    cd libheif-* || return 1
+    
+    # Use CMake for static build
+    mkdir -p build
+    cd build
+    
+    cmake .. \
+        -DCMAKE_INSTALL_PREFIX="$STATIC_PREFIX" \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=OFF \
+        -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+        -DWITH_LIBDE265=ON \
+        -DWITH_X265=OFF \
+        -DWITH_AOM_DECODER=ON \
+        -DWITH_AOM_ENCODER=ON \
+        -DWITH_RAV1E=OFF \
+        -DWITH_DAV1D=OFF \
+        -DWITH_SvtEnc=OFF \
+        -DWITH_KVAZAAR=OFF \
+        -DWITH_JPEG_DECODER=ON \
+        -DWITH_JPEG_ENCODER=ON \
+        -DWITH_OpenJPEG_DECODER=OFF \
+        -DWITH_OpenJPEG_ENCODER=OFF \
+        -DWITH_EXAMPLES=OFF \
+        -DWITH_GDK_PIXBUF=OFF \
+        -DENABLE_MULTITHREADING_SUPPORT=ON \
+        -DCMAKE_PREFIX_PATH="$STATIC_PREFIX"
+    
+    make -j"$(nproc)"
+    make install
+    
+    # Remove any .so files
+    rm -f "$STATIC_PREFIX/lib"/libheif*.so* 2>/dev/null || true
+    
+    # Verify static library was created
+    if [ ! -f "$STATIC_PREFIX/lib/$STATIC_LIB" ]; then
+        echo "Error: $STATIC_LIB not found"
+        return 1
+    fi
+    
+    echo "libheif $VERSION built successfully"
+}
