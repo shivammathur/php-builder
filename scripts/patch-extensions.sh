@@ -67,6 +67,8 @@ patch_memcache() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/memcache_ascii_protocol.c src/memcache_binary_protocol.c src/memcache_pool.c src/memcache_session.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string_public.h#Zend/zend_smart_string.h#' src/memcache_pool.h
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' src/memcache.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i '/^ZEND_EXTERN_MODULE_GLOBALS(memcache)$/a #define ps_create_sid_memcache php_session_create_id\n#define ps_validate_sid_memcache php_session_validate_sid' src/memcache_session.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/path = save_path;/path = ZSTR_VAL(save_path);/' src/memcache_session.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     for file in src/memcache_pool.c src/memcache_session.c src/memcache_binary_protocol.c src/memcache.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
