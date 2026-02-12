@@ -102,6 +102,10 @@ patch_redis() {
     for file in redis.c redis_cluster.c; do
       sed -i 's/ZEND_WRONG_PARAM_COUNT();/zend_wrong_param_count();RETURN_THROWS();/' $file
     done
+    sed -i 's/strlen(save_path)/ZSTR_LEN(save_path)/g' redis_session.c
+    sed -i 's/save_path\[/ZSTR_VAL(save_path)[/g' redis_session.c
+    sed -i 's/save_path+i/ZSTR_VAL(save_path)+i/g' redis_session.c
+    sed -i 's/estrdup(save_path)/estrdup(ZSTR_VAL(save_path))/g' redis_session.c
   fi
 }
 
