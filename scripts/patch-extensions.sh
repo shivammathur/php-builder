@@ -80,6 +80,11 @@ patch_memcache() {
 patch_memcached() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' php_memcached.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i \
+    -e 's|if (strstr(save_path, "PERSISTENT="))|if (strstr(ZSTR_VAL(save_path), "PERSISTENT="))|' \
+    -e 's|servers = memcached_servers_parse(save_path);|servers = memcached_servers_parse(ZSTR_VAL(save_path));|' \
+    -e 's|"memc-session:%s", save_path);|"memc-session:%s", ZSTR_VAL(save_path));|' \
+    php_memcached_session.c
 }
 
 # Function to patch redis source.
