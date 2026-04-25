@@ -148,6 +148,8 @@ patch_ast() {
     for file in ast.c ast_data.c; do
       sed -i 's/ZEND_AST_METHOD_REFERENCE/ZEND_AST_TRAIT_METHOD_REFERENCE/g' "$file"
     done
+    sed -i 's/zend_parse_parameters_throw/zend_parse_parameters/g' ast.c
+    sed -i 's/ZEND_PARSE_PARAMS_THROW/0/g' ast.c
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/' ast.c
   fi
 }
