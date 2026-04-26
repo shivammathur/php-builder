@@ -25,6 +25,7 @@
 
 - Ubuntu 22.04 (Jammy) amd64/arm64
 - Ubuntu 24.04 (Noble) amd64/arm64
+- Ubuntu 26.04 (Resolute) amd64/arm64
 - Debian 11 (Bullseye) amd64/arm64
 - Debian 12 (Bookworm) amd64/arm64
 - Debian 13 (Trixie) amd64/arm64

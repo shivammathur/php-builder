@@ -19,6 +19,10 @@ configure_phpbuild() {
   # Copy all the custom definitions to php-build definitions directory.
   cp -rf config/definitions/* "${definitions:?}"
 
+  if [[ "$ID" = "ubuntu" && "$VERSION_ID" = "26.04" && "$PHP_VERSION" =~ ^(5\.6|7\.[0-2])$ ]]; then
+    sed -i '/^--with-pcre-regex=\/usr$/d' "${definitions:?}"/"$PHP_VERSION"
+  fi
+
   # Patch the definition for the PHP version.
   patch_config_file configure_option "${definitions:?}"/"$PHP_VERSION"
 
