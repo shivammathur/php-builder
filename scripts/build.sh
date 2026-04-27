@@ -48,6 +48,22 @@ get_buildflags() {
   echo "$flags"
 }
 
+get_c23_standard_flag() {
+  local cc cc_major cc_version c23_major
+  cc=${CC:-cc}
+  cc_major=$("$cc" -dumpfullversion -dumpversion 2>/dev/null | cut -d '.' -f 1)
+  [[ "$cc_major" =~ ^[0-9]+$ ]] || return 0
+
+  # PHP 8.6 C23_ENUM needs finalized C23 support to keep -pedantic enabled.
+  # GCC provides that from 15, while Clang has it in the build images from 18.
+  cc_version=$("$cc" --version 2>/dev/null | sed -n '1p')
+  c23_major=15
+  [[ "$cc_version" =~ [Cc]lang ]] && c23_major=18
+  if [ "$cc_major" -ge "$c23_major" ]; then
+    echo "-std=gnu23"
+  fi
+}
+
 # Function to build PHP.
 build_php() {
   echo "::group::$1"
@@ -64,6 +80,14 @@ build_php() {
     
   if [[ "$PHP_VERSION" =~ 5.6|7.[0-4]|8.0 ]]; then
     EXTRA_CFLAGS="-fpermissive -Wno-deprecated -Wno-deprecated-declarations"
+  elif dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
+    c23_flag="$(get_c23_standard_flag)"
+    if [ -n "$c23_flag" ]; then
+      CFLAGS="$CFLAGS $c23_flag"
+      EXTRA_CFLAGS="-Wall -pedantic"
+    else
+      EXTRA_CFLAGS="-Wall -Wno-pedantic"
+    fi
   else
     EXTRA_CFLAGS="-Wall -pedantic"
   fi
