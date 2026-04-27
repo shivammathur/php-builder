@@ -181,6 +181,113 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/*.zst
+
+  build-extensions:
+    needs: [get-matrix, merge]
+    if: "!contains(github.event.head_commit.message, 'skip-extensions')"
+    container: ${{ matrix.container }}
+    runs-on: ${{ matrix.container-base }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Stage build
+        shell: bash
+        run: |
+          mkdir -p /tmp/debian
+          for php_build in /tmp/*.zst; do
+            tar -I zstd -xf "$php_build" -C /tmp/debian
+            rm -f "$php_build"
+          done
+
+      - name: Build extensions
+        run: bash scripts/build.sh build_extensions
+        env:
+          BUILD: ${{ matrix.build }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-extensions${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/*.zst
+
+  package:
+    needs: [get-matrix, merge, build-extensions]
+    if: "!contains(github.event.head_commit.message, 'skip-package')"
+    container: ${{ matrix.container }}
+    runs-on: ${{ matrix.container-base }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-extensions${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Stage builds
+        shell: bash
+        run: |
+          mkdir -p /tmp/debian
+          for php_build in /tmp/*.zst; do
+            tar -I zstd -xf "$php_build" -C /tmp/debian
+            rm -f "$php_build"
+          done
+
+      - name: Package build
+        run: bash scripts/build.sh package
+        env:
+          BUILD: ${{ matrix.build }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || github.event.inputs.build-mode }}
+          GITHUB_NAME: 'Shivam Mathur'
+          GITHUB_EMAIL: ${{ secrets.email }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: |
             /tmp/*.xz
@@ -216,7 +323,7 @@ jobs:
           
 
   local-test:
-    needs: [merge, build, get-matrix]
+    needs: [package, build, get-matrix]
     runs-on: ${{ matrix.container-base }}
     if: "!contains(github.event.head_commit.message, 'skip-local-test')"
     container: ${{ matrix.container }}
@@ -258,7 +365,7 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
 
   github-test:
-    needs: [merge, build, get-matrix]
+    needs: [package, build, get-matrix]
     runs-on: ${{ matrix.os }}
     if: "!contains(github.event.head_commit.message, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
     strategy:

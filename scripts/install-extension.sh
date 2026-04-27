@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 extension=$1
 repo=$2
@@ -6,6 +7,14 @@ tag=$3
 INSTALL_ROOT=$4
 shift 4
 params=("$@")
+pecl_package=$extension
+PHP_INSTALL_ROOT="${PHP_INSTALL_ROOT:-$INSTALL_ROOT}"
+
+case "$extension" in
+  http)
+    pecl_package=pecl_http
+    ;;
+esac
 
 . scripts/patch-extensions.sh
 
@@ -45,14 +54,17 @@ if [[ "$repo" != "pecl" && "$tag" = "latest" ]]; then
   tag="$(get_latest_git_tag "$repo")"
 fi
 
+# Clean stale sources from previous local builds of the same extension.
+rm -rf /tmp/"$extension"-* /tmp/"$pecl_package"-* /tmp/"$extension".tar.gz "$extension"*.tgz "$pecl_package"*.tgz
+
 # Fetch the extension source.
 if [ "$repo" = "pecl" ]; then
   if [ -n "${tag// }" ]; then
-    "$INSTALL_ROOT"/usr/bin/pecl download "$extension-$tag"
+    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package-$tag"
   else
-    "$INSTALL_ROOT"/usr/bin/pecl download "$extension"
+    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package"
   fi
-  mv "$extension"*.tgz /tmp/"$extension".tar.gz
+  mv "$pecl_package"*.tgz /tmp/"$extension".tar.gz
 else
   curl -o "/tmp/$extension.tar.gz" -sSL "$repo/archive/${tag/\//%2f}.tar.gz"
 fi
@@ -61,13 +73,15 @@ fi
 tar xf "/tmp/$extension.tar.gz" -C /tmp
 (
   if [ "$repo" = "pecl" ]; then
-    cd /tmp/"$extension"-* || exit 1
+    cd /tmp/"$pecl_package"-* || exit 1
   else
     tag=${tag#v}
     cd /tmp/"$(basename "$repo")"-"${tag/\//-}" || exit 1
   fi
   export SED=$(command -v sed)
-  patch_"${extension}" 2>/dev/null || true
+  if declare -f "patch_${extension}" >/dev/null; then
+    "patch_${extension}"
+  fi
   phpize
   ./configure "--with-php-config=/usr/bin/php-config" "${params[@]}"
   make -j"$(nproc)"

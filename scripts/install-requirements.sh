@@ -227,7 +227,9 @@ install_packages apache2 \
                  libapache2-mod-fcgid \
                  libaspell-dev \
                  libbz2-dev \
+                 libbrotli-dev \
                  libc-client2007e-dev \
+                 libc-ares-dev \
                  libcurl4-openssl-dev \
                  libdb-dev \
                  libedit-dev \
@@ -242,8 +244,11 @@ install_packages apache2 \
                  "$libgccjit_dev" \
                  libgcrypt20-dev \
                  libgd-dev \
+                 libgearman-dev \
                  libglib2.0-dev \
                  libgmp3-dev \
+                 libgpgme-dev \
+                 libgrpc-dev \
                  libicu-dev \
                  libjpeg-dev \
                  libkrb5-dev \
@@ -253,9 +258,12 @@ install_packages apache2 \
                  liblz4-dev \
                  liblzma-dev \
                  libmagic-dev \
+                 libmaxminddb-dev \
+                 libnghttp2-dev \
                  libmagickwand-dev \
                  libmcrypt-dev \
                  libmemcached-dev \
+                 libmpdec-dev \
                  libmhash-dev \
                  "$libmysql_dev" \
                  libnss-myhostname \
@@ -265,14 +273,19 @@ install_packages apache2 \
                  "$libpcre_dev" \
                  libpng-dev \
                  libpq-dev \
+                 libprotobuf-dev \
                  libpspell-dev \
                  libqdbm-dev \
                  librabbitmq-dev \
+                 librdkafka-dev \
                  libreadline-dev \
+                 librrd-dev \
                  libsasl2-dev \
+                 libsmbclient-dev \
                  libsnmp-dev \
                  libsodium-dev \
                  libsqlite3-dev \
+                 libssh2-1-dev \
                  libssl-dev \
                  libsystemd-dev \
                  libtidy-dev \
@@ -290,12 +303,15 @@ install_packages apache2 \
                  locales-all \
                  netbase \
                  netcat-openbsd \
+                 patch \
                  pkg-config \
+                 protobuf-compiler \
                  re2c \
                  shtool \
                  systemtap-sdt-dev \
                  tzdata \
                  unixodbc-dev \
+                 uuid-dev \
                  zlib1g-dev
 
 # Configure PHP build requirements.

@@ -15,9 +15,11 @@ configure_imagick() {
 
 # Function to patch imagick source.
 patch_imagick() {
+  local package_xml
   configure_imagick
-  sed -i 's/spl_ce_Countable/zend_ce_countable/' imagick.c util/checkSymbols.php
-  sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' package.xml)/" php_imagick.h
+  package_xml=package.xml
+  [ -f "$package_xml" ] || package_xml=../package.xml
+  sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' "$package_xml")/" php_imagick.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' imagick.c
 }
 
@@ -33,6 +35,16 @@ patch_sqlsrv() {
     sed -i 's/INI_INT( subsystems )/zend_ini_long_literal(INI_PREFIX INI_LOG_SUBSYSTEMS)/' init.cpp
     sed -i 's/INI_INT( buffered_limit )/zend_ini_long_literal(INI_PREFIX INI_BUFFERED_QUERY_LIMIT)/' init.cpp
     sed -i 's/INI_INT(set_locale_info)/zend_ini_long_literal(INI_PREFIX INI_SET_LOCALE_INFO)/' init.cpp
+  fi
+}
+
+# Function to patch swoole source.
+patch_swoole() {
+  if [[ "$PHP_VERSION" = "7.2" || "$PHP_VERSION" = "7.3" ]]; then
+    sed -i 's/PHP_ADD_LIBRARY(atomic/: #/' config.m4
+  fi
+  if [ -f include/swoole_proxy.h ]; then
+    sed -i 's/#include <string>/#include <string>\n#include <cstdint>/' include/swoole_proxy.h
   fi
 }
 
@@ -63,9 +75,192 @@ patch_xdebug() {
   fi
 }
 
+# Function to move to xhprof extension source.
+patch_xhprof() {
+  [ -d extension ] && cd extension
+}
+
+# Function to patch SPL class symbols renamed in PHP 8.6.
+patch_spl_symbols() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    for symbol in Aggregate ArrayAccess Countable Iterator Serializable Stringable Traversable; do
+      lower_symbol="$(printf '%s' "$symbol" | tr '[:upper:]' '[:lower:]')"
+      find . -type f -exec sed -i "s/spl_ce_$symbol/zend_ce_$lower_symbol/g" {} +
+    done
+  fi
+}
+
 # Function to patch amqp source.
 patch_amqp() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
+}
+
+# Function to patch excimer source.
+patch_excimer() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/INI_INT(/zend_ini_long_literal(/g' excimer.c
+  fi
+}
+
+# Function to patch decimal source.
+patch_decimal() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/INI_INT("opcache.optimization_level")/zend_ini_long_literal("opcache.optimization_level")/g' php_decimal.c
+    sed -i 's/ZEND_PARSE_PARAMS_THROW/0/g' src/params.h
+  fi
+}
+
+# Function to move to maxminddb extension source.
+patch_maxminddb() {
+  [ -d ext ] && cd ext
+}
+
+# Function to patch rdkafka source.
+patch_rdkafka() {
+  patch_spl_symbols
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE()/g' rdkafka.c
+  fi
+}
+
+# Function to patch ssh2 source.
+patch_ssh2() {
+  if [[ "$PHP_VERSION" =~ 7.[0-2] ]]; then
+    sed -i 's/ZSTR_VAL(resource->path)/SSH2_URL_STR(resource->path)/g' ssh2_fopen_wrappers.c
+    sed -i 's/zend_string_release(resource->path);/efree(resource->path);/g' ssh2_fopen_wrappers.c
+    sed -i 's/resource->path = zend_string_init(path_in_original, strlen(path_in_original), 0);/resource->path = estrdup(path_in_original);/g' ssh2_fopen_wrappers.c
+  fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zval_is_true(&zretval)/zend_is_true(\&zretval)/g' ssh2.c
+    sed -i 's/zval_dtor(&copyval);/zval_ptr_dtor(\&copyval);/g' ssh2_fopen_wrappers.c
+  fi
+}
+
+# Function to patch gearman source.
+patch_gearman() {
+  if [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zend_exception_get_default()/zend_ce_exception/g' php_gearman.c
+  fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+  fi
+}
+
+# Function to patch mcrypt source.
+patch_mcrypt() {
+  if [[ "$PHP_VERSION" =~ 8.[2-6] ]]; then
+    sed -i 's#ext/standard/php_rand.h#ext/random/php_random.h#g' mcrypt.c
+  fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i '/#include "php.h"/a #ifndef INI_STR\n#define INI_STR(name) zend_ini_string((name), strlen(name), 0)\n#endif' mcrypt_filter.c
+    sed -i '/php_mcrypt_filter,$/a \    NULL,' mcrypt_filter.c
+    sed -i \
+      -e 's/static php_stream_filter \*php_mcrypt_filter_create(const char \*filtername, zval \*filterparams, uint8_t persistent)/static php_stream_filter *php_mcrypt_filter_create(const char *filtername, zval *filterparams, bool persistent)/' \
+      -e 's/php_stream_filter_alloc(&php_mcrypt_filter_ops, data, persistent)/php_stream_filter_alloc(\&php_mcrypt_filter_ops, data, persistent, PSFS_SEEKABLE_NEVER)/' \
+      mcrypt_filter.c
+  fi
+}
+
+# Function to patch http source.
+patch_http() {
+  sed -i -E ':a;N;$!ba;s#PECL_HAVE_PHP_EXT\(\[(raphf|propro)\], \[\n[[:space:]]*PECL_HAVE_PHP_EXT_HEADER\(\[\1\]\)\n[[:space:]]*\], \[\n[[:space:]]*AC_MSG_ERROR\(\[please install and enable pecl/\1\]\)\n[[:space:]]*\]\)#PECL_HAVE_PHP_EXT_HEADER([\1])#g' config9.m4
+  sed -i -E 's#HTTP_HAVE_PHP_EXT\(\[(raphf|propro)\], \[#if true; then#g' config9.m4
+  sed -i -E ':a;N;$!ba;s#\n[[:space:]]*\], \[\n[[:space:]]*AC_MSG_ERROR\(\[Please install pecl/(raphf|propro) and activate extension=\1\.\$SHLIB_DL_SUFFIX_NAME in your php\.ini\]\)\n[[:space:]]*\]\)#\n\tfi#g' config9.m4
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find src -type f -exec sed -i 's/ZEND_RESULT_CODE/zend_result/g; s/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    sed -i 's/ctx->closure.internal_function.arg_info = .*ai_user_handler\[1\];/ctx->closure.internal_function.arg_info = (zend_arg_info *) \&ai_user_handler[1];/g' src/php_http_client_curl_user.c
+    sed -i 's#standard/php_lcg.h#random/php_random.h#g' src/php_http_message_body.c src/php_http_misc.c
+    sed -i 's/static php_stream_filter \*http_filter_create(const char \*name, zval \*params, uint8_t p)/static php_stream_filter *http_filter_create(const char *name, zval *params, bool p)/g' src/php_http_filter.c
+    sed -i '/PHP_HTTP_FILTER_FUNC(/ { N; /\n[[:space:]]*\(PHP_HTTP_FILTER_DTOR(\|NULL,\)/ s/\n/\n\tNULL,\n/ }' src/php_http_filter.c
+    sed -i -E 's/php_stream_filter_alloc\(([^,]+), ([^,]+), ([^)]+)\)/php_stream_filter_alloc(\1, \2, \3, PSFS_SEEKABLE_NEVER)/g' src/php_http_filter.c
+  fi
+}
+
+# Function to patch pq source.
+patch_pq() {
+  sed -i 's#PQ_HAVE_PHP_EXT(\[raphf\], \[#if true; then#' config9.m4
+  sed -i -E ':a;N;$!ba;s#\n[[:space:]]*\], \[\n[[:space:]]*AC_MSG_ERROR\(\[Please install pecl/raphf and activate extension=raphf\.\$SHLIB_DL_SUFFIX_NAME in your php\.ini\]\)\n[[:space:]]*\]\)#\n\t\tfi#' config9.m4
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find src -type f -exec sed -i 's/ZEND_RESULT_CODE/zend_result/g; s/zval_dtor/zval_ptr_dtor_nogc/g; s/ZVAL_IS_NULL(\([^)]*\))/Z_TYPE_P(\1) == IS_NULL/g' {} +
+  fi
+}
+
+# Function to patch smbclient source.
+patch_smbclient() {
+  if [[ "$PHP_VERSION" = "5.6" ]]; then
+    sed -i 's/"Negative byte count: " ZEND_LONG_FMT/"Negative byte count: %ld"/g' smbclient.c
+    sed -i 's/zend_off_t/off_t/g' smb_streams.c
+  fi
+}
+
+# Function to patch solr source.
+patch_solr() {
+  sed -i '/^[[:space:]]*done$/,/^[[:space:]]*fi$/ { /^[[:space:]]*fi$/a \\n\tif test -z "$CURL_DIR" && test -r /usr/include/`cc -dumpmachine`/curl/easy.h; then\n\t\tCURL_DIR=/usr\n\t\tCURL_CFLAGS="-I/usr/include/`cc -dumpmachine`"\n\t\tAC_MSG_RESULT(found in /usr/include/`cc -dumpmachine`)\n\tfi
+  }' config.m4
+  sed -i 's/PHP_ADD_INCLUDE($CURL_DIR\/include)/PHP_EVAL_INCLINE($CURL_CFLAGS)\n    PHP_ADD_INCLUDE($CURL_DIR\/include)/' config.m4
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find src -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+  fi
+}
+
+# Function to patch opentelemetry source.
+patch_opentelemetry() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zend_internal_arg_info \*arg_info =/zend_arg_info *arg_info =/' otel_observer.c
+    sed -i '/size_t len = strlen(arg_info->name);/d' otel_observer.c
+    sed -i '/if (len == ZSTR_LEN(arg_name) &&/ { N; s#if (len == ZSTR_LEN(arg_name) \&\&\n[[:space:]]*!memcmp(arg_info->name, ZSTR_VAL(arg_name), len)) {#if (arg_info->name \&\& zend_string_equals(arg_name, arg_info->name)) {#; }' otel_observer.c
+    sed -i \
+      -e 's/save_state->prev_exception = EG(prev_exception);/save_state->prev_exception = NULL;/' \
+      -e 's/EG(prev_exception) = NULL;//' \
+      -e 's/EG(prev_exception) = save_state->prev_exception;//' \
+      -e 's/zval_dtor/zval_ptr_dtor_nogc/g' \
+      otel_observer.c
+  fi
+}
+
+# Function to patch protobuf source.
+patch_protobuf() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' map.c message.c
+  fi
+}
+
+# Function to patch raphf source.
+patch_raphf() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/ZEND_RESULT_CODE/zend_result/g' src/php_raphf_api.h src/php_raphf_api.c
+    sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' src/php_raphf_api.c
+  fi
+}
+
+# Function to patch uploadprogress source.
+patch_uploadprogress() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/INI_BOOL(/zend_ini_bool_literal(/g; s/INI_STR(/zend_ini_string_literal(/g' uploadprogress.c
+  fi
+}
+
+# Function to patch xlswriter source.
+patch_xlswriter() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+  fi
+}
+
+# Function to patch uopz source.
+patch_uopz() {
+  if [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
+    curl -fsSL https://patch-diff.githubusercontent.com/raw/krakjoe/uopz/pull/185.patch \
+      | awk 'BEGIN { skip=0 } index($0, "diff --git a/tests/") == 1 { skip=1 } index($0, "diff --git ") == 1 && index($0, "diff --git a/tests/") != 1 { skip=0 } !skip { print }' \
+      > uopz-pr-185.patch
+    patch --batch -p1 -i uopz-pr-185.patch
+  fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/INI_INT(/zend_ini_long_literal(/g' uopz.c
+    sed -i 's/zend_exception_get_default()/zend_ce_exception/g' uopz.c
+    sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' src/constant.c
+  fi
 }
 
 # Function to patch imap source.

@@ -27,10 +27,10 @@ check_stable() {
 get_stable_release_tag() {
   source=$1
   if [ "$source" = "--web-php" ]; then
-    release_tag="$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${PHP_VERSION//./\\.}\.[0-9]+)" | head -n 1)"
-    echo "${release_tag:-$(curl -sL https://www.php.net/releases | grep -Po "<h2>\K${PHP_VERSION//./\\.}\.[0-9]+" | head -n1 | sed 's/^/php-/')}"
+    release_tag="$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${PHP_VERSION//./\\.}\.[0-9]+)" | head -n 1 || true)"
+    echo "${release_tag:-$(curl -sL https://www.php.net/releases | grep -Po "<h2>\K${PHP_VERSION//./\\.}\.[0-9]+" | head -n1 | sed 's/^/php-/' || true)}"
   else
-    curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | sort -V | tail -1 | cut -d '"' -f 1
+    curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | sort -V | tail -1 | cut -d '"' -f 1 || true
   fi
 }
 

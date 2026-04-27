@@ -292,10 +292,11 @@ local_deps() {
   libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
   [[ "$version" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
   add_ppa
-  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libfreetype6-dev libraqm-dev libimagequant-dev libgd-dev libgomp1 libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmemcached-dev libonig-dev "$libpcre_dev" libpng-dev libpq-dev libqdbm-dev librabbitmq-dev libsnmp-dev libsodium-dev libsqlite3-dev libtidy-dev libtool libwebp-dev libwrap0-dev libxpm-dev libxml2-dev libxmlrpc-epi-dev libxslt1-dev libyaml-dev libzip-dev libzmq3-dev libzstd-dev make php-common shtool snmp systemd tzdata unixodbc-dev
+  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libbrotli-dev libc-ares-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libevent-dev libfreetype6-dev libraqm-dev libimagequant-dev libgd-dev libgearman-dev libgomp1 libgpgme-dev libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmaxminddb-dev libmcrypt-dev libmemcached-dev libmpdec-dev libnghttp2-dev libonig-dev "$libpcre_dev" libpng-dev libpq-dev libqdbm-dev librabbitmq-dev librdkafka-dev librrd-dev libsmbclient-dev libsnmp-dev libsodium-dev libsqlite3-dev libssh2-1-dev libssl-dev libtidy-dev libtool libwebp-dev libwrap0-dev libxpm-dev libxml2-dev libxmlrpc-epi-dev libxslt1-dev libyaml-dev libzip-dev libzmq3-dev libzstd-dev make patch php-common shtool snmp systemd tzdata unixodbc-dev uuid-dev
 }
 
 github_deps() {
+  local optional_extension_deps
   add_ppa || update_ppa
   if [ "$VERSION_ID" = "22.04" ]; then
     jammy_deps=('libxmlrpc-epi-dev')
@@ -307,7 +308,8 @@ github_deps() {
     [[ "$version" =~ 5.6|7.[0-2] ]] && noble_libs+=('libpcre3-dev')
     install_packages "${noble_libs[@]}"
   fi
-  install_packages libgd-dev
+  optional_extension_deps=(libgd-dev libevent-dev libgearman-dev libmcrypt-dev libmpdec-dev librdkafka-dev librrd-dev libsmbclient-dev)
+  install_packages "${optional_extension_deps[@]}"
 }
 
 switch_version() {

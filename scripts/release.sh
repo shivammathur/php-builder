@@ -40,8 +40,8 @@ log_version() {
 # Exit if commit message has skip-release.
 [[ "$GITHUB_MESSAGE" = *skip-release* ]] && exit 0;
 
-# Remove SAPI builds.
-rm -rf ./builds/php-sapi*
+# Remove intermediate builds.
+rm -rf ./builds/php-sapi* ./builds/php-base* ./builds/php-extensions*
 
 IFS=' ' read -r -a PHP_VERSIONS <<<"${PHP_LIST:?}"
 for PHP_VERSION in "${PHP_VERSIONS[@]}"; do

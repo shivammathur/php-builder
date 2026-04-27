@@ -12,6 +12,8 @@ Usage: ${0} <action> [sapi]
 Available actions:
  - build_sapi
  - merge
+ - build_extensions
+ - package
 
 Available sapis:
  - apache2
@@ -111,6 +113,12 @@ save_commit() {
 # Function to copy PHP from INSTALL_ROOT to the system root.
 link_php() {
   cp -af "$INSTALL_ROOT"/* /
+}
+
+# Function to install a staged PHP build into the system root.
+install_staged_php() {
+  link_php
+  switch_version
 }
 
 # Function to merge all SAPI builds into one.
@@ -299,7 +307,31 @@ elif [ "$action" = "merge" ]; then
   configure_ini
   configure_shared_extensions
   setup_pear
+  package_root '-base' "php$PHP_VERSION"
+elif [ "$action" = "build_extensions" ]; then
+  . scripts/build_partials/extensions.sh
+  . scripts/build_partials/package.sh
+  install_staged_php
+  PHP_INSTALL_ROOT="$INSTALL_ROOT"
+  ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
+  INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions
+  EXTENSIONS_ONLY=true
+  export PHP_INSTALL_ROOT
+  export EXTENSIONS_ONLY
+  mkdir -p "$INSTALL_ROOT"
   setup_custom_extensions
+  package_root '-extensions' "php$PHP_VERSION-extensions"
+elif [ "$action" = "package" ]; then
+  . scripts/build_partials/cleanup.sh
+  . scripts/build_partials/extensions.sh
+  . scripts/build_partials/package.sh
+  . scripts/build_partials/strip.sh
+  install_staged_php
+  cp -af "$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions/* "$INSTALL_ROOT"/
+  link_php
+  IFS=' ' read -r -a sapi_arr <<<"${SAPI_LIST:?}"
+  ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
+  enable_custom_extensions
   cleanup
   package_php
 fi

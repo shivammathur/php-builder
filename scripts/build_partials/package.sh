@@ -44,3 +44,19 @@ package_php() {
     echo "::endgroup::"
   )
 }
+
+# Function to package an intermediate build root.
+package_root() {
+  suffix=$1
+  root_name=${2:-php$PHP_VERSION$suffix}
+  (
+    arch="$(arch)"
+    [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
+    echo "::group::package_$suffix"
+    cd "$INSTALL_ROOT"/.. || exit
+    zstd -V
+    tar cf - "$root_name" | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX$suffix+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
+    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX$suffix+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+    echo "::endgroup::"
+  )
+}

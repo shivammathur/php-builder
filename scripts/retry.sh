@@ -9,7 +9,7 @@ runs=0
 until [[ $runs -ge $max_runs ]]
 do
   if $cmd "${args[@]}"; then
-    break;
+    exit 0;
   else
     echo "Failed"
     ((runs++))
@@ -17,3 +17,5 @@ do
     sleep "$sleep";
   fi
 done
+
+exit 1
