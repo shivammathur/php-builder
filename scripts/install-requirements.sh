@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -e
 
 # Function to cURL.
 get() {
@@ -122,22 +123,32 @@ install_packages() {
   apt_mgr='apt-get'
   command -v apt-fast >/dev/null && apt_mgr='apt-fast'
   apt_install="$apt_mgr install -yq --no-install-recommends"
-  $apt_install "${packages[@]}" 2>/dev/null || (update_lists && $apt_install "${packages[@]}")
+  for attempt in {1..3}; do
+    if $apt_install "${packages[@]}" 2>/dev/null; then
+      return 0
+    fi
+    apt-get clean
+    update_lists
+    sleep "$((attempt * 5))"
+  done
+  $apt_install "${packages[@]}"
 }
 
 # Function to configure the build requirements for PHP.
 configure_requirements() {
-  ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/x86_64-linux-gnu/libc-client.a
-  mkdir -p /usr/c-client/ /usr
-  ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
-  ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib/libldap.so
-  ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib/liblber.so
-  ln -s /usr/include/x86_64-linux-gnu/curl /usr/include/curl
-  ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
+  multiarch=$(dpkg-architecture -q DEB_HOST_MULTIARCH)
+  mkdir -p /usr/c-client/ /usr/lib/"$multiarch"
+  [ -e /usr/lib/libc-client.so.2007e.0 ] && ln -sf /usr/lib/libc-client.so.2007e.0 /usr/lib/"$multiarch"/libc-client.a
+  [ -e /usr/lib/libc-client.so.2007e.0 ] && ln -sf /usr/lib/libc-client.so.2007e.0 /usr/c-client/libc-client.a
+  [ -e /usr/lib/"$multiarch"/libldap.so ] && ln -sf /usr/lib/"$multiarch"/libldap.so /usr/lib/libldap.so
+  [ -e /usr/lib/"$multiarch"/liblber.so ] && ln -sf /usr/lib/"$multiarch"/liblber.so /usr/lib/liblber.so
+  [ -e /usr/include/"$multiarch"/curl ] && ln -sfn /usr/include/"$multiarch"/curl /usr/include/curl
+  [ -e /usr/include/"$multiarch"/gmp.h ] && ln -sfn /usr/include/"$multiarch"/gmp.h /usr/include/gmp.h
   if [ -d /usr/lib64 ]; then
-    ln -s /usr/lib/x86_64-linux-gnu/libldap.so /usr/lib64/libldap.so
-    ln -s /usr/lib/x86_64-linux-gnu/liblber.so /usr/lib64/liblber.so
+    [ -e /usr/lib/"$multiarch"/libldap.so ] && ln -sf /usr/lib/"$multiarch"/libldap.so /usr/lib64/libldap.so
+    [ -e /usr/lib/"$multiarch"/liblber.so ] && ln -sf /usr/lib/"$multiarch"/liblber.so /usr/lib64/liblber.so
   fi
+  return 0
 }
 
 # Function to get mysql package.
