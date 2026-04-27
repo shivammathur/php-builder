@@ -1,0 +1,15 @@
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Tue, 28 Apr 2026 00:40:00 +0530
+Subject: Fix tokenizer parser header build dependency
+
+---
+ ext/tokenizer/Makefile.frag | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/tokenizer/Makefile.frag b/ext/tokenizer/Makefile.frag
+index 4c8d6f0..a2f45b8 100644
+--- a/ext/tokenizer/Makefile.frag
++++ b/ext/tokenizer/Makefile.frag
+@@ -5 +5,2 @@ $(top_srcdir)/ext/tokenizer/tokenizer_data.c: $(top_srcdir)/Zend/zend_language_p
+ $(builddir)/tokenizer.lo: $(top_srcdir)/Zend/zend_language_parser.c $(top_srcdir)/Zend/zend_language_scanner.c
++$(builddir)/tokenizer_data.lo: $(top_srcdir)/Zend/zend_language_parser.h

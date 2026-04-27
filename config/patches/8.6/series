@@ -39,3 +39,4 @@
 0039-Disable-garbage-collection-routine.patch
 0040-Add-missing-header-includes.patch
 0041-Fix-conflicting-tsrm-declaration-with-C-linkage.patch
+0042-Fix-tokenizer-parser-header-build-dependency.patch
