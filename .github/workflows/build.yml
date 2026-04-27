@@ -1,0 +1,446 @@
+name: Build PHP
+
+on:
+  workflow_dispatch:
+    inputs:
+      build-mode:
+        description: 'Build mode: --build-all or --build-new'
+        default: '--build-new'
+        required: false
+      php-source:
+        description: 'PHP source: --web-php or --php-src'
+        default: ''
+        required: false
+      php-version:
+        description: 'PHP version to build'
+        default: '8.4'
+        required: false
+      container-os-versions:
+        description: 'OS versions to build on'
+        default: 'ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie'
+        required: false
+
+env:
+  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie
+  RUNNER_OS_LIST: ubuntu-22.04 ubuntu-24.04 ubuntu-22.04-arm ubuntu-24.04-arm
+  PHP_LIST: ${{ inputs.php-version }}
+  SAPI_LIST: apache2 cgi cli embed fpm phpdbg
+  BUILD_LIST: nts zts
+  PHP_SOURCE: ${{ inputs.php-source }}
+  CONTAINER_BASE: ubuntu-24.04
+  CONTAINER_BASE_ARM: ubuntu-24.04-arm
+
+jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      container_only: ${{ steps.set-matrix.outputs.container_only }}
+      container_os_matrix: ${{ steps.set-matrix.outputs.container_os_matrix }}
+      runner_os_matrix: ${{ steps.set-matrix.outputs.runner_os_matrix }}
+      test_container_os_matrix: ${{ steps.set-matrix.outputs.test_container_os_matrix }}
+      test_runner_os_matrix: ${{ steps.set-matrix.outputs.test_runner_os_matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get matrix
+        id: set-matrix
+        env:
+          COMMIT: ${{ github.event.head_commit.message || inputs.build-mode }}
+          CONTAINER_OS_LIST: ${{ inputs.container-os-versions || env.CONTAINER_OS_LIST }}
+          CONTAINER_BASE: ${{ env.CONTAINER_BASE }}
+          CONTAINER_BASE_ARM: ${{ env.CONTAINER_BASE_ARM }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUNNER_OS_LIST: ${{ env.RUNNER_OS_LIST }}
+          PHP_LIST: ${{ inputs.php-version }}
+          PHP_SOURCE: ${{ inputs.php-source || '--web-php' }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          BUILD_LIST: ${{ env.BUILD_LIST }}
+        run: bash scripts/get-matrix.sh
+
+  build:
+    needs: get-matrix
+    if: "!contains(github.event.head_commit.message, 'skip-build')"
+    runs-on: ${{ matrix.container-base }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+    env:
+      BUILD: ${{ matrix.build }}
+      GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PHP_VERSION: ${{ matrix.php-version }}
+      PHP_SOURCE: ${{ github.event.inputs.php-source }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+
+      - name: Build and package apache2
+        if: contains(env.SAPI_LIST, 'apache2')
+        run: bash scripts/build.sh build_sapi apache2
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package cgi
+        if: contains(env.SAPI_LIST, 'cgi')
+        run: bash scripts/build.sh build_sapi cgi
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package cli
+        if: contains(env.SAPI_LIST, 'cli')
+        run: bash scripts/build.sh build_sapi cli
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package embed
+        if: contains(env.SAPI_LIST, 'embed')
+        run: bash scripts/build.sh build_sapi embed
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package fpm
+        if: contains(env.SAPI_LIST, 'fpm')
+        run: bash scripts/build.sh build_sapi fpm
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Build and package phpdbg
+        if: contains(env.SAPI_LIST, 'phpdbg')
+        run: bash scripts/build.sh build_sapi phpdbg
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/debian/*.zst
+
+  merge:
+    needs: [get-matrix, build]
+    if: "!contains(github.event.head_commit.message, 'skip-merge')"
+    container: ${{ matrix.container }}
+    runs-on: ${{ matrix.container-base }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-sapi${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Stage builds
+        shell: bash
+        run: |
+          mkdir -p /tmp/debian
+          for sapi_build in /tmp/*.zst; do
+            tar -I zstd -xf "$sapi_build" -C /tmp/debian
+            rm -f "$sapi_build"
+          done
+
+      - name: Build and package
+        run: bash scripts/build.sh merge
+        env:
+          BUILD: ${{ matrix.build }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_NAME: 'Shivam Mathur'
+          GITHUB_EMAIL: ${{ secrets.email }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/*.zst
+
+  build-extensions:
+    needs: [get-matrix, merge]
+    if: "!contains(github.event.head_commit.message, 'skip-extensions')"
+    container: ${{ matrix.container }}
+    runs-on: ${{ matrix.container-base }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Stage build
+        shell: bash
+        run: |
+          mkdir -p /tmp/debian
+          for php_build in /tmp/*.zst; do
+            tar -I zstd -xf "$php_build" -C /tmp/debian
+            rm -f "$php_build"
+          done
+
+      - name: Build extensions
+        run: bash scripts/build.sh build_extensions
+        env:
+          BUILD: ${{ matrix.build }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: php-extensions${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/*.zst
+
+  package:
+    needs: [get-matrix, merge, build-extensions]
+    if: "!contains(github.event.head_commit.message, 'skip-package')"
+    container: ${{ matrix.container }}
+    runs-on: ${{ matrix.container-base }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install required packages
+        run: bash scripts/install-requirements.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-base${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php-extensions${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Stage builds
+        shell: bash
+        run: |
+          mkdir -p /tmp/debian
+          for php_build in /tmp/*.zst; do
+            tar -I zstd -xf "$php_build" -C /tmp/debian
+            rm -f "$php_build"
+          done
+
+      - name: Package build
+        run: bash scripts/build.sh package
+        env:
+          BUILD: ${{ matrix.build }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_NAME: 'Shivam Mathur'
+          GITHUB_EMAIL: ${{ secrets.email }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: |
+            /tmp/*.xz
+            /tmp/*.zst
+
+      - name: Check php-cli version
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+
+      - name: Check php-cgi version
+        run: php-cgi -v
+
+      - name: Check php-fpm version
+        run: php-fpm -v && php-fpm -t
+
+      - name: Check phpdbg version
+        run: phpdbg -V
+
+      - name: Check pecl version
+        run: pecl -V
+
+      - name: Check php-config version
+        run: php-config --version
+
+      - name: Check phpize version
+        run: phpize -v
+
+      - name: Check php extensions
+        run: bash scripts/test_extensions.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+          
+
+  local-test:
+    needs: [package, build, get-matrix]
+    runs-on: ${{ matrix.container-base }}
+    if: "!contains(github.event.head_commit.message, 'skip-local-test')"
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.test_container_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp
+
+      - name: Install PHP
+        run: |
+          sed -i '/download/d' scripts/install.sh
+          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }}
+
+      - name: Test
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+          php -m
+
+      - name: Check GD support
+        run: php -r "print_r(gd_info());"
+
+      - name: Test pecl
+        run: bash scripts/test_pecl.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - name: Check SAPI
+        run: bash scripts/test_sapi.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
+  github-test:
+    needs: [package, build, get-matrix]
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.get-matrix.outputs.test_runner_os_matrix)}}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.os }}
+          path: /tmp
+
+      - name: Install PHP
+        run: |
+          sed -i '/download/d' scripts/install.sh
+          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }}
+
+      - name: Test
+        run: |
+          php -v
+          php -r "if(strpos(phpversion(), '${{ matrix.php-version }}') === false) {throw new Exception('Wrong PHP version Installed');}"
+          php -m
+
+      - name: Test pecl
+        run: bash scripts/test_pecl.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
+      - name: Check SAPI
+        run: bash scripts/test_sapi.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
+  release-container-only:
+    needs: [get-matrix, local-test]
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'true')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Create builds directory
+        run: mkdir builds
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: builds
+
+      - name: Release
+        run: bash scripts/release.sh
+        env:
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_LIST: ${{ inputs.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+
+  release:
+    needs: [get-matrix, local-test, github-test]
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'false')"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Create builds directory
+        run: mkdir builds
+
+      - uses: actions/download-artifact@v8
+        with:
+          path: builds
+
+      - name: Release
+        run: bash scripts/release.sh
+        env:
+          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_LIST: ${{ inputs.php-version }}
+          PHP_SOURCE: ${{ github.event.inputs.php-source }}
