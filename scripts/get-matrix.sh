@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 container_os_json_array=()
+sapi_os_json_array=()
 runner_os_json_array=()
 test_container_os_json_array=()
 test_runner_os_json_array=()
@@ -13,6 +14,7 @@ container_only='false'
 IFS=' ' read -r -a container_os_array <<<"${CONTAINER_OS_LIST:?}"
 IFS=' ' read -r -a runner_os_array <<<"${RUNNER_OS_LIST:?}"
 IFS=' ' read -r -a build_array <<<"${BUILD_LIST:?}"
+IFS=' ' read -r -a sapi_array <<<"${SAPI_LIST:?}"
 IFS=' ' read -r -a php_array <<<"$(bash scripts/check-php-version.sh "${PHP_LIST:?}" "${COMMIT:-'--build-new'}" "${PHP_SOURCE:-'--web-php'}")"
 
 get_container_base() {
@@ -35,6 +37,20 @@ for os in "${container_os_array[@]}"; do
       dist_version="$(get_dist_version "$os")"
       os_base="$(get_container_base "$os")"
       container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\"}")
+    done
+  done
+done
+
+# Build a matrix array with container, distribution, distribution version, php-version, build and SAPI.
+for os in "${container_os_array[@]}"; do
+  for php in "${php_array[@]}"; do
+    for build in "${build_array[@]}"; do
+      for sapi in "${sapi_array[@]}"; do
+        dist="$(get_dist "$os")"
+        dist_version="$(get_dist_version "$os")"
+        os_base="$(get_container_base "$os")"
+        sapi_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"sapi\": \"$sapi\"}")
+      done
     done
   done
 done
@@ -86,6 +102,8 @@ done
 (
   # shellcheck disable=SC2001
   echo "container_os_matrix={\"include\":[$(echo "${container_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
+  # shellcheck disable=SC2001
+  echo "sapi_os_matrix={\"include\":[$(echo "${sapi_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
   # shellcheck disable=SC2001
   echo "runner_os_matrix={\"include\":[$(echo "${runner_os_json_array[@]}" | sed -e 's|} {|}, {|g')]}";
   # shellcheck disable=SC2001

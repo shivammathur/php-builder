@@ -331,7 +331,6 @@ elif [ "$action" = "merge" ]; then
   configure_ini
   configure_shared_extensions
   setup_pear
-  package_root '-base' "php$PHP_VERSION"
 elif [ "$action" = "build_extensions" ]; then
   . scripts/build_partials/extensions.sh
   . scripts/build_partials/package.sh
@@ -344,7 +343,6 @@ elif [ "$action" = "build_extensions" ]; then
   export EXTENSIONS_ONLY
   mkdir -p "$INSTALL_ROOT"
   setup_custom_extensions
-  package_root '-extensions' "php$PHP_VERSION-extensions"
 elif [ "$action" = "package" ]; then
   . scripts/build_partials/cleanup.sh
   . scripts/build_partials/extensions.sh

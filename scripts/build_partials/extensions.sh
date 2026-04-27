@@ -43,19 +43,6 @@ is_optional_extension() {
   grep -qx "$1" config/optional-extensions
 }
 
-get_custom_extension_config() {
-  awk -v extension="$1" '
-    {
-      name=$2
-      sub(/-[0-9].*$/, "", name)
-      if (name == extension) {
-        print
-        exit
-      }
-    }
-  ' config/extensions/"$PHP_VERSION"
-}
-
 # Function to install a custom extension from a config entry.
 setup_custom_extension() {
   local extension_config type extension repo tag
@@ -100,72 +87,11 @@ setup_custom_extension() {
   echo "::endgroup::"
 }
 
-setup_extension_build_dependency() {
-  local dependency dependency_config
-  dependency=$1
-  dependency_config="$(get_custom_extension_config "$dependency")"
-  [ -n "$dependency_config" ] || return 0
-
-  INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-build-dependency-"$dependency"
-  rm -rf "$INSTALL_ROOT"
-  mkdir -p "$INSTALL_ROOT"
-  setup_custom_extension "$dependency_config"
-}
-
-setup_extension_build_dependencies() {
-  case "$1" in
-    memcached|redis)
-      setup_extension_build_dependency igbinary
-      setup_extension_build_dependency msgpack
-      ;;
-    http|pq)
-      setup_extension_build_dependency raphf
-      ;;
-  esac
-}
-
 # Function to install extensions.
 setup_custom_extensions() {
   # Parse the config/extensions/$PHP_VERSION file.
   while read -r extension_config; do
-    # Get extension type, name and prefix
-    type=$(echo "$extension_config" | cut -d ' ' -f 1)
-    extension=$(echo "$extension_config" | cut -d ' ' -f 2)
-    echo "::group::$extension"
-
-    # If there is a compatible release on PECL i.e. type is pecl.
-    if [ "$type" = "pecl" ]; then
-      # Fetch the extension using PECL
-      tag=
-      if [ "${extension##*-}" != "${extension%-*}" ]; then
-        tag="${extension##*-}"
-      fi
-      extension="${extension%-*}"
-      repo=pecl
-      IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 3-)"
-    # Else install from git repository as per the config.
-    elif [ "$type" = "git" ]; then
-      # Get repository, tag and compile arguments from the config
-      repo=$(echo "$extension_config" | cut -d ' ' -f 3)
-      tag=$(echo "$extension_config" | cut -d ' ' -f 4)
-      IFS=' ' read -r -a args <<<"$(echo "$extension_config" | cut -d ' ' -f 5-)"
-    fi
-
-    # Add debug symbols to the extension build.
-    args+=("--enable-debug")
-
-    # Compile and install the extension.
-    bash scripts/retry.sh 5 5 bash "$(pwd)"/scripts/install-extension.sh "$extension" "$repo" "$tag" "$INSTALL_ROOT" "${args[@]}"
-
-    # Package optional extensions without enabling them by default.
-    if [ "${EXTENSIONS_ONLY:-false}" = "true" ]; then
-      package_extension "${extension%-*}"
-    elif is_optional_extension "${extension%-*}"; then
-      package_extension "${extension%-*}"
-    else
-      enable_extension "${extension%-*}"
-    fi
-    echo "::endgroup::"
+    setup_custom_extension "$extension_config"
   done < config/extensions/"$PHP_VERSION"
 
   # Disable PCOV by default as Xdebug is enabled.
