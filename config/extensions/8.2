@@ -18,7 +18,7 @@ git zmq https://github.com/zeromq/php-zmq master
 pecl excimer --enable-excimer
 pecl mailparse --enable-mailparse
 pecl oauth --enable-oauth
-pecl phalcon-5.11.1 --enable-phalcon
+pecl phalcon --enable-phalcon
 pecl opentelemetry
 pecl protobuf --enable-protobuf
 pecl psr --enable-psr
@@ -27,21 +27,21 @@ pecl uopz --enable-uopz
 pecl uploadprogress --enable-uploadprogress
 pecl xhprof --enable-xhprof
 pecl xlswriter --with-xlswriter --enable-reader
-git swoole https://github.com/swoole/swoole-src v6.2.0 --enable-brotli --enable-cares --enable-http2 --enable-mysqlnd --enable-openssl --with-openssl-dir=/usr --enable-sockets --enable-swoole --enable-swoole-curl --enable-swoole-pgsql --enable-swoole-odbc=unixodbc --enable-swoole-sqlite --enable-zstd
-pecl mcrypt-1.0.9 --with-mcrypt=/usr
-pecl decimal-2.0.1 --enable-decimal --with-libmpdec-path=/usr
-pecl maxminddb-1.13.1 --with-maxminddb
-pecl rdkafka-6.0.5 --with-rdkafka=/usr
-pecl ssh2-1.5.0 --with-ssh2=shared,/usr
-pecl gearman-2.1.4 --with-gearman=/usr
-pecl gnupg-1.5.4 --with-gnupg=/usr
-pecl uuid-1.3.0 --with-uuid=/usr
-pecl zstd-0.15.2 --with-libzstd
-pecl http-4.3.1 --with-http
-pecl pq-2.2.3 --with-pq=/usr
-pecl smbclient-1.1.2 --with-libsmbclient
-pecl solr-2.9.1 --enable-solr --with-curl=/usr
-pecl xmlrpc-1.0.0RC3 --with-xmlrpc
-git lz4 https://github.com/kjdev/php-ext-lz4 0.6.0 --with-lz4-includedir=/usr
-pecl rrd-2.0.3 --with-rrd
+git swoole https://github.com/swoole/swoole-src latest --enable-brotli --enable-cares --enable-http2 --enable-mysqlnd --enable-openssl --with-openssl-dir=/usr --enable-sockets --enable-swoole --enable-swoole-curl --enable-swoole-pgsql --enable-swoole-odbc=unixodbc --enable-swoole-sqlite --enable-zstd
+pecl mcrypt --with-mcrypt=/usr
+pecl decimal --enable-decimal --with-libmpdec-path=/usr
+pecl maxminddb --with-maxminddb
+pecl rdkafka --with-rdkafka=/usr
+pecl ssh2 --with-ssh2=shared,/usr
+pecl gearman --with-gearman=/usr
+pecl gnupg --with-gnupg=/usr
+pecl uuid --with-uuid=/usr
+pecl zstd --with-libzstd
+pecl http --with-http
+pecl pq --with-pq=/usr
+pecl smbclient --with-libsmbclient
+pecl solr --enable-solr --with-curl=/usr
+pecl xmlrpc --with-xmlrpc
+git lz4 https://github.com/kjdev/php-ext-lz4 latest --with-lz4-includedir=/usr
+pecl rrd --with-rrd
 pecl grpc --enable-grpc

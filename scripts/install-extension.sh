@@ -32,14 +32,13 @@ get_latest_git_tag() {
     exit 1
   fi
 
-  repo_owner="${repo_slug%%/*}"
-  repo_name="${repo_slug##*/}"
-  # shellcheck disable=SC2016
-  graph_query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){refs(refPrefix:"refs/tags/",first:1,orderBy:{field:TAG_COMMIT_DATE,direction:DESC}){nodes{name}}}}'
-
-  latest_tag=$(gh api graphql -f owner="$repo_owner" -f name="$repo_name" -f query="$graph_query" --jq '.data.repository.refs.nodes[0].name' 2>/dev/null || true)
+  latest_tag=$(gh api "repos/$repo_slug/releases/latest" --jq '.tag_name' 2>/dev/null || true)
   if [ -z "$latest_tag" ]; then
-    latest_tag=$(gh release list --repo "$repo_slug" --limit 1 --json tagName --jq '.[0].tagName' 2>/dev/null || true)
+    repo_owner="${repo_slug%%/*}"
+    repo_name="${repo_slug##*/}"
+    # shellcheck disable=SC2016
+    graph_query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){refs(refPrefix:"refs/tags/",first:1,orderBy:{field:TAG_COMMIT_DATE,direction:DESC}){nodes{name}}}}'
+    latest_tag=$(gh api graphql -f owner="$repo_owner" -f name="$repo_name" -f query="$graph_query" --jq '.data.repository.refs.nodes[0].name' 2>/dev/null || true)
   fi
 
   if [ -z "$latest_tag" ]; then
@@ -66,6 +65,22 @@ download_git_archive() {
   return 1
 }
 
+download_latest_pecl_archive() {
+  local latest_version release_url
+
+  latest_version="$(
+    curl -fsSL --retry 5 --retry-all-errors "https://pecl.php.net/rest/r/$pecl_package/allreleases.xml" \
+    | sed -n 's/.*<v>\([^<]*\)<\/v>.*/\1/p' \
+    | head -n 1
+  )"
+  if [ -z "$latest_version" ]; then
+    echo "Could not determine the latest PECL release for $pecl_package" >&2
+    return 1
+  fi
+  release_url="https://pecl.php.net/get/$pecl_package-$latest_version.tgz"
+  curl -fsSL --retry 5 --retry-all-errors -o "$pecl_package-$latest_version.tgz" "$release_url"
+}
+
 if [[ "$repo" != "pecl" && "$tag" = "latest" ]]; then
   tag="$(get_latest_git_tag "$repo")" || exit 1
 fi
@@ -79,7 +94,7 @@ if [ "$repo" = "pecl" ]; then
   if [ -n "${tag// }" ]; then
     "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package-$tag" || compgen -G "$pecl_package*.tgz" >/dev/null || exit 1
   else
-    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package" || compgen -G "$pecl_package*.tgz" >/dev/null || exit 1
+    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package" || compgen -G "$pecl_package*.tgz" >/dev/null || download_latest_pecl_archive || exit 1
   fi
   mv "$pecl_package"*.tgz /tmp/"$extension".tar.gz || exit 1
 else
