@@ -1,0 +1,45 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Sat, 11 Oct 2025 19:37:26 +0200
+Subject: Only test from (code is not affected)
+
+Fix GHSA-8xr5-qppj-gvwj: PDO quoting result null deref
+
+(cherry picked from commit 727a4ddc39ca9b78131e06b5537fe8b6c3dd6fe7)
+(cherry picked from commit 652cb22d27172e8068bc286774fb2b7078427093)
+---
+ ext/pdo_pgsql/tests/ghsa-8xr5-qppj-gvwj.phpt | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 ext/pdo_pgsql/tests/ghsa-8xr5-qppj-gvwj.phpt
+
+diff --git a/ext/pdo_pgsql/tests/ghsa-8xr5-qppj-gvwj.phpt b/ext/pdo_pgsql/tests/ghsa-8xr5-qppj-gvwj.phpt
+new file mode 100644
+index 0000000..019a02c
+--- /dev/null
++++ b/ext/pdo_pgsql/tests/ghsa-8xr5-qppj-gvwj.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++#GHSA-8xr5-qppj-gvwj: NULL Pointer Derefernce for failed user input quoting
++--SKIPIF--
++<?php
++if (!extension_loaded('pdo') || !extension_loaded('pdo_pgsql')) die('skip not loaded');
++require_once dirname(__FILE__) . '/../../../ext/pdo/tests/pdo_test.inc';
++require_once dirname(__FILE__) . '/config.inc';
++PDOTest::skip();
++?>
++--FILE--
++<?php
++require_once dirname(__FILE__) . '/../../../ext/pdo/tests/pdo_test.inc';
++require_once dirname(__FILE__) . '/config.inc';
++$db = PDOTest::test_factory(dirname(__FILE__) . '/common.phpt');
++$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
++$db->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
++
++$sql = "SELECT * FROM users where username = :username";
++$stmt = $db->prepare($sql);
++
++$p1 = "alice\x99";
++var_dump($stmt->execute(['username' => $p1]));
++
++?>
++--EXPECT--
++bool(false)

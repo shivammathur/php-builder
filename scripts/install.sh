@@ -171,7 +171,11 @@ add_key() {
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
   key_urls+=("$ppa_sp/keys/$ppa.gpg")
-  [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
+  if [[ "$key_source" =~ packages.sury.org ]]; then
+    get -q "$key_file" "$key_source"
+  elif [ ! -e "$key_source" ]; then
+    get -q "$key_file" "${key_urls[@]}"
+  fi
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     sudo gpg --batch --yes --dearmor "$key_file" >/dev/null 2>&1 && sudo mv "$key_file".gpg "$key_file"
   fi

@@ -89,3 +89,8 @@
 0089-Fix-GHSA-3cr5-j632-f35r-Null-byte-in-hostnames.patch
 0090-Fix-GHSA-hrwm-9436-5mv3-pgsql-escaping-no-error-chec.patch
 0091-NEWS.patch
+0092-Fix-GH-20584-Information-Leak-of-Memory.patch
+0093-Only-test-from-code-is-not-affected.patch
+0094-Fix-GHSA-h96m-rvf9-jgm2.patch
+0095-Fix-GHSA-www2-q4fc-65wf.patch
+0096-NEWS-from-8.1.34.patch
