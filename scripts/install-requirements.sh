@@ -11,9 +11,11 @@ get() {
     sudo curl -sL "${links[0]}"
   else
     for link in "${links[@]}"; do
-      status_code=$(sudo curl -w "%{http_code}" -o "$file_path" -sL "$link")
-      [ "$status_code" = "200" ] && break
+      if status_code=$(sudo curl --retry 5 --retry-all-errors -w "%{http_code}" -o "$file_path" -sL "$link"); then
+        [ "$status_code" = "200" ] && return 0
+      fi
     done
+    return 1
   fi
 }
 
@@ -75,7 +77,11 @@ add_key() {
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
   fi
   key_urls+=("$ppa_sp/keys/$ppa.gpg")
-  [ ! -e "$key_source" ] && get -q "$key_file" "${key_urls[@]}"
+  if [[ "$key_source" =~ packages.sury.org ]]; then
+    get -q "$key_file" "$key_source"
+  elif [ ! -e "$key_source" ]; then
+    get -q "$key_file" "${key_urls[@]}"
+  fi
   if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
     gpg --homedir /tmp --batch --yes --dearmor "$key_file" && rm -f "$key_file" >/dev/null 2>&1
     mv "$key_file".gpg "$key_file"

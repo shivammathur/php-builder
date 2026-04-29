@@ -1,7 +1,7 @@
 pecl amqp
 pecl apcu
 pecl ast
-pecl ds
+pecl ds-1.6.0
 pecl igbinary
 pecl imagick
 pecl memcache

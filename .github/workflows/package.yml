@@ -1,25 +1,36 @@
-name: Build PHP
-run-name: Build PHP ${{ inputs.php-version || '8.4' }}
+name: Package PHP
+run-name: Package PHP ${{ inputs.php-version || '8.4' }}
 
 on:
   workflow_dispatch:
     inputs:
+      source-run-id:
+        description: 'Build PHP run ID to download SAPI artifacts from'
+        required: true
+      rebuild-missing-sapi:
+        description: 'Build any SAPI artifacts missing from the source run'
+        default: 'false'
+        required: false
       build-mode:
         description: 'Build mode: --build-all or --build-new'
-        default: '--build-new'
+        default: '--build-all'
         required: false
       php-source:
         description: 'PHP source: --web-php or --php-src'
         default: ''
         required: false
       php-version:
-        description: 'PHP version to build'
+        description: 'PHP version to package'
         default: '8.4'
         required: false
       container-os-versions:
-        description: 'OS versions to build on'
+        description: 'OS versions to package on'
         default: 'ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie'
         required: false
+
+permissions:
+  actions: read
+  contents: write
 
 env:
   CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie
@@ -38,7 +49,6 @@ jobs:
       container_only: ${{ steps.set-matrix.outputs.container_only }}
       container_os_matrix: ${{ steps.set-matrix.outputs.container_os_matrix }}
       sapi_os_matrix: ${{ steps.set-matrix.outputs.sapi_os_matrix }}
-      runner_os_matrix: ${{ steps.set-matrix.outputs.runner_os_matrix }}
       test_container_os_matrix: ${{ steps.set-matrix.outputs.test_container_os_matrix }}
       test_runner_os_matrix: ${{ steps.set-matrix.outputs.test_runner_os_matrix }}
 
@@ -49,7 +59,7 @@ jobs:
       - name: Get matrix
         id: set-matrix
         env:
-          COMMIT: ${{ github.event.head_commit.message || inputs.build-mode }}
+          COMMIT: ${{ inputs.build-mode }}
           CONTAINER_OS_LIST: ${{ inputs.container-os-versions || env.CONTAINER_OS_LIST }}
           CONTAINER_BASE: ${{ env.CONTAINER_BASE }}
           CONTAINER_BASE_ARM: ${{ env.CONTAINER_BASE_ARM }}
@@ -61,9 +71,28 @@ jobs:
           BUILD_LIST: ${{ env.BUILD_LIST }}
         run: bash scripts/get-matrix.sh
 
+  source-artifacts:
+    runs-on: ubuntu-latest
+    outputs:
+      names: ${{ steps.list-artifacts.outputs.names }}
+
+    steps:
+      - name: List source artifacts
+        id: list-artifacts
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        run: |
+          names="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID/artifacts?per_page=100" --paginate --jq '.artifacts[].name')"
+          {
+            echo 'names<<EOF'
+            echo "$names"
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
+
   build_sapi:
-    needs: get-matrix
-    if: "!contains(github.event.head_commit.message, 'skip-build')"
+    needs: [get-matrix, source-artifacts]
+    if: "!contains(inputs.build-mode, 'skip-build')"
     runs-on: ${{ matrix.container-base }}
     container: ${{ matrix.container }}
     strategy:
@@ -73,24 +102,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Check source artifact
+        id: source-artifact
+        shell: bash
+        env:
+          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
+        run: |
+          if grep -Fx "$ARTIFACT_NAME" <<< "$ARTIFACT_NAMES"; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fail on missing SAPI artifact
+        if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi != 'true'
+        env:
+          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+        run: |
+          echo "Missing $ARTIFACT_NAME in run ${{ inputs.source-run-id }}"
+          exit 1
+
       - name: Install required packages
+        if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         run: bash scripts/install-requirements.sh
         env:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
       - name: Build and package SAPI
+        if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         run: bash scripts/build.sh build_sapi "${SAPI}"
         env:
           BUILD: ${{ matrix.build }}
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}
           SAPI: ${{ matrix.sapi }}
 
       - name: Upload Artifact
+        if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
@@ -98,7 +151,7 @@ jobs:
 
   package:
     needs: [get-matrix, build_sapi]
-    if: "!contains(github.event.head_commit.message, 'skip-merge') && !contains(github.event.head_commit.message, 'skip-extensions') && !contains(github.event.head_commit.message, 'skip-package')"
+    if: "!contains(inputs.build-mode, 'skip-merge') && !contains(inputs.build-mode, 'skip-extensions') && !contains(inputs.build-mode, 'skip-package')"
     container: ${{ matrix.container }}
     runs-on: ${{ matrix.container-base }}
     strategy:
@@ -115,19 +168,35 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
-      - uses: actions/download-artifact@v8
+      - name: Download source SAPI artifacts
+        env:
+          ARTIFACT_PATTERN: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN_ID: ${{ inputs.source-run-id }}
+        run: gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern "$ARTIFACT_PATTERN" --dir /tmp/source-artifacts
+
+      - name: Download rebuilt SAPI artifacts
+        continue-on-error: true
+        uses: actions/download-artifact@v8
         with:
           pattern: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
-          path: /tmp
-          merge-multiple: true
+          path: /tmp/rebuilt-artifacts
 
       - name: Stage builds
         shell: bash
+        env:
+          SAPI_LIST: ${{ env.SAPI_LIST }}
         run: |
           mkdir -p /tmp/debian
-          for sapi_build in /tmp/*.zst; do
+          expected_count="$(wc -w <<< "$SAPI_LIST" | xargs)"
+          mapfile -t sapi_builds < <(find /tmp/source-artifacts /tmp/rebuilt-artifacts -type f -name '*.zst' 2>/dev/null | sort)
+          if [ "${#sapi_builds[@]}" -ne "$expected_count" ]; then
+            echo "Expected $expected_count SAPI builds, found ${#sapi_builds[@]}"
+            printf '%s\n' "${sapi_builds[@]}"
+            exit 1
+          fi
+          for sapi_build in "${sapi_builds[@]}"; do
             tar -I zstd -xf "$sapi_build" -C /tmp/debian
-            rm -f "$sapi_build"
           done
 
       - name: Merge SAPI builds
@@ -136,14 +205,14 @@ jobs:
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_NAME: 'Shivam Mathur'
           GITHUB_EMAIL: ${{ secrets.email }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
           PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}
 
       - name: Build extensions
         run: bash scripts/build.sh build_extensions
@@ -152,7 +221,7 @@ jobs:
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}
 
       - name: Package build
         run: bash scripts/build.sh package
@@ -160,14 +229,14 @@ jobs:
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_NAME: 'Shivam Mathur'
           GITHUB_EMAIL: ${{ secrets.email }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_WORKSPACE: ${{ github.workspace }}
           PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
@@ -204,12 +273,11 @@ jobs:
         run: bash scripts/test_extensions.sh
         env:
           PHP_VERSION: ${{ matrix.php-version }}
-          
 
   local-test:
-    needs: [package, build_sapi, get-matrix]
+    needs: [package, get-matrix]
     runs-on: ${{ matrix.container-base }}
-    if: "!contains(github.event.head_commit.message, 'skip-local-test')"
+    if: "!contains(inputs.build-mode, 'skip-local-test')"
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -249,9 +317,9 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
 
   github-test:
-    needs: [package, build_sapi, get-matrix]
+    needs: [package, get-matrix]
     runs-on: ${{ matrix.os }}
-    if: "!contains(github.event.head_commit.message, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
+    if: "!contains(inputs.build-mode, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.test_runner_os_matrix)}}
@@ -289,7 +357,7 @@ jobs:
   release-container-only:
     needs: [get-matrix, local-test]
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'true')"
+    if: "!contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'true')"
 
     steps:
       - name: Checkout
@@ -305,15 +373,15 @@ jobs:
       - name: Release
         run: bash scripts/release.sh
         env:
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_LIST: ${{ inputs.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}
 
   release:
     needs: [get-matrix, local-test, github-test]
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'false')"
+    if: "!contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'false')"
 
     steps:
       - name: Checkout
@@ -329,7 +397,7 @@ jobs:
       - name: Release
         run: bash scripts/release.sh
         env:
-          GITHUB_MESSAGE: ${{ github.event.head_commit.message || inputs.build-mode }}
+          GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_LIST: ${{ inputs.php-version }}
-          PHP_SOURCE: ${{ github.event.inputs.php-source }}
+          PHP_SOURCE: ${{ inputs.php-source }}

@@ -1,3 +1,39 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2016
+# Function to add CFLAGS without duplicating them across extension patches.
+add_cflags() {
+  local flag
+  for flag in "$@"; do
+    case " $CFLAGS " in
+      *" $flag "*) ;;
+      *) CFLAGS="${CFLAGS:+$CFLAGS }$flag" ;;
+    esac
+  done
+  export CFLAGS
+}
+
+# Function to patch sources using the removed Zend XtOffsetOf macro.
+patch_xt_offsetof_file() {
+  local file=$1
+  [ -f "$file" ] || return 0
+  sed -i 's/XtOffsetOf/offsetof/g' "$file"
+  grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
+}
+
+# Function to patch all XtOffsetOf usages under a source tree.
+patch_xt_offsetof_tree() {
+  local file
+  local root=${1:-.}
+  for file in $(find "$root" -type f ! -path '*/.git/*' -exec grep -l 'XtOffsetOf' {} + 2>/dev/null || true); do
+    patch_xt_offsetof_file "$file"
+  done
+}
+
+# Function to configure compiler flags for legacy extensions.
+configure_legacy_extension_flags() {
+  [[ "$PHP_VERSION" = "5.6" ]] && add_cflags -Wno-incompatible-pointer-types -Wno-int-conversion -Wno-implicit-function-declaration
+}
+
 # Function to configure imagick.
 configure_imagick() {
   if pkg-config --exists MagickWand-7.Q16; then
@@ -8,9 +44,11 @@ configure_imagick() {
     echo "MagickWand not found — install libmagickwand-dev" >&2
     exit 1
   fi
-  [[ "$PHP_VERSION" = "5.6" ]] && export CFLAGS="$CFLAGS -Wno-incompatible-pointer-types -Wno-int-conversion"
-  export CPPFLAGS="$(pkg-config --cflags "$PKG_WAND")"
-  export LDFLAGS="$(pkg-config --libs "$PKG_WAND")"
+  [[ "$PHP_VERSION" = "5.6" ]] && add_cflags -Wno-incompatible-pointer-types -Wno-int-conversion
+  CPPFLAGS="$(pkg-config --cflags "$PKG_WAND")"
+  LDFLAGS="$(pkg-config --libs "$PKG_WAND")"
+  export CPPFLAGS
+  export LDFLAGS
 }
 
 # Function to patch imagick source.
@@ -21,6 +59,13 @@ patch_imagick() {
   [ -f "$package_xml" ] || package_xml=../package.xml
   sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' "$package_xml")/" php_imagick.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' imagick.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    local file
+    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+    done
+    grep -q '#include <stddef.h>' php_imagick_defs.h || sed -i '1i #include <stddef.h>' php_imagick_defs.h
+  fi
 }
 
 # Function to patch sqlsrv source.
@@ -77,7 +122,9 @@ patch_xdebug() {
 
 # Function to move to xhprof extension source.
 patch_xhprof() {
-  [ -d extension ] && cd extension
+  if [ -d extension ]; then
+    cd extension || return 1
+  fi
 }
 
 # Function to patch SPL class symbols renamed in PHP 8.6.
@@ -98,21 +145,40 @@ patch_amqp() {
 # Function to patch excimer source.
 patch_excimer() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
-    sed -i 's/INI_INT(/zend_ini_long_literal(/g' excimer.c
+    sed -i -e 's/INI_INT(/zend_ini_long_literal(/g' -e 's/XtOffsetOf/offsetof/g' excimer.c
+    grep -q '#include <stddef.h>' excimer.c || sed -i '1i #include <stddef.h>' excimer.c
   fi
 }
 
 # Function to patch decimal source.
 patch_decimal() {
+  if [[ "$PHP_VERSION" =~ 7.[0-3] ]]; then
+    sed -i 's/static zval \*php_decimal_write_property(zval/static void php_decimal_write_property(zval/' php_decimal.c
+    sed -i '/static void php_decimal_write_property(zval/,/^}/ s/return &EG(uninitialized_zval);/return;/' php_decimal.c
+  fi
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     sed -i 's/INI_INT("opcache.optimization_level")/zend_ini_long_literal("opcache.optimization_level")/g' php_decimal.c
     sed -i 's/ZEND_PARSE_PARAMS_THROW/0/g' src/params.h
   fi
 }
 
+# Function to patch ds source.
+patch_ds() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    local file
+    for file in $(grep -rl 'XtOffsetOf' src/php 2>/dev/null || true); do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+      grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
+    done
+  fi
+}
+
 # Function to move to maxminddb extension source.
 patch_maxminddb() {
-  [ -d ext ] && cd ext
+  if [ -d ext ]; then
+    cd ext || return 1
+  fi
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
 }
 
 # Function to patch rdkafka source.
@@ -121,6 +187,40 @@ patch_rdkafka() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE()/g' rdkafka.c
+    patch_xt_offsetof_tree .
+  fi
+}
+
+# Function to patch oauth source.
+patch_oauth() {
+  [[ "$PHP_VERSION" = "7.0" ]] && sed -i 's/php_mt_rand_range(0, 255)/(php_mt_rand() % 256)/g' provider.c
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
+}
+
+# Function to patch grpc source.
+patch_grpc() {
+  if [[ "$PHP_VERSION" = "5.6" ]]; then
+    local graphcycles str_format_extension float_conversion
+    graphcycles=third_party/abseil-cpp/absl/synchronization/internal/graphcycles.cc
+    str_format_extension=third_party/abseil-cpp/absl/strings/internal/str_format/extension.h
+    float_conversion=third_party/abseil-cpp/absl/strings/internal/str_format/float_conversion.cc
+    sed -i 's/-Wall -Werror /-Wall /' config.m4
+    if [ -f "$graphcycles" ] && ! grep -q '#include <limits>' "$graphcycles"; then
+      sed -i 's/#include <array>/#include <array>\n#include <limits>/' "$graphcycles"
+    fi
+    if [ -f "$str_format_extension" ] && ! grep -q '#include <stdint.h>' "$str_format_extension"; then
+      sed -i 's/#include <limits.h>/#include <limits.h>\n#include <stdint.h>/' "$str_format_extension"
+    fi
+    if [ -f "$float_conversion" ] && ! grep -q '#include <cstdint>' "$float_conversion"; then
+      sed -i 's/#include <cmath>/#include <cmath>\n#include <cstdint>/' "$float_conversion"
+    fi
+  fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    # grpc/grpc#41938: add missing inline to silence always_inline warnings.
+    sed -i '/^GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION$/ {N; s/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION\n    absl::enable_if_t/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION inline\n    absl::enable_if_t/;}' src/core/lib/promise/detail/promise_factory.h
+    sed -i 's/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION auto TrySeq/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION inline auto TrySeq/g; s/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION auto TrySeqIter/GPR_ATTRIBUTE_ALWAYS_INLINE_FUNCTION inline auto TrySeqIter/g' src/core/lib/promise/try_seq.h
+    sed -i 's/GPR_NO_UNIQUE_ADDRESS union {/union {/' src/core/lib/promise/loop.h
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -144,7 +244,13 @@ patch_gearman() {
   fi
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    patch_xt_offsetof_tree .
   fi
+}
+
+# Function to patch gnupg source.
+patch_gnupg() {
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
 }
 
 # Function to patch mcrypt source.
@@ -174,6 +280,7 @@ patch_http() {
     sed -i 's/static php_stream_filter \*http_filter_create(const char \*name, zval \*params, uint8_t p)/static php_stream_filter *http_filter_create(const char *name, zval *params, bool p)/g' src/php_http_filter.c
     sed -i '/PHP_HTTP_FILTER_FUNC(/ { N; /\n[[:space:]]*\(PHP_HTTP_FILTER_DTOR(\|NULL,\)/ s/\n/\n\tNULL,\n/ }' src/php_http_filter.c
     sed -i -E 's/php_stream_filter_alloc\(([^,]+), ([^,]+), ([^)]+)\)/php_stream_filter_alloc(\1, \2, \3, PSFS_SEEKABLE_NEVER)/g' src/php_http_filter.c
+    patch_xt_offsetof_tree src
   fi
 }
 
@@ -183,6 +290,7 @@ patch_pq() {
   sed -i -E ':a;N;$!ba;s#\n[[:space:]]*\], \[\n[[:space:]]*AC_MSG_ERROR\(\[Please install pecl/raphf and activate extension=raphf\.\$SHLIB_DL_SUFFIX_NAME in your php\.ini\]\)\n[[:space:]]*\]\)#\n\t\tfi#' config9.m4
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find src -type f -exec sed -i 's/ZEND_RESULT_CODE/zend_result/g; s/zval_dtor/zval_ptr_dtor_nogc/g; s/ZVAL_IS_NULL(\([^)]*\))/Z_TYPE_P(\1) == IS_NULL/g' {} +
+    patch_xt_offsetof_tree src
   fi
 }
 
@@ -201,7 +309,18 @@ patch_solr() {
   sed -i 's/PHP_ADD_INCLUDE($CURL_DIR\/include)/PHP_EVAL_INCLINE($CURL_CFLAGS)\n    PHP_ADD_INCLUDE($CURL_DIR\/include)/' config.m4
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find src -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    patch_xt_offsetof_tree .
   fi
+}
+
+# Function to patch xmlrpc source.
+patch_xmlrpc() {
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
+}
+
+# Function to patch zstd source.
+patch_zstd() {
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
 }
 
 # Function to patch opentelemetry source.
@@ -245,32 +364,45 @@ patch_uploadprogress() {
 patch_xlswriter() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    patch_xt_offsetof_tree .
   fi
 }
 
 # Function to patch uopz source.
 patch_uopz() {
+  if [[ "$PHP_VERSION" = "7.0" ]]; then
+    sed -i 's/static inline uopz_try_addref/static inline void uopz_try_addref/' src/function.c
+  fi
+  if [[ "$PHP_VERSION" = "8.1" ]]; then
+    sed -i 's/PHP_VERSION_ID > 80100/PHP_VERSION_ID >= 80200/' src/function.c
+  fi
   if [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
     curl -fsSL https://patch-diff.githubusercontent.com/raw/krakjoe/uopz/pull/185.patch \
       | awk 'BEGIN { skip=0 } index($0, "diff --git a/tests/") == 1 { skip=1 } index($0, "diff --git ") == 1 && index($0, "diff --git a/tests/") != 1 { skip=0 } !skip { print }' \
       > uopz-pr-185.patch
     patch --batch -p1 -i uopz-pr-185.patch
   fi
+  if [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zend_exception_get_default()/zend_ce_exception/g' uopz.c
+  fi
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     sed -i 's/INI_INT(/zend_ini_long_literal(/g' uopz.c
-    sed -i 's/zend_exception_get_default()/zend_ce_exception/g' uopz.c
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' src/constant.c
   fi
 }
 
 # Function to patch imap source.
 patch_imap() {
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/INI_STR(/zend_ini_string_literal(/g' php_imap.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/INI_STR(/zend_ini_string_literal(/g' php_imap.c
+    sed -i 's/XtOffsetOf/offsetof/g' php_imap.c
+    grep -q '#include <stddef.h>' php_imap.c || sed -i '1i #include <stddef.h>' php_imap.c
+  fi
 }
 
 # Function to patch memcache source.
 patch_memcache() {
-  [[ "$PHP_VERSION" = "5.6" ]] && export CFLAGS="$CFLAGS -Wno-incompatible-pointer-types"
+  [[ "$PHP_VERSION" = "5.6" ]] && add_cflags -Wno-incompatible-pointer-types
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <string.h>/#include <string.h>\n#include <errno.h>/" src/memcache_pool.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/memcache_ascii_protocol.c src/memcache_binary_protocol.c src/memcache_pool.c src/memcache_session.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string_public.h#Zend/zend_smart_string.h#' src/memcache_pool.h
@@ -294,10 +426,24 @@ patch_pcov() {
   fi
 }
 
+# Function to patch phalcon source.
+patch_phalcon() {
+  [[ "$PHP_VERSION" = "8.0" ]] && add_cflags -Wno-error=incompatible-pointer-types
+  if [[ "$PHP_VERSION" = "7.4" || "$PHP_VERSION" = "8.0" ]]; then
+    sed -i 's#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = ZSTR_VAL(zval_get_string(&prefetchRecords));#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = zval_get_string(\&prefetchRecords);#' phalcon.zep.c
+    sed -i 's#phalcon_globals->orm.resultset_prefetch_records = ZSTR_VAL(zend_string_init(ZEND_STRL("0"), 0));#phalcon_globals->orm.resultset_prefetch_records = zend_string_init(ZEND_STRL("0"), 0);#' phalcon.zep.c
+  fi
+  if [[ "$PHP_VERSION" =~ ^8\.[1-4]$ ]]; then
+    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest)$/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest_ptr)/' phalcon.zep.c
+    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest)$/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest_ptr)/' phalcon.zep.c
+  fi
+}
+
 # Function to patch memcached source.
 patch_memcached() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' php_memcached.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include \"php.h\"/#include <stddef.h>\n#include \"php.h\"/" php_memcached.h
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i -e 's/zval_dtor/zval_ptr_dtor_nogc/g' -e 's/XtOffsetOf/offsetof/g' php_memcached.c
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i \
     -e 's|if (strstr(save_path, "PERSISTENT="))|if (strstr(ZSTR_VAL(save_path), "PERSISTENT="))|' \
     -e 's|servers = memcached_servers_parse(save_path);|servers = memcached_servers_parse(ZSTR_VAL(save_path));|' \
@@ -316,6 +462,7 @@ patch_redis() {
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#zend_smart_string.h#' common.h
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' redis_cluster.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
+    local file
     for file in library.c redis_commands.c cluster_library.c; do
       sed -i 's/zval_is_true/zend_is_true/' $file
     done
@@ -334,6 +481,10 @@ patch_redis() {
     sed -i 's/save_path+i/ZSTR_VAL(save_path)+i/g' redis_session.c
     sed -i 's/estrdup(save_path)/estrdup(ZSTR_VAL(save_path))/g' redis_session.c
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/' library.c
+    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+    done
+    grep -q '#include <stddef.h>' common.h || sed -i '1i #include <stddef.h>' common.h
   fi
 }
 
@@ -374,27 +525,49 @@ patch_zmq() {
     for file in zmq_pollset.c php5/zmq_pollset.c php5/zmq.c zmq.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
     done
+    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+      grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
+    done
   fi
 }
 
 # Function to patch mongodb source.
 patch_mongodb() {
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/ZVAL_IS_NULL/Z_ISNULL_P/' src/MongoDB/ServerApi.c
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_is_true/zend_is_true/' src/MongoDB/ServerApi.c
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/MongoDB/Cursor.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    local file
+    sed -i 's/ZVAL_IS_NULL/Z_ISNULL_P/' src/MongoDB/ServerApi.c
+    sed -i 's/zval_is_true/zend_is_true/' src/MongoDB/ServerApi.c
+    sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/MongoDB/Cursor.c
+    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+    done
+    grep -q '#include <stddef.h>' src/phongo_classes.h || sed -i '1i #include <stddef.h>' src/phongo_classes.h
+  fi
 }
 
 # Function to patch apcu source.
 patch_apcu() {
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/g' apc_persist.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
+    sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/g' apc_persist.c
+    for file in apc_cache.h apc_iterator.c apc_iterator.h; do
+      sed -i 's/XtOffsetOf/offsetof/g' "$file"
+      grep -q '#include <stddef.h>' "$file" || sed -i 's/#include "apc.h"/#include <stddef.h>\n#include "apc.h"/' "$file"
+    done
+  fi
 }
 
 # Function to patch msgpack source.
 patch_msgpack() {
  if [[ "$PHP_VERSION" = "8.6" ]]; then
+   local file
    for file in msgpack.c msgpack_unpack.c; do
      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
    done
+   for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
+     sed -i 's/XtOffsetOf/offsetof/g' "$file"
+   done
+   grep -q '#include <stddef.h>' msgpack_class.c || sed -i '1i #include <stddef.h>' msgpack_class.c
  fi
 }

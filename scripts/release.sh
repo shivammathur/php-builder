@@ -8,13 +8,20 @@ log_build() {
 }
 
 # Function to get the latest stable release tag for a PHP version.
+get_github_release_tag() {
+  github_headers=()
+  [ -n "${GITHUB_TOKEN:-}" ] && github_headers=(-H "Authorization: Bearer $GITHUB_TOKEN")
+  curl "${github_headers[@]}" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | sort -V | tail -1 | cut -d '"' -f 1 || true
+}
+
 get_stable_release_tag() {
   source=$1
   if [ "$source" = "--web-php" ]; then
     release_tag="$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${PHP_VERSION//./\\.}\.[0-9]+)" | head -n 1)"
-    echo "${release_tag:-$(curl -sL https://www.php.net/releases | grep -Po "${PHP_VERSION//./\\.}\.[0-9]+" | head -n1 | sed 's/^/php-/')}"
+    release_tag="${release_tag:-$(curl -sL https://www.php.net/releases | grep -Po "${PHP_VERSION//./\\.}\.[0-9]+" | head -n1 | sed 's/^/php-/')}"
+    echo "${release_tag:-$(get_github_release_tag)}"
   else
-    curl -H "Authorization: Bearer $GITHUB_TOKEN" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | sort -V | tail -1 | cut -d '"' -f 1
+    get_github_release_tag
   fi
 }
 
