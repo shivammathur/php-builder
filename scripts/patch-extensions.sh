@@ -17,16 +17,15 @@ patch_xt_offsetof_file() {
   local file=$1
   [ -f "$file" ] || return 0
   sed -i 's/XtOffsetOf/offsetof/g' "$file"
-  grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
 }
 
 # Function to patch all XtOffsetOf usages under a source tree.
 patch_xt_offsetof_tree() {
-  local file
   local root=${1:-.}
-  for file in $(find "$root" -type f ! -path '*/.git/*' -exec grep -l 'XtOffsetOf' {} + 2>/dev/null || true); do
+  local file
+  while IFS= read -r file; do
     patch_xt_offsetof_file "$file"
-  done
+  done < <(grep -rl --exclude-dir=.git 'XtOffsetOf' "$root" 2>/dev/null || true)
 }
 
 # Function to configure compiler flags for legacy extensions.
@@ -60,11 +59,7 @@ patch_imagick() {
   sed -i "s/@PACKAGE_VERSION@/$(grep -Po 'release>\K(\d+\.\d+\.\d+)' "$package_xml")/" php_imagick.h
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' imagick.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
-    local file
-    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-    done
-    grep -q '#include <stddef.h>' php_imagick_defs.h || sed -i '1i #include <stddef.h>' php_imagick_defs.h
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -140,13 +135,14 @@ patch_spl_symbols() {
 # Function to patch amqp source.
 patch_amqp() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
 }
 
 # Function to patch excimer source.
 patch_excimer() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
-    sed -i -e 's/INI_INT(/zend_ini_long_literal(/g' -e 's/XtOffsetOf/offsetof/g' excimer.c
-    grep -q '#include <stddef.h>' excimer.c || sed -i '1i #include <stddef.h>' excimer.c
+    sed -i 's/INI_INT(/zend_ini_long_literal(/g' excimer.c
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -165,11 +161,7 @@ patch_decimal() {
 # Function to patch ds source.
 patch_ds() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
-    local file
-    for file in $(grep -rl 'XtOffsetOf' src/php 2>/dev/null || true); do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-      grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
-    done
+    patch_xt_offsetof_tree src/php
   fi
 }
 
@@ -395,8 +387,7 @@ patch_uopz() {
 patch_imap() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     sed -i 's/INI_STR(/zend_ini_string_literal(/g' php_imap.c
-    sed -i 's/XtOffsetOf/offsetof/g' php_imap.c
-    grep -q '#include <stddef.h>' php_imap.c || sed -i '1i #include <stddef.h>' php_imap.c
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -442,8 +433,8 @@ patch_phalcon() {
 # Function to patch memcached source.
 patch_memcached() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" ]] && sed -i "s/#include \"php.h\"/#include <errno.h>\n#include \"php.h\"/" php_memcached.h
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include \"php.h\"/#include <stddef.h>\n#include \"php.h\"/" php_memcached.h
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i -e 's/zval_dtor/zval_ptr_dtor_nogc/g' -e 's/XtOffsetOf/offsetof/g' php_memcached.c
+  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' php_memcached.c
+  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i \
     -e 's|if (strstr(save_path, "PERSISTENT="))|if (strstr(ZSTR_VAL(save_path), "PERSISTENT="))|' \
     -e 's|servers = memcached_servers_parse(save_path);|servers = memcached_servers_parse(ZSTR_VAL(save_path));|' \
@@ -481,10 +472,7 @@ patch_redis() {
     sed -i 's/save_path+i/ZSTR_VAL(save_path)+i/g' redis_session.c
     sed -i 's/estrdup(save_path)/estrdup(ZSTR_VAL(save_path))/g' redis_session.c
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/' library.c
-    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-    done
-    grep -q '#include <stddef.h>' common.h || sed -i '1i #include <stddef.h>' common.h
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -525,24 +513,17 @@ patch_zmq() {
     for file in zmq_pollset.c php5/zmq_pollset.c php5/zmq.c zmq.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
     done
-    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-      grep -q '#include <stddef.h>' "$file" || sed -i '1i #include <stddef.h>' "$file"
-    done
+    patch_xt_offsetof_tree .
   fi
 }
 
 # Function to patch mongodb source.
 patch_mongodb() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
-    local file
     sed -i 's/ZVAL_IS_NULL/Z_ISNULL_P/' src/MongoDB/ServerApi.c
     sed -i 's/zval_is_true/zend_is_true/' src/MongoDB/ServerApi.c
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/MongoDB/Cursor.c
-    for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-    done
-    grep -q '#include <stddef.h>' src/phongo_classes.h || sed -i '1i #include <stddef.h>' src/phongo_classes.h
+    patch_xt_offsetof_tree .
   fi
 }
 
@@ -551,23 +532,17 @@ patch_apcu() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/g' apc_persist.c
-    for file in apc_cache.h apc_iterator.c apc_iterator.h; do
-      sed -i 's/XtOffsetOf/offsetof/g' "$file"
-      grep -q '#include <stddef.h>' "$file" || sed -i 's/#include "apc.h"/#include <stddef.h>\n#include "apc.h"/' "$file"
-    done
+    patch_xt_offsetof_tree .
   fi
 }
 
 # Function to patch msgpack source.
 patch_msgpack() {
- if [[ "$PHP_VERSION" = "8.6" ]]; then
-   local file
-   for file in msgpack.c msgpack_unpack.c; do
-     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
-   done
-   for file in $(grep -rl 'XtOffsetOf' . 2>/dev/null || true); do
-     sed -i 's/XtOffsetOf/offsetof/g' "$file"
-   done
-   grep -q '#include <stddef.h>' msgpack_class.c || sed -i '1i #include <stddef.h>' msgpack_class.c
- fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    local file
+    for file in msgpack.c msgpack_unpack.c; do
+      sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
+    done
+    patch_xt_offsetof_tree .
+  fi
 }
