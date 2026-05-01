@@ -71,7 +71,7 @@ add_key() {
   key_source=$4
   key_file=$5
   key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org|setup-php.com ]]; then
+  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org ]]; then
     fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
@@ -114,10 +114,28 @@ remove_list() {
   sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
 }
 
+# Function to check if ubuntu ppa is up.
+is_ubuntu_ppa_up() {
+  ppa=${1:-ondrej/php}
+  curl -s --connect-timeout 10 --max-time 10 --head --fail "$lpc_ppa/$ppa/ubuntu/dists/$VERSION_CODENAME/Release" > /dev/null
+}
+
+# Function to add the PPA mirror.
+add_ppa_sp_mirror() {
+  ppa=$1
+  ppa_name="$(basename "$ppa")"
+  remove_list "$ppa" || true
+  add_list sp/"$ppa_name" "$ppa_sp/$ppa/ubuntu" "$ppa_sp/$ppa/ubuntu/key.gpg"
+}
+
 # Function to add a package repository.
 add_ppa() {
   if [ "$ID" = "ubuntu" ]; then
-    add_list ondrej/php
+    if is_ubuntu_ppa_up ondrej/php; then
+      add_list ondrej/php
+    else
+      add_ppa_sp_mirror ondrej/php
+    fi
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
   fi

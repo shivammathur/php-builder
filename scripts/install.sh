@@ -165,7 +165,7 @@ add_key() {
   local key_source=$4
   local key_file=$5
   local key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org|setup-php.com ]]; then
+  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org ]]; then
     fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
     sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
     key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
@@ -232,9 +232,26 @@ remove_list() {
   sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
 }
 
+is_ubuntu_ppa_up() {
+  local ppa=${1:-ondrej/php}
+  curl -s --connect-timeout 10 --max-time 10 --head --fail "$lpc_ppa/$ppa/ubuntu/dists/$VERSION_CODENAME/Release" > /dev/null
+}
+
+add_ppa_sp_mirror() {
+  local ppa=$1
+  local ppa_name
+  ppa_name="$(basename "$ppa")"
+  remove_list "$ppa" || true
+  add_list sp/"$ppa_name" "$ppa_sp/$ppa/ubuntu" "$ppa_sp/$ppa/ubuntu/key.gpg"
+}
+
 add_ppa() {
   if [ "$ID" = "ubuntu" ]; then
-    add_list ondrej/php
+    if is_ubuntu_ppa_up ondrej/php; then
+      add_list ondrej/php
+    else
+      add_ppa_sp_mirror ondrej/php
+    fi
   elif [ "$ID" = "debian" ]; then
     add_list ondrej/php "$sury"/php/ "$sury"/php/apt.gpg
   fi
