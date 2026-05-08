@@ -329,7 +329,7 @@ github_deps() {
     [[ "$version" =~ 5.6|7.[0-2] ]] && noble_libs+=('libpcre3-dev')
     install_packages "${noble_libs[@]}"
   fi
-  optional_extension_deps=(libgd-dev libevent-dev libgearman-dev libmcrypt-dev libmpdec-dev librdkafka-dev librrd-dev libsmbclient-dev)
+  optional_extension_deps=(libgd-dev libevent-dev libgearman-dev libmcrypt-dev libmpdec-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev)
   install_packages "${optional_extension_deps[@]}"
 }
 
