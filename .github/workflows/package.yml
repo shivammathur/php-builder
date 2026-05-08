@@ -150,7 +150,7 @@ jobs:
           path: /tmp/debian/*.zst
 
   package:
-    needs: [get-matrix, build_sapi]
+    needs: [get-matrix, source-artifacts, build_sapi]
     if: "!contains(inputs.build-mode, 'skip-merge') && !contains(inputs.build-mode, 'skip-extensions') && !contains(inputs.build-mode, 'skip-package')"
     container: ${{ matrix.container }}
     runs-on: ${{ matrix.container-base }}
@@ -169,11 +169,19 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
 
       - name: Download source SAPI artifacts
+        shell: bash
         env:
           ARTIFACT_PATTERN: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          ARTIFACT_REGEX: ^php-sapi-[^-]+-${{ matrix.php-version }}-${{ matrix.build }}\+${{ matrix.dist }}-${{ matrix.dist-version }}$
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE_RUN_ID: ${{ inputs.source-run-id }}
-        run: gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern "$ARTIFACT_PATTERN" --dir /tmp/source-artifacts
+          SOURCE_ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
+        run: |
+          if grep -Eq "$ARTIFACT_REGEX" <<< "$SOURCE_ARTIFACT_NAMES"; then
+            gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern "$ARTIFACT_PATTERN" --dir /tmp/source-artifacts
+          else
+            echo "No source SAPI artifacts matching $ARTIFACT_PATTERN in run $SOURCE_RUN_ID"
+          fi
 
       - name: Download rebuilt SAPI artifacts
         continue-on-error: true

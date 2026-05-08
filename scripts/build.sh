@@ -64,12 +64,8 @@ get_c23_standard_flag() {
   fi
 }
 
-# Function to build PHP.
-build_php() {
-  echo "::group::$1"
-  SAPI=$1
-
-  # Set and export FLAGS
+# Function to set and export build flags.
+configure_build_flags() {
   CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
@@ -110,6 +106,14 @@ build_php() {
   export DEB_HOST_MULTIARCH
   export ICU_CXXFLAGS
   export SED
+}
+
+# Function to build PHP.
+build_php() {
+  echo "::group::$1"
+  SAPI=$1
+
+  configure_build_flags
 
   # Export inputs
   export INSTALL_ROOT
@@ -335,6 +339,7 @@ elif [ "$action" = "build_extensions" ]; then
   . scripts/build_partials/extensions.sh
   . scripts/build_partials/package.sh
   install_staged_php
+  configure_build_flags
   PHP_INSTALL_ROOT="$INSTALL_ROOT"
   ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
   INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions

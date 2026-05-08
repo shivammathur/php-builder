@@ -218,9 +218,6 @@ patch_grpc() {
 
 # Function to patch ssh2 source.
 patch_ssh2() {
-  if [[ "$PHP_VERSION" = "5.6" ]]; then
-    sed -i 's/^inline int php_ssh2_sftp_attr2ssb/int php_ssh2_sftp_attr2ssb/' ssh2_sftp.c
-  fi
   if [[ "$PHP_VERSION" =~ 7.[0-2] ]]; then
     sed -i 's/ZSTR_VAL(resource->path)/SSH2_URL_STR(resource->path)/g' ssh2_fopen_wrappers.c
     sed -i 's/zend_string_release(resource->path);/efree(resource->path);/g' ssh2_fopen_wrappers.c
