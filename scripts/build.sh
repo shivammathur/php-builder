@@ -66,6 +66,11 @@ get_c23_standard_flag() {
 
 # Function to set and export build flags.
 configure_build_flags() {
+  local build_target extra_warning_flags
+  build_target=${1:-php}
+  extra_warning_flags="-Wall -pedantic"
+  [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
+
   CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
@@ -80,12 +85,12 @@ configure_build_flags() {
     c23_flag="$(get_c23_standard_flag)"
     if [ -n "$c23_flag" ]; then
       CFLAGS="$CFLAGS $c23_flag"
-      EXTRA_CFLAGS="-Wall -pedantic"
+      EXTRA_CFLAGS="$extra_warning_flags"
     else
       EXTRA_CFLAGS="-Wall -Wno-pedantic"
     fi
   else
-    EXTRA_CFLAGS="-Wall -pedantic"
+    EXTRA_CFLAGS="$extra_warning_flags"
   fi
   EXTRA_CFLAGS="$EXTRA_CFLAGS -fsigned-char -fno-strict-aliasing -Wno-missing-field-initializers"
 
@@ -93,7 +98,7 @@ configure_build_flags() {
   
   # Set ICU Version
   ICU_VERSION="$(dpkg -s libicu-dev | sed -ne 's/^Version: \([0-9]\+\).*/\1/p')"  
-  dpkg --compare-versions $ICU_VERSION ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
+  dpkg --compare-versions "$ICU_VERSION" ge 75 && ICU_CXXFLAGS=-std=c++17 || ICU_CXXFLAGS=-std=c++11
   [[ "$VERSION_ID" = "11" && "$PHP_VERSION" = "8.6" ]] && export CXXFLAGS="$CXXFLAGS -include unicode/localpointer.h"
 
   SED=$(command -v sed)
@@ -339,7 +344,7 @@ elif [ "$action" = "build_extensions" ]; then
   . scripts/build_partials/extensions.sh
   . scripts/build_partials/package.sh
   install_staged_php
-  configure_build_flags
+  configure_build_flags extensions
   PHP_INSTALL_ROOT="$INSTALL_ROOT"
   ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
   INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions
