@@ -10,12 +10,14 @@ diff --git a/sapi/fpm/php-fpm.conf.in b/sapi/fpm/php-fpm.conf.in
 index 9e5b593..e4fd6aa 100644
 --- a/sapi/fpm/php-fpm.conf.in
 +++ b/sapi/fpm/php-fpm.conf.in
-@@ -14,14 +14,14 @@
+@@ -14,14 +14,16 @@
  ; Pid file
  ; Note: the default prefix is @EXPANDED_LOCALSTATEDIR@
  ; Default Value: none
++; Warning: if you change the value here, you need to modify systemd
++; service PIDFile= setting to match the value here.
 -;pid = run/php-fpm.pid
-+pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
++;pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
  
  ; Error log file
  ; If it's set to "syslog", log is sent to syslogd instead of being written

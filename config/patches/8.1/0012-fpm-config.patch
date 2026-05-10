@@ -17,7 +17,7 @@ index 4818f20..4997748 100644
 -;pid = run/php-fpm.pid
 +; Warning: if you change the value here, you need to modify systemd
 +; service PIDFile= setting to match the value here.
-+pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
++;pid = @EXPANDED_LOCALSTATEDIR@/run/php/php@PHP_MAJOR_VERSION@.@PHP_MINOR_VERSION@-fpm.pid
  
  ; Error log file
  ; If it's set to "syslog", log is sent to syslogd instead of being written
