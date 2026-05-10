@@ -36,7 +36,7 @@ trap 'log_failure ${LINENO} "$BASH_COMMAND"' ERR
 get_buildflags() {
   type=$1
   lto=${2:--lto}
-  flags=$(dpkg-buildflags --get "$type")
+  flags=$(dpkg-buildflags --get "$type" 2>/dev/null)
 
   # Add or remove lto optimization flags.
   if [ "$lto" = "-lto" ]; then
@@ -75,12 +75,17 @@ configure_build_flags() {
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
 
-  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto")"
-  CXXFLAGS="$(get_buildflags CXXFLAGS "$lto")"
+  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto") -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+  CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
+  CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
     
   if [[ "$PHP_VERSION" =~ 5.6|7.[0-4]|8.0 ]]; then
     EXTRA_CFLAGS="-fpermissive -Wno-deprecated -Wno-deprecated-declarations"
+    if [ "$build_target" = "extensions" ]; then
+      CXXFLAGS="$CXXFLAGS -fpermissive"
+      EXTRA_CFLAGS="-Wno-deprecated -Wno-deprecated-declarations"
+    fi
   elif dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
     c23_flag="$(get_c23_standard_flag)"
     if [ -n "$c23_flag" ]; then
@@ -363,6 +368,7 @@ elif [ "$action" = "package" ]; then
   link_php
   IFS=' ' read -r -a sapi_arr <<<"${SAPI_LIST:?}"
   ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
+  export ext_dir
   enable_custom_extensions
   cleanup
   package_php
