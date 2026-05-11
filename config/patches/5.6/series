@@ -242,3 +242,8 @@
 0242-Actually-use-ICU_CXXFLAGS-when-compiling-ext-intl.patch
 0243-Fix-autoconf-errors.patch
 0244-Fix-AC_PROG_SED-error-and-other-autoconf-warnings.patch
+0245-Use-__attribute__-__unused__-directly-instead-of-ATT.patch
+0246-GHSA-m33r-qmcv-p97q-soap-Fix-use-after-free-after-he.patch
+0247-GHSA-hmxp-6pc4-f3vv-soap-Fix-broken-Apache-map-value.patch
+0248-GHSA-96wq-48vp-hh57-metaphone-Fix-signed-integer-ove.patch
+0249-NEWS-from-8.2.31.patch

@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 10 May 2026 08:01:23 +0200
+Subject: Use __attribute__((__unused__)) directly instead of ATTRIBUTE_UNUSED
+
+---
+ ext/libxml/libxml.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/libxml/libxml.c b/ext/libxml/libxml.c
+index 02453ff..9b5e7f7 100644
+--- a/ext/libxml/libxml.c
++++ b/ext/libxml/libxml.c
+@@ -426,7 +426,7 @@ php_libxml_input_buffer_create_filename(const char *URI, xmlCharEncoding enc)
+ static xmlOutputBufferPtr
+ php_libxml_output_buffer_create_filename(const char *URI,
+                               xmlCharEncodingHandlerPtr encoder,
+-                              int compression ATTRIBUTE_UNUSED)
++                              int compression __attribute__((__unused__)))
+ {
+ 	xmlOutputBufferPtr ret;
+ 	xmlURIPtr puri;

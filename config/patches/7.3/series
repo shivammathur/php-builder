@@ -119,3 +119,10 @@
 0119-Fix-GHSA-h96m-rvf9-jgm2.patch
 0120-Fix-GHSA-www2-q4fc-65wf.patch
 0121-NEWS-from-8.1.34.patch
+0122-Use-ZEND_ATTRIBUTE_UNUSED-instead-of-ATTRIBUTE_UNUSE.patch
+0123-GHSA-85c2-q967-79q5-soap-Fix-stale-SOAP_GLOBAL-ref_m.patch
+0124-GHSA-m33r-qmcv-p97q-soap-Fix-use-after-free-after-he.patch
+0125-GHSA-hmxp-6pc4-f3vv-soap-Fix-broken-Apache-map-value.patch
+0126-GHSA-96wq-48vp-hh57-metaphone-Fix-signed-integer-ove.patch
+0127-GHSA-7qg2-v9fj-4mwv-fpm-XSS-within-status-endpoint.patch
+0128-NEWS-from-8.2.31.patch

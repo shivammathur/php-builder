@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Sun, 10 May 2026 08:01:23 +0200
+Subject: Use ZEND_ATTRIBUTE_UNUSED instead of ATTRIBUTE_UNUSED
+
+---
+ ext/libxml/libxml.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/libxml/libxml.c b/ext/libxml/libxml.c
+index da553d6..7882c1a 100644
+--- a/ext/libxml/libxml.c
++++ b/ext/libxml/libxml.c
+@@ -432,7 +432,7 @@ php_libxml_input_buffer_create_filename(const char *URI, xmlCharEncoding enc)
+ static xmlOutputBufferPtr
+ php_libxml_output_buffer_create_filename(const char *URI,
+                               xmlCharEncodingHandlerPtr encoder,
+-                              int compression ATTRIBUTE_UNUSED)
++                              int compression ZEND_ATTRIBUTE_UNUSED)
+ {
+ 	xmlOutputBufferPtr ret;
+ 	xmlURIPtr puri;
