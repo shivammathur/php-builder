@@ -10,7 +10,6 @@ ExecStartPost=-/usr/lib/php/php-fpm-socket-helper install /run/php/php-fpm.sock 
 ExecStopPost=-/usr/lib/php/php-fpm-socket-helper remove /run/php/php-fpm.sock /etc/php/PHP_VERSION/fpm/pool.d/www.conf NO_DOT
 ExecReload=/bin/kill -USR2 $MAINPID
 Restart=on-failure
-PrivateTmp=true
 ProtectSystem=full
 PrivateDevices=true
 ProtectKernelModules=true
