@@ -255,7 +255,7 @@ patch_mcrypt() {
     sed -i '/php_mcrypt_filter,$/a \    NULL,' mcrypt_filter.c
     sed -i \
       -e 's/static php_stream_filter \*php_mcrypt_filter_create(const char \*filtername, zval \*filterparams, uint8_t persistent)/static php_stream_filter *php_mcrypt_filter_create(const char *filtername, zval *filterparams, bool persistent)/' \
-      -e 's/php_stream_filter_alloc(&php_mcrypt_filter_ops, data, persistent)/php_stream_filter_alloc(\&php_mcrypt_filter_ops, data, persistent, PSFS_SEEKABLE_NEVER)/' \
+      -e 's/php_stream_filter_alloc(&php_mcrypt_filter_ops, data, persistent)/php_stream_filter_alloc(\&php_mcrypt_filter_ops, data, persistent, PSFS_SEEKABLE_NEVER, PSFS_SEEKABLE_NEVER)/' \
       mcrypt_filter.c
   fi
 }
@@ -271,7 +271,7 @@ patch_http() {
     sed -i 's#standard/php_lcg.h#random/php_random.h#g' src/php_http_message_body.c src/php_http_misc.c
     sed -i 's/static php_stream_filter \*http_filter_create(const char \*name, zval \*params, uint8_t p)/static php_stream_filter *http_filter_create(const char *name, zval *params, bool p)/g' src/php_http_filter.c
     sed -i '/PHP_HTTP_FILTER_FUNC(/ { N; /\n[[:space:]]*\(PHP_HTTP_FILTER_DTOR(\|NULL,\)/ s/\n/\n\tNULL,\n/ }' src/php_http_filter.c
-    sed -i -E 's/php_stream_filter_alloc\(([^,]+), ([^,]+), ([^)]+)\)/php_stream_filter_alloc(\1, \2, \3, PSFS_SEEKABLE_NEVER)/g' src/php_http_filter.c
+    sed -i -E 's/php_stream_filter_alloc\(([^,]+), ([^,]+), ([^)]+)\)/php_stream_filter_alloc(\1, \2, \3, PSFS_SEEKABLE_NEVER, PSFS_SEEKABLE_NEVER)/g' src/php_http_filter.c
     patch_xt_offsetof_tree src
   fi
 }
@@ -369,10 +369,9 @@ patch_uopz() {
     sed -i 's/PHP_VERSION_ID > 80100/PHP_VERSION_ID >= 80200/' src/function.c
   fi
   if [[ "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
-    curl -fsSL https://patch-diff.githubusercontent.com/raw/krakjoe/uopz/pull/185.patch \
-      | awk 'BEGIN { skip=0 } index($0, "diff --git a/tests/") == 1 { skip=1 } index($0, "diff --git ") == 1 && index($0, "diff --git a/tests/") != 1 { skip=0 } !skip { print }' \
-      > uopz-pr-185.patch
-    patch --batch -p1 -i uopz-pr-185.patch
+    curl -fsSL --retry 5 --retry-all-errors -o uopz-pr-185.patch.orig https://patch-diff.githubusercontent.com/raw/krakjoe/uopz/pull/185.patch || return 1
+    awk 'BEGIN { skip=0 } index($0, "diff --git a/tests/") == 1 { skip=1 } index($0, "diff --git ") == 1 && index($0, "diff --git a/tests/") != 1 { skip=0 } !skip { print }' uopz-pr-185.patch.orig > uopz-pr-185.patch
+    patch --batch -p1 -i uopz-pr-185.patch || return 1
   fi
   if [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then
     sed -i 's/zend_exception_get_default()/zend_ce_exception/g' uopz.c
