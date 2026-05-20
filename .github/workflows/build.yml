@@ -209,6 +209,15 @@ jobs:
             /tmp/*.xz
             /tmp/*.zst
 
+      - name: Configure ASAN package smoke-test runtime
+        if: matrix.asan == 'asan'
+        run: |
+          asan_options="${ASAN_OPTIONS:+$ASAN_OPTIONS:}detect_odr_violation=0"
+          if [ "${{ contains(matrix.container, 'arm64v8/') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
+
       - name: Check php-cli version
         run: |
           php -v
