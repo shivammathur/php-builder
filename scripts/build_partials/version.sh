@@ -8,17 +8,18 @@ check_stable() {
   # If yes, then fetch it and exit, or continue.
   if [[ "$GITHUB_MESSAGE" != *build-all* ]]; then
     if [ "$new_version" = "$(curl -sL "$RELEASE"/php"$PHP_VERSION".log)" ]; then
-      (
+      if (
         mkdir -p "${INSTALL_ROOT:?}"
         cd "$INSTALL_ROOT"/.. || exit
         arch="$(arch)"
         [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
-        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz"
-        curl -sLO "$RELEASE/php_$PHP_VERSION+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
+        curl -fsSLO "$RELEASE/php_$PHP_VERSION${PHP_PKG_SUFFIX:-}+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" &&
+        curl -fsSLO "$RELEASE/php_$PHP_VERSION${PHP_PKG_SUFFIX:-}+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" &&
         ls -la
-      )
-      echo "$new_version" exists
-      exit 0
+      ); then
+        echo "$new_version" exists
+        exit 0
+      fi
     fi
   fi
 }

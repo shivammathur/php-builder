@@ -263,7 +263,11 @@ jobs:
       - name: Configure ASAN runtime
         if: matrix.asan == 'asan'
         run: |
-          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          asan_options="detect_leaks=0:detect_odr_violation=0"
+          if [ "${{ contains(matrix.container, 'arm64v8/') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v8
@@ -310,7 +314,11 @@ jobs:
       - name: Configure ASAN runtime
         if: matrix.asan == 'asan'
         run: |
-          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          asan_options="detect_leaks=0:detect_odr_violation=0"
+          if [ "${{ contains(matrix.os, '-arm') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v8

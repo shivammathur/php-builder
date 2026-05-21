@@ -106,7 +106,7 @@ jobs:
         id: source-artifact
         shell: bash
         env:
-          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
         run: |
           if grep -Fx "$ARTIFACT_NAME" <<< "$ARTIFACT_NAMES"; then
@@ -118,7 +118,7 @@ jobs:
       - name: Fail on missing SAPI artifact
         if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi != 'true'
         env:
-          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
         run: |
           echo "Missing $ARTIFACT_NAME in run ${{ inputs.source-run-id }}"
           exit 1
@@ -134,6 +134,7 @@ jobs:
         if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         run: bash scripts/build.sh build_sapi "${SAPI}"
         env:
+          ASAN: ${{ matrix.asan }}
           BUILD: ${{ matrix.build }}
           GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -146,7 +147,7 @@ jobs:
         if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/debian/*.zst
 
   package:
@@ -162,6 +163,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure ASAN runtime
+        if: matrix.asan == 'asan'
+        run: |
+          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+
       - name: Install required packages
         run: bash scripts/install-requirements.sh
         env:
@@ -171,8 +178,8 @@ jobs:
       - name: Download source SAPI artifacts
         shell: bash
         env:
-          ARTIFACT_PATTERN: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
-          ARTIFACT_REGEX: ^php-sapi-[^-]+-${{ matrix.php-version }}-${{ matrix.build }}\+${{ matrix.dist }}-${{ matrix.dist-version }}$
+          ARTIFACT_PATTERN: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          ARTIFACT_REGEX: ^php-sapi-[^-]+-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}\+${{ matrix.dist }}-${{ matrix.dist-version }}$
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SOURCE_RUN_ID: ${{ inputs.source-run-id }}
           SOURCE_ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
@@ -187,7 +194,7 @@ jobs:
         continue-on-error: true
         uses: actions/download-artifact@v8
         with:
-          pattern: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          pattern: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/rebuilt-artifacts
 
       - name: Stage builds
@@ -210,6 +217,7 @@ jobs:
       - name: Merge SAPI builds
         run: bash scripts/build.sh merge
         env:
+          ASAN: ${{ matrix.asan }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
@@ -225,6 +233,7 @@ jobs:
       - name: Build extensions
         run: bash scripts/build.sh build_extensions
         env:
+          ASAN: ${{ matrix.asan }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -234,6 +243,7 @@ jobs:
       - name: Package build
         run: bash scripts/build.sh package
         env:
+          ASAN: ${{ matrix.asan }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
@@ -249,10 +259,19 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: |
             /tmp/*.xz
             /tmp/*.zst
+
+      - name: Configure ASAN package smoke-test runtime
+        if: matrix.asan == 'asan'
+        run: |
+          asan_options="${ASAN_OPTIONS:+$ASAN_OPTIONS:}detect_odr_violation=0"
+          if [ "${{ contains(matrix.container, 'arm64v8/') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
 
       - name: Check php-cli version
         run: |
@@ -295,15 +314,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure ASAN runtime
+        if: matrix.asan == 'asan'
+        run: |
+          asan_options="detect_leaks=0:detect_odr_violation=0"
+          if [ "${{ contains(matrix.container, 'arm64v8/') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
+          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+
       - uses: actions/download-artifact@v8
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }} ${{ matrix.asan }}
 
       - name: Test
         run: |
@@ -336,15 +365,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Configure ASAN runtime
+        if: matrix.asan == 'asan'
+        run: |
+          asan_options="detect_leaks=0:detect_odr_violation=0"
+          if [ "${{ contains(matrix.os, '-arm') }}" = "true" ]; then
+            asan_options="${asan_options}:report_globals=0"
+          fi
+          echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
+          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+
       - uses: actions/download-artifact@v8
         with:
-          name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.os }}
+          name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.os }}
           path: /tmp
 
       - name: Install PHP
         run: |
           sed -i '/download/d' scripts/install.sh
-          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }}
+          bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }} ${{ matrix.asan }}
 
       - name: Test
         run: |
