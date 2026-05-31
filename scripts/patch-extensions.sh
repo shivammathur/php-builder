@@ -63,6 +63,14 @@ patch_imagick() {
   fi
 }
 
+# Function to patch SQL Server stream wrapper error reporting.
+patch_sqlsrv_stream_error() {
+  if [[ "$PHP_VERSION" = "8.6" && -f shared/core_stream.cpp ]]; then
+    sed -i 's/php_stream_context\* STREAMS_DC/php_stream_context* context STREAMS_DC/' shared/core_stream.cpp
+    sed -i 's/php_stream_wrapper_log_error(wrapper, options, "Invalid option: no options except REPORT_ERRORS may be specified with a sqlsrv stream");/php_stream_wrapper_warn(wrapper, context, options, InvalidParam, "Invalid option: no options except REPORT_ERRORS may be specified with a sqlsrv stream");/' shared/core_stream.cpp
+  fi
+}
+
 # Function to patch sqlsrv source.
 patch_sqlsrv() {
   if [ -d source/sqlsrv ]; then
@@ -75,6 +83,7 @@ patch_sqlsrv() {
     sed -i 's/INI_INT( subsystems )/zend_ini_long_literal(INI_PREFIX INI_LOG_SUBSYSTEMS)/' init.cpp
     sed -i 's/INI_INT( buffered_limit )/zend_ini_long_literal(INI_PREFIX INI_BUFFERED_QUERY_LIMIT)/' init.cpp
     sed -i 's/INI_INT(set_locale_info)/zend_ini_long_literal(INI_PREFIX INI_SET_LOCALE_INFO)/' init.cpp
+    patch_sqlsrv_stream_error
   fi
 }
 
@@ -98,6 +107,7 @@ patch_pdo_sqlsrv() {
     sed -i 's/zval_ptr_dtor( &dbh->query_stmt_zval );/OBJ_RELEASE(dbh->query_stmt_obj);dbh->query_stmt_obj = NULL;/' php_pdo_sqlsrv_int.h
     sed -i 's/pdo_error_mode prev_err_mode/uint8_t prev_err_mode/g' pdo_dbh.cpp
   fi
+  patch_sqlsrv_stream_error
 }
 
 # Function to patch xdebug source.
