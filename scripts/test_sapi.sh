@@ -17,6 +17,18 @@ write_env() {
   printf "export %s=%s\n" "$name" "$value" | sudo tee -a "$file" >/dev/null
 }
 
+write_systemd_env() {
+  service=$1
+  file="/etc/systemd/system/$service.d/asan-env.conf"
+  sudo mkdir -p "${file%/*}"
+  {
+    echo "[Service]"
+    [ -n "${ASAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' ASAN_OPTIONS "$ASAN_OPTIONS"
+    [ -n "${UBSAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' UBSAN_OPTIONS "$UBSAN_OPTIONS"
+    [ -n "${ZEND_DONT_UNLOAD_MODULES:-}" ] && printf 'Environment="%s=%s"\n' ZEND_DONT_UNLOAD_MODULES "$ZEND_DONT_UNLOAD_MODULES"
+  } | sudo tee "$file" >/dev/null
+}
+
 set_asan_lib() {
   [ -z "${LD_PRELOAD:-}" ] || return
   if command -v gcc >/dev/null 2>&1; then
@@ -39,6 +51,8 @@ configure_asan_env() {
   write_env "$fpm_env" ASAN_OPTIONS "$ASAN_OPTIONS"
   write_env "$fpm_env" UBSAN_OPTIONS "${UBSAN_OPTIONS:-}"
   write_env "$fpm_env" ZEND_DONT_UNLOAD_MODULES "${ZEND_DONT_UNLOAD_MODULES:-}"
+  write_systemd_env "php$PHP_VERSION-fpm.service"
+  [ -d /run/systemd/system ] && sudo systemctl daemon-reload 2>/dev/null || true
 
   apache_env="/etc/apache2/envvars"
   if [ -f "$apache_env" ]; then
@@ -56,16 +70,25 @@ configure_asan_env() {
   fi
 }
 
+run_switch_sapi() {
+  if [ -n "${ASAN_OPTIONS:-}" ] && command -v timeout >/dev/null 2>&1; then
+    sudo_php_env timeout 120 switch_sapi -v "$PHP_VERSION" -s "$1"
+  else
+    sudo_php_env switch_sapi -v "$PHP_VERSION" -s "$1"
+  fi
+}
+
 sudo mkdir -p /var/www/html
 sudo rm -rf /var/www/html/index.html
 printf "<?php echo current(explode('-', php_sapi_name())).':'.strtolower(current(explode('/', \$_SERVER['SERVER_SOFTWARE']))).\"\n\";" | sudo tee /var/www/html/index.php >/dev/null
 asan_env_configured=
 for sapi in apache2handler:apache fpm:apache cgi:apache fpm:nginx; do
-  sudo_php_env switch_sapi -v "$PHP_VERSION" -s "$sapi"
   if [ -z "$asan_env_configured" ] && configure_asan_env; then
     asan_env_configured=1
-    sudo_php_env switch_sapi -v "$PHP_VERSION" -s "$sapi"
+    run_switch_sapi "$sapi" || true
+    configure_asan_env
   fi
+  run_switch_sapi "$sapi"
   resp="$(curl -s http://localhost)"
   [ "$sapi" != "$resp" ] && exit 1 || echo "$resp"
 done
