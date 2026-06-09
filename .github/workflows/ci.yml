@@ -1,6 +1,14 @@
 name: CI
 
 on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
   workflow_dispatch:
     inputs:
       build-mode:
@@ -45,15 +53,30 @@ jobs:
       - name: Get PHP versions
         id: set-php-versions
         env:
-          COMMIT: ${{ github.event.head_commit.message || inputs.build-mode }}
+          COMMIT: ${{ github.event.head_commit.message || inputs.build-mode || (github.event_name == 'pull_request' && '--build-new skip-release') || '--build-new' }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_LIST: ${{ inputs.php-versions || env.PHP_LIST }}
           PHP_SOURCE: ${{ inputs.php-source || env.PHP_SOURCE }}
         run: bash scripts/get-php-versions.sh
 
+  pull-request-builds:
+    needs: get-php-versions
+    if: github.event_name == 'pull_request' && needs.get-php-versions.outputs.has_versions == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: ${{ fromJson(needs.get-php-versions.outputs.php_versions) }}
+    uses: ./.github/workflows/build.yml
+    with:
+      build-mode: --build-new skip-release
+      container-os-versions: ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie
+      php-source: --web-php
+      php-version: ${{ matrix.php-version }}
+    secrets: inherit
+
   dispatch-builds:
     needs: get-php-versions
-    if: needs.get-php-versions.outputs.has_versions == 'true'
+    if: github.event_name != 'pull_request' && needs.get-php-versions.outputs.has_versions == 'true'
     runs-on: ubuntu-latest
     env:
       BUILD_MODE: ${{ inputs.build-mode || '--build-new' }}

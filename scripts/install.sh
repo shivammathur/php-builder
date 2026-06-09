@@ -24,6 +24,14 @@ get() {
   fi
 }
 
+sudo_php_env() {
+  sudo env \
+    ASAN_OPTIONS="${ASAN_OPTIONS:-}" \
+    UBSAN_OPTIONS="${UBSAN_OPTIONS:-}" \
+    ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-}" \
+    "$@"
+}
+
 set_base_version_id() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
   if ! [ -d "$dist_info_dir" ]; then
@@ -298,10 +306,10 @@ add_prerequisites() {
 add_pear() {
   if ! [ -e /usr/bin/pear ]; then
     sudo curl -o /tmp/pear.phar -sL https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar
-    sudo php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
+    sudo_php_env php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
     to_wait=()
     for script in pear pecl; do
-      sudo "$script" channel-update "$script".php.net &
+      sudo_php_env "$script" channel-update "$script".php.net &
       to_wait+=("$!")
     done
     wait "${to_wait[@]}"
@@ -403,7 +411,9 @@ configure() {
     done
   fi
   sudo chmod 777 "$pecl_file"
-  echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
+  for pear_scope in system user; do
+    sudo_php_env pear config-set php_ini "$pecl_file" "$pear_scope"
+  done
   echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
   if [ -d /run/systemd/system ]; then
     sudo systemctl daemon-reload 2>/dev/null || true
@@ -493,6 +503,8 @@ for arg in "$@"; do
     debug="$arg"
   elif [[ "$arg" =~ nts|zts ]]; then
     build="$arg"
+  elif [[ "$arg" =~ asan ]]; then
+    asan="asan"
   fi
 done
 
@@ -509,6 +521,9 @@ fi
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then
   PHP_PKG_SUFFIX="-zts"
+fi
+if [ "${asan:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-asan"
 fi
 if [ "$debug" = "debug" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
