@@ -1,7 +1,11 @@
 #!/bin/sh
-CONFFILE=/etc/php/PHP_VERSION/fpm/php-fpm.conf
-[ -r /etc/default/phpPHP_VERSION-fpm ] && . /etc/default/phpPHP_VERSION-fpm
-CONF_PIDFILE=$(sed -n 's/^[[:space:]]*pid[[:space:]]*=[[:space:]]*//p' $CONFFILE)
-PIDFILE=${CONF_PIDFILE:-/run/php/phpPHP_VERSION-fpm.pid}
-[ -r "$PIDFILE" ] && kill -USR1 $(cat "$PIDFILE") > /dev/null
-exit 0
+
+if [ -d /run/systemd/system ]; then
+	if systemctl is-active --quiet phpPHP_VERSION-fpm.service; then
+		exec systemctl --kill-who=main --signal=USR1 kill phpPHP_VERSION-fpm.service
+	fi
+else
+	if service phpPHP_VERSION-fpm status >/dev/null 2>&1; then
+		exec service phpPHP_VERSION-fpm reopen-logs
+	fi
+fi
