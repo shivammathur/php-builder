@@ -1,0 +1,9 @@
+LIB_UPSTREAM_URL=https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.47/pcre2-10.47.tar.bz2
+LIB_UPSTREAM_REF=pcre2-10.47
+LIB_UPSTREAM_SHA256=47fe8c99461250d42f89e6e8fdaeba9da057855d06eb7fc08d9ca03fd08d7bc7
+LIB_PACKAGE_VERSION=10.47-2
+LIB_PACKAGING_URL=https://salsa.debian.org/debian/pcre2.git
+LIB_PACKAGING_REF=master
+LIB_REFERENCE_URL=https://github.com/PCRE2Project/pcre2
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/debian/pcre2
+LIB_BINARY_PACKAGES=(libpcre2-dev libpcre2-8-0 libpcre2-16-0 libpcre2-32-0 libpcre2-posix3)

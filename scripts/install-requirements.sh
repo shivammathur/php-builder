@@ -1,146 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-# Function to cURL.
-get() {
-  mode=$1
-  file_path=$2
-  shift 2
-  links=("$@")
-  if [ "$mode" = "-s" ]; then
-    sudo curl -sL "${links[0]}"
-  else
-    for link in "${links[@]}"; do
-      if status_code=$(sudo curl --retry 5 --retry-all-errors -w "%{http_code}" -o "$file_path" -sL "$link"); then
-        [ "$status_code" = "200" ] && return 0
-      fi
-    done
-    return 1
-  fi
-}
-
-# Helper function to update the package list(s).
-update_lists_helper() {
-  list=$1
-  if [[ -n "$list" ]]; then
-    apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-  else
-    apt-get update
-  fi
-}
-
-# Function to update the package list(s).
-update_lists() {
-  local ppa=${1:-}
-  local ppa_search=${2:-}
-  if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
-    if [[ -n "$ppa" && -n "$ppa_search" ]]; then
-      list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
-    elif grep -Eq '^deb ' "$list_file"; then
-      list="$list_file"
-    fi
-    update_lists_helper "$list"
-    echo '' | tee /tmp/setup_php >/dev/null 2>&1
-  fi
-}
-
-# Function to get the fingerprint from a Ubuntu repository.
-ubuntu_fingerprint() {
-  ppa="$1"
-  ppa_uri="~${ppa%/*}/+archive/ubuntu/${ppa##*/}"
-  get -s "" "${lp_api[0]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
-  || get -s "" "${lp_api[1]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
-  || get -s "" "$ppa_sp/keys/$ppa.fingerprint"
-}
-
-# Function to get the fingerprint from a Debian repository.
-debian_fingerprint() {
-  ppa=$1
-  ppa_url=$2
-  package_dist=$3
-  release_pub=/tmp/"${ppa/\//-}".gpg
-  get -q "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
-  gpg --homedir /tmp --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
-}
-
-# Function to add the keyring for a repository.
-add_key() {
-  ppa=${1:-ondrej/php}
-  ppa_url=$2
-  package_dist=$3
-  key_source=$4
-  key_file=$5
-  key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org ]]; then
-    fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
-    sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
-    key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
-  fi
-  key_urls+=("$ppa_sp/keys/$ppa.gpg")
-  if [[ "$key_source" =~ packages.sury.org ]]; then
-    get -q "$key_file" "$key_source"
-  elif [ ! -e "$key_source" ]; then
-    get -q "$key_file" "${key_urls[@]}"
-  fi
-  if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
-    gpg --homedir /tmp --batch --yes --dearmor "$key_file" && rm -f "$key_file" >/dev/null 2>&1
-    mv "$key_file".gpg "$key_file"
-  fi
-}
-
-# Function to add a package list.
-add_list() {
-  ppa=${1-ondrej/php}
-  ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
-  key_source=${3:-"$ppa_url"}
-  package_dist=${4:-"$VERSION_CODENAME"}
-  branches=${5:-main}
-  ppa_search="deb .*$ppa_url $package_dist .*$branches"
-  grep -Eqr "$ppa_search" "$list_dir" && echo "Repository $ppa already exists" && return
-  arch=$(dpkg --print-architecture)
-  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
-  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
-  echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | tee "$list_dir"/"${ppa/\//-}".list >/dev/null 2>&1
-  update_lists "$ppa" "$ppa_search"
-}
-
-# Function to remove a package list.
-remove_list() {
-  ppa=${1-ondrej/php}
-  [ -n "$2" ] && ppa_urls=("$2") || ppa_urls=("$lp_ppa/$ppa/ubuntu" "$lpc_ppa/$ppa/ubuntu")
-  for ppa_url in "${ppa_urls[@]}"; do
-    grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
-  done
-  sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
-}
-
-# Function to check if ubuntu ppa is up.
-is_ubuntu_ppa_up() {
-  ppa=${1:-ondrej/php}
-  curl -s --connect-timeout 10 --max-time 10 --head --fail "$lpc_ppa/$ppa/ubuntu/dists/$VERSION_CODENAME/Release" > /dev/null
-}
-
-# Function to add the PPA mirror.
-add_ppa_sp_mirror() {
-  ppa=$1
-  ppa_name="$(basename "$ppa")"
-  remove_list "$ppa" || true
-  add_list sp/"$ppa_name" "$ppa_sp/$ppa/ubuntu" "$ppa_sp/$ppa/ubuntu/key.gpg"
-}
-
-# Function to add a package repository.
-add_ppa() {
-  if [ "$ID" = "ubuntu" ]; then
-    if is_ubuntu_ppa_up ondrej/php; then
-      add_list ondrej/php
-    else
-      add_ppa_sp_mirror ondrej/php
-    fi
-  elif [ "$ID" = "debian" ]; then
-    add_list ondrej/php https://packages.sury.org/php/ https://packages.sury.org/php/apt.gpg
-  fi
-}
-
 # Function to install packages.
 install_packages() {
   packages=("$@")
@@ -152,10 +12,25 @@ install_packages() {
       return 0
     fi
     apt-get clean
-    update_lists
+    apt-get update
     sleep "$((attempt * 5))"
   done
   $apt_install "${packages[@]}"
+}
+
+ensure_github_cli_candidate() {
+  local arch key_file list_file
+
+  apt-cache show gh >/dev/null 2>&1 && return 0
+
+  arch=$(dpkg --print-architecture)
+  key_file=/usr/share/keyrings/githubcli-archive-keyring.gpg
+  list_file=/etc/apt/sources.list.d/github-cli.list
+  install -d -m 0755 /usr/share/keyrings /etc/apt/sources.list.d
+  curl --retry 5 --retry-all-errors -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o "$key_file"
+  chmod go+r "$key_file"
+  printf 'deb [arch=%s signed-by=%s] https://cli.github.com/packages stable main\n' "$arch" "$key_file" > "$list_file"
+  apt-get update
 }
 
 # Function to configure the build requirements for PHP.
@@ -184,34 +59,24 @@ get_libmysql() {
   echo "$mysql"
 }
 
-if [ -z "${BUILD}" ]; then
+if [ -z "${BUILD:-}" ]; then
   echo "BUILD is not defined"
   exit 1;
 fi
-
-# Constants.
-list_dir='/etc/apt/sources.list.d'
-list_file="$list_dir/ubuntu.sources"
-[ -e "$list_file" ] || list_file='/etc/apt/sources.list'
-lp_api=(
-  'https://api.launchpad.net/1.0'
-  'https://api.launchpad.net/devel'
-)
-lp_ppa='http://ppa.launchpad.net'
-lpc_ppa='https://ppa.launchpadcontent.net'
-key_dir='/usr/share/keyrings'
-ppa_sp='https://ppa.setup-php.com'
-sks=(
-  'https://keyserver.ubuntu.com'
-  'https://pgp.mit.edu'
-  'https://keys.openpgp.org'
-)
+if [ -z "${PHP_VERSION:-}" ]; then
+  echo "PHP_VERSION is not defined"
+  exit 1;
+fi
 
 # Add OS information to the environment.
 . /etc/os-release
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 # Set frontend to noninteractive
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+
+# Update package lists.
+apt-get update
 
 # Install the build requirements for PHP
 install_packages apt-transport-https \
@@ -227,22 +92,14 @@ install_packages apt-transport-https \
                  wget \
                  zstd
 
+ensure_github_cli_candidate
+
 # Set library versions
 libmysql_dev=$(get_libmysql)
 libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
-[[ "$PHP_VERSION" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
 gcc_version=$(gcc --version | grep -Po '[0-9]+\.[0-9]+\.[0-9]+' | head -n 1 | cut -d '.' -f 1)
 libgcc_dev="libgcc-$gcc_version-dev"
 libgccjit_dev="libgccjit-$gcc_version-dev"
-
-# Add required package repositories.
-add_ppa
-if [ "${BUILD:?}" = "debug" ]; then
-  sed -i "h;s/^//;p;x" /etc/apt/sources.list.d/ondrej-*.list
-  sed -i '2s/main$/main\/debug/' /etc/apt/sources.list.d/ondrej-*.list
-  apt-get update
-fi
-add_list github/cli https://cli.github.com/packages https://cli.github.com/packages/githubcli-archive-keyring.gpg stable
 
 # Install PHP build requirements.
 install_packages apache2 \
@@ -261,10 +118,11 @@ install_packages apache2 \
                  libargon2-dev \
                  libapache2-mod-fcgid \
                  libaspell-dev \
+                 libavif-dev \
                  libbz2-dev \
                  libbrotli-dev \
-                 libc-client2007e-dev \
                  libc-ares-dev \
+                 libc6-dev \
                  libcurl4-openssl-dev \
                  libdb-dev \
                  libedit-dev \
@@ -272,21 +130,23 @@ install_packages apache2 \
                  libevent-dev \
                  libexpat1-dev \
                  libffi-dev \
+                 libfontconfig-dev \
                  libfreetype6-dev \
                  libraqm-dev \
-                 libimagequant-dev \
                  "$libgcc_dev" \
                  "$libgccjit_dev" \
                  libgcrypt20-dev \
-                 libgd-dev \
                  libgearman-dev \
                  libglib2.0-dev \
                  libgmp3-dev \
                  libgpgme-dev \
                  libgrpc-dev \
+                 libheif-dev \
                  libicu-dev \
+                 libimagequant-dev \
                  libjpeg-dev \
                  libkrb5-dev \
+                 krb5-multidev \
                  libldb-dev \
                  libldap2-dev \
                  liblmdb-dev \
@@ -298,14 +158,11 @@ install_packages apache2 \
                  libmagickwand-dev \
                  libmcrypt-dev \
                  libmemcached-dev \
-                 libmpdec-dev \
                  libmhash-dev \
                  "$libmysql_dev" \
                  libnss-myhostname \
                  libonig-dev \
-                 libonig-dev \
                  libpam0g-dev \
-                 "$libpcre_dev" \
                  libpng-dev \
                  libpq-dev \
                  libprotobuf-dev \
@@ -324,9 +181,12 @@ install_packages apache2 \
                  libssl-dev \
                  libsystemd-dev \
                  libtidy-dev \
+                 libtiff-dev \
                  libtool \
+                 libvpx-dev \
                  libwebp-dev \
                  libwrap0-dev \
+                 libx11-dev \
                  libxml2-dev \
                  libxmlrpc-epi-dev \
                  libxpm-dev \
@@ -348,6 +208,9 @@ install_packages apache2 \
                  unixodbc-dev \
                  uuid-dev \
                  zlib1g-dev
+
+# Install locally built library overlays.
+bash "$script_dir/lib/install.sh" --php-version "$PHP_VERSION"
 
 # Configure PHP build requirements.
 configure_requirements

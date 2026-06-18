@@ -1,0 +1,84 @@
+name: Build Libraries
+
+on:
+  workflow_dispatch:
+    inputs:
+      container-os-versions:
+        description: 'OS versions to build libraries on'
+        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie arm64v8/debian:11 arm64v8/debian:12 arm64v8/debian:trixie'
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie arm64v8/debian:11 arm64v8/debian:12 arm64v8/debian:trixie
+  CONTAINER_BASE: ubuntu-24.04
+  CONTAINER_BASE_ARM: ubuntu-24.04-arm
+
+jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      library_matrix: ${{ steps.set-matrix.outputs.library_matrix }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get matrix
+        id: set-matrix
+        env:
+          CONTAINER_OS_LIST: ${{ inputs.container-os-versions || env.CONTAINER_OS_LIST }}
+          CONTAINER_BASE: ${{ env.CONTAINER_BASE }}
+          CONTAINER_BASE_ARM: ${{ env.CONTAINER_BASE_ARM }}
+        run: bash scripts/lib/get-matrix.sh
+
+  build:
+    name: Build ${{ matrix.library }} ${{ matrix.dist }} ${{ matrix.dist-version }} ${{ matrix.arch }}
+    needs: get-matrix
+    runs-on: ${{ matrix.container-base }}
+    container: ${{ matrix.container }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.get-matrix.outputs.library_matrix) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build library
+        run: bash scripts/lib/build.sh --library "${{ matrix.library }}" --out-dir /tmp/libraries
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: library-${{ matrix.library }}-${{ matrix.dist }}-${{ matrix.dist-version }}-${{ matrix.arch }}
+          path: /tmp/libraries/*
+
+  publish:
+    name: Publish libraries
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v8
+        with:
+          path: /tmp/libraries
+          pattern: library-*
+          merge-multiple: true
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view libraries >/dev/null 2>&1 || gh release create libraries --title libraries --notes ""
+          for asset in /tmp/libraries/*; do
+            bash scripts/retry.sh 5 60 gh release upload libraries "$asset" --clobber
+            sleep 2
+          done

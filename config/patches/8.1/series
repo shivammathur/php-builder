@@ -53,3 +53,4 @@
 0053-GHSA-m8rr-4c36-8gq4-Consistently-pass-unsigned-char-.patch
 0054-Adjust-credits-for-GHSA-96wq-48vp-hh57.phpt.patch
 0055-NEWS-from-8.2.31.patch
+0056-Fix-PEAR-installation-with-libxml2.13-PHP-8.1.patch

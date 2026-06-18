@@ -118,6 +118,27 @@ enable_custom_extensions() {
   link_php
 }
 
+# Function to remove module configs for extensions not present in the final build.
+prune_missing_extension_configs() {
+  local ini_file module target
+
+  for ini_file in "$INSTALL_ROOT"/"$mods_dir"/*.ini; do
+    [ -e "$ini_file" ] || continue
+    module="$(sed -n -E 's/^[[:space:]]*(zend_extension|extension)[[:space:]]*=[[:space:]]*"?([^";[:space:]]+).*/\2/p' "$ini_file" | head -n 1)"
+    [ -n "$module" ] || continue
+
+    case "$module" in
+      /*) target="$INSTALL_ROOT$module" ;;
+      *) target="$INSTALL_ROOT$ext_dir/${module##*/}" ;;
+    esac
+
+    if [ ! -e "$target" ]; then
+      echo "Removing module file without extension: $(basename "$ini_file")"
+      rm -f "$ini_file"
+    fi
+  done
+}
+
 # Function to configure extensions
 configure_shared_extensions() {
   # Copy all modules to mods-available

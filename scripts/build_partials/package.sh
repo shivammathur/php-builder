@@ -19,6 +19,7 @@ package_php() {
     arch="$(arch)"
     [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
     strip_debug
+    stage_library_overlays
     echo "::group::package_php"
     cd "$INSTALL_ROOT" || exit
     echo "Creating Package using XZ"

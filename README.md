@@ -25,6 +25,7 @@
 
 - Ubuntu 22.04 (Jammy) amd64/arm64
 - Ubuntu 24.04 (Noble) amd64/arm64
+- Ubuntu 26.04 (Resolute) amd64/arm64
 - Debian 11 (Bullseye) amd64/arm64
 - Debian 12 (Bookworm) amd64/arm64
 - Debian 13 (Trixie) amd64/arm64
@@ -97,8 +98,6 @@ php -v
 phpdismod -v <ALL|php-version> -s <ALL|sapi-name> xdebug
 phpenmod -v <ALL|php-version> -s <ALL|sapi-name> pcov
 ```
-
-- More extensions can also be installed from [`ppa:ondrej/php`](https://launchpad.net/~ondrej/+archive/ubuntu/php)
 
 - `PECL` is also installed along with PHP, so compatible extensions can also be installed using it. These will be enabled using the `pecl.ini` module which is linked to all SAPIs.
 
@@ -211,7 +210,6 @@ The scripts and documentation in this project are under the [MIT license](LICENS
 - [AMQP](https://github.com/php-amqp/php-amqp "AMQP PHP Extension")
 - [APCU](https://github.com/krakjoe/apcu "APCU PHP Extension")
 - [AST](https://github.com/nikic/php-ast "AST PHP Extension")
-- [Deb.sury.org](https://github.com/oerdnj/deb.sury.org "PHP packaging for Ubuntu and Debian")
 - [igbinary](https://github.com/igbinary/igbinary "Igbinary PHP Extension")
 - [Imagick](https://github.com/Imagick/imagick "Imagick PHP Extension")
 - [Memcache](https://github.com/websupport-sk/pecl-memcache "Memcache PHP Extension")

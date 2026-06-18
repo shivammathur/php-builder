@@ -17,7 +17,7 @@ on:
         required: false
       container-os-versions:
         description: 'OS versions to build on'
-        default: 'ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie'
+        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie'
         required: false
   schedule:
     - cron: '0 0 1-31/2 * *'
@@ -27,7 +27,7 @@ permissions:
   contents: read
 
 env:
-  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie
+  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie
   PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5 8.6
   PHP_SOURCE: --web-php
 
@@ -57,7 +57,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_MODE: ${{ inputs.build-mode || '--build-new' }}
-      CONTAINER_OS_VERSIONS: ${{ inputs.container-os-versions || 'ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie' }}
+      CONTAINER_OS_VERSIONS: ${{ inputs.container-os-versions || 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       PHP_SOURCE: ${{ github.event.inputs.php-source }}
       PHP_VERSIONS: ${{ needs.get-php-versions.outputs.php_versions }}

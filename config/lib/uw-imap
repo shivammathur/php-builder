@@ -1,0 +1,15 @@
+LIB_UPSTREAM_URL=https://www.mirrorservice.org/sites/ftp.cac.washington.edu/imap/imap-2007f.tar.gz
+LIB_UPSTREAM_REF=2007f
+LIB_UPSTREAM_SHA256=53e15a2b5c1bc80161d42e9f69792a3fa18332b7b771910131004eb520004a28
+LIB_PACKAGE_VERSION=8:2007f~dfsg-7.1
+LIB_PACKAGING_URL=https://salsa.debian.org/ondrej/uw-imap.git
+LIB_PACKAGING_REF=deb.sury.org/main
+LIB_REFERENCE_URL=http://www.washington.edu/imap/
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/ondrej/uw-imap
+LIB_BINARY_PACKAGES=(libc-client2007e-dev libc-client2007e mlock)
+LIB_PREPARE_COMMANDS=(
+  "sed -i '/dh-buildinfo/d' debian/control"
+  'sed -i "s@include /usr/share/cdbs/1/class/langcore.mk@deb_cflags := \$(shell dpkg-buildflags --get CFLAGS)\\ndeb_cppflags := \$(shell dpkg-buildflags --get CPPFLAGS)\\ndeb_ldflags := \$(shell dpkg-buildflags --get LDFLAGS)@" debian/rules'
+  "sed -i '/\\/usr\\/share\\/cdbs\\/1\\/rules\\/utils.mk/d; /\\/usr\\/share\\/cdbs\\/1\\/rules\\/upstream-tarball.mk/d' debian/rules"
+  "rm -rf docs/rfc docs/draft src/osdep/mac/mtest.sit.hqx"
+)

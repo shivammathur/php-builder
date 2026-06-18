@@ -25,7 +25,7 @@ on:
         required: false
       container-os-versions:
         description: 'OS versions to package on'
-        default: 'ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie'
+        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie'
         required: false
 
 permissions:
@@ -33,7 +33,7 @@ permissions:
   contents: write
 
 env:
-  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 debian:11 debian:12 debian:trixie
+  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie
   RUNNER_OS_LIST: ubuntu-22.04 ubuntu-24.04 ubuntu-22.04-arm ubuntu-24.04-arm
   PHP_LIST: ${{ inputs.php-version }}
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
@@ -168,20 +168,37 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
-      - name: Download source SAPI artifacts
+      - name: Check source SAPI artifacts
+        id: source-sapi-artifacts
         shell: bash
         env:
-          ARTIFACT_PATTERN: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
-          ARTIFACT_REGEX: ^php-sapi-[^-]+-${{ matrix.php-version }}-${{ matrix.build }}\+${{ matrix.dist }}-${{ matrix.dist-version }}$
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SOURCE_RUN_ID: ${{ inputs.source-run-id }}
-          SOURCE_ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
+          ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
+          BUILD: ${{ matrix.build }}
+          DIST: ${{ matrix.dist }}
+          DIST_VERSION: ${{ matrix.dist-version }}
+          PHP_VERSION: ${{ matrix.php-version }}
+          SAPI_LIST: ${{ env.SAPI_LIST }}
         run: |
-          if grep -Eq "$ARTIFACT_REGEX" <<< "$SOURCE_ARTIFACT_NAMES"; then
-            gh run download "$SOURCE_RUN_ID" --repo "$GITHUB_REPOSITORY" --pattern "$ARTIFACT_PATTERN" --dir /tmp/source-artifacts
-          else
-            echo "No source SAPI artifacts matching $ARTIFACT_PATTERN in run $SOURCE_RUN_ID"
-          fi
+          exists=false
+          for sapi in $SAPI_LIST; do
+            artifact_name="php-sapi-$sapi-$PHP_VERSION-$BUILD+$DIST-$DIST_VERSION"
+            if grep -Fxq "$artifact_name" <<< "$ARTIFACT_NAMES"; then
+              exists=true
+              break
+            fi
+          done
+          echo "exists=$exists" >> "$GITHUB_OUTPUT"
+
+      - name: Download source SAPI artifacts
+        if: steps.source-sapi-artifacts.outputs.exists == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          run-id: ${{ inputs.source-run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          pattern: php-sapi-*-${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/source-artifacts
+          merge-multiple: true
 
       - name: Download rebuilt SAPI artifacts
         continue-on-error: true
@@ -301,6 +318,7 @@ jobs:
           path: /tmp
 
       - name: Install PHP
+        shell: bash
         run: |
           sed -i '/download/d' scripts/install.sh
           bash scripts/install.sh ${{ matrix.php-version }} local ${{ matrix.debug }} ${{ matrix.build }}
@@ -342,6 +360,7 @@ jobs:
           path: /tmp
 
       - name: Install PHP
+        shell: bash
         run: |
           sed -i '/download/d' scripts/install.sh
           bash scripts/install.sh ${{ matrix.php-version }} github ${{ matrix.debug }} ${{ matrix.build }}

@@ -145,7 +145,14 @@ patch_spl_symbols() {
 # Function to patch amqp source.
 patch_amqp() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i "s/#include <amqp.h>/#include <errno.h>\n#include <amqp.h>/" php_amqp.h
-  [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    patch_xt_offsetof_tree .
+    for file in amqp_channel.c amqp_connection.c amqp_queue.c; do
+      sed -i "s/INI_FLT(/zend_ini_double_literal(/g" "$file"
+      sed -i "s/INI_INT(/zend_ini_long_literal(/g" "$file"
+      sed -i "s/INI_STR(/zend_ini_string_literal(/g" "$file"
+    done
+  fi
 }
 
 # Function to patch excimer source.
@@ -202,11 +209,15 @@ patch_oauth() {
 # Function to patch grpc source.
 patch_grpc() {
   if [[ "$PHP_VERSION" = "5.6" ]]; then
-    local graphcycles str_format_extension float_conversion
+    local graphcycles str_format_extension float_conversion elf_mem_image
     graphcycles=third_party/abseil-cpp/absl/synchronization/internal/graphcycles.cc
     str_format_extension=third_party/abseil-cpp/absl/strings/internal/str_format/extension.h
     float_conversion=third_party/abseil-cpp/absl/strings/internal/str_format/float_conversion.cc
+    elf_mem_image=third_party/abseil-cpp/absl/debugging/internal/elf_mem_image.cc
     sed -i 's/-Wall -Werror /-Wall /' config.m4
+    if [ -f "$elf_mem_image" ]; then
+      sed -i '/assert(false);  \/\/ invalid VDSO/d' "$elf_mem_image"
+    fi
     if [ -f "$graphcycles" ] && ! grep -q '#include <limits>' "$graphcycles"; then
       sed -i 's/#include <array>/#include <array>\n#include <limits>/' "$graphcycles"
     fi
@@ -318,6 +329,16 @@ patch_solr() {
 # Function to patch xmlrpc source.
 patch_xmlrpc() {
   [[ "$PHP_VERSION" = "8.6" ]] && patch_xt_offsetof_tree .
+}
+
+# Function to patch rrd source.
+patch_rrd() {
+  [[ "$PHP_VERSION" = "5.6" ]] && return 0
+  curl -fsSL --retry 5 --retry-all-errors -o rrd-build.patch https://src.fedoraproject.org/rpms/php-pecl-rrd/raw/166ec60/f/rrd-build.patch || return 1
+  curl -fsSL --retry 5 --retry-all-errors -o rrd-php85.patch https://src.fedoraproject.org/rpms/php-pecl-rrd/raw/04ac910/f/rrd-php85.patch || return 1
+  patch --batch -p1 -i rrd-build.patch || return 1
+  patch --batch -p1 -i rrd-php85.patch || return 1
+  add_cflags -Wno-incompatible-pointer-types
 }
 
 # Function to patch zstd source.
@@ -552,6 +573,13 @@ patch_msgpack() {
     for file in msgpack.c msgpack_unpack.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
     done
+    patch_xt_offsetof_tree .
+  fi
+}
+
+# Function to patch pspell source.
+patch_pspell() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
     patch_xt_offsetof_tree .
   fi
 }

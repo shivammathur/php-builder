@@ -1,0 +1,12 @@
+LIB_UPSTREAM_URL=https://github.com/libgd/libgd/releases/download/gd-2.3.3/libgd-2.3.3.tar.xz
+LIB_UPSTREAM_REF=gd-2.3.3
+LIB_UPSTREAM_SHA256=3fe822ece20796060af63b7c60acb151e5844204d289da0ce08f8fdf131e5a61
+LIB_PACKAGE_VERSION=2.3.3-13
+LIB_PACKAGING_URL=https://salsa.debian.org/debian/libgd2.git
+LIB_PACKAGING_REF=debian/main
+LIB_REFERENCE_URL=https://github.com/libgd/libgd
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/debian/libgd2
+LIB_BINARY_PACKAGES=(libgd-dev libgd3)
+LIB_PREPARE_COMMANDS=(
+  "sed -i 's/-Wall -pedantic/-Wall -pedantic -Wno-error=incompatible-pointer-types -Wno-error=discarded-qualifiers -Wno-error=unused-result -Wno-error=old-style-definition -Wno-error=pedantic/' debian/rules"
+)

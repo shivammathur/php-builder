@@ -1,0 +1,9 @@
+LIB_UPSTREAM_URL=https://downloads.sourceforge.net/project/pcre/pcre/8.45/pcre-8.45.tar.bz2
+LIB_UPSTREAM_REF=8.45
+LIB_UPSTREAM_SHA256=4dae6fdcd2bb0bb6c37b5f97c33c2be954da743985369cddac3546e3218bffb8
+LIB_PACKAGE_VERSION=2:8.45-1
+LIB_PACKAGING_URL=https://salsa.debian.org/ondrej/pcre3.git
+LIB_PACKAGING_REF=master
+LIB_REFERENCE_URL=https://sourceforge.net/projects/pcre/files/pcre/8.45/
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/ondrej/pcre3
+LIB_BINARY_PACKAGES=(libpcre3-dev libpcre3 libpcre16-3 libpcre32-3 libpcrecpp0v5)

@@ -1,0 +1,9 @@
+LIB_UPSTREAM_URL=https://www.bytereef.org/software/mpdecimal/releases/mpdecimal-4.0.1.tar.gz
+LIB_UPSTREAM_REF=4.0.1
+LIB_UPSTREAM_SHA256=96d33abb4bb0070c7be0fed4246cd38416188325f820468214471938545b1ac8
+LIB_PACKAGE_VERSION=4.0.1-6
+LIB_PACKAGING_URL=https://salsa.debian.org/debian/mpdecimal.git
+LIB_PACKAGING_REF=debian/latest
+LIB_REFERENCE_URL=https://www.bytereef.org/mpdecimal/
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/debian/mpdecimal
+LIB_BINARY_PACKAGES=(libmpdec-dev libmpdec4)

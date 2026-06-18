@@ -59,220 +59,10 @@ set_base_version() {
   fi
 }
 
-update_lists_helper() {
-  local list=$1
-  command -v sudo >/dev/null && SUDO=sudo
-  if [[ -n "$list" ]]; then
-    ${SUDO} apt-get update -o Dir::Etc::sourcelist="$list" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
-  else
-    ${SUDO} apt-get update
-  fi
-}
-
 update_lists() {
-  local ppa=${1:-}
-  local ppa_search=${2:-}
-  local list=
-  if [ ! -e /tmp/setup_php ] || [[ -n $ppa && -n $ppa_search ]]; then
-    if [[ -n "$ppa" && -n "$ppa_search" ]]; then
-      list="$list_dir"/"$(basename "$(grep -lr "$ppa_search" "$list_dir")")"
-    elif [ -e "$list_file" ] && grep -Eq '^deb |^Types: *deb' "$list_file"; then
-      list="$list_file"
-    fi
-    update_lists_helper "$list"
-    [[ -n $ppa && -n $ppa_search ]] || echo '' | tee /tmp/setup_php >/dev/null 2>&1
+  if [ ! -e /tmp/setup_php ]; then
+    ${SUDO} apt-get update && echo '' | tee /tmp/setup_php >/dev/null 2>&1
   fi
-}
-
-get_sources_format() {
-  if [ -n "$sources_format" ]; then
-    echo "$sources_format"
-    return
-  fi
-  sources_format=deb
-  if [ -e "$list_dir"/ubuntu.sources ] || [ -e "$list_dir"/debian.sources ]; then
-    sources_format="deb822"
-  elif ! [[ "$ID" =~ ubuntu|debian ]]; then
-    find "$list_dir" -type f -name '*.sources' | grep -q . && sources_format="deb822"
-  fi
-  echo "$sources_format"
-}
-
-get_repo_patterns() {
-  local list_format=$1
-  local ppa_url=$2
-  local package_dist=$3
-  local branches=$4
-  local deb_pattern="^deb .*$ppa_url $package_dist .*$branches$"
-  local deb822_pattern="^URIs: $ppa_url$"
-  if [ "$list_format" = "deb822" ]; then
-    printf '%s|%s\n' "$deb822_pattern" "$deb_pattern"
-  else
-    printf '%s|%s\n' "$deb_pattern" "$deb822_pattern"
-  fi
-}
-
-check_lists() {
-  local ppa=$1
-  local primary=${2:-}
-  local secondary=${3:-}
-  local match_pattern=
-  local match_file=
-  check_lists_file=
-  check_lists_pattern=
-  if [ -n "$primary" ]; then
-    match_file=$(grep -Elr "$primary" "$list_dir" 2>/dev/null | head -n 1)
-    [ -n "$match_file" ] && match_pattern="$primary"
-  fi
-  if [ -z "$match_file" ] && [ -n "$secondary" ]; then
-    match_file=$(grep -Elr "$secondary" "$list_dir" 2>/dev/null | head -n 1)
-    [ -n "$match_file" ] && match_pattern="$secondary"
-  fi
-  if [ -n "$match_file" ]; then
-    local list_count
-    list_count="$(sudo find /var/lib/apt/lists -type f -name "*${ppa/\//_}*" | wc -l)"
-    if [ "$list_count" = "0" ]; then
-      update_lists "$ppa" "$match_pattern"
-    fi
-    check_lists_file=$match_file
-    check_lists_pattern=$match_pattern
-    return 0
-  fi
-  return 1
-}
-
-ubuntu_fingerprint() {
-  ppa="$1"
-  ppa_uri="~${ppa%/*}/+archive/ubuntu/${ppa##*/}"
-  get -s "" "${lp_api[0]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
-  || get -s "" "${lp_api[1]}/$ppa_uri" | jq -er '.signing_key_fingerprint' 2>/dev/null \
-  || get -s "" "$ppa_sp/keys/$ppa.fingerprint"
-}
-
-debian_fingerprint() {
-  local ppa=$1
-  local ppa_url=$2
-  local package_dist=$3
-  release_pub=/tmp/"${ppa/\//-}".gpg
-  get -q "$release_pub" "$ppa_url"/dists/"$package_dist"/Release.gpg
-  gpg --list-packets "$release_pub" | grep -Eo 'fpr\sv4\s.*[a-zA-Z0-9]+' | head -n 1 | cut -d ' ' -f 3
-}
-
-add_key() {
-  local ppa=${1:-ondrej/php}
-  local ppa_url=$2
-  local package_dist=$3
-  local key_source=$4
-  local key_file=$5
-  local key_urls=("$key_source")
-  if [[ "$key_source" =~ launchpad.net|launchpadcontent.net|debian.org ]]; then
-    fingerprint="$("${ID}"_fingerprint "$ppa" "$ppa_url" "$package_dist")"
-    sks_params="op=get&options=mr&exact=on&search=0x$fingerprint"
-    key_urls=("${sks[@]/%/\/pks\/lookup\?"$sks_params"}")
-  fi
-  key_urls+=("$ppa_sp/keys/$ppa.gpg")
-  if [[ "$key_source" =~ packages.sury.org ]]; then
-    get -q "$key_file" "$key_source"
-  elif [ ! -e "$key_source" ]; then
-    get -q "$key_file" "${key_urls[@]}"
-  fi
-  if [[ "$(file "$key_file")" =~ .*('Public-Key (old)'|'Secret-Key') ]]; then
-    sudo gpg --batch --yes --dearmor "$key_file" >/dev/null 2>&1 && sudo mv "$key_file".gpg "$key_file"
-  fi
-}
-
-add_list() {
-  local ppa=${1-ondrej/php}
-  local ppa_url=${2:-"$lpc_ppa/$ppa/ubuntu"}
-  local key_source=${3:-"$ppa_url"}
-  local package_dist=${4:-"$VERSION_CODENAME"}
-  local branches=${5:-main}
-  local list_format
-  list_format="$(get_sources_format)"
-  IFS='|' read -r primary_pattern secondary_pattern <<< "$(get_repo_patterns "$list_format" "$ppa_url" "$package_dist" "$branches")"
-  if check_lists "$ppa" "$primary_pattern" "$secondary_pattern"; then
-    if [ "$list_format" = "deb822" ] && [ -n "$check_lists_file" ] && [[ "$check_lists_file" = *.list ]]; then
-      sudo rm -f "$check_lists_file"
-    else
-      echo "Repository $ppa already exists";
-      return 1;
-    fi
-  fi
-  arch=$(dpkg --print-architecture)
-  [ -e "$key_source" ] && key_file=$key_source || key_file="$key_dir"/"${ppa/\//-}"-keyring.gpg
-  add_key "$ppa" "$ppa_url" "$package_dist" "$key_source" "$key_file"
-  local list_basename="${ppa%%/*}"-"$ID"-"${ppa#*/}"-"$package_dist"
-  sudo rm -f "$list_dir"/"${ppa/\//-}".list "$list_dir"/"${ppa/\//-}".sources "$list_dir"/"$list_basename".list "$list_dir"/"$list_basename".sources || true
-  local list_path
-  if [ "$list_format" = "deb822" ]; then
-    list_path="$list_dir"/"$list_basename".sources
-    cat <<EOF | sudo tee "$list_path" >/dev/null
-Types: deb
-URIs: $ppa_url
-Suites: $package_dist
-Components: $branches
-Architectures: $arch
-Signed-By: $key_file
-EOF
-  else
-    list_path="$list_dir"/"$list_basename".list
-    echo "deb [arch=$arch signed-by=$key_file] $ppa_url $package_dist $branches" | sudo tee "$list_path" >/dev/null 2>&1
-  fi
-  update_lists "$ppa" "$primary_pattern"
-  . /etc/os-release
-  return 0;
-}
-
-remove_list() {
-  local ppa=${1-ondrej/php}
-  [ -n "$2" ] && ppa_urls=("$2") || ppa_urls=("$lp_ppa/$ppa/ubuntu" "$lpc_ppa/$ppa/ubuntu")
-  for ppa_url in "${ppa_urls[@]}"; do
-    grep -lr "$ppa_url" "$list_dir" | xargs -n1 sudo rm -f
-  done
-  sudo rm -f "$key_dir"/"${ppa/\//-}"-keyring || true
-}
-
-is_ubuntu_ppa_up() {
-  local ppa=${1:-ondrej/php}
-  curl -s --connect-timeout 10 --max-time 10 --head --fail "$lpc_ppa/$ppa/ubuntu/dists/$VERSION_CODENAME/Release" > /dev/null
-}
-
-add_ppa_sp_mirror() {
-  local ppa=$1
-  local ppa_name
-  ppa_name="$(basename "$ppa")"
-  remove_list "$ppa" || true
-  add_list sp/"$ppa_name" "$ppa_sp/$ppa/ubuntu" "$ppa_sp/$ppa/ubuntu/key.gpg"
-}
-
-add_ppa() {
-  if [ "$ID" = "ubuntu" ]; then
-    if is_ubuntu_ppa_up ondrej/php; then
-      add_list ondrej/php
-    else
-      add_ppa_sp_mirror ondrej/php
-    fi
-  elif [ "$ID" = "debian" ]; then
-    add_list ondrej/php "$sury"/php/ "$sury"/php/apt.gpg
-  fi
-}
-
-update_ppa() {
-  set_base_version
-  local ppa=ondrej/php
-  local ppa_url=$lp_ppa/$ppa/ubuntu
-  local package_dist=$VERSION_CODENAME
-  local branches=main
-  local list_format
-  list_format="$(get_sources_format)"
-  IFS='|' read -r primary_pattern secondary_pattern <<< "$(get_repo_patterns "$list_format" "$ppa_url" "$package_dist" "$branches")"
-  if ! grep -Elr "$primary_pattern" "$list_dir" >/dev/null 2>&1 && [ -n "$secondary_pattern" ]; then
-    if grep -Elr "$secondary_pattern" "$list_dir" >/dev/null 2>&1; then
-      primary_pattern=$secondary_pattern
-    fi
-  fi
-  update_lists "$ppa" "$primary_pattern"
-  . /etc/os-release
 }
 
 fix_broken_packages() {
@@ -292,7 +82,11 @@ add_prerequisites() {
   command -v sudo >/dev/null && SUDO=sudo || prerequisites+=('sudo')
   command -v curl >/dev/null || prerequisites+=('curl')
   command -v zstd >/dev/null || prerequisites+=('zstd')
-  update_lists && ${SUDO} apt-get install -y "${prerequisites[@]}"
+  update_lists
+  if [ "${#prerequisites[@]}" -gt 0 ]; then
+    ${SUDO} apt-get install -y "${prerequisites[@]}"
+    command -v sudo >/dev/null && SUDO=sudo
+  fi
 }
 
 add_pear() {
@@ -309,28 +103,24 @@ add_pear() {
 }
 
 local_deps() {
-  install_packages apt-transport-https ca-certificates file gnupg jq zstd gcc g++
+  local deps libenchant_dev
   libenchant_dev=$(apt-cache show libenchant-?[0-9]+?-dev | grep 'Package' | head -n 1 | cut -d ' ' -f 2)
-  [[ "$version" =~ 5.6|7.[0-2] ]] && libpcre_dev=libpcre3-dev || libpcre_dev=libpcre2-dev
-  add_ppa
-  install_packages autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libbrotli-dev libc-ares-dev libc-client2007e-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libevent-dev libfreetype6-dev libraqm-dev libimagequant-dev libgd-dev libgearman-dev libgomp1 libgpgme-dev libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmaxminddb-dev libmcrypt-dev libmemcached-dev libmpdec-dev libnghttp2-dev libonig-dev "$libpcre_dev" libpng-dev libpq-dev libqdbm-dev librabbitmq-dev librdkafka-dev librrd-dev libsmbclient-dev libsnmp-dev libsodium-dev libsqlite3-dev libssh2-1-dev libssl-dev libtidy-dev libtool libwebp-dev libwrap0-dev libxpm-dev libxml2-dev libxmlrpc-epi-dev libxslt1-dev libyaml-dev libzip-dev libzmq3-dev libzstd-dev make patch php-common shtool snmp systemd tzdata unixodbc-dev uuid-dev
+  deps=(apt-transport-https ca-certificates file gnupg jq zstd gcc g++ autoconf firebird-dev freetds-dev libacl1-dev libapparmor-dev libargon2-dev libaspell-dev libavif-dev libbrotli-dev libc-ares-dev libcurl4-openssl-dev libdb-dev libedit-dev "$libenchant_dev" libevent-dev libfreetype6-dev libheif-dev libraqm-dev libimagequant-dev libgearman-dev libgomp1 libgpgme-dev libicu-dev libjpeg-dev libkrb5-dev libldap-dev liblmdb-dev liblz4-dev libmagickwand-dev libmaxminddb-dev libmcrypt-dev libmemcached-dev libnghttp2-dev libonig-dev libpng-dev libpq-dev libqdbm-dev librabbitmq-dev librdkafka-dev librrd-dev libsmbclient-dev libsnmp-dev libsodium-dev libsqlite3-dev libssh2-1-dev libssl-dev libtidy-dev libtool libwebp-dev libwrap0-dev libxpm-dev libxml2-dev libxmlrpc-epi-dev libxslt1-dev libyaml-dev libzip-dev libzmq3-dev libzstd-dev make patch php-common shtool snmp systemd tzdata unixodbc-dev uuid-dev)
+  install_packages "${deps[@]}"
 }
 
 github_deps() {
-  local optional_extension_deps
-  add_ppa || update_ppa
+  local deps
+  deps=(libavif-dev libevent-dev libfreetype6-dev libgearman-dev libheif-dev libimagequant-dev libjpeg-dev libmcrypt-dev libpng-dev libraqm-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev libtiff-dev libwebp-dev libxpm-dev zlib1g-dev)
   if [ "$VERSION_ID" = "22.04" ]; then
-    jammy_deps=('libxmlrpc-epi-dev')
-    [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && jammy_deps+=('unixodbc-dev')
-    [[ "$version" =~ 5.6|7.[0-2] ]] && jammy_deps+=('libpcre3-dev') || jammy_deps+=('libpcre2-dev')
-    install_packages "${jammy_deps[@]}"
+    deps+=('libxmlrpc-epi-dev')
+    [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && deps+=('unixodbc-dev')
   elif [ "$VERSION_ID" = "24.04" ]; then
-    noble_libs=('unixodbc-dev' 'libmagickcore-dev' 'libxmlrpc-epi-dev')
-    [[ "$version" =~ 5.6|7.[0-2] ]] && noble_libs+=('libpcre3-dev')
-    install_packages "${noble_libs[@]}"
+    deps+=('unixodbc-dev' 'libmagickcore-dev' 'libxmlrpc-epi-dev')
+  elif [ "$VERSION_ID" = "26.04" ]; then
+    deps+=('unixodbc-dev' 'libmagickcore-dev' 'libxmlrpc-epi-dev')
   fi
-  optional_extension_deps=(libgd-dev libevent-dev libgearman-dev libmcrypt-dev libmpdec-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev)
-  install_packages "${optional_extension_deps[@]}"
+  install_packages "${deps[@]}"
 }
 
 switch_version() {
@@ -379,10 +169,10 @@ install() {
     add_prerequisites
     set_base_version
     local_deps &
-    to_wait=($!)
+    to_wait=("$!")
   else
     github_deps &
-    to_wait=($!)
+    to_wait=("$!")
   fi
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
   get -q "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
@@ -425,7 +215,7 @@ get_api_version_from_repo() {
 remove() {
   if ! [ -e /usr/bin/php"${version:?}" ]; then
     echo "Error: PHP $version is not installed"
-    exit 1;
+    return 1;
   else
     phpapi="$(get_api_version_from_repo)"
   fi
@@ -463,7 +253,7 @@ remove() {
               /usr/lib/libphp"$version".so \
               /usr/sbin/php-fpm"$version" \
               /usr/share/php/"$version"
-  exit 0;
+  return 0;
 }
 
 # avoid running without arguments
@@ -475,11 +265,11 @@ fi
 if [[ "$1" =~ remove ]]; then
   version=$2
   remove
-  exit 0
+  exit $?
 elif [[ "$2" =~ remove ]]; then
   version=$1
   remove
-  exit 0
+  exit $?
 fi
 
 for arg in "$@"; do
@@ -515,29 +305,13 @@ if [ "$debug" = "debug" ]; then
 fi
 . /etc/os-release
 pecl_file="/etc/php/$version/mods-available/pecl.ini"
+debconf_fix='DEBIAN_FRONTEND=noninteractive'
 list_dir='/etc/apt/sources.list.d'
 list_file="$list_dir/$ID.sources"
 [ -e "$list_file" ] || list_file='/etc/apt/sources.list'
-sources_format=
-check_lists_file=
-check_lists_pattern=
-debconf_fix='DEBIAN_FRONTEND=noninteractive'
 upstream_lsb='/etc/upstream-release/lsb-release'
-lp_api=(
-  'https://api.launchpad.net/1.0'
-  'https://api.launchpad.net/devel'
-)
-lp_ppa='http://ppa.launchpad.net'
-lpc_ppa='https://ppa.launchpadcontent.net'
-key_dir='/usr/share/keyrings'
 dist_info_dir='/usr/share/distro-info'
-sury='https://packages.sury.org'
-ppa_sp='https://ppa.setup-php.com'
-sks=(
-  'https://keyserver.ubuntu.com'
-  'https://pgp.mit.edu'
-  'https://keys.openpgp.org'
-)
+command -v sudo >/dev/null && SUDO=sudo || SUDO=
 install "$runner"
 switch_version
 add_pear

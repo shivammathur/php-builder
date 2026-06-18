@@ -79,12 +79,20 @@ configure_build_flags() {
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
-    
-  if [[ "$PHP_VERSION" =~ 5.6|7.[0-4]|8.0 ]]; then
-    EXTRA_CFLAGS="-fpermissive -Wno-deprecated -Wno-deprecated-declarations"
+
+  if [ "$build_target" = "extensions" ] && [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.[01])$ ]]; then
+    c23_flag="$(get_c23_standard_flag)"
+    [ -n "$c23_flag" ] && CFLAGS="$CFLAGS -std=gnu17"
+  fi
+
+  if [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.0)$ ]]; then
     if [ "$build_target" = "extensions" ]; then
       CXXFLAGS="$CXXFLAGS -fpermissive"
       EXTRA_CFLAGS="-Wno-deprecated -Wno-deprecated-declarations"
+    else
+      CFLAGS="$CFLAGS -std=gnu99 -Wno-error=incompatible-pointer-types -Wno-error=strict-prototypes -Wno-strict-prototypes -fpermissive -Wno-deprecated -Wno-deprecated-declarations"
+      CXXFLAGS="$CXXFLAGS -fpermissive -Wno-error=narrowing -Wno-error=class-memaccess -Wno-error=format-security -Wno-deprecated -Wno-deprecated-declarations"
+      EXTRA_CFLAGS="$extra_warning_flags"
     fi
   elif dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
     c23_flag="$(get_c23_standard_flag)"
@@ -163,7 +171,8 @@ install_staged_php() {
 merge_sapi() {
   mkdir -p "$INSTALL_ROOT" \
            "$INSTALL_ROOT"/etc/php/"$PHP_VERSION"/mods-available \
-           "$INSTALL_ROOT"/usr/lib/php/"$PHP_VERSION"/sapi
+           "$INSTALL_ROOT"/usr/lib/php/"$PHP_VERSION"/sapi \
+           "$INSTALL_ROOT"/usr/sbin
 
   # Merge SAPI builds.
   IFS=' ' read -r -a sapi_arr <<<"${SAPI_LIST:?}"
@@ -283,6 +292,16 @@ cleanup_environment() {
   mkdir -p ~/php-build "${INSTALL_ROOT:?}" "${php_build_dir:?}"
 }
 
+stage_library_overlays() {
+  local manifest repo_root
+  manifest=$(library_overlay_manifest)
+  repo_root=${GITHUB_WORKSPACE:-$(pwd)}
+  bash "$repo_root/scripts/lib/install.sh" --root "$INSTALL_ROOT" --php-version "$PHP_VERSION" --manifest "$manifest"
+}
+
+library_overlay_manifest() {
+  echo "$FAKE_ROOT/debian/php$PHP_VERSION-library-overlays.manifest"
+}
 
 if [[ "${#}" -eq 0 ]]; then
   print_help
@@ -370,6 +389,7 @@ elif [ "$action" = "package" ]; then
   ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
   export ext_dir
   enable_custom_extensions
+  prune_missing_extension_configs
   cleanup
   package_php
 fi

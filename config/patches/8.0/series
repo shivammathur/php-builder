@@ -102,3 +102,4 @@
 0102-GHSA-96wq-48vp-hh57-metaphone-Fix-signed-integer-ove.patch
 0103-GHSA-w476-322c-wpvm-pdo_firebird-Fix-SQL-injection-v.patch
 0104-GHSA-m8rr-4c36-8gq4-Consistently-pass-unsigned-char-.patch
+0105-Fix-PEAR-installation-with-libxml2.13.patch
