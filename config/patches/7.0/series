@@ -222,3 +222,4 @@
 0222-GHSA-7qg2-v9fj-4mwv-fpm-XSS-within-status-endpoint.patch
 0223-NEWS-from-8.2.31.patch
 0224-Fix-PEAR-installation-with-libxml2.13.patch
+0225-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch

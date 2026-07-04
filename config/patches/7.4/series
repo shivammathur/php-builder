@@ -131,3 +131,4 @@
 0131-GHSA-m8rr-4c36-8gq4-Consistently-pass-unsigned-char-.patch
 0132-NEWS-from-8.2.31.patch
 0133-Fix-PEAR-installation-with-libxml2.13.patch
+0134-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch

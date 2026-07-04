@@ -127,3 +127,4 @@
 0127-GHSA-7qg2-v9fj-4mwv-fpm-XSS-within-status-endpoint.patch
 0128-NEWS-from-8.2.31.patch
 0129-Fix-PEAR-installation-with-libxml2.13.patch
+0130-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch

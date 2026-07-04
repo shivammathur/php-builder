@@ -54,3 +54,4 @@
 0054-Adjust-credits-for-GHSA-96wq-48vp-hh57.phpt.patch
 0055-NEWS-from-8.2.31.patch
 0056-Fix-PEAR-installation-with-libxml2.13-PHP-8.1.patch
+0057-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch
