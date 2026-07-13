@@ -387,6 +387,19 @@ patch_uploadprogress() {
 patch_xlswriter() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
+    if [[ -f kernel/common.c ]] && ! grep -q 'xlswriter_php_idate' kernel/common.c; then
+      sed -i '/lxlsx_datetime timestamp_to_datetime/i\
+#if PHP_VERSION_ID >= 80600\
+static int xlswriter_php_idate(char format, time_t ts, bool localtime)\
+{\
+    int result = 0;\
+    php_idate(format, ts, localtime, &result);\
+    return result;\
+}\
+#define php_idate(format, ts, localtime) xlswriter_php_idate(format, ts, localtime)\
+#endif\
+' kernel/common.c
+    fi
     patch_xt_offsetof_tree .
   fi
 }
@@ -484,6 +497,7 @@ patch_redis() {
   [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/WRONG_PARAM_COUNT;/zend_wrong_param_count();RETURN_THROWS();/' redis_cluster.c
   if [[ "$PHP_VERSION" = "8.6" ]]; then
     local file
+    grep -rl 'php_hash_bin2hex' . 2>/dev/null | xargs -r sed -i 's/php_hash_bin2hex/zend_bin2hex/g'
     for file in library.c redis_commands.c cluster_library.c; do
       sed -i 's/zval_is_true/zend_is_true/' $file
     done
