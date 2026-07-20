@@ -250,6 +250,14 @@ patch_ssh2() {
   fi
 }
 
+# Function to patch krb5 source.
+patch_krb5() {
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g; s/zval_is_true/zend_is_true/g' {} +
+    patch_xt_offsetof_tree .
+  fi
+}
+
 # Function to patch gearman source.
 patch_gearman() {
   if [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]]; then

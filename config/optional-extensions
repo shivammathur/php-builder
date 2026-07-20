@@ -4,6 +4,7 @@ gearman
 gnupg
 grpc
 http
+krb5
 lz4
 mailparse
 maxminddb

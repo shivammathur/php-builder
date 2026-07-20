@@ -111,7 +111,7 @@ local_deps() {
 
 github_deps() {
   local deps
-  deps=(libavif-dev libevent-dev libfreetype6-dev libgearman-dev libheif-dev libimagequant-dev libjpeg-dev libmcrypt-dev libpng-dev libraqm-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev libtiff-dev libwebp-dev libxpm-dev zlib1g-dev)
+  deps=(libavif-dev libevent-dev libfreetype6-dev libgearman-dev libheif-dev libimagequant-dev libjpeg-dev libkrb5-dev libmcrypt-dev libpng-dev libraqm-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev libtiff-dev libwebp-dev libxpm-dev zlib1g-dev)
   if [ "$VERSION_ID" = "22.04" ]; then
     deps+=('libxmlrpc-epi-dev')
     [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && deps+=('unixodbc-dev')
