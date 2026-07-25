@@ -321,6 +321,9 @@ patch_smbclient() {
     sed -i 's/"Negative byte count: " ZEND_LONG_FMT/"Negative byte count: %ld"/g' smbclient.c
     sed -i 's/zend_off_t/off_t/g' smb_streams.c
   fi
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/php_error_docref1(NULL TSRMLS_CC, url, /php_error_docref(NULL TSRMLS_CC, /g' smb_streams.c
+  fi
 }
 
 # Function to patch solr source.
@@ -582,6 +585,7 @@ patch_mongodb() {
 # Function to patch apcu source.
 patch_apcu() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/php_verror(NULL, "", verbosity, format, args);/php_verror(NULL, verbosity, format, args);/' apc.c
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
     sed -i 's/EMPTY_SWITCH_DEFAULT_CASE()/default: ZEND_UNREACHABLE();/g' apc_persist.c
     patch_xt_offsetof_tree .
