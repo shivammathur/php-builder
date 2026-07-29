@@ -298,6 +298,8 @@ patch_http() {
     find src -type f -exec sed -i 's/ZEND_RESULT_CODE/zend_result/g; s/zval_dtor/zval_ptr_dtor_nogc/g' {} +
     sed -i 's/ctx->closure.internal_function.arg_info = .*ai_user_handler\[1\];/ctx->closure.internal_function.arg_info = (zend_arg_info *) \&ai_user_handler[1];/g' src/php_http_client_curl_user.c
     sed -i 's#standard/php_lcg.h#random/php_random.h#g' src/php_http_message_body.c src/php_http_misc.c
+    sed -i 's/_php_stream_write/php_stream_write/g' src/php_http_message.c
+    sed -i 's/_php_stream_read/php_stream_read/g' src/php_http_message_body.c
     sed -i 's/static php_stream_filter \*http_filter_create(const char \*name, zval \*params, uint8_t p)/static php_stream_filter *http_filter_create(const char *name, zval *params, bool p)/g' src/php_http_filter.c
     sed -i '/PHP_HTTP_FILTER_FUNC(/ { N; /\n[[:space:]]*\(PHP_HTTP_FILTER_DTOR(\|NULL,\)/ s/\n/\n\tNULL,\n/ }' src/php_http_filter.c
     sed -i -E 's/php_stream_filter_alloc\(([^,]+), ([^,]+), ([^)]+)\)/php_stream_filter_alloc(\1, \2, \3, PSFS_SEEKABLE_NEVER, PSFS_SEEKABLE_NEVER)/g' src/php_http_filter.c
