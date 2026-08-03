@@ -549,7 +549,15 @@ patch_ast() {
 patch_igbinary() {
   [[ "$PHP_VERSION" = "8.3" || "$PHP_VERSION" = "8.4" || "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && find . -type f -exec sed -i 's/zend_uintptr_t/uintptr_t/g' {} +;
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/php7/php_igbinary.h
-  [[ "$PHP_VERSION" = "8.6" ]] && sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/php7/igbinary.c
+  if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i \
+      -e 's/zval_dtor/zval_ptr_dtor_nogc/' \
+      -e 's/const char\* user_func_name;/zend_string *user_func_name;/' \
+      -e 's/(user_func_name == NULL) || (user_func_name\[0\] == [^)]*)/user_func_name == NULL/' \
+      -e 's/ZVAL_STRING(&user_func, user_func_name)/ZVAL_STR_COPY(\&user_func, user_func_name)/' \
+      -e 's/, PG(unserialize_callback_func));/, ZSTR_VAL(PG(unserialize_callback_func)));/' \
+      src/php7/igbinary.c
+  fi
 }
 
 # Function to path yaml source
@@ -601,6 +609,8 @@ patch_msgpack() {
     for file in msgpack.c msgpack_unpack.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
     done
+    sed -i -E ':a;N;$!ba;s/\(PG\(unserialize_callback_func\) == NULL\) \|\|\n[[:space:]]*\(PG\(unserialize_callback_func\)\[0\] == '\''\\0'\''\)/PG(unserialize_callback_func) == NULL/' msgpack_unpack.c
+    sed -i 's/ZVAL_STRING(&user_func, PG(unserialize_callback_func))/ZVAL_STR_COPY(\&user_func, PG(unserialize_callback_func))/' msgpack_unpack.c
     patch_xt_offsetof_tree .
   fi
 }
