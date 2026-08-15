@@ -178,6 +178,7 @@ patch_decimal() {
 # Function to patch ds source.
 patch_ds() {
   if [[ "$PHP_VERSION" = "8.6" ]]; then
+    sed -i 's/if (zend_parse_parameter(ZEND_PARSE_PARAMS_QUIET, 1, offset, "l", \&index) == FAILURE) {/bool failed = false; index = zval_try_get_long(offset, \&failed); if (failed) {/' src/php/handlers/php_seq_handlers.c
     patch_xt_offsetof_tree src/php
   fi
 }
