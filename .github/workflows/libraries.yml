@@ -5,14 +5,14 @@ on:
     inputs:
       container-os-versions:
         description: 'OS versions to build libraries on'
-        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie arm64v8/debian:11 arm64v8/debian:12 arm64v8/debian:trixie'
+        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie arm64v8/debian:12 arm64v8/debian:trixie'
         required: false
 
 permissions:
   contents: write
 
 env:
-  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:11 debian:12 debian:trixie arm64v8/debian:11 arm64v8/debian:12 arm64v8/debian:trixie
+  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie arm64v8/debian:12 arm64v8/debian:trixie
   CONTAINER_BASE: ubuntu-24.04
   CONTAINER_BASE_ARM: ubuntu-24.04-arm
 
