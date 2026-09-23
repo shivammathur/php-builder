@@ -1,0 +1,30 @@
+From: Ming Chen <ming.chen1986@gmail.com>
+Date: Mon, 2 Mar 2020 09:40:36 +0800
+Subject: ax_gcc_func_attribute: Revise the detection of unknown attributes
+
+GCC outputs a warning when Wstrict-prototypes is on, in such case the
+attribute detection always fails even if the attribute is actually
+supported. This change checks for the "-Wattributes" warning in
+conftest.err instead of the existence of the file.
+
+Bug-Ubuntu: https://bugs.launchpad.net/ubuntu/+source/php8.1/+bug/1882279
+Forwarded: https://github.com/php/php-src/pull/8483
+Origin: http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=commitdiff;h=df0894ad1a8195df67a52108b931e07d708cec9a
+Last-Update: 2022-05-02
+---
+ build/ax_gcc_func_attribute.m4 | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build/ax_gcc_func_attribute.m4 b/build/ax_gcc_func_attribute.m4
+index 79f3eef..4633093 100644
+--- a/build/ax_gcc_func_attribute.m4
++++ b/build/ax_gcc_func_attribute.m4
+@@ -227,7 +227,7 @@ AC_DEFUN([AX_GCC_FUNC_ATTRIBUTE], [
+             dnl GCC doesn't exit with an error if an unknown attribute is
+             dnl provided but only outputs a warning, so accept the attribute
+             dnl only if no warning were issued.
+-            [AS_IF([test -s conftest.err],
++            [AS_IF([grep -- -Wattributes conftest.err],
+                 [AS_VAR_SET([ac_var], [no])],
+                 [AS_VAR_SET([ac_var], [yes])])],
+             [AS_VAR_SET([ac_var], [no])])

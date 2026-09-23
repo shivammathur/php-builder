@@ -1,0 +1,53 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:56 +0200
+Subject: php-5.6.0-noNO
+
+---
+ ext/standard/tests/strings/setlocale_variation2.phpt | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/ext/standard/tests/strings/setlocale_variation2.phpt b/ext/standard/tests/strings/setlocale_variation2.phpt
+index 6f62f71..d8666ba 100644
+--- a/ext/standard/tests/strings/setlocale_variation2.phpt
++++ b/ext/standard/tests/strings/setlocale_variation2.phpt
+@@ -47,6 +47,7 @@ function list_system_locales() {
+ //try different locale names
+ $failure_locale = array();
+ $success_count = 0;
++$expected = 0;
+ 
+ echo "-- Test setlocale() with all available locale in the system --\n";
+ // gather all locales installed in the system(stored $all_system_locales),
+@@ -56,6 +57,10 @@ function list_system_locales() {
+   if(setlocale(LC_ALL,$value )){
+    $success_count++;
+   }
++  else if ($value == 'no_NO.ISO-8859-1') {
++    // ignore this one, see rhbz #971416
++   $expected++;
++  }
+   else{
+    //failure values are put in to an array $failure_locale
+    $failure_locale[] = $value;
+@@ -64,11 +69,11 @@ function list_system_locales() {
+ 
+ echo "No of locales found on the machine = ".count($all_system_locales)."\n";
+ echo "No of setlocale() success = ".$success_count."\n";
+-echo "Expected no of failures = 0\n";
++echo "Expected no of failures = $expected\n";
+ echo "Test ";
+ // check if there were any failure of setlocale() function earlier, if any
+ // failure then dump the list of failing locales
+-if($success_count != count($all_system_locales)){
++if(($success_count + $expected) != count($all_system_locales)){
+   echo "FAILED\n";
+   echo "Names of locale() for which setlocale() failed ...\n";
+   var_dump($failure_locale);
+@@ -84,6 +89,6 @@ function list_system_locales() {
+ -- Test setlocale() with all available locale in the system --
+ No of locales found on the machine = %d
+ No of setlocale() success = %d
+-Expected no of failures = 0
++Expected no of failures = %d
+ Test PASSED
+ Done

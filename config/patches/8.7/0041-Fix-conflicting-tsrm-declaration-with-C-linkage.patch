@@ -1,0 +1,25 @@
+From dc7f8cbc86a19dddd899eb953b3cca4bd309497b Mon Sep 17 00:00:00 2001
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Mon, 3 Nov 2025 05:48:33 +0000
+Subject: [PATCH] Fix conflicting tsrm declaration with C linkage
+
+---
+ ext/intl/php_intl.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/intl/php_intl.h b/ext/intl/php_intl.h
+index a56c34f3dce..700158b300b 100644
+--- a/ext/intl/php_intl.h
++++ b/ext/intl/php_intl.h
+@@ -53,7 +53,7 @@ ZEND_BEGIN_MODULE_GLOBALS(intl)
+ 	bool use_exceptions;
+ ZEND_END_MODULE_GLOBALS(intl)
+ 
+-#if defined(ZTS) && defined(COMPILE_DL_INTL)
++#if defined(ZTS) && defined(COMPILE_DL_INTL) && !defined(ZEND_ENABLE_STATIC_TSRMLS_CACHE)
+ ZEND_TSRMLS_CACHE_EXTERN()
+ #endif
+ 
+-- 
+2.50.1
+

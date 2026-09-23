@@ -1,0 +1,34 @@
+From: Debian PHP Maintainers <pkg-php-maint@lists.alioth.debian.org>
+Date: Sat, 2 May 2015 10:26:52 +0200
+Subject: php.ini_securitynotes
+
+---
+ php.ini-development | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/php.ini-development b/php.ini-development
+index 21cefe4..9caf434 100644
+--- a/php.ini-development
++++ b/php.ini-development
+@@ -320,6 +320,12 @@ serialize_precision = -1
+ ; or per-virtualhost web server configuration file.
+ ; Note: disables the realpath cache
+ ; https://php.net/open-basedir
++
++; NOTE: this is considered a "broken" security measure.
++;       Applications relying on this feature will not receive full
++;       support by the security team.  For more information please
++;       see /usr/share/doc/php-common/README.Debian.security
++;
+ ;open_basedir =
+ 
+ ; This directive allows you to disable certain functions.
+@@ -1304,7 +1310,7 @@ session.save_handler = files
+ ; where MODE is the octal representation of the mode. Note that this
+ ; does not overwrite the process's umask.
+ ; https://php.net/session.save-path
+-;session.save_path = "/tmp"
++;session.save_path = "/var/lib/php/sessions"
+ 
+ ; Whether to use strict session mode.
+ ; Strict session mode does not accept an uninitialized session ID, and
