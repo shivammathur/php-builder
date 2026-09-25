@@ -89,8 +89,31 @@ setup_custom_extension() {
 
 # Function to install extensions.
 setup_custom_extensions() {
+  local configured_extensions requested_extension extension_name
+  local requested_extensions=()
+
+  if [ -n "${EXTENSIONS_TO_BUILD:-}" ]; then
+    IFS=' ' read -r -a requested_extensions <<<"${EXTENSIONS_TO_BUILD//,/ }"
+    if [ "${#requested_extensions[@]}" -eq 0 ]; then
+      echo 'No extensions specified' >&2
+      return 1
+    fi
+    configured_extensions="$(awk '{print $2}' config/extensions/"$PHP_VERSION" | sed -E 's/-[^-]+$//')"
+    for requested_extension in "${requested_extensions[@]}"; do
+      if [[ ! "$requested_extension" =~ ^[[:alnum:]_]+$ ]] || ! grep -Fxq "$requested_extension" <<<"$configured_extensions"; then
+        echo "Unknown extension for PHP $PHP_VERSION: $requested_extension" >&2
+        return 1
+      fi
+    done
+  fi
+
   # Parse the config/extensions/$PHP_VERSION file.
   while read -r extension_config; do
+    extension_name="$(cut -d ' ' -f 2 <<<"$extension_config")"
+    extension_name="${extension_name%-*}"
+    if [ "${#requested_extensions[@]}" -gt 0 ] && [[ " ${requested_extensions[*]} " != *" $extension_name "* ]]; then
+      continue
+    fi
     setup_custom_extension "$extension_config"
   done < config/extensions/"$PHP_VERSION"
 

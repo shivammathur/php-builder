@@ -32,17 +32,22 @@ get_latest_git_tag() {
     exit 1
   fi
 
-  latest_tag=$(gh api "repos/$repo_slug/releases/latest" --jq '.tag_name' 2>/dev/null || true)
+  # GitHub can mark an alpha release as non-prerelease, so also check the tag name.
+  latest_tag=$(gh api "repos/$repo_slug/releases?per_page=100" \
+    --jq '[.[] | select(.draft == false and .prerelease == false and (.tag_name | test("^v?[0-9]+[.][0-9]+[.][0-9]+$"))) | .tag_name] | max_by(ltrimstr("v") | split(".") | map(tonumber)) // empty' \
+    2>/dev/null || true)
   if [ -z "$latest_tag" ]; then
     repo_owner="${repo_slug%%/*}"
     repo_name="${repo_slug##*/}"
     # shellcheck disable=SC2016
-    graph_query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){refs(refPrefix:"refs/tags/",first:1,orderBy:{field:TAG_COMMIT_DATE,direction:DESC}){nodes{name}}}}'
-    latest_tag=$(gh api graphql -f owner="$repo_owner" -f name="$repo_name" -f query="$graph_query" --jq '.data.repository.refs.nodes[0].name' 2>/dev/null || true)
+    graph_query='query($owner:String!,$name:String!){repository(owner:$owner,name:$name){refs(refPrefix:"refs/tags/",first:100,orderBy:{field:TAG_COMMIT_DATE,direction:DESC}){nodes{name}}}}'
+    latest_tag=$(gh api graphql -f owner="$repo_owner" -f name="$repo_name" -f query="$graph_query" \
+      --jq '[.data.repository.refs.nodes[].name | select(test("^v?[0-9]+[.][0-9]+[.][0-9]+$"))] | max_by(ltrimstr("v") | split(".") | map(tonumber)) // empty' \
+      2>/dev/null || true)
   fi
 
   if [ -z "$latest_tag" ]; then
-    echo "Could not determine latest tag for $repo_url" >&2
+    echo "Could not determine latest stable tag for $repo_url" >&2
     exit 1
   fi
 
@@ -90,11 +95,17 @@ rm -rf /tmp/"$extension"-* /tmp/"$pecl_package"-* /tmp/"$extension".tar.gz "$ext
 
 # Fetch the extension source.
 if [ "$repo" = "pecl" ]; then
-  "$PHP_INSTALL_ROOT"/usr/bin/pecl channel-update pecl.php.net || true
-  if [ -n "${tag// }" ]; then
-    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package-$tag" || compgen -G "$pecl_package*.tgz" >/dev/null || exit 1
+  if [ -x "$PHP_INSTALL_ROOT/usr/bin/pecl" ]; then
+    "$PHP_INSTALL_ROOT"/usr/bin/pecl channel-update pecl.php.net || true
+    if [ -n "${tag// }" ]; then
+      "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package-$tag" || compgen -G "$pecl_package*.tgz" >/dev/null || exit 1
+    else
+      "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package" || compgen -G "$pecl_package*.tgz" >/dev/null || download_latest_pecl_archive || exit 1
+    fi
+  elif [ -n "${tag// }" ]; then
+    curl -fsSL --retry 5 --retry-all-errors -o "$pecl_package-$tag.tgz" "https://pecl.php.net/get/$pecl_package-$tag.tgz" || exit 1
   else
-    "$PHP_INSTALL_ROOT"/usr/bin/pecl download "$pecl_package" || compgen -G "$pecl_package*.tgz" >/dev/null || download_latest_pecl_archive || exit 1
+    download_latest_pecl_archive || exit 1
   fi
   mv "$pecl_package"*.tgz /tmp/"$extension".tar.gz || exit 1
 else

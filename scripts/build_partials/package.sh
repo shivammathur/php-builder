@@ -33,6 +33,11 @@ package_php() {
 
     copy_debug_symbols
 
+    if [ -n "${SOURCE_DEBUG_ROOT:-}" ] && [ -d "$SOURCE_DEBUG_ROOT/usr/lib/debug/.build-id" ]; then
+      mkdir -p "$INSTALL_ROOT"/usr/lib/debug/.build-id
+      cp -an "$SOURCE_DEBUG_ROOT"/usr/lib/debug/.build-id/. "$INSTALL_ROOT"/usr/lib/debug/.build-id/
+    fi
+
     echo "Creating Debug Package using XZ"
     XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
