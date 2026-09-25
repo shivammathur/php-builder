@@ -50,3 +50,8 @@ for extension in "${extensions[@]}"; do
     fi
   fi
 done
+
+# Install PHP using the same archive extraction as scripts/install.sh. The
+# release also contains library overlays, so copying the whole tree to /
+# while cp is running can replace a library loaded by cp.
+tar -I zstd -xf "${package_archives[0]}" -C / --no-same-owner

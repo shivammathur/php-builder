@@ -138,7 +138,7 @@ enable_custom_extensions() {
   done < config/extensions/"$PHP_VERSION"
 
   find "$INSTALL_ROOT"/etc/php/"$PHP_VERSION" -name '*-pcov.ini' -delete
-  link_php
+  [ "${1:-}" = "skip-link" ] || link_php
 }
 
 # Function to remove module configs for extensions not present in the final build.

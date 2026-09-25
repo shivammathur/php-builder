@@ -102,7 +102,7 @@ jobs:
           test -s "/tmp/source-artifact/$package"
           test -s "/tmp/source-artifact/$debug_package"
 
-      - name: Stage source package and debug symbols
+      - name: Stage and install source package
         run: bash scripts/stage-package-extensions.sh
         env:
           BUILD: ${{ matrix.build }}
@@ -111,19 +111,11 @@ jobs:
           SOURCE_ARTIFACT_DIR: /tmp/source-artifact
           SOURCE_DEBUG_ROOT: /tmp/source-debug
 
-      - name: Build selected extensions
-        run: bash scripts/build.sh build_extensions
+      - name: Rebuild extensions and package
+        run: bash scripts/build.sh repackage_extensions
         env:
           BUILD: ${{ matrix.build }}
           EXTENSIONS_TO_BUILD: ${{ inputs.extensions }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PHP_VERSION: ${{ matrix.php-version }}
-          PHP_SOURCE: ${{ inputs.php-source }}
-
-      - name: Package build
-        run: bash scripts/build.sh package
-        env:
-          BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_USER: ${{ github.repository_owner }}
           GITHUB_MESSAGE: ${{ inputs.build-mode }}

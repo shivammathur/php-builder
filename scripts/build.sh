@@ -14,6 +14,7 @@ Available actions:
  - merge
  - build_extensions
  - package
+ - repackage_extensions
 
 Available sapis:
  - apache2
@@ -390,6 +391,28 @@ elif [ "$action" = "package" ]; then
   export ext_dir
   enable_custom_extensions
   prune_missing_extension_configs
+  cleanup
+  package_php
+elif [ "$action" = "repackage_extensions" ]; then
+  . scripts/build_partials/cleanup.sh
+  . scripts/build_partials/extensions.sh
+  . scripts/build_partials/package.sh
+  . scripts/build_partials/strip.sh
+  switch_version
+  configure_build_flags extensions
+  PHP_INSTALL_ROOT="$INSTALL_ROOT"
+  ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"
+  INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions
+  EXTENSIONS_ONLY=true
+  export PHP_INSTALL_ROOT EXTENSIONS_ONLY
+  mkdir -p "$INSTALL_ROOT"
+  setup_custom_extensions
+  INSTALL_ROOT="$PHP_INSTALL_ROOT"
+  cp -af "$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions/* "$INSTALL_ROOT"/
+  IFS=' ' read -r -a sapi_arr <<<"${SAPI_LIST:?}"
+  enable_custom_extensions skip-link
+  prune_missing_extension_configs
+  cp -af "$INSTALL_ROOT"/etc/php/"$PHP_VERSION"/. /etc/php/"$PHP_VERSION"/
   cleanup
   package_php
 fi
