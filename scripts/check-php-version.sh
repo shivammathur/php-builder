@@ -31,7 +31,9 @@ else
     # Here we only check for stable as both RC and nightly should be built.
     existing_version=$(curl -sL https://github.com/shivammathur/php-builder/releases/download/"$php_version"/php"$php_version".log)
     new_version="$(get_stable_release_tag "$3")"
-    if [ "$new_version" != "$existing_version" ]; then
+    if [ -z "$new_version" ] || {
+      [ "$new_version" != "$existing_version" ] &&
+      [ "$(printf '%s\n' "$existing_version" "$new_version" | sort -V | tail -n 1)" = "$new_version" ]; }; then
       php_versions_to_build+=("$php_version")
     fi
   done
