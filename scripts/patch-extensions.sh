@@ -379,6 +379,8 @@ patch_opentelemetry() {
 # Function to patch protobuf source.
 patch_protobuf() {
   if [[ "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]]; then
+    # Honor the build compiler's C11-or-newer mode required by PHP headers.
+    sed -i 's/-std=gnu99 //g' config.m4
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' map.c message.c
   fi
 }
