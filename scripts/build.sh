@@ -92,6 +92,10 @@ configure_build_flags() {
     CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
     CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
     LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
+    if [ "$PHP_VERSION" = "8.0" ]; then
+      CFLAGS="$CFLAGS -DZEND_TRACK_ARENA_ALLOC"
+      CXXFLAGS="$CXXFLAGS -DZEND_TRACK_ARENA_ALLOC"
+    fi
   fi
 
   if [ "$build_target" = "extensions" ] && [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.[01])$ ]]; then
