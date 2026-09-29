@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+# Run on Linux: bash scripts/test_sanitizers.sh
+set -e
+
+repo=$(cd "$(dirname "$0")/.." && pwd)
+# Load helpers without running build actions.
+. <(awk '/^if / {exit} {print}' "$repo/scripts/build.sh")
+. "$repo/scripts/build_partials/php_build.sh"
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+mkdir -p "$tmp/config"
+cp -r "$repo/config/definitions" "$tmp/config/definitions"
+cd "$tmp"
+php_build_dir="$tmp/php-build"
+definitions="$php_build_dir/definitions"
+mkdir -p "$definitions" "$php_build_dir/patches"
+branch=master
+VERSION_ID=24.04
+
+# Keep these checks independent of installed compilers and development packages.
+get_buildflags() { echo '-O2'; }
+getconf() { :; }
+get_c23_standard_flag() { :; }
+dpkg-architecture() { echo x86_64-linux-gnu; }
+dpkg() {
+  if [ "$1" = "-s" ]; then echo 'Version: 76.1'; else command dpkg "$@"; fi
+}
+configure_option() { options+=("$1${2:+=$2}"); }
+patch_file() { :; }
+install_package_from_github() { :; }
+
+for PHP_VERSION in 8.0 8.1 8.7; do
+  mkdir -p "config/patches/$PHP_VERSION"
+  touch "config/patches/$PHP_VERSION/series"
+  for BUILD in nts zts; do
+    for ASAN in '' asan; do
+      echo "Checking PHP $PHP_VERSION $BUILD ${ASAN:-regular}"
+      configure_phpbuild > /dev/null
+      options=()
+      . "$definitions/$PHP_VERSION"
+      expected=''
+      if [ "$ASAN" = "asan" ] && [ "$PHP_VERSION" != "8.0" ]; then
+        expected=$'--enable-address-sanitizer\n--enable-undefined-sanitizer'
+      fi
+      actual=$(printf '%s\n' "${options[@]}" | grep sanitizer || true)
+      [[ "$actual" = "$expected" ]]
+
+      for target in php extensions; do
+        lto=+lto
+        configure_build_flags "$target"
+        if [ "$ASAN" = "asan" ]; then
+          [[ "$lto" = "-lto" ]]
+          for flags in "$CFLAGS" "$CXXFLAGS" "$LDFLAGS"; do
+            [[ "$flags" = *-fsanitize=address,undefined* ]]
+          done
+          [[ "$CFLAGS" = *-fno-omit-frame-pointer* && "$CXXFLAGS" = *-fno-omit-frame-pointer* ]]
+        else
+          [[ "$CFLAGS $CXXFLAGS $LDFLAGS" != *-fsanitize=* ]]
+        fi
+        for flags in "$CFLAGS" "$CXXFLAGS"; do
+          if [ "$ASAN" = "asan" ] && [ "$PHP_VERSION" = "8.0" ]; then
+            [[ "$flags" = *-DZEND_TRACK_ARENA_ALLOC* ]]
+          else
+            [[ "$flags" != *-DZEND_TRACK_ARENA_ALLOC* ]]
+          fi
+        done
+      done
+    done
+  done
+done
+
+echo 'Sanitizer configuration checks passed.'
