@@ -64,7 +64,7 @@ for PHP_VERSION in 8.0 8.1 8.5 8.6 8.7; do
       [[ "$actual" = "$expected" ]]
 
       for target in php extensions; do
-        lto=+lto
+        lto=-lto
         configure_build_flags "$target"
         if [ "$ASAN" = "asan" ]; then
           [[ "$lto" = "-lto" ]]

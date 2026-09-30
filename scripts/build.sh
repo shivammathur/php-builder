@@ -72,11 +72,6 @@ configure_build_flags() {
   extra_warning_flags="-Wall -pedantic"
   [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
 
-  # Force disable LTO for ASAN builds (incompatible)
-  if [ "${ASAN:-}" = "asan" ]; then
-    lto="-lto"
-  fi
-
   # Set and export FLAGS
   CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
