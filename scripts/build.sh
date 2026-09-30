@@ -161,6 +161,12 @@ build_php() {
     echo 'Failed to build PHP'
     exit 1
   fi
+
+  # Match PHP's arena allocation mode in separately built extensions.
+  if [ "${ASAN:-}" = asan ] && dpkg --compare-versions "$PHP_VERSION" lt 8.6; then
+    sed -i '1i#define ZEND_TRACK_ARENA_ALLOC 1' \
+      "$INSTALL_ROOT"/usr/include/php/*/main/php_config.h
+  fi
   echo "::endgroup::"
 }
 
