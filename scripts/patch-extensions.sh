@@ -162,6 +162,11 @@ patch_excimer() {
     sed -i 's/INI_INT(/zend_ini_long_literal(/g' excimer.c
     patch_xt_offsetof_tree .
   fi
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    # php/php-src#23927 replaced Zend atomics with C11 atomics.
+    sed -i 's/zend_atomic_bool_store(/atomic_store(/g' excimer_timer.c
+    sed -i 's/zend_atomic_bool/atomic_bool/g' excimer_timer.h
+  fi
 }
 
 # Function to patch decimal source.
