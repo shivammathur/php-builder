@@ -274,6 +274,9 @@ patch_gearman() {
     find . -type f -exec sed -i 's/zval_dtor/zval_ptr_dtor_nogc/g' {} +
     patch_xt_offsetof_tree .
   fi
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    sed -i -E 's/zend_is_callable\(([^,]+), 0, &callable\)/zend_is_callable_ex(\1, NULL, 0, \&callable, NULL, NULL)/g' php_gearman_client.c php_gearman_worker.c
+  fi
 }
 
 # Function to patch gnupg source.
@@ -349,6 +352,9 @@ patch_solr() {
 # Function to patch xmlrpc source.
 patch_xmlrpc() {
   [[ "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && patch_xt_offsetof_tree .
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    sed -i 's/zend_is_callable(php_function, 0, &php_function_name)/zend_is_callable_ex(php_function, NULL, 0, \&php_function_name, NULL, NULL)/g' xmlrpc-epi-php.c
+  fi
 }
 
 # Function to patch rrd source.
@@ -577,6 +583,10 @@ patch_yaml() {
     for file in yaml.c parse.c; do
       sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' $file
     done
+  fi
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    # php/php-src#23996 changed the third parameter from a callable name to an error string.
+    sed -i 's/zend_is_callable(entry, 0, &name)/zend_is_callable_ex(entry, NULL, 0, \&name, NULL, NULL)/g' yaml.c
   fi
 }
 
