@@ -107,4 +107,19 @@ for PHP_VERSION in 8.0 8.1 8.5 8.6 8.7; do
   done
 done
 
+# Check installer arguments without running OS setup, downloads, or installation.
+installer=$(awk '/^for arg in / {copy=1} /^\. \/etc\/os-release$/ {exit} copy {print}' "$repo/scripts/install.sh")
+for version in 5.6 7.4 8.0 8.7; do
+  for asan in '' asan; do
+    echo "Checking installer PHP $version ${asan:-regular}"
+    status=0
+    output=$(bash -c "unset asan; $installer" -- "$version" "$asan" 2>&1) || status=$?
+    if [[ "$asan" = asan && "$version" = [57].* ]]; then
+      [[ "$status" = 1 && "$output" = 'ASAN builds require PHP 8.0 or newer' ]]
+    else
+      [[ "$status" = 0 && -z "$output" ]]
+    fi
+  done
+done
+
 echo 'Sanitizer configuration checks passed.'

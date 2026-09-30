@@ -309,6 +309,11 @@ if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-7])$ ]]; then
   exit 1;
 fi
 
+if [ "${asan:-}" = "asan" ] && [ "${version%%.*}" -lt 8 ]; then
+  echo "ASAN builds require PHP 8.0 or newer" >&2
+  exit 1
+fi
+
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then
   PHP_PKG_SUFFIX="-zts"
