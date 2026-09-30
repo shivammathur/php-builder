@@ -59,7 +59,10 @@ configure_asan_env
         assert 'PassEnv USE_ZEND_ALLOC' in (etc / 'apache2/conf-available/php-asan-env.conf').read_text().splitlines()
 
 for filename in ('build.yml', 'package.yml', 'package-extensions.yml'):
-    workflow = yaml.safe_load((repo / '.github/workflows' / filename).read_text())
+    source = (repo / '.github/workflows' / filename).read_text()
+    assert 'detect_odr_violation=0' not in source, filename
+    assert 'report_globals=0' not in source, filename
+    workflow = yaml.safe_load(source)
     for job in ('package', 'local-test', 'github-test'):
         runtime = next(step for step in workflow['jobs'][job]['steps'] if step.get('name') == 'Configure ASAN runtime')
         assert runtime['if'] == "matrix.asan == 'asan'", (filename, job)
