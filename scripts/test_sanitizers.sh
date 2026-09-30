@@ -6,12 +6,15 @@ repo=$(cd "$(dirname "$0")/.." && pwd)
 # Load helpers without running build actions.
 . <(awk '/^if / {exit} {print}' "$repo/scripts/build.sh")
 . "$repo/scripts/build_partials/php_build.sh"
+. "$repo/scripts/patch-extensions.sh"
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 mkdir -p "$tmp/config"
 cp -r "$repo/config/definitions" "$tmp/config/definitions"
 cd "$tmp"
+# Files touched by the SQL Server compatibility patches.
+touch init.cpp php_pdo_sqlsrv_int.h pdo_dbh.cpp
 php_build_dir="$tmp/php-build"
 definitions="$php_build_dir/definitions"
 mkdir -p "$definitions" "$php_build_dir/patches"
@@ -90,6 +93,16 @@ for PHP_VERSION in 8.0 8.1 8.5 8.6 8.7; do
       if [ "$ASAN" != asan ] || dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
         cmp "$header" "$tmp/original.h"
       fi
+
+      for extension in sqlsrv pdo_sqlsrv; do
+        (
+          expected="$CXXFLAGS"
+          [ "$ASAN" != asan ] || expected="$expected -fvisibility=hidden"
+          "patch_$extension"
+          [[ "$CXXFLAGS" = "$expected" ]]
+          [[ "$(bash -c 'printf "%s" "$CXXFLAGS"')" = "$expected" ]]
+        )
+      done
     done
   done
 done
