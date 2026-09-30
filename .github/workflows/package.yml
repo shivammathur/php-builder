@@ -167,6 +167,7 @@ jobs:
         if: matrix.asan == 'asan'
         run: |
           echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
           echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
@@ -327,6 +328,7 @@ jobs:
         if: matrix.asan == 'asan'
         run: |
           echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
           echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
@@ -376,6 +378,7 @@ jobs:
         if: matrix.asan == 'asan'
         run: |
           echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
           echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
