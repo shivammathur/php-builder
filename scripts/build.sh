@@ -365,7 +365,6 @@ fi
 # Set ASAN options.
 if [ "${ASAN:-}" = "asan" ]; then
   PHP_PKG_SUFFIX="${PHP_PKG_SUFFIX:-}-asan"
-  [[ "$PHP_PKG_SUFFIX" = *-asan ]] || PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-asan"
   export PHP_PKG_SUFFIX
 fi
 
