@@ -30,7 +30,21 @@ configure_option() { options+=("$1${2:+=$2}"); }
 patch_file() { :; }
 install_package_from_github() { :; }
 
-for PHP_VERSION in 8.0 8.1 8.7; do
+INSTALL_ROOT="$tmp/staged"
+default_ini=production
+prefix=/usr
+header="$INSTALL_ROOT/usr/include/php/20200930/main/php_config.h"
+php-build() {
+  mkdir -p "${header%/*}"
+  echo '/* Test php-build output. */' > "$header"
+  # PHP 8.6+ already exports the arena setting in its installed header.
+  if [ "$ASAN" = asan ] && dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
+    echo '#define ZEND_TRACK_ARENA_ALLOC 1' >> "$header"
+  fi
+  cp "$header" "$tmp/original.h"
+}
+
+for PHP_VERSION in 8.0 8.1 8.5 8.6 8.7; do
   mkdir -p "config/patches/$PHP_VERSION"
   touch "config/patches/$PHP_VERSION/series"
   for BUILD in nts zts; do
@@ -66,6 +80,16 @@ for PHP_VERSION in 8.0 8.1 8.7; do
           fi
         done
       done
+
+      build_php cli > /dev/null
+      if [ "$ASAN" = asan ]; then
+        [[ "$(grep -c '^#define ZEND_TRACK_ARENA_ALLOC 1$' "$header")" = 1 ]]
+      else
+        ! grep -q ZEND_TRACK_ARENA_ALLOC "$header"
+      fi
+      if [ "$ASAN" != asan ] || dpkg --compare-versions "$PHP_VERSION" ge 8.6; then
+        cmp "$header" "$tmp/original.h"
+      fi
     done
   done
 done
