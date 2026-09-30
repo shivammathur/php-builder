@@ -3,6 +3,7 @@ sudo_php_env() {
     ASAN_OPTIONS="${ASAN_OPTIONS:-}" \
     UBSAN_OPTIONS="${UBSAN_OPTIONS:-}" \
     ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-}" \
+    USE_ZEND_ALLOC="${USE_ZEND_ALLOC-1}" \
     LD_PRELOAD="${LD_PRELOAD:-}" \
     "$@"
 }
@@ -26,6 +27,7 @@ write_systemd_env() {
     [ -n "${ASAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' ASAN_OPTIONS "$ASAN_OPTIONS"
     [ -n "${UBSAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' UBSAN_OPTIONS "$UBSAN_OPTIONS"
     [ -n "${ZEND_DONT_UNLOAD_MODULES:-}" ] && printf 'Environment="%s=%s"\n' ZEND_DONT_UNLOAD_MODULES "$ZEND_DONT_UNLOAD_MODULES"
+    printf 'Environment="%s=%s"\n' USE_ZEND_ALLOC "${USE_ZEND_ALLOC-1}"
   } | sudo tee "$file" >/dev/null
 }
 
@@ -51,6 +53,7 @@ configure_asan_env() {
   write_env "$fpm_env" ASAN_OPTIONS "$ASAN_OPTIONS"
   write_env "$fpm_env" UBSAN_OPTIONS "${UBSAN_OPTIONS:-}"
   write_env "$fpm_env" ZEND_DONT_UNLOAD_MODULES "${ZEND_DONT_UNLOAD_MODULES:-}"
+  write_env "$fpm_env" USE_ZEND_ALLOC "${USE_ZEND_ALLOC-1}"
   write_systemd_env "php$PHP_VERSION-fpm.service"
   [ -d /run/systemd/system ] && sudo systemctl daemon-reload 2>/dev/null || true
 
@@ -59,11 +62,13 @@ configure_asan_env() {
     write_env "$apache_env" ASAN_OPTIONS "$ASAN_OPTIONS"
     write_env "$apache_env" UBSAN_OPTIONS "${UBSAN_OPTIONS:-}"
     write_env "$apache_env" ZEND_DONT_UNLOAD_MODULES "${ZEND_DONT_UNLOAD_MODULES:-}"
+    write_env "$apache_env" USE_ZEND_ALLOC "${USE_ZEND_ALLOC-1}"
     write_env "$apache_env" LD_PRELOAD "${LD_PRELOAD:-}"
     {
       [ -n "${ASAN_OPTIONS:-}" ] && echo "PassEnv ASAN_OPTIONS"
       [ -n "${UBSAN_OPTIONS:-}" ] && echo "PassEnv UBSAN_OPTIONS"
       [ -n "${ZEND_DONT_UNLOAD_MODULES:-}" ] && echo "PassEnv ZEND_DONT_UNLOAD_MODULES"
+      echo "PassEnv USE_ZEND_ALLOC"
       [ -n "${LD_PRELOAD:-}" ] && echo "PassEnv LD_PRELOAD"
     } | sudo tee /etc/apache2/conf-available/php-asan-env.conf >/dev/null
     sudo a2enconf php-asan-env >/dev/null 2>&1 || true

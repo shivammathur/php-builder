@@ -85,6 +85,7 @@ jobs:
           fi
           echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
       - name: Install required packages
         run: bash scripts/install-requirements.sh
@@ -212,6 +213,7 @@ jobs:
           fi
           echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v8
         with:
@@ -264,6 +266,7 @@ jobs:
           fi
           echo "ASAN_OPTIONS=${asan_options}" >> "$GITHUB_ENV"
           echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
 
       - uses: actions/download-artifact@v8
         with:

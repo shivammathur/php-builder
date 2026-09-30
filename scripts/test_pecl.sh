@@ -3,6 +3,7 @@ sudo_php_env() {
     ASAN_OPTIONS="${ASAN_OPTIONS:-}" \
     UBSAN_OPTIONS="${UBSAN_OPTIONS:-}" \
     ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-}" \
+    USE_ZEND_ALLOC="${USE_ZEND_ALLOC-1}" \
     "$@"
 }
 
