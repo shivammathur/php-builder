@@ -164,9 +164,10 @@ You can combine ASAN with other options:
 
 - ASAN builds are only available for PHP 8.0 and above.
 - Running PHP with ASAN will be slower than regular builds due to the instrumentation overhead.
+- Disable Zend's allocator with `USE_ZEND_ALLOC=0` so ASAN can detect errors within PHP allocations.
 - You can configure ASAN behavior using the `ASAN_OPTIONS` environment variable:
 ```bash
-ASAN_OPTIONS=detect_leaks=1 php your_script.php
+USE_ZEND_ALLOC=0 ASAN_OPTIONS=detect_leaks=1 php your_script.php
 ```
 
 ## SAPI support
