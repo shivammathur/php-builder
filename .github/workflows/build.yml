@@ -1,5 +1,5 @@
 name: Build PHP
-run-name: Build PHP ${{ inputs.php-version || '8.7' }}
+run-name: Build PHP ${{ inputs.php-version || '8.6' }}
 
 on:
   pull_request:
@@ -17,7 +17,7 @@ on:
         required: false
       php-version:
         description: 'PHP version to build'
-        default: '8.7'
+        default: '8.6'
         required: false
       container-os-versions:
         description: 'OS versions to build on'
@@ -30,7 +30,7 @@ permissions:
 env:
   CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie
   RUNNER_OS_LIST: ubuntu-22.04 ubuntu-24.04 ubuntu-22.04-arm ubuntu-24.04-arm
-  PHP_LIST: ${{ inputs.php-version || '8.7' }}
+  PHP_LIST: ${{ inputs.php-version || '8.6' }}
   SAPI_LIST: apache2 cgi cli embed fpm phpdbg
   BUILD_LIST: nts zts
   PHP_SOURCE: ${{ inputs.php-source }}
