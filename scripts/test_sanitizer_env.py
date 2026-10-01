@@ -34,15 +34,19 @@ with tempfile.TemporaryDirectory() as tmp:
     (etc / 'default').mkdir(parents=True)
     (etc / 'apache2/conf-available').mkdir(parents=True)
     (etc / 'apache2/envvars').touch()
+    asan_lib = Path(tmp, 'libasan.so')
+    asan_lib.touch()
     command = source.replace('/etc/', f'{etc}/') + '''
-set_asan_lib() { :; }
+gcc() { printf '%s\\n' "$TEST_ASAN_LIB"; }
 sudo() {
   case "$1" in systemctl|a2enconf) return 0 ;; esac
   env -u USE_ZEND_ALLOC "$@"
 }
-configure_asan_env
+configure_asan_env || exit $?
+test -z "${LD_PRELOAD+x}" || exit 1
+sudo_php_env bash -c 'test -z "${LD_PRELOAD+x}"'
 '''
-    env.update(PHP_VERSION='8.4')
+    env.update(PHP_VERSION='8.4', TEST_ASAN_LIB=str(asan_lib))
     assert subprocess.run(['bash', '-c', command], env=env).returncode == 1
     service = etc / 'systemd/system/php8.4-fpm.service.d/asan-env.conf'
     assert not service.exists(), 'Regular tests must not configure ASAN services'
@@ -57,6 +61,9 @@ configure_asan_env
             assert path.read_text().splitlines().count(f'export USE_ZEND_ALLOC={expected}') == 1, path
         assert service.read_text().splitlines().count(f'Environment="USE_ZEND_ALLOC={expected}"') == 1
         assert 'PassEnv USE_ZEND_ALLOC' in (etc / 'apache2/conf-available/php-asan-env.conf').read_text().splitlines()
+        assert (etc / 'apache2/envvars').read_text().splitlines().count(f'export LD_PRELOAD={asan_lib}') == 1
+        assert 'PassEnv LD_PRELOAD' in (etc / 'apache2/conf-available/php-asan-env.conf').read_text().splitlines()
+        assert 'LD_PRELOAD' not in service.read_text()
 
 for filename in ('build.yml', 'package.yml', 'package-extensions.yml'):
     source = (repo / '.github/workflows' / filename).read_text()
