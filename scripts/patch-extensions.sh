@@ -610,6 +610,12 @@ patch_mongodb() {
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' src/MongoDB/Cursor.c
     patch_xt_offsetof_tree .
   fi
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    # PHP 8.7 changed interface_gets_implemented to return void.
+    sed -i -e 's/^static int phongo_implement_unserializable(/static void phongo_implement_unserializable(/' \
+           -e '/^[[:space:]]*return FAILURE;$/d' \
+           -e '/^[[:space:]]*return SUCCESS;$/d' src/BSON/Unserializable.c
+  fi
 }
 
 # Function to patch apcu source.
