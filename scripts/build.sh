@@ -151,9 +151,10 @@ build_php() {
 save_commit() {
   # Only store commit for unstable versions
   if [ "${stable:?}" = "false" ]; then
-    commit="$(basename "$(curl -sL https://api.github.com/repos/php/php-src/commits/"${branch:?}" | jq -r .commit.url)")"
-    [ "$commit" = 'null' ] && exit 1;
-    echo "$commit" | tee "$INSTALL_ROOT/etc/php/$PHP_VERSION/COMMIT" >/dev/null 2>&1
+    if ! bash scripts/retry.sh 5 5 bash scripts/save-commit.sh "${branch:?}" "$INSTALL_ROOT/etc/php/$PHP_VERSION/COMMIT"; then
+      echo "Failed to resolve php/php-src branch $branch" >&2
+      return 1
+    fi
   fi
 }
 
