@@ -227,6 +227,18 @@ merge_sapi() {
   cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/sbin/switch_sapi
   cp -fp scripts/switch_jit "$INSTALL_ROOT"/usr/sbin/switch_jit
 
+  # Package the Apache environment only for ASAN builds.
+  if [ "${ASAN:-}" = asan ]; then
+    asan_lib=$(ldd "$INSTALL_ROOT/usr/bin/php$PHP_VERSION" | awk '/libasan\.so/ {print $3; exit}')
+    if [ ! -f "$asan_lib" ]; then
+      echo "Cannot find the ASAN runtime for PHP $PHP_VERSION" >&2
+      return 1
+    fi
+    mkdir -p "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2" "$INSTALL_ROOT/etc/apache2/conf-available"
+    sed "s|ASAN_LIB|$asan_lib|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
+    cp -fp config/apache2-asan.conf "$INSTALL_ROOT/etc/apache2/conf-available/php-asan-env.conf"
+  fi
+
   # Make sure the binaries are executable.
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
 

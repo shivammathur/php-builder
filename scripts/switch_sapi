@@ -67,6 +67,21 @@ service_restart() {
   done
 }
 
+# Function to activate the packaged Apache environment for an ASAN build.
+configure_apache_asan() {
+  local env_file="/etc/php/$php/apache2/asan-envvars"
+  local env_link="/etc/apache2/php-asan-envvars"
+  if [ -f "$env_file" ]; then
+    ln -sfn "$env_file" "$env_link"
+    local source_env='[ ! -f /etc/apache2/php-asan-envvars ] || . /etc/apache2/php-asan-envvars'
+    grep -qxF "$source_env" /etc/apache2/envvars || echo "$source_env" >> /etc/apache2/envvars
+    a2enconf php-asan-env
+  else
+    rm -f "$env_link"
+    a2disconf php-asan-env 2>/dev/null || true
+  fi
+}
+
 # Function to install apache2.
 install_apache2() {
   service nginx stop 2>/dev/null || true
@@ -79,7 +94,7 @@ install_apache2() {
     fi
   fi
   sed -i -e 's/60/5/' -e 's/20/5/' /etc/init.d/apache2
-  . /etc/apache2/envvars
+  configure_apache_asan
   echo "ServerName localhost" | tee -a /etc/apache2/apache2.conf >/dev/null 2>&1
 }
 
@@ -190,6 +205,7 @@ fpm:nginx)
   ;;
 apache*)
   install_php_sapi apache
+  configure_apache_asan
   service_restart apache2 >/dev/null 2>&1
   ;;
 fpm)
