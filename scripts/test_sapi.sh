@@ -2,38 +2,27 @@ sudo_php_env() {
   sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC "$@"
 }
 
-write_env() {
-  file=$1
-  name=$2
-  value=$3
-  [ -n "$value" ] || return
-  sudo touch "$file"
-  sudo sed -i "/^export $name=/d" "$file"
-  printf "export %s=%s\n" "$name" "$value" | sudo tee -a "$file" >/dev/null
-}
-
-write_systemd_env() {
-  service=$1
-  file="/etc/systemd/system/$service.d/asan-env.conf"
-  sudo mkdir -p "${file%/*}"
-  {
-    echo "[Service]"
-    [ -n "${ASAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' ASAN_OPTIONS "$ASAN_OPTIONS"
-    [ -n "${UBSAN_OPTIONS:-}" ] && printf 'Environment="%s=%s"\n' UBSAN_OPTIONS "$UBSAN_OPTIONS"
-    [ -n "${ZEND_DONT_UNLOAD_MODULES:-}" ] && printf 'Environment="%s=%s"\n' ZEND_DONT_UNLOAD_MODULES "$ZEND_DONT_UNLOAD_MODULES"
-    printf 'Environment="%s=%s"\n' USE_ZEND_ALLOC "${USE_ZEND_ALLOC-1}"
-  } | sudo tee "$file" >/dev/null
-}
-
 configure_asan_env() {
   [ -n "${ASAN_OPTIONS:-}" ] || return 1
 
   fpm_env="/etc/default/php-fpm$PHP_VERSION"
-  write_env "$fpm_env" ASAN_OPTIONS "$ASAN_OPTIONS"
-  write_env "$fpm_env" UBSAN_OPTIONS "${UBSAN_OPTIONS:-}"
-  write_env "$fpm_env" ZEND_DONT_UNLOAD_MODULES "${ZEND_DONT_UNLOAD_MODULES:-}"
-  write_env "$fpm_env" USE_ZEND_ALLOC "${USE_ZEND_ALLOC-1}"
-  write_systemd_env "php$PHP_VERSION-fpm.service"
+  systemd_env="/etc/systemd/system/php$PHP_VERSION-fpm.service.d/asan-env.conf"
+  sudo touch "$fpm_env"
+  sudo mkdir -p "${systemd_env%/*}"
+  {
+    echo "[Service]"
+    for name in ASAN_OPTIONS UBSAN_OPTIONS ZEND_DONT_UNLOAD_MODULES USE_ZEND_ALLOC; do
+      value="${!name-}"
+      [ "$name" != USE_ZEND_ALLOC ] || value="${USE_ZEND_ALLOC-1}"
+      if [ -n "$value" ]; then
+        sudo sed -i "/^export $name=/d" "$fpm_env"
+        printf 'export %s=%s\n' "$name" "$value" | sudo tee -a "$fpm_env" >/dev/null
+      elif [ "$name" != USE_ZEND_ALLOC ]; then
+        continue
+      fi
+      printf 'Environment="%s=%s"\n' "$name" "$value"
+    done
+  } | sudo tee "$systemd_env" >/dev/null
   [ -d /run/systemd/system ] && sudo systemctl daemon-reload 2>/dev/null || true
 }
 
