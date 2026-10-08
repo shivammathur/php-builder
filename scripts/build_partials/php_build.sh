@@ -30,6 +30,12 @@ configure_phpbuild() {
     zts="$(sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g' "${definitions:?}"/zts/"$PHP_VERSION")"
   fi
 
+  # PHP 8.0 needs compiler flags; sanitizer configure options require PHP 8.1+.
+  asan=''
+  if [ "${ASAN:-}" = "asan" ] && dpkg --compare-versions "$PHP_VERSION" ge 8.1; then
+    asan='configure_option "--enable-address-sanitizer"\nconfigure_option "--enable-undefined-sanitizer"'
+  fi
+
   # Copy all local patches to the php-build patches directory.
   patches_dir=config/patches/"$PHP_VERSION"
   if [ -d "$patches_dir" ]; then
@@ -44,6 +50,7 @@ configure_phpbuild() {
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \
          -e "s|HOST_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_HOST_GNU_TYPE)|" \
          -e "s|ZTS|$zts|" \
+         -e "s|^ASAN$|$asan|" \
          -e "s|INSTALL|$install_command|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
          -e "s|PHP_VERSION|$PHP_VERSION|" \
