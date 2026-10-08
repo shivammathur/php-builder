@@ -1,10 +1,5 @@
 sudo_php_env() {
-  sudo env \
-    ASAN_OPTIONS="${ASAN_OPTIONS:-}" \
-    UBSAN_OPTIONS="${UBSAN_OPTIONS:-}" \
-    ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-}" \
-    USE_ZEND_ALLOC="${USE_ZEND_ALLOC-1}" \
-    "$@"
+  sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC "$@"
 }
 
 write_env() {

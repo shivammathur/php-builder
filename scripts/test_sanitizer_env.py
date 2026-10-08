@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Run on Linux with PyYAML: python3 scripts/test_sanitizer_env.py
+# Run on Linux with sudo and PyYAML: python3 scripts/test_sanitizer_env.py
 import os
 from pathlib import Path
 import shutil
@@ -13,8 +13,7 @@ env = dict(os.environ)
 for name in ('USE_ZEND_ALLOC', 'ASAN_OPTIONS', 'UBSAN_OPTIONS', 'ZEND_DONT_UNLOAD_MODULES', 'LD_PRELOAD'):
     env.pop(name, None)
 
-# Simulate sudo dropping the caller's allocator setting.
-sudo = 'sudo() { env -u USE_ZEND_ALLOC "$@"; }\n'
+# Check real sudo behavior for unset and explicitly supplied variables.
 for script in ('install.sh', 'test_pecl.sh', 'test_sapi.sh'):
     source = (repo / 'scripts' / script).read_text()
     start = source.index('sudo_php_env() {')
@@ -23,9 +22,9 @@ for script in ('install.sh', 'test_pecl.sh', 'test_sapi.sh'):
         test_env = dict(env)
         if value is not None:
             test_env['USE_ZEND_ALLOC'] = value
-        command = sudo + helper + '\nsudo_php_env bash -c \'printf "%s" "${USE_ZEND_ALLOC-unset}"\''
+        command = helper + '\nsudo_php_env bash -c \'printf "%s\\n%s" "${USE_ZEND_ALLOC-unset}" "${ZEND_DONT_UNLOAD_MODULES-unset}"\''
         actual = subprocess.check_output(['bash', '-c', command], env=test_env, text=True)
-        assert actual == ('1' if value is None else value), (script, value, actual)
+        assert actual == ('unset' if value is None else value) + '\nunset', (script, value, actual)
 
 # Run the service-config helpers only, redirecting all /etc writes into a temp directory.
 source = (repo / 'scripts/test_sapi.sh').read_text()
@@ -35,8 +34,8 @@ with tempfile.TemporaryDirectory() as tmp:
     (etc / 'default').mkdir(parents=True)
     command = source.replace('/etc/', f'{etc}/') + '''
 sudo() {
-  case "$1" in systemctl) return 0 ;; esac
-  env -u USE_ZEND_ALLOC "$@"
+  case "$1" in systemctl) return 0 ;; --preserve-env=*) shift ;; esac
+  "$@"
 }
 configure_asan_env || exit $?
 test -z "${LD_PRELOAD+x}" || exit 1
