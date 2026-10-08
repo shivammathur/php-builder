@@ -76,7 +76,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Configure ASAN runtime
+      - &configure-asan-runtime
+        name: Configure ASAN runtime
         if: matrix.asan == 'asan'
         run: |
           echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
@@ -201,13 +202,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Configure ASAN runtime
-        if: matrix.asan == 'asan'
-        run: |
-          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
-          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
-          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
-          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
+      - *configure-asan-runtime
 
       - uses: actions/download-artifact@v8
         with:
@@ -251,13 +246,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Configure ASAN runtime
-        if: matrix.asan == 'asan'
-        run: |
-          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
-          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
-          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
-          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
+      - *configure-asan-runtime
 
       - uses: actions/download-artifact@v8
         with:
