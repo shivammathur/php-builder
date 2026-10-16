@@ -1,0 +1,133 @@
+name: Stage private PHP Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+      php-version:
+        description: PHP minor version
+        required: true
+        type: string
+      source-file:
+        description: Filename in private uploads/ (omit only if one matches the minor)
+        type: string
+      source-sha256:
+        description: Optional expected source SHA-256
+        type: string
+      containers:
+        description: Space-separated supported build containers
+        default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie'
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  PRIVATE_PROJECT: php-builder
+  PRIVATE_BUILD_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+  PHP_VERSION: ${{ inputs.php-version }}
+  PRIVATE_R2_ENDPOINT: ${{ secrets.PRIVATE_R2_ENDPOINT }}
+  PRIVATE_R2_ACCESS_KEY_ID: ${{ secrets.PRIVATE_R2_ACCESS_KEY_ID }}
+  PRIVATE_R2_SECRET_ACCESS_KEY: ${{ secrets.PRIVATE_R2_SECRET_ACCESS_KEY }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      sapis: ${{ steps.plan.outputs.sapis }}
+      packages: ${{ steps.plan.outputs.packages }}
+      tests_container: ${{ steps.plan.outputs.tests_container }}
+      tests_host: ${{ steps.plan.outputs.tests_host }}
+      has_host: ${{ steps.plan.outputs.has_host }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - id: plan
+        run: python3 scripts/private/run.py plan python3 scripts/private/stage.py plan
+
+  sapi:
+    name: Build SAPI ${{ matrix.id }}
+    needs: plan
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.sapis) }}
+    env:
+      PRIVATE_JOB_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: bash scripts/private/bootstrap.sh
+      - run: python3 scripts/private/run.py "sapi-$PRIVATE_JOB_ID" python3 scripts/private/stage.py sapi
+
+  package:
+    name: Package ${{ matrix.id }}
+    needs: [plan, sapi]
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.packages) }}
+    env:
+      PRIVATE_JOB_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: bash scripts/private/bootstrap.sh
+      - run: python3 scripts/private/run.py "package-$PRIVATE_JOB_ID" python3 scripts/private/stage.py package
+
+  test-container:
+    name: Test container ${{ matrix.id }}
+    needs: [plan, package]
+    runs-on: ${{ matrix.runner }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.tests_container) }}
+    env:
+      PRIVATE_JOB_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: bash scripts/private/bootstrap.sh
+      - run: python3 scripts/private/run.py "test-$PRIVATE_JOB_ID" python3 scripts/private/stage.py test
+
+  test-host:
+    name: Test runner ${{ matrix.id }}
+    needs: [plan, package]
+    if: needs.plan.outputs.has_host == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.tests_host) }}
+    env:
+      PRIVATE_JOB_ID: ${{ matrix.id }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 scripts/private/run.py "test-$PRIVATE_JOB_ID" python3 scripts/private/stage.py test
+
+  approve:
+    needs: [plan, package, test-container, test-host]
+    if: ${{ always() && needs.plan.result == 'success' && needs.package.result == 'success' && needs.test-container.result == 'success' && (needs.test-host.result == 'success' || needs.test-host.result == 'skipped') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - env:
+          PRIVATE_RELEASE_SIGNING_KEY: ${{ secrets.PRIVATE_RELEASE_SIGNING_KEY }}
+        run: python3 scripts/private/run.py approve python3 scripts/private/stage.py approve

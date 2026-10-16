@@ -1,0 +1,59 @@
+name: Release PHP Builder from private R2
+
+on:
+  workflow_dispatch:
+    inputs:
+      php-version:
+        description: PHP minor version
+        required: true
+        type: string
+      build-id:
+        description: Signed php-builder/uploads/run-attempt
+        required: true
+        type: string
+      release-version:
+        description: Exact announced version
+        required: true
+        type: string
+      source-sha256:
+        description: Official SHA-256 for the staged tar.gz or tar.xz
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: php-builder-publication
+  queue: max
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify approval, announced source and package bytes
+        env:
+          PRIVATE_BUILD_ID: ${{ inputs.build-id }}
+          PHP_VERSION: ${{ inputs.php-version }}
+          RELEASE_VERSION: ${{ inputs.release-version }}
+          SOURCE_SHA256: ${{ inputs.source-sha256 }}
+          PRIVATE_R2_ENDPOINT: ${{ secrets.PRIVATE_R2_ENDPOINT }}
+          PRIVATE_R2_ACCESS_KEY_ID: ${{ secrets.PRIVATE_R2_ACCESS_KEY_ID }}
+          PRIVATE_R2_SECRET_ACCESS_KEY: ${{ secrets.PRIVATE_R2_SECRET_ACCESS_KEY }}
+          PRIVATE_RELEASE_SIGNING_KEY: ${{ secrets.PRIVATE_RELEASE_SIGNING_KEY }}
+        run: python3 scripts/private/stage.py release
+      - name: Publish tested packages and installer
+        env:
+          PHP_LIST: ${{ inputs.php-version }}
+          PHP_PRIVATE_RELEASE_VERSION: ${{ inputs.release-version }}
+          PHP_SOURCE: --web-php
+          GITHUB_MESSAGE: ''
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: bash -e scripts/release.sh

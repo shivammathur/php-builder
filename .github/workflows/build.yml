@@ -293,6 +293,10 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
 
   release-container-only:
+    concurrency:
+      group: php-builder-publication
+      queue: max
+      cancel-in-progress: false
     needs: [get-matrix, local-test]
     runs-on: ubuntu-latest
     permissions:
@@ -319,6 +323,10 @@ jobs:
           PHP_SOURCE: ${{ inputs.php-source }}
 
   release:
+    concurrency:
+      group: php-builder-publication
+      queue: max
+      cancel-in-progress: false
     needs: [get-matrix, local-test, github-test]
     runs-on: ubuntu-latest
     permissions:

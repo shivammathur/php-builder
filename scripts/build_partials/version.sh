@@ -48,6 +48,13 @@ get_version_from_branch() {
 
 # Function to get new version from php.net releases and set PHP branch if nightly.
 get_version() {
+  if [ -n "${PHP_PRIVATE_SOURCE_ARCHIVE:-}" ]; then
+    [[ "${PHP_PRIVATE_RELEASE_VERSION:-}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] &&
+      [ "${PHP_PRIVATE_RELEASE_VERSION%.*}" = "$PHP_VERSION" ] || return 1
+    new_version="php-$PHP_PRIVATE_RELEASE_VERSION"
+    export branch="$new_version" stable=true
+    return 0
+  fi
   new_version=$(get_stable_release_tag "$PHP_SOURCE")
   if [ "$new_version" = "" ]; then
     # Since the version is not in stable releases, it has to be nightly or RC

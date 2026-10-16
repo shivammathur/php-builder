@@ -175,7 +175,14 @@ install() {
     to_wait=("$!")
   fi
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
-  get -q "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
+  if [ -n "${PHP_BUILDER_ARCHIVE_DIR:-}" ]; then
+    # The private coordinator has authenticated these exact bytes from R2.
+    [ -f "$PHP_BUILDER_ARCHIVE_DIR/$tar_file" ] || return 1
+    sudo cp "$PHP_BUILDER_ARCHIVE_DIR/$tar_file" "/tmp/$tar_file" || return 1
+  else
+    : # Keep the branch valid when local CI removes the following fetch.
+    get -q "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
+  fi
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version"
@@ -312,7 +319,7 @@ list_file="$list_dir/$ID.sources"
 upstream_lsb='/etc/upstream-release/lsb-release'
 dist_info_dir='/usr/share/distro-info'
 command -v sudo >/dev/null && SUDO=sudo || SUDO=
-install "$runner"
+install "$runner" || exit 1
 switch_version
 add_pear
 configure

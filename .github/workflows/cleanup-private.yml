@@ -1,0 +1,36 @@
+name: Preserve and remove private Builder runs
+
+on:
+  workflow_run:
+    workflows: [Stage private PHP Builder]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build-id:
+        description: Completed run-attempt to preserve and delete
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  cleanup:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PRIVATE_PROJECT: php-builder
+      PRIVATE_BUILD_ID: ${{ inputs.build-id || format('{0}-{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) }}
+      PRIVATE_R2_ENDPOINT: ${{ secrets.PRIVATE_R2_ENDPOINT }}
+      PRIVATE_R2_ACCESS_KEY_ID: ${{ secrets.PRIVATE_R2_ACCESS_KEY_ID }}
+      PRIVATE_R2_SECRET_ACCESS_KEY: ${{ secrets.PRIVATE_R2_SECRET_ACCESS_KEY }}
+      PRIVATE_RELEASE_SIGNING_KEY: ${{ secrets.PRIVATE_RELEASE_SIGNING_KEY }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      # workflow_run uses the default branch, never the triggering run's revision.
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: python3 scripts/private/run.py cleanup python3 scripts/private/stage.py cleanup

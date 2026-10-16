@@ -33,7 +33,7 @@ get_version_from_branch() {
 # Function to update the PHP version log
 log_version() {
   assets+=("scripts/install.sh")
-  new_version=$(get_stable_release_tag "$PHP_SOURCE")
+  new_version=${BUILT_RELEASE_VERSION:-$(get_stable_release_tag "$PHP_SOURCE")}
   if [ "$new_version" = "" ]; then
     new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
     if [ "$new_version" = "" ]; then
@@ -60,6 +60,7 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   done
   shopt -u nullglob
   if [ "${#assets[@]}" -ne 0 ]; then
+    BUILT_RELEASE_VERSION=$(python3 scripts/private/publish_guard.py "$PHP_VERSION" "${assets[@]}") || exit 1
     # Update logs.
     log_version
     log_build

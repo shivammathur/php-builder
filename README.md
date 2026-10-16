@@ -7,6 +7,7 @@
 - This projects builds PHP 5.6 and above (including a nightly build from the master branch of PHP) on `Ubuntu` and `Debian`.
 - To install PHP, follow the instructions in the [install](#install) section.
 - To download a PHP build, refer to the [builds](#Builds) section.
+- For embargoed security releases, see [private R2 staging and promotion](docs/private-releases.md).
 
 ## Contents
 
