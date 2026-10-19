@@ -94,10 +94,20 @@ def validate_plan(plan, repo, ident):
     require(HEX.fullmatch(plan["installer"]["sha256"]) and 0 < plan["installer"]["bytes"] < 1024**2, "Invalid installer")
     if repo == "php-builder":
         require(re.fullmatch(r"[a-f0-9]{40}", plan.get("php_build_commit", "")), "Invalid php-build pin")
+        if "private_patch" in plan:
+            validate_private_patch(plan["private_patch"], plan["php_version"])
     else:
+        require("private_patch" not in plan, "Only Builder may apply a private source patch")
         build_id(plan["builder_id"])
         require(HEX.fullmatch(plan["builder_ready_sha256"]), "Invalid upstream approval digest")
     return plan
+
+
+def validate_private_patch(patch, minor):
+    require(re.fullmatch(r"php-" + re.escape(minor) + r"(?:-[A-Za-z0-9_-]+)?\.patch", patch.get("name", "")), "Private patch filename differs from PHP minor")
+    require(HEX.fullmatch(patch.get("sha256", "")) and type(patch.get("bytes")) is int
+            and 0 < patch["bytes"] <= 16 * 1024**2, "Invalid private patch digest/size")
+    return patch
 
 
 def sign(payload, secret):

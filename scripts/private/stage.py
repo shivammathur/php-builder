@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 
 from store import Store, build_id, canonical, digest, fingerprint, prefix, require, workdir
 from protocol import (CONTAINERS, SAPIS, filenames, matrices, package_for_test, sign,
-                      source_name, validate_plan, validate_result, validate_source, verify_ready)
+                      source_name, validate_plan, validate_private_patch, validate_result, validate_source, verify_ready)
 
 PROJECT = json.loads(Path(__file__).with_name("project.json").read_text())["project"]
 
@@ -77,14 +77,25 @@ def plan_build(store):
             matches = [k.removeprefix("uploads/") for k in store.list("uploads/") if re.fullmatch(r"uploads/php-" + re.escape(minor) + r"\.[0-9]+\.tar\.(gz|xz)", k)]
             require(len(matches) == 1, "Select exactly one source archive for this minor")
             name = matches[0]
-        source = source_name(name, minor)
-        archive = workdir() / name
+        require(re.fullmatch(r"(?:builder-base/)?php-[0-9]+\.[0-9]+\.[0-9]+\.tar\.(?:gz|xz)", name), "Invalid private source object")
+        source = source_name(Path(name).name, minor)
+        archive = workdir() / source["name"]
         store.get("uploads/" + name, archive)
         source.update(validate_source(archive, source))
         expected = inputs.get("source-sha256") or os.environ.get("SOURCE_SHA256")
         require(not expected or expected == source["sha256"], "Uploaded source checksum mismatch")
-        store.put(base() + "/inputs/" + name, archive)
+        store.put(base() + "/inputs/" + source["name"], archive)
         plan["source"] = source
+        patch_name = inputs.get("patch-file") or os.environ.get("PRIVATE_PATCH_FILE")
+        patch_sha = inputs.get("patch-sha256") or os.environ.get("PRIVATE_PATCH_SHA256")
+        if patch_name or patch_sha:
+            validate_private_patch({"name": patch_name or "", "sha256": patch_sha or "", "bytes": 1}, minor)
+            patch_file = workdir() / patch_name
+            store.get("uploads/patches/" + patch_name, patch_file)
+            patch = validate_private_patch(descriptor(patch_file), minor)
+            require(patch["sha256"] == patch_sha, "Uploaded patch checksum mismatch")
+            store.put(base() + "/inputs/" + patch_name, patch_file)
+            plan["private_patch"] = patch
         plan["php_build_commit"] = github("repos/shivammathur/php-build/commits/debian")["sha"]
     else:
         approval, builder = upstream(store)
@@ -133,7 +144,8 @@ def job(store, phase):
            "BUILDS": item.get("mode", "release"), "SAPI_LIST": " ".join(SAPIS), "SAPI": item.get("sapi", ""),
            "PHP_PRIVATE_RELEASE_VERSION": plan["source"]["version"], "PRIVATE_WORK": str(workdir()),
            "GITHUB_MESSAGE": "--build-all skip-release", "PHP_SOURCE": "--private", "CONTAINER": item["container"],
-           "PRIVATE_TEST_KIND": item.get("kind", ""), "PRIVATE_TEST_OS": item["os"], "NIGHTLY": "false"}
+           "PRIVATE_TEST_KIND": item.get("kind", ""), "PRIVATE_TEST_OS": item["os"], "NIGHTLY": "false",
+           "PHP_PRIVATE_PATCH_FILE": "", "PHP_PRIVATE_PATCH_SHA256": ""}
     package_record = None
     if phase == "sapi":
         archive = workdir() / plan["source"]["name"]
@@ -141,6 +153,11 @@ def job(store, phase):
         validate_source(archive, plan["source"])
         env.update(PHP_PRIVATE_SOURCE_ARCHIVE=str(archive), PHP_PRIVATE_SOURCE_SHA256=plan["source"]["sha256"],
                    PHP_PRIVATE_BUILD_COMMIT=plan["php_build_commit"], PHP_BUILD_TMPDIR=str(workdir() / "php-build"))
+        if "private_patch" in plan:
+            patch = plan["private_patch"]
+            patch_file = workdir() / patch["name"]
+            store.get(base() + "/inputs/" + patch["name"], patch_file, {k: patch[k] for k in ("sha256", "bytes")})
+            env.update(PHP_PRIVATE_PATCH_FILE=str(patch_file), PHP_PRIVATE_PATCH_SHA256=patch["sha256"])
     elif phase == "package" and PROJECT == "php-builder":
         for sapi in plan["sapis"]:
             if sapi["container"] == item["container"] and sapi["ts"] == item["ts"]:

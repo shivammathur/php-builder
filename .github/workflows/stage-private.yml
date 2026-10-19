@@ -10,10 +10,16 @@ on:
         required: true
         type: string
       source-file:
-        description: Filename in private uploads/ (omit only if one matches the minor)
+        description: Object under private uploads/, optionally builder-base/filename
         type: string
       source-sha256:
         description: Optional expected source SHA-256
+        type: string
+      patch-file:
+        description: Optional patch filename under private uploads/patches/
+        type: string
+      patch-sha256:
+        description: Required expected SHA-256 when patch-file is provided
         type: string
       containers:
         description: Space-separated supported build containers
@@ -28,6 +34,10 @@ env:
   PRIVATE_PROJECT: php-builder
   PRIVATE_BUILD_ID: ${{ github.run_id }}-${{ github.run_attempt }}
   PHP_VERSION: ${{ inputs.php-version || vars.PRIVATE_TEST_PHP_VERSION }}
+  SOURCE_FILE: ${{ github.event_name == 'push' && vars.PRIVATE_TEST_SOURCE_FILE || '' }}
+  SOURCE_SHA256: ${{ github.event_name == 'push' && vars.PRIVATE_TEST_SOURCE_SHA256 || '' }}
+  PRIVATE_PATCH_FILE: ${{ github.event_name == 'push' && vars.PRIVATE_TEST_PATCH_FILE || '' }}
+  PRIVATE_PATCH_SHA256: ${{ github.event_name == 'push' && vars.PRIVATE_TEST_PATCH_SHA256 || '' }}
   PRIVATE_R2_ENDPOINT: ${{ secrets.PRIVATE_R2_ENDPOINT }}
   PRIVATE_R2_ACCESS_KEY_ID: ${{ secrets.PRIVATE_R2_ACCESS_KEY_ID }}
   PRIVATE_R2_SECRET_ACCESS_KEY: ${{ secrets.PRIVATE_R2_SECRET_ACCESS_KEY }}
