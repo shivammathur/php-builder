@@ -1,9 +1,11 @@
 """Private R2 transport. Kept identical in php-builder and php-ubuntu.
 
-curl signs S3 requests; credentials enter through stdin, never command arguments.
+Python signs S3 requests; curl receives authentication through stdin, never arguments.
 Conditional writes are immutable and every upload is downloaded and verified.
 """
 import hashlib
+import hmac
+from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
@@ -11,7 +13,7 @@ import re
 import subprocess
 import tempfile
 import time
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, urlsplit
 import xml.etree.ElementTree as ET
 
 BUCKET = "php-darwin-private"
@@ -65,24 +67,43 @@ class Store:
         key = os.environ["PRIVATE_R2_ACCESS_KEY_ID"]
         secret = os.environ["PRIVATE_R2_SECRET_ACCESS_KEY"]
         require(re.fullmatch(r"[A-Za-z0-9]+", key) and re.fullmatch(r"[A-Za-z0-9]+", secret), "Invalid private credentials")
-        self.config = f'user = "{key}:{secret}"\n'.encode()
+        self.access_key = key
+        self.secret_key = secret
+
+    def signed_config(self, method, url, payload_hash, timestamp=None):
+        # Older distribution curl releases do not correctly sign S3 payloads.
+        # Sign here so GET, streamed PUT and encoded object keys behave alike.
+        timestamp = timestamp or datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        parsed = urlsplit(url)
+        headers = {"host": parsed.netloc, "x-amz-content-sha256": payload_hash, "x-amz-date": timestamp}
+        signed = ";".join(sorted(headers))
+        canonical_headers = "".join(f"{name}:{headers[name]}\n" for name in sorted(headers))
+        request = "\n".join([method, parsed.path, parsed.query, canonical_headers, signed, payload_hash])
+        scope = timestamp[:8] + "/auto/s3/aws4_request"
+        string_to_sign = "\n".join(["AWS4-HMAC-SHA256", timestamp, scope, hashlib.sha256(request.encode()).hexdigest()])
+        signing_key = ("AWS4" + self.secret_key).encode()
+        for value in (timestamp[:8], "auto", "s3", "aws4_request"):
+            signing_key = hmac.new(signing_key, value.encode(), hashlib.sha256).digest()
+        signature = hmac.new(signing_key, string_to_sign.encode(), hashlib.sha256).hexdigest()
+        headers["Authorization"] = f"AWS4-HMAC-SHA256 Credential={self.access_key}/{scope}, SignedHeaders={signed}, Signature={signature}"
+        return "".join(f'header = "{name}: {value}"\n' for name, value in headers.items()).encode()
 
     def request(self, method, key, output, source=None, query=None):
         require(not key.startswith("/") and ".." not in key.split("/"), "Invalid R2 key")
         url = f"{self.endpoint}/{BUCKET}/{quote(key, safe='/~')}"
         if query:
             url += "?" + urlencode(sorted(query.items()), quote_via=quote)
-        args = ["curl", "--disable", "--silent", "--show-error", "--config", "-", "--aws-sigv4", "aws:amz:auto:s3",
+        args = ["curl", "--disable", "--silent", "--show-error", "--config", "-",
                 "--proto", "=https", "--connect-timeout", "20", "--max-time", "900", "--max-filesize", str(2 * 1024**3),
                 "--request", method, "--output", str(output), "--write-out", "%{http_code}"]
+        payload_hash = fingerprint(source)["sha256"] if source is not None else hashlib.sha256(b"").hexdigest()
         if source is not None:
             # curl appends a local filename to upload URLs ending in '/'.
             transfer = ["--data-binary", "@" + str(source)] if key.endswith("/") else ["--upload-file", str(source)]
-            args += transfer + ["--header", "If-None-Match: *", "--header", "Cache-Control: private, no-store",
-                     "--header", "x-amz-content-sha256: " + fingerprint(source)["sha256"]]
+            args += transfer + ["--header", "If-None-Match: *", "--header", "Cache-Control: private, no-store"]
         args += [url]
         for attempt in range(4):
-            result = subprocess.run(args, input=self.config, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            result = subprocess.run(args, input=self.signed_config(method, url, payload_hash), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             status = int(result.stdout or b"0")
             if result.returncode == 0 and status not in (429, 500, 502, 503, 504):
                 return status

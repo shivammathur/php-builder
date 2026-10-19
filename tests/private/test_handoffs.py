@@ -1,5 +1,6 @@
 """Privacy boundaries for inter-job storage and workflow execution."""
 import os
+import hashlib
 from pathlib import Path
 import sys
 import tempfile
@@ -20,6 +21,26 @@ class PrivateHandoffTests(unittest.TestCase):
             if name == "stage-private.yml":
                 self.assertNotIn("contents: write", text)
                 self.assertNotIn("secrets.TOKEN", text)
+
+    def test_signatures_match_aws_sdk_for_listing_and_streamed_package_upload(self):
+        # Golden signatures independently checked with botocore S3SigV4Auth.
+        endpoint = "https://" + "a" * 32 + ".r2.cloudflarestorage.com"
+        with patch.dict(os.environ, {"PRIVATE_R2_ENDPOINT": endpoint,
+                                   "PRIVATE_R2_ACCESS_KEY_ID": "EXAMPLEKEY",
+                                   "PRIVATE_R2_SECRET_ACCESS_KEY": "EXAMPLESECRET"}):
+            store = Store()
+            cases = [
+                ("GET", "/php-darwin-private/?list-type=2&prefix=uploads%2F", b"",
+                 "b8dbbb13449b21bbb078560672e68c3f68bbf5aa78d01ac6ee4833a0133cce48"),
+                ("PUT", "/php-darwin-private/php-builder/uploads/123-1/packages/php_8.4%2Bubuntu24.04.tar.zst", b"package",
+                 "e870b898ef85dd53c7ec38f32ba1e9e2726a60a7dd75e08a2cf9498d0c591785"),
+            ]
+            for method, path, payload, expected in cases:
+                checksum = hashlib.sha256(payload).hexdigest()
+                config = store.signed_config(method, endpoint + path, checksum, "20261019T170000Z").decode()
+                self.assertIn("Signature=" + expected, config)
+                self.assertIn("x-amz-content-sha256: " + checksum, config)
+                self.assertNotIn("EXAMPLESECRET", config)
 
     def test_r2_handoff_is_immutable_and_consumers_reject_changed_bytes(self):
         objects = {}
