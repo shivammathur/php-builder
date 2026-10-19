@@ -1,6 +1,8 @@
 name: Stage private PHP Builder
 
 on:
+  push:
+    branches: [feature/private-r2-releases]
   workflow_dispatch:
     inputs:
       php-version:
@@ -25,7 +27,7 @@ permissions:
 env:
   PRIVATE_PROJECT: php-builder
   PRIVATE_BUILD_ID: ${{ github.run_id }}-${{ github.run_attempt }}
-  PHP_VERSION: ${{ inputs.php-version }}
+  PHP_VERSION: ${{ inputs.php-version || vars.PRIVATE_TEST_PHP_VERSION }}
   PRIVATE_R2_ENDPOINT: ${{ secrets.PRIVATE_R2_ENDPOINT }}
   PRIVATE_R2_ACCESS_KEY_ID: ${{ secrets.PRIVATE_R2_ACCESS_KEY_ID }}
   PRIVATE_R2_SECRET_ACCESS_KEY: ${{ secrets.PRIVATE_R2_SECRET_ACCESS_KEY }}
@@ -33,6 +35,8 @@ env:
 
 jobs:
   plan:
+    # Branch trials are explicit and cannot start on ordinary code pushes.
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[private-stage]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:

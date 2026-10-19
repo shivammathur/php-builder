@@ -89,3 +89,20 @@ credentials remain separate. Never commit credentials or upload them as artifact
 The shared Python protocol files are mirrored in both repositories; changes to
 the storage/approval contract must be applied and tested in both. Run
 `python3 -m unittest discover -s tests/private -v` and `actionlint` locally.
+
+## Branch trial before integration
+
+For a development trial, set the repository Actions variable
+`PRIVATE_TEST_PHP_VERSION` to the minor and push a commit containing
+`[private-stage]` to `feature/private-r2-releases`. Ordinary pushes do not stage
+private sources. Source archives are selected from authenticated R2; never put
+private source contents, candidate filenames or hashes in the commit. Ubuntu
+also needs `PRIVATE_TEST_BUILDER_BUILD_ID` set to the signed Builder run-attempt.
+The full configured matrix is used. All intermediate handoffs use private R2,
+including SAPI archives, final packages, and the Builder-to-Ubuntu handoff.
+No GitHub Actions artifacts or Actions caches are used by private staging.
+
+Until the cleanup workflow is on the default branch, archive and delete completed
+trial runs with the repository's private cleanup script from a trusted local
+checkout. Verify R2 evidence before deleting the run. Branch trial approvals are
+for validation only and remain ineligible for production promotion.
