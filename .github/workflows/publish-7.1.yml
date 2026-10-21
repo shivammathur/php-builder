@@ -1,0 +1,36 @@
+name: Publish approved PHP 7.1 to GitHub
+run-name: Publish PHP 7.1 ${{ inputs.ticket }}
+on:
+  push:
+    branches: [feature/oct-security-publication-20261021]
+  workflow_dispatch:
+    inputs:
+      ticket:
+        type: string
+        required: true
+permissions:
+  contents: write
+concurrency:
+  group: oct-security-publication-${{ github.repository }}-7.1
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    environment: oct-publication-20261021-7-1
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Publish exact approved package bytes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRIVATE_PACKAGE_ACCESS: ${{ secrets.PRIVATE_PACKAGE_ACCESS }}
+        run: python3 publication/publish.py 7.1
+      - name: Preserve per-file receipts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: publication-7.1-${{ github.run_attempt }}
+          path: receipts/
+          if-no-files-found: warn
+          retention-days: 90

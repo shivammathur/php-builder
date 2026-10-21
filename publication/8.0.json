@@ -1,0 +1,688 @@
+{
+  "repository": "shivammathur/php-builder",
+  "minor": "8.0",
+  "tag": "8.0",
+  "release_id": 81503771,
+  "files": [
+    {
+      "name": "php_8.0+ubuntu22.04.tar.xz",
+      "bytes": 17620756,
+      "sha256": "66b317c9c41a89b59b896844f1af80a0d8a1f99e138cbf11b474787c77aa464e"
+    },
+    {
+      "name": "php_8.0+ubuntu22.04.tar.zst",
+      "bytes": 19364644,
+      "sha256": "b5e8da32850fe77e76ad9be813a43ec4a14deaec83db8791345346f73b4f64c1"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu22.04.tar.xz",
+      "bytes": 297190256,
+      "sha256": "fc1685713a26c7cc1da58d18d425655ed84281b5a0da5e08f69fcfc1c9b64800"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu22.04.tar.zst",
+      "bytes": 298010356,
+      "sha256": "1818d68f02af039757039e822f8856f51fc06824528629457b70ce3a840418b3"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu22.04.tar.xz",
+      "bytes": 17728816,
+      "sha256": "538d04b34940ec53994f62ea1138237ec8eb826000a8c5006e5a9fdc3aaa0560"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu22.04.tar.zst",
+      "bytes": 19484211,
+      "sha256": "e7969c72c096e12058ae9a48f2331827504e3646b4fd2fce7efedc738cae5da9"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu22.04.tar.xz",
+      "bytes": 297370420,
+      "sha256": "7532990e302de6c10ccf05db12d84c7687ad7bff0ab92b27872250612b422fd1"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu22.04.tar.zst",
+      "bytes": 298428073,
+      "sha256": "55fb4efb283fb30bf4e5d764df91bca4d2f96833d714f4472f109b9fe68ae042"
+    },
+    {
+      "name": "php_8.0+ubuntu24.04.tar.xz",
+      "bytes": 17848844,
+      "sha256": "f4dd760d33feee948604113ef1e02906d0bb7698c2a63832511a3b9bc3403c3b"
+    },
+    {
+      "name": "php_8.0+ubuntu24.04.tar.zst",
+      "bytes": 19355949,
+      "sha256": "cfa6017a28972b8d952037dba0bdf884adf693dcd37906006c35a43d5854c236"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu24.04.tar.xz",
+      "bytes": 292346320,
+      "sha256": "c295af2f8a02f18756f662c36e34f3f2bcf2dcce4e7b3fc3f64d377e5d69b65b"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu24.04.tar.zst",
+      "bytes": 293201839,
+      "sha256": "020d77801470b7788d15d701184bdb3a9468d54afe7f4ca49781ac4253801e84"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu24.04.tar.xz",
+      "bytes": 17938300,
+      "sha256": "a3c9eb78de8ea5106789fe563c65ba539b22b7f40c625a55efab118ddaaa6fbb"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu24.04.tar.zst",
+      "bytes": 19475951,
+      "sha256": "6d67e3be703e39ab5a8cd81a897150b0c3eb5059d808633bc97fca653bee6d0d"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu24.04.tar.xz",
+      "bytes": 292619172,
+      "sha256": "978837a1591bcc99818ab55c9da9beaae2d0b0b65ff81b0de081390e62fd6b0e"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu24.04.tar.zst",
+      "bytes": 293186428,
+      "sha256": "59ae0715f2827adb9a14bcce0820197c23fc7d83691e024422fde873912773ff"
+    },
+    {
+      "name": "php_8.0+ubuntu26.04.tar.xz",
+      "bytes": 18225672,
+      "sha256": "2941ffc204c206605e9c616d161ee8eae95070485b9174c3345995e77ea2e222"
+    },
+    {
+      "name": "php_8.0+ubuntu26.04.tar.zst",
+      "bytes": 19698422,
+      "sha256": "e430cbd2bc3256b582f037781291c0738ad1bc560e1d4f3dc598a7640962ab7f"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu26.04.tar.xz",
+      "bytes": 296252020,
+      "sha256": "d58a28dad1576c045b4d946db595320a33333cb98f65dc63b6c17f9cb5e0e228"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu26.04.tar.zst",
+      "bytes": 295399032,
+      "sha256": "bbe90278aa7a465360ab9546d301d62781267cb37510ad8e2c010540f6022433"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu26.04.tar.xz",
+      "bytes": 18372508,
+      "sha256": "ca1dcb6de27882734536345773c47f419e9723f0d6037abb4711befaea130d3a"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu26.04.tar.zst",
+      "bytes": 19811770,
+      "sha256": "f72392b6782dbd0cf93b1eb202faea0f2c1f8d38bcdbac7ce932aa2abada23a9"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu26.04.tar.xz",
+      "bytes": 296063136,
+      "sha256": "42f5547a55082070ea12ade18335f5476ae289473b989d0e52e66b43500ec0e0"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu26.04.tar.zst",
+      "bytes": 295747139,
+      "sha256": "3a78b1c740203af579d6886f0839678ea08953f7397528dfc27a975672da5a5c"
+    },
+    {
+      "name": "php_8.0+ubuntu22.04_arm64.tar.xz",
+      "bytes": 16883204,
+      "sha256": "b1e380051655a8503c42a8cfa78026fbb31d60898cf3c0109d3a151718b27144"
+    },
+    {
+      "name": "php_8.0+ubuntu22.04_arm64.tar.zst",
+      "bytes": 18662962,
+      "sha256": "a911340364c96f955ae8f4569ffc473ae6627095f7d69a862b70677f83524f4e"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu22.04_arm64.tar.xz",
+      "bytes": 291498648,
+      "sha256": "9dfdd559dd6d0283f3e77c1d3a17d9a2f7b122086af1073ef2b9edf6d1dbfc68"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu22.04_arm64.tar.zst",
+      "bytes": 292805079,
+      "sha256": "ddeaae6aea21270d50a2bde84a57f4679d167ec244723a165ec41b31907614b3"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu22.04_arm64.tar.xz",
+      "bytes": 17037708,
+      "sha256": "faf6a5360d98627bd80e111b4e5fdc5f5dd117213d4df1c49acbfe67e7beeaf9"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu22.04_arm64.tar.zst",
+      "bytes": 18789505,
+      "sha256": "d213322bc38d2e8c847ae0ed5230a41acc02c50b38503d0a92494e465bceba93"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+      "bytes": 291731244,
+      "sha256": "15db98776ce377457549f4267d6e0f0e5a38c8e2d9c727c1d43d710c9c378d17"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.zst",
+      "bytes": 292789358,
+      "sha256": "01816f2f146a5d8ea98b57905195dfa466ee417bb44529c696b947ed3b60b034"
+    },
+    {
+      "name": "php_8.0+ubuntu24.04_arm64.tar.xz",
+      "bytes": 17154628,
+      "sha256": "b2162c0c12aa98894971d1bf0790576f6d9c42c54da2dc5a29f32807a728a6d8"
+    },
+    {
+      "name": "php_8.0+ubuntu24.04_arm64.tar.zst",
+      "bytes": 18581746,
+      "sha256": "83911664ebc0599fadebd7bb5fe7eb8ed4488f169c8533c0391a95c6c37d04e2"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu24.04_arm64.tar.xz",
+      "bytes": 286409908,
+      "sha256": "5b679c7cd11d4d0920524ce7d32b9ea4cfe1aee13b172dc16cd44e41d4555364"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu24.04_arm64.tar.zst",
+      "bytes": 287329301,
+      "sha256": "e9bd14fd2ab2267342e7dd0630b5fa2d5b6f721284efb4a16279b55235c48506"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu24.04_arm64.tar.xz",
+      "bytes": 17285008,
+      "sha256": "89398f950552a615e0e57e2cc39089ea523c1e858d15c81cd45176fa022fc516"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu24.04_arm64.tar.zst",
+      "bytes": 18709972,
+      "sha256": "366801fc83dadd208add42ad983a98c1a0a5e683e8455470686a489d9415fe89"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+      "bytes": 285274284,
+      "sha256": "5648a5f36b861d6b5cf9fbeecb41ea8195103257ba862b38c8ceb75f6f848f14"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.zst",
+      "bytes": 286392810,
+      "sha256": "d9e62fe9111414984d88d56b93ab631e29b924dad2fcc060a2e7986360de8848"
+    },
+    {
+      "name": "php_8.0+ubuntu26.04_arm64.tar.xz",
+      "bytes": 17083088,
+      "sha256": "be85adeeec2bf50787f5342affae8a6505ebe77ce32b697ff41f529514c175fa"
+    },
+    {
+      "name": "php_8.0+ubuntu26.04_arm64.tar.zst",
+      "bytes": 18455986,
+      "sha256": "e6609f9a37b677c85fa703284dd112246ca307490728f2a87cbd5f5a7015eacc"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu26.04_arm64.tar.xz",
+      "bytes": 286788036,
+      "sha256": "a5003e8195edd2ad4018d569f2695293e90b8fe8167ae1c421e73ae9b140df5c"
+    },
+    {
+      "name": "php_8.0-dbgsym+ubuntu26.04_arm64.tar.zst",
+      "bytes": 287166959,
+      "sha256": "bf2291a512606ab229e05cc1c007dcbb80609da29382ebcfd5f06e51a7204ece"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu26.04_arm64.tar.xz",
+      "bytes": 17196204,
+      "sha256": "819cfd396dbe921c5802686739ff852f2061c45cb8d1324dc1e2d8e7e4ef8bd1"
+    },
+    {
+      "name": "php_8.0-zts+ubuntu26.04_arm64.tar.zst",
+      "bytes": 18552631,
+      "sha256": "b8020720bcee22f53efd2cbfe8c253a6a62b127362bf2552ee1a2f8bd41623d9"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+      "bytes": 286400488,
+      "sha256": "44cacf1782fed23f0135dc3f88d871519105d6992f71ba63401d20bb946d148d"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.zst",
+      "bytes": 287129539,
+      "sha256": "8957ae25a2bc4ba3bed35269ad894d8d549ac666e2d461f085e136d070f80043"
+    },
+    {
+      "name": "php_8.0+debian12.tar.xz",
+      "bytes": 17726580,
+      "sha256": "c205ef4052f4c9689063dc8b60c1544bc554a607e87057049472e52f8277fb54"
+    },
+    {
+      "name": "php_8.0+debian12.tar.zst",
+      "bytes": 19266251,
+      "sha256": "9e237ddfb98d83054a275a326773b9d206e24164dbfa8174bee6bbba8ab0b721"
+    },
+    {
+      "name": "php_8.0-dbgsym+debian12.tar.xz",
+      "bytes": 292789804,
+      "sha256": "2f898df30f471a31091c238e967ec990345136b69a2bc77dcf5401634a56722b"
+    },
+    {
+      "name": "php_8.0-dbgsym+debian12.tar.zst",
+      "bytes": 293638461,
+      "sha256": "a897cf22f0207ed78d9925a7ff43b82b9d8a9ca4421156653912fc6c141414e0"
+    },
+    {
+      "name": "php_8.0-zts+debian12.tar.xz",
+      "bytes": 17833808,
+      "sha256": "c509762375ab300b50bbd9b6f89f1499827c6e52a3254cc5a19fe1766e90b31e"
+    },
+    {
+      "name": "php_8.0-zts+debian12.tar.zst",
+      "bytes": 19368310,
+      "sha256": "7afb2e97559c98753cdfa7ad7c69df55de70524df9dc8315329b2744d36c8f99"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+debian12.tar.xz",
+      "bytes": 293062136,
+      "sha256": "91579f4f58ffe2554c193ef8dc9acbafd3ed091157d74346e2fad6f8aa473eef"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+debian12.tar.zst",
+      "bytes": 293868112,
+      "sha256": "5ef314a0e9b76a05aa1002645479a9bdf4a0a87b7b99c846c4f8169b5b89ddc5"
+    },
+    {
+      "name": "php_8.0+debian13.tar.xz",
+      "bytes": 18041580,
+      "sha256": "dc5ac27199aaddfb499cf4731e5bcdd2534df7cc0ce39e5223b6069a8419e5ea"
+    },
+    {
+      "name": "php_8.0+debian13.tar.zst",
+      "bytes": 19529064,
+      "sha256": "cd0852db4392f49734cff4c07dc4891502454c24f15ef55d82be02a9590c0954"
+    },
+    {
+      "name": "php_8.0-dbgsym+debian13.tar.xz",
+      "bytes": 293909976,
+      "sha256": "d02a6eacf97a81698b258e22c90cb9a9981b4b218e6b7f5182f41a1f50edc7ab"
+    },
+    {
+      "name": "php_8.0-dbgsym+debian13.tar.zst",
+      "bytes": 294700398,
+      "sha256": "cca4594791fe23e843677b781e414e1b1f6efacefcee449b81abf76447863a68"
+    },
+    {
+      "name": "php_8.0-zts+debian13.tar.xz",
+      "bytes": 18175996,
+      "sha256": "a87acb5d027ea48e74be3474d8702c1f9056a4550883a602b4c195428527f2a1"
+    },
+    {
+      "name": "php_8.0-zts+debian13.tar.zst",
+      "bytes": 19661293,
+      "sha256": "aa2c61ef502cca1ee81f8d5e231245e5ec98a1aac6ea6223bf0fe09bdc7b4af8"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+debian13.tar.xz",
+      "bytes": 293437916,
+      "sha256": "0a58f4d80eb4a5b9add7a4b94a2e339ed0c2c4dcc957ccbcf7e8a482a6247833"
+    },
+    {
+      "name": "php_8.0-zts-dbgsym+debian13.tar.zst",
+      "bytes": 294400769,
+      "sha256": "c9a07f01cc6891d7e88333af93d09fd5e081104846d62a20fc7bd327ec0d7ec5"
+    },
+    {
+      "name": "install.sh",
+      "bytes": 12183,
+      "sha256": "231dbd7f42eec897fe2b2a4388ac5c8bef471476de0b9fdab90948c71c75a173",
+      "metadata": true,
+      "content_base64": "IyEvdXNyL2Jpbi9lbnYgYmFzaAoKIyBGdW5jdGlvbiB0byBwcmludCB1c2FnZSBoZWxwCnByaW50X2hlbHAoKSB7CiAgY2F0IDw8IEhFTFAgPiAvZGV2L3N0ZG91dAoKVXNhZ2U6ICR7MH0gWy0tcmVtb3ZlXSA8cGhwLXZlcnNpb24+CgpIRUxQCn0KCmdldCgpIHsKICBtb2RlPSQxCiAgZmlsZV9wYXRoPSQyCiAgc2hpZnQgMgogIGxpbmtzPSgiJEAiKQogIGlmIFsgIiRtb2RlIiA9ICItcyIgXTsgdGhlbgogICAgc3VkbyBjdXJsIC1zTCAiJHtsaW5rc1swXX0iCiAgZWxzZQogICAgZm9yIGxpbmsgaW4gIiR7bGlua3NbQF19IjsgZG8KICAgICAgc3RhdHVzX2NvZGU9JChzdWRvIGN1cmwgLXcgIiV7aHR0cF9jb2RlfSIgLW8gIiRmaWxlX3BhdGgiIC1zTCAiJGxpbmsiKQogICAgICBbICIkc3RhdHVzX2NvZGUiID0gIjIwMCIgXSAmJiBicmVhawogICAgZG9uZQogIGZpCn0KCnNldF9iYXNlX3ZlcnNpb25faWQoKSB7CiAgW1sgIiRJRCIgPX4gdWJ1bnR1fGRlYmlhbiBdXSAmJiByZXR1cm47CiAgaWYgISBbIC1kICIkZGlzdF9pbmZvX2RpciIgXTsgdGhlbgogICAgc3VkbyBta2RpciAtcCAiJGRpc3RfaW5mb19kaXIiCiAgICBnZXQgLXEgIiRkaXN0X2luZm9fZGlyIi9vc19yZWxlYXNlcy5jc3YgaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL3NoaXZhbW1hdGh1ci9zZXR1cC1waHAvZGV2ZWxvcC9zcmMvY29uZmlncy9vc19yZWxlYXNlcy5jc3YKICBmaQogIGZvciBiYXNlIGluIHVidW50dSBkZWJpYW47IGRvCiAgICBbWyAiJElEX0xJS0UiID1+ICRiYXNlIF1dICYmIElEPSIkYmFzZSIgJiYgVkVSU0lPTl9JRD0iJChncmVwIC1ociAtbSAxICIkVkVSU0lPTl9DT0RFTkFNRSIgL3Vzci9zaGFyZS9kaXN0cm8taW5mbyB8IGN1dCAtZCAnLCcgLWYgMSB8IGN1dCAtZCAnICcgLWYgMSkiICYmIGJyZWFrCiAgZG9uZQp9CgpzZXRfYmFzZV92ZXJzaW9uX2NvZGVuYW1lKCkgewogIFtbICIkSUQiID1+IHVidW50dXxkZWJpYW4gXV0gJiYgcmV0dXJuOwogIGlmIFtbICIkSURfTElLRSIgPX4gdWJ1bnR1IF1dOyB0aGVuCiAgICBbWyAtbiAiJFVCVU5UVV9DT0RFTkFNRSIgXV0gJiYgVkVSU0lPTl9DT0RFTkFNRT0iJFVCVU5UVV9DT0RFTkFNRSIgJiYgcmV0dXJuOwogICAgWyAtZSAiJHVwc3RyZWFtX2xzYiIgXSAmJiBWRVJTSU9OX0NPREVOQU1FPSQoZ3JlcCAnQ09ERU5BTUUnICIkdXBzdHJlYW1fbHNiIiB8IGN1dCAtZCAnPScgLWYgMikgJiYgcmV0dXJuOwogICAgVkVSU0lPTl9DT0RFTkFNRT0kKGdyZXAgLUUgLW0xICdkZWIgLip1YnVudHUuY29tJyAiJGxpc3RfZmlsZSIgfCBjdXQgLWQgJyAnIC1mIDMpICYmIFZFUlNJT05fQ09ERU5BTUU9JHtWRVJTSU9OX0NPREVOQU1FJS0qfQogIGVsaWYgW1sgIiRJRF9MSUtFIiA9fiBkZWJpYW4gXV0gfHwgY29tbWFuZCAtdiBkcGtnID4vZGV2L251bGw7IHRoZW4KICAgIElEX0xJS0U9ZGViaWFuCiAgICBbWyAtbiAiJERFQklBTl9DT0RFTkFNRSIgXV0gJiYgVkVSU0lPTl9DT0RFTkFNRT0iJERFQklBTl9DT0RFTkFNRSIgJiYgcmV0dXJuOwogICAgdXBkYXRlX2xpc3RzICYmIFZFUlNJT05fQ09ERU5BTUU9JChhcHQtY2FjaGUgc2hvdyB0emRhdGEgfCBncmVwIC1tIDEgUHJvdmlkZXMgfCBjdXQgLWQgJy0nIC1mIDIpCiAgZmkKfQoKc2V0X2Jhc2VfdmVyc2lvbigpIHsKICBESVNUX0lEPSIkSUQiCiAgaWYgWyAtZSAvdG1wL29zLXJlbGVhc2UgXTsgdGhlbgogICAgLiAvdG1wL29zLXJlbGVhc2UKICBlbHNlCiAgICBzZXRfYmFzZV92ZXJzaW9uX2NvZGVuYW1lCiAgICBzZXRfYmFzZV92ZXJzaW9uX2lkCiAgICBwcmludGYgIklEPSVzXG5WRVJTSU9OX0lEPSVzXG5WRVJTSU9OX0NPREVOQU1FPSVzXG4iICIkSUQiICIkVkVSU0lPTl9JRCIgIiRWRVJTSU9OX0NPREVOQU1FIiB8IHRlZSAvdG1wL29zLXJlbGVhc2UgPi9kZXYvbnVsbCAyPiYxCiAgZmkKfQoKdXBkYXRlX2xpc3RzKCkgewogIGlmIFsgISAtZSAvdG1wL3NldHVwX3BocCBdOyB0aGVuCiAgICAke1NVRE99IGFwdC1nZXQgdXBkYXRlICYmIGVjaG8gJycgfCB0ZWUgL3RtcC9zZXR1cF9waHAgPi9kZXYvbnVsbCAyPiYxCiAgZmkKfQoKZml4X2Jyb2tlbl9wYWNrYWdlcygpIHsKICBzdWRvIGFwdCAtLWZpeC1icm9rZW4gaW5zdGFsbCA+L2Rldi9udWxsIDI+JjEKfQoKaW5zdGFsbF9wYWNrYWdlcygpIHsKICBwYWNrYWdlcz0oIiRAIikKICBhcHRfbWdyPSdhcHQtZ2V0JwogIGNvbW1hbmQgLXYgYXB0LWZhc3QgPi9kZXYvbnVsbCAmJiBhcHRfbWdyPSdhcHQtZmFzdCcKICBhcHRfaW5zdGFsbD0ic3VkbyAkZGViY29uZl9maXggJGFwdF9tZ3IgaW5zdGFsbCAteSAtLW5vLWluc3RhbGwtcmVjb21tZW5kcyIKICAkYXB0X2luc3RhbGwgIiR7cGFja2FnZXNbQF19IiB8fCAodXBkYXRlX2xpc3RzICYmIGZpeF9icm9rZW5fcGFja2FnZXMgJiYgJGFwdF9pbnN0YWxsICIke3BhY2thZ2VzW0BdfSIpCn0KCmFkZF9wcmVyZXF1aXNpdGVzKCkgewogIHByZXJlcXVpc2l0ZXM9KCkKICBjb21tYW5kIC12IHN1ZG8gPi9kZXYvbnVsbCAmJiBTVURPPXN1ZG8gfHwgcHJlcmVxdWlzaXRlcys9KCdzdWRvJykKICBjb21tYW5kIC12IGN1cmwgPi9kZXYvbnVsbCB8fCBwcmVyZXF1aXNpdGVzKz0oJ2N1cmwnKQogIGNvbW1hbmQgLXYgenN0ZCA+L2Rldi9udWxsIHx8IHByZXJlcXVpc2l0ZXMrPSgnenN0ZCcpCiAgdXBkYXRlX2xpc3RzCiAgaWYgWyAiJHsjcHJlcmVxdWlzaXRlc1tAXX0iIC1ndCAwIF07IHRoZW4KICAgICR7U1VET30gYXB0LWdldCBpbnN0YWxsIC15ICIke3ByZXJlcXVpc2l0ZXNbQF19IgogICAgY29tbWFuZCAtdiBzdWRvID4vZGV2L251bGwgJiYgU1VETz1zdWRvCiAgZmkKfQoKYWRkX3BlYXIoKSB7CiAgaWYgISBbIC1lIC91c3IvYmluL3BlYXIgXTsgdGhlbgogICAgc3VkbyBjdXJsIC1vIC90bXAvcGVhci5waGFyIC1zTCBodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vcGVhci9wZWFyd2ViX3BoYXJzL21hc3Rlci9pbnN0YWxsLXBlYXItbm96bGliLnBoYXIKICAgIHN1ZG8gcGhwIC90bXAvcGVhci5waGFyICYmIHN1ZG8gcm0gLWYgL3RtcC9wZWFyLnBoYXIKICAgIHRvX3dhaXQ9KCkKICAgIGZvciBzY3JpcHQgaW4gcGVhciBwZWNsOyBkbwogICAgICBzdWRvICIkc2NyaXB0IiBjaGFubmVsLXVwZGF0ZSAiJHNjcmlwdCIucGhwLm5ldCAmCiAgICAgIHRvX3dhaXQrPSgiJCEiKQogICAgZG9uZQogICAgd2FpdCAiJHt0b193YWl0W0BdfSIKICBmaQp9Cgpsb2NhbF9kZXBzKCkgewogIGxvY2FsIGRlcHMgbGliZW5jaGFudF9kZXYKICBsaWJlbmNoYW50X2Rldj0kKGFwdC1jYWNoZSBzaG93IGxpYmVuY2hhbnQtP1swLTldKz8tZGV2IHwgZ3JlcCAnUGFja2FnZScgfCBoZWFkIC1uIDEgfCBjdXQgLWQgJyAnIC1mIDIpCiAgZGVwcz0oYXB0LXRyYW5zcG9ydC1odHRwcyBjYS1jZXJ0aWZpY2F0ZXMgZmlsZSBnbnVwZyBqcSB6c3RkIGdjYyBnKysgYXV0b2NvbmYgZmlyZWJpcmQtZGV2IGZyZWV0ZHMtZGV2IGxpYmFjbDEtZGV2IGxpYmFwcGFybW9yLWRldiBsaWJhcmdvbjItZGV2IGxpYmFzcGVsbC1kZXYgbGliYXZpZi1kZXYgbGliYnJvdGxpLWRldiBsaWJjLWFyZXMtZGV2IGxpYmN1cmw0LW9wZW5zc2wtZGV2IGxpYmRiLWRldiBsaWJlZGl0LWRldiAiJGxpYmVuY2hhbnRfZGV2IiBsaWJldmVudC1kZXYgbGliZnJlZXR5cGU2LWRldiBsaWJoZWlmLWRldiBsaWJyYXFtLWRldiBsaWJpbWFnZXF1YW50LWRldiBsaWJnZWFybWFuLWRldiBsaWJnb21wMSBsaWJncGdtZS1kZXYgbGliaWN1LWRldiBsaWJqcGVnLWRldiBsaWJrcmI1LWRldiBsaWJsZGFwLWRldiBsaWJsbWRiLWRldiBsaWJsejQtZGV2IGxpYm1hZ2lja3dhbmQtZGV2IGxpYm1heG1pbmRkYi1kZXYgbGlibWNyeXB0LWRldiBsaWJtZW1jYWNoZWQtZGV2IGxpYm5naHR0cDItZGV2IGxpYm9uaWctZGV2IGxpYnBuZy1kZXYgbGlicHEtZGV2IGxpYnFkYm0tZGV2IGxpYnJhYmJpdG1xLWRldiBsaWJyZGthZmthLWRldiBsaWJycmQtZGV2IGxpYnNtYmNsaWVudC1kZXYgbGlic25tcC1kZXYgbGlic29kaXVtLWRldiBsaWJzcWxpdGUzLWRldiBsaWJzc2gyLTEtZGV2IGxpYnNzbC1kZXYgbGlidGlkeS1kZXYgbGlidG9vbCBsaWJ3ZWJwLWRldiBsaWJ3cmFwMC1kZXYgbGlieHBtLWRldiBsaWJ4bWwyLWRldiBsaWJ4bWxycGMtZXBpLWRldiBsaWJ4c2x0MS1kZXYgbGlieWFtbC1kZXYgbGliemlwLWRldiBsaWJ6bXEzLWRldiBsaWJ6c3RkLWRldiBtYWtlIHBhdGNoIHBocC1jb21tb24gc2h0b29sIHNubXAgc3lzdGVtZCB0emRhdGEgdW5peG9kYmMtZGV2IHV1aWQtZGV2KQogIGluc3RhbGxfcGFja2FnZXMgIiR7ZGVwc1tAXX0iCn0KCmdpdGh1Yl9kZXBzKCkgewogIGxvY2FsIGRlcHMKICBkZXBzPShsaWJhdmlmLWRldiBsaWJldmVudC1kZXYgbGliZnJlZXR5cGU2LWRldiBsaWJnZWFybWFuLWRldiBsaWJoZWlmLWRldiBsaWJpbWFnZXF1YW50LWRldiBsaWJqcGVnLWRldiBsaWJrcmI1LWRldiBsaWJtY3J5cHQtZGV2IGxpYnBuZy1kZXYgbGlicmFxbS1kZXYgbGlicmRrYWZrYS1kZXYgbGlicnJkLWRldiBsaWJzbWJjbGllbnQtZGV2IGxpYnNzaDItMS1kZXYgbGlidGlmZi1kZXYgbGlid2VicC1kZXYgbGlieHBtLWRldiB6bGliMWctZGV2KQogIGlmIFsgIiRWRVJTSU9OX0lEIiA9ICIyMi4wNCIgXTsgdGhlbgogICAgZGVwcys9KCdsaWJ4bWxycGMtZXBpLWRldicpCiAgICBbWyAiJGFyY2giID0gImFhcmNoNjQiIHx8ICIkYXJjaCIgPSAiYXJtNjQiIF1dICYmIGRlcHMrPSgndW5peG9kYmMtZGV2JykKICBlbGlmIFsgIiRWRVJTSU9OX0lEIiA9ICIyNC4wNCIgXTsgdGhlbgogICAgZGVwcys9KCd1bml4b2RiYy1kZXYnICdsaWJtYWdpY2tjb3JlLWRldicgJ2xpYnhtbHJwYy1lcGktZGV2JykKICBlbGlmIFsgIiRWRVJTSU9OX0lEIiA9ICIyNi4wNCIgXTsgdGhlbgogICAgZGVwcys9KCd1bml4b2RiYy1kZXYnICdsaWJtYWdpY2tjb3JlLWRldicgJ2xpYnhtbHJwYy1lcGktZGV2JykKICBmaQogIGluc3RhbGxfcGFja2FnZXMgIiR7ZGVwc1tAXX0iCn0KCnN3aXRjaF92ZXJzaW9uKCkgewogIHN1ZG8gdXBkYXRlLWFsdGVybmF0aXZlcyAtLWluc3RhbGwgL3Vzci9saWIvbGlicGhwIiR7dmVyc2lvbi8lLip9Ii5zbyBsaWJwaHAiJHt2ZXJzaW9uLyUuKn0iIC91c3IvbGliL2xpYnBocCIkdmVyc2lvbiIuc28gIiR7dmVyc2lvbi8uL30iICYmIHN1ZG8gbGRjb25maWcKICBzdWRvIHVwZGF0ZS1hbHRlcm5hdGl2ZXMgLS1pbnN0YWxsIC91c3IvbGliL2NnaS1iaW4vcGhwIHBocC1jZ2ktYmluIC91c3IvbGliL2NnaS1iaW4vcGhwIiR2ZXJzaW9uIiAiJHt2ZXJzaW9uLy4vfSIKICBzdWRvIHVwZGF0ZS1hbHRlcm5hdGl2ZXMgLS1pbnN0YWxsIC91c3Ivc2Jpbi9waHAtZnBtIHBocC1mcG0gL3Vzci9zYmluL3BocC1mcG0iJHZlcnNpb24iICIke3ZlcnNpb24vLi99IgogIHN1ZG8gdXBkYXRlLWFsdGVybmF0aXZlcyAtLXNldCBwaHAtY2dpLWJpbiAvdXNyL2xpYi9jZ2ktYmluL3BocCIkdmVyc2lvbiIKICBzdWRvIHVwZGF0ZS1hbHRlcm5hdGl2ZXMgLS1zZXQgcGhwLWZwbSAvdXNyL3NiaW4vcGhwLWZwbSIkdmVyc2lvbiIKICB0b193YWl0X2Fycj0oKQogIGZvciB0b29sIGluIHBoYXIgcGhhci5waGFyIHBocC1jb25maWcgcGhwaXplIHBocCBwaHAtY2dpIHBocGRiZzsgZG8KICAgICgKICAgICAgc3VkbyB1cGRhdGUtYWx0ZXJuYXRpdmVzIC0taW5zdGFsbCAvdXNyL2Jpbi8iJHRvb2wiICIkdG9vbCIgL3Vzci9iaW4vIiR0b29sJHZlcnNpb24iICIke3ZlcnNpb24vLi99IiBcCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAtLXNsYXZlIC91c3Ivc2hhcmUvbWFuL21hbjEvIiR0b29sIi4xICIkdG9vbCIuMSAvdXNyL3NoYXJlL21hbi9tYW4xLyIkdG9vbCR2ZXJzaW9uIi4xCiAgICAgIHN1ZG8gdXBkYXRlLWFsdGVybmF0aXZlcyAtLXNldCAiJHRvb2wiIC91c3IvYmluLyIkdG9vbCR2ZXJzaW9uIgogICAgKSAmCiAgICB0b193YWl0X2Fycis9KCAkISApCiAgZG9uZQogIHdhaXQgIiR7dG9fd2FpdF9hcnJbQF19Igp9CgpyZWxvY2F0ZV9idWlsZCgpIHsKICBidWlsZF9kaXI9JDEKICBpZiBbIC1kICIkYnVpbGRfZGlyIi9saWIgXSAmJiBbIC1oIC9saWIgXTsgdGhlbgogICAgc3VkbyBjcCAtcmYgIiRidWlsZF9kaXIiL2xpYi8qICIkYnVpbGRfZGlyIi91c3IvbGliLwogICAgc3VkbyBybSAtcmYgIiR7YnVpbGRfZGlyOj99Ii9saWIKICBmaQogIHN1ZG8gY3AgLXJmICIkYnVpbGRfZGlyIi8qIC8KfQoKZXh0cmFjdF9idWlsZCgpIHsKICB0YXJfZmlsZT0kMQogIGJ1aWxkX2Rpcj0kMgogIGlmIFtbICIkRElTVF9JRCIgPX4gdWJ1bnR1fGRlYmlhbiBdXTsgdGhlbgogICAgc3VkbyB0YXIgLUkgenN0ZCAteGYgIi90bXAvJHRhcl9maWxlIiAtQyAvIC0tbm8tc2FtZS1vd25lcgogIGVsc2UKICAgIHN1ZG8gdGFyIC1JIHpzdGQgLXhmICIvdG1wLyR0YXJfZmlsZSIgLUMgIiRidWlsZF9kaXIiIC0tbm8tc2FtZS1vd25lcgogICAgcmVsb2NhdGVfYnVpbGQgIiRidWlsZF9kaXIiCiAgZmkKfQoKaW5zdGFsbCgpIHsKICB0b193YWl0PSgpCiAgYXJjaD0iJChhcmNoKSIKICBbWyAiJGFyY2giID0gImFhcmNoNjQiIHx8ICIkYXJjaCIgPSAiYXJtNjQiIF1dICYmIEFSQ0hfU1VGRklYPSdfYXJtNjQnIHx8IEFSQ0hfU1VGRklYPScnCiAgaWYgWyAiJDEiICE9ICJnaXRodWIiIF07IHRoZW4KICAgIGFkZF9wcmVyZXF1aXNpdGVzCiAgICBzZXRfYmFzZV92ZXJzaW9uCiAgICBsb2NhbF9kZXBzICYKICAgIHRvX3dhaXQ9KCIkISIpCiAgZWxzZQogICAgZ2l0aHViX2RlcHMgJgogICAgdG9fd2FpdD0oIiQhIikKICBmaQogIHRhcl9maWxlPSJwaHBfJHZlcnNpb24kUEhQX1BLR19TVUZGSVgrJElEJFZFUlNJT05fSUQkQVJDSF9TVUZGSVgudGFyLnpzdCIKICBpZiBbIC1uICIke1BIUF9CVUlMREVSX0FSQ0hJVkVfRElSOi19IiBdOyB0aGVuCiAgICAjIFRoZSBwcml2YXRlIGNvb3JkaW5hdG9yIGhhcyBhdXRoZW50aWNhdGVkIHRoZXNlIGV4YWN0IGJ5dGVzIGZyb20gUjIuCiAgICBbIC1mICIkUEhQX0JVSUxERVJfQVJDSElWRV9ESVIvJHRhcl9maWxlIiBdIHx8IHJldHVybiAxCiAgICBzdWRvIGNwICIkUEhQX0JVSUxERVJfQVJDSElWRV9ESVIvJHRhcl9maWxlIiAiL3RtcC8kdGFyX2ZpbGUiIHx8IHJldHVybiAxCiAgZWxzZQogICAgOiAjIEtlZXAgdGhlIGJyYW5jaCB2YWxpZCB3aGVuIGxvY2FsIENJIHJlbW92ZXMgdGhlIGZvbGxvd2luZyBmZXRjaC4KICAgIGdldCAtcSAiL3RtcC8kdGFyX2ZpbGUiICJodHRwczovL2dpdGh1Yi5jb20vc2hpdmFtbWF0aHVyL3BocC1idWlsZGVyL3JlbGVhc2VzL2Rvd25sb2FkLyR2ZXJzaW9uLyR0YXJfZmlsZSIKICBmaQogIHN1ZG8gcm0gLXJmIC9ldGMvcGhwLyIkdmVyc2lvbiIgL3RtcC9waHAiJHZlcnNpb24iCiAgc3VkbyBta2RpciAtbSA3NzcgLXAgL3RtcC9waHAiJHZlcnNpb24iIC92YXIvcnVuIC9ydW4vcGhwIC9saWIvc3lzdGVtZC9zeXN0ZW0gL3Vzci9saWIvdG1wZmlsZXMuZCAvZXRjL2FwYWNoZTIvbW9kcy1hdmFpbGFibGUgL2V0Yy9hcGFjaGUyL2NvbmYtYXZhaWxhYmxlIC9ldGMvYXBhY2hlMi9zaXRlcy1hdmFpbGFibGUgL2V0Yy9uZ2lueC9zaXRlcy1hdmFpbGFibGUgL3Vzci9saWIvYXBhY2hlMi9tb2R1bGVzCiAgZXh0cmFjdF9idWlsZCAiJHRhcl9maWxlIiAvdG1wL3BocCIkdmVyc2lvbiIKICBbWyAtbiAke3RvX3dhaXRbKl0vLyB9IF1dICYmIHdhaXQgIiR0b193YWl0IgogIC4gL2V0Yy9vcy1yZWxlYXNlCn0KCmNvbmZpZ3VyZSgpIHsKICBpZiBbICIkcnVubmVyIiA9ICJnaXRodWIiIF07IHRoZW4KICAgIHN1ZG8gcm0gLWYgIiRwZWNsX2ZpbGUiCiAgICBwZWNsX2ZpbGU9Ii9ldGMvcGhwLyR2ZXJzaW9uL2NsaS9jb25mLmQvOTktcGVjbC5pbmkiCiAgICBzdWRvIHRvdWNoICIkcGVjbF9maWxlIgogICAgZm9yIHNhcGkgaW4gJChwaHAtY29uZmlnIiR2ZXJzaW9uIiAtLXBocC1zYXBpcyB8IHNlZCAtRSAtZSAncy9jbGkgfGhhbmRsZXIvL2cnKTsgZG8KICAgICAgc3VkbyBsbiAtc2YgIiRwZWNsX2ZpbGUiIC9ldGMvcGhwLyIkdmVyc2lvbiIvIiRzYXBpIi9jb25mLmQvOTktcGVjbC5pbmkKICAgIGRvbmUKICBmaQogIHN1ZG8gY2htb2QgNzc3ICIkcGVjbF9maWxlIgogIGVjaG8gc3lzdGVtIHVzZXIgfCB4YXJncyAtbjEgc3VkbyBwZWFyIGNvbmZpZy1zZXQgcGhwX2luaSAiJHBlY2xfZmlsZSIKICBlY2hvICcnIHwgc3VkbyB0ZWUgL3RtcC9wZWNsX2NvbmZpZyA+L2Rldi9udWxsIDI+JjEKICBpZiBbIC1kIC9ydW4vc3lzdGVtZC9zeXN0ZW0gXTsgdGhlbgogICAgc3VkbyBzeXN0ZW1jdGwgZGFlbW9uLXJlbG9hZCAyPi9kZXYvbnVsbCB8fCB0cnVlCiAgICBzdWRvIHN5c3RlbWN0bCBlbmFibGUgcGhwIiR2ZXJzaW9uIi1mcG0gMj4vZGV2L251bGwgfHwgdHJ1ZQogIGZpCiAgc3VkbyBzZXJ2aWNlIHBocCIkdmVyc2lvbiItZnBtIHJlc3RhcnQgfHwgdHJ1ZQp9CgpnZXRfYXBpX3ZlcnNpb25fZnJvbV9yZXBvKCkgewogIHBocF9oZWFkZXI9Imh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9waHAvcGhwLXNyYy9QSFAtJHZlcnNpb24vbWFpbi9waHAuaCIKICBzdGF0dXNfY29kZT0kKGN1cmwgLXNTTCAtbyAvdG1wL3BocC5oIC13ICIle2h0dHBfY29kZX0iICIkcGhwX2hlYWRlciIpCiAgaWYgWyAiJHN0YXR1c19jb2RlIiAhPSAiMjAwIiBdOyB0aGVuCiAgICBjdXJsIC1zTCAiJHtwaHBfaGVhZGVyL1BIUC0kdmVyc2lvbi9tYXN0ZXJ9IiB8IGdyZXAgIlBIUF9BUElfVkVSU0lPTiIgfCBjdXQgLWQnICcgLWYgMwogIGVsc2UKICAgIGdyZXAgIlBIUF9BUElfVkVSU0lPTiIgL3RtcC9waHAuaCB8IGN1dCAtZCcgJyAtZiAzCiAgZmkKfQoKcmVtb3ZlKCkgewogIGlmICEgWyAtZSAvdXNyL2Jpbi9waHAiJHt2ZXJzaW9uOj99IiBdOyB0aGVuCiAgICBlY2hvICJFcnJvcjogUEhQICR2ZXJzaW9uIGlzIG5vdCBpbnN0YWxsZWQiCiAgICByZXR1cm4gMTsKICBlbHNlCiAgICBwaHBhcGk9IiQoZ2V0X2FwaV92ZXJzaW9uX2Zyb21fcmVwbykiCiAgZmkKICBjb21tYW5kIC12IHN1ZG8gPi9kZXYvbnVsbCB8fCAodXBkYXRlX2xpc3RzICYmIGFwdC1nZXQgaW5zdGFsbCAteSBzdWRvKQogIGlmIFsgLWUgL2V0Yy9pbml0LmQvcGhwIiR2ZXJzaW9uIi1mcG0gXTsgdGhlbgogICAgc3VkbyBzZXJ2aWNlIHBocCIkdmVyc2lvbiItZnBtIHN0b3AgfHwgdHJ1ZQogICAgaWYgWyAtZCAvcnVuL3N5c3RlbWQvc3lzdGVtIF07IHRoZW4KICAgICAgc3VkbyBzeXN0ZW1jdGwgZGlzYWJsZSBwaHAiJHZlcnNpb24iLWZwbQogICAgICBzdWRvIHN5c3RlbWN0bCBkYWVtb24tcmVsb2FkCiAgICAgIHN1ZG8gc3lzdGVtY3RsIHJlc2V0LWZhaWxlZAogICAgZmkKICBmaQogIFsgLWUgL3Vzci9saWIvbGlicGhwIiR2ZXJzaW9uIi5zbyBdICYmIHN1ZG8gdXBkYXRlLWFsdGVybmF0aXZlcyAtLXJlbW92ZSBsaWJwaHAiJHt2ZXJzaW9uLyUuKn0iIC91c3IvbGliL2xpYnBocCIkdmVyc2lvbiIuc28gJiYgc3VkbyBsZGNvbmZpZwogIFsgLWUgL3Vzci9saWIvY2dpLWJpbi9waHAiJHZlcnNpb24iIF0gJiYgc3VkbyB1cGRhdGUtYWx0ZXJuYXRpdmVzIC0tcmVtb3ZlIHBocC1jZ2ktYmluIC91c3IvbGliL2NnaS1iaW4vcGhwIiR2ZXJzaW9uIgogIFsgLWUgL3Vzci9zYmluL3BocC1mcG0iJHZlcnNpb24iIF0gJiYgc3VkbyB1cGRhdGUtYWx0ZXJuYXRpdmVzIC0tcmVtb3ZlIHBocC1mcG0gL3Vzci9zYmluL3BocC1mcG0iJHZlcnNpb24iCiAgZm9yIHRvb2wgaW4gcGhhciBwaGFyLnBoYXIgcGhwLWNvbmZpZyBwaHBpemUgcGhwIHBocC1jZ2kgcGhwZGJnOyBkbwogICAgaWYgWyAtZSAvdXNyL2Jpbi8iJHRvb2wkdmVyc2lvbiIgXTsgdGhlbgogICAgICBzdWRvIHVwZGF0ZS1hbHRlcm5hdGl2ZXMgLS1yZW1vdmUgIiR0b29sIiAvdXNyL2Jpbi8iJHRvb2wkdmVyc2lvbiIKICAgICAgc3VkbyBybSAtZiAvdXNyL2Jpbi8iJHRvb2wkdmVyc2lvbiIKICAgIGZpCiAgZG9uZQogIHN1ZG8gZmluZCAvZXRjIC91c3Ivc2hhcmUvbWFuIC1uYW1lICJwaHAkdmVyc2lvbioiIC1kZWxldGUKICBzdWRvIHJtIC1yZiAvbGliL3N5c3RlbWQvc3lzdGVtL3BocCIkdmVyc2lvbiItZnBtLnNlcnZpY2UgXAogICAgICAgICAgICAgIC91c3IvbGliL3N5c3RlbWQvc3lzdGVtL3BocCIkdmVyc2lvbiItZnBtLnNlcnZpY2UgXAogICAgICAgICAgICAgIC9ldGMvbG9ncm90YXRlLmQvcGhwIiR2ZXJzaW9uIi1mcG0gXAogICAgICAgICAgICAgIC9ldGMvcGhwLyIkdmVyc2lvbiIgXAogICAgICAgICAgICAgIC91c3IvaW5jbHVkZS9waHAvIiRwaHBhcGkiIFwKICAgICAgICAgICAgICAvdXNyL2xpYi9saWJwaHAiJHZlcnNpb24iLnNvIFwKICAgICAgICAgICAgICAvdXNyL2xpYi9hcGFjaGUyL21vZHVsZXMvbGlicGhwIiR2ZXJzaW9uIi5zbyBcCiAgICAgICAgICAgICAgL3Vzci9saWIvY2dpLWJpbi9waHAiJHZlcnNpb24iIFwKICAgICAgICAgICAgICAvdXNyL2xpYi9waHAvcGhwIiR2ZXJzaW9uIi1mcG0tcmVvcGVubG9ncyBcCiAgICAgICAgICAgICAgL3Vzci9saWIvcGhwLyIkdmVyc2lvbiIgXAogICAgICAgICAgICAgIC91c3IvbGliL3BocC8iJHtwaHBhcGk6P30iIFwKICAgICAgICAgICAgICAvdXNyL2xpYi90bXBmaWxlcy5kL3BocCIkdmVyc2lvbiItZnBtLmNvbmYgXAogICAgICAgICAgICAgIC91c3IvbGliL2xpYnBocCIkdmVyc2lvbiIuc28gXAogICAgICAgICAgICAgIC91c3Ivc2Jpbi9waHAtZnBtIiR2ZXJzaW9uIiBcCiAgICAgICAgICAgICAgL3Vzci9zaGFyZS9waHAvIiR2ZXJzaW9uIgogIHJldHVybiAwOwp9CgojIGF2b2lkIHJ1bm5pbmcgd2l0aG91dCBhcmd1bWVudHMKaWYgW1sgIiR7I30iIC1lcSAwIF1dOyB0aGVuCiAgcHJpbnRfaGVscAogIGV4aXQgMDsKZmkKCmlmIFtbICIkMSIgPX4gcmVtb3ZlIF1dOyB0aGVuCiAgdmVyc2lvbj0kMgogIHJlbW92ZQogIGV4aXQgJD8KZWxpZiBbWyAiJDIiID1+IHJlbW92ZSBdXTsgdGhlbgogIHZlcnNpb249JDEKICByZW1vdmUKICBleGl0ICQ/CmZpCgpmb3IgYXJnIGluICIkQCI7IGRvCiAgaWYgW1sgIiRhcmciID1+IF5bMC05XStcLlswLTldKyQgXV07IHRoZW4KICAgIHZlcnNpb249IiRhcmciCiAgZWxpZiBbWyAiJGFyZyIgPX4gbG9jYWx8c2VsZi1ob3N0ZWQgXV07IHRoZW4KICAgIHJ1bm5lcj0ibG9jYWwiCiAgZWxpZiBbWyAiJGFyZyIgPX4gZ2l0aHViIF1dOyB0aGVuCiAgICBydW5uZXI9ImdpdGh1YiIKICBlbGlmIFtbICIkYXJnIiA9fiByZWxlYXNlfGRlYnVnIF1dOyB0aGVuCiAgICBkZWJ1Zz0iJGFyZyIKICBlbGlmIFtbICIkYXJnIiA9fiBudHN8enRzIF1dOyB0aGVuCiAgICBidWlsZD0iJGFyZyIKICBmaQpkb25lCgpbWyAteiAiJHZlcnNpb24iIF1dICYmIHZlcnNpb249OC4xCltbIC16ICIkcnVubmVyIiBdXSAmJiBydW5uZXI9bG9jYWwKW1sgLXogIiRkZWJ1ZyIgXV0gJiYgZGVidWc9cmVsZWFzZQpbWyAteiAiJGJ1aWxkIiBdXSAmJiBidWlsZD1udHMKCmlmICEgW1sgJHZlcnNpb24gPX4gXig1XC42fDdcLlswLTRdfDhcLlswLTddKSQgXV07IHRoZW4KICBlY2hvICJWZXJzaW9uICR2ZXJzaW9uIGlzIG5vdCBzdXBwb3J0ZWQiOwogIGV4aXQgMTsKZmkKClBIUF9QS0dfU1VGRklYPQppZiBbICIke2J1aWxkOj99IiA9ICJ6dHMiIF07IHRoZW4KICBQSFBfUEtHX1NVRkZJWD0iLXp0cyIKZmkKaWYgWyAiJGRlYnVnIiA9ICJkZWJ1ZyIgXTsgdGhlbgogIFBIUF9QS0dfU1VGRklYPSIkUEhQX1BLR19TVUZGSVgtZGJnc3ltIgpmaQouIC9ldGMvb3MtcmVsZWFzZQpwZWNsX2ZpbGU9Ii9ldGMvcGhwLyR2ZXJzaW9uL21vZHMtYXZhaWxhYmxlL3BlY2wuaW5pIgpkZWJjb25mX2ZpeD0nREVCSUFOX0ZST05URU5EPW5vbmludGVyYWN0aXZlJwpsaXN0X2Rpcj0nL2V0Yy9hcHQvc291cmNlcy5saXN0LmQnCmxpc3RfZmlsZT0iJGxpc3RfZGlyLyRJRC5zb3VyY2VzIgpbIC1lICIkbGlzdF9maWxlIiBdIHx8IGxpc3RfZmlsZT0nL2V0Yy9hcHQvc291cmNlcy5saXN0Jwp1cHN0cmVhbV9sc2I9Jy9ldGMvdXBzdHJlYW0tcmVsZWFzZS9sc2ItcmVsZWFzZScKZGlzdF9pbmZvX2Rpcj0nL3Vzci9zaGFyZS9kaXN0cm8taW5mbycKY29tbWFuZCAtdiBzdWRvID4vZGV2L251bGwgJiYgU1VETz1zdWRvIHx8IFNVRE89Cmluc3RhbGwgIiRydW5uZXIiIHx8IGV4aXQgMQpzd2l0Y2hfdmVyc2lvbgphZGRfcGVhcgpjb25maWd1cmUK"
+    },
+    {
+      "name": "php8.0.log",
+      "bytes": 11,
+      "sha256": "532ff23d1c38d4ca219925f4e25f1fc7198bebe1170824d45167a6824e51c1b0",
+      "metadata": true,
+      "content_base64": "cGhwLTguMC4zMAo="
+    },
+    {
+      "name": "build.log",
+      "bytes": 319,
+      "sha256": "6399e12f18aada17d14359e2307f42e76b93a870449bb57ad71f93e97c3ce3d2",
+      "metadata": true,
+      "content_base64": "MjAyMi4xMS4wNQoyMDIyLjEyLjExCjIwMjMuMDcuMDIKMjAyMy4wNy4wMgoyMDIzLjA3LjEzCjIwMjMuMTEuMjYKMjAyNC4wNS4xNAoyMDI0LjEwLjE3CjIwMjUuMDEuMTcKMjAyNS4wNi4xMAoyMDI1LjA2LjEwCjIwMjUuMDguMTIKMjAyNS4wOC4xMwoyMDI1LjA4LjEzCjIwMjUuMDguMTMKMjAyNS4wOC4xMwoyMDI1LjA4LjEzCjIwMjYuMDEuMTQKMjAyNi4wMS4xNAoyMDI2LjA0LjI5CjIwMjYuMDQuMjkKMjAyNi4wNC4yOQoyMDI2LjA1LjExCjIwMjYuMDUuMTQKMjAyNi4wNi4xNwoyMDI2LjA3LjA0CjIwMjYuMDcuMjAKMjAyNi4wOS4wOQoyMDI2LjEwLjIxCg=="
+    }
+  ],
+  "backed_up_before": {
+    "build.log": {
+      "id": 552876308,
+      "size": 308,
+      "digest": "sha256:33c7888fd31ef118b3b569e7de38a6e217286a3cf5acf6f27947f998b66e29a8"
+    },
+    "install.sh": {
+      "id": 552876229,
+      "size": 11824,
+      "digest": "sha256:2def9aa000acb5f0e2a4fec17a5e9f825a9e55e8b9d9fdaf4133989eef04b9a8"
+    },
+    "php8.0.log": {
+      "id": 552876282,
+      "size": 11,
+      "digest": "sha256:532ff23d1c38d4ca219925f4e25f1fc7198bebe1170824d45167a6824e51c1b0"
+    },
+    "php_8.0+debian12.tar.xz": {
+      "id": 552872973,
+      "size": 17618344,
+      "digest": "sha256:e791b650693194f310f6e95fd95fc1a236e3ea8f0d936c727acf8ba07fdf589a"
+    },
+    "php_8.0+debian12.tar.zst": {
+      "id": 552872975,
+      "size": 19157470,
+      "digest": "sha256:234b198008ca09f70002e6d9493ac59844de3626d5562da7d07a4aa3d25d8e03"
+    },
+    "php_8.0+debian13.tar.xz": {
+      "id": 552872971,
+      "size": 17934508,
+      "digest": "sha256:e85b3a91c8bba710d49dcb3bac8fbdcd698e1a005d23e7a32bc03a3ed4fa94a6"
+    },
+    "php_8.0+debian13.tar.zst": {
+      "id": 552873015,
+      "size": 19411126,
+      "digest": "sha256:4c3b1745ad78e2faac28293e6f965f68efc74571e238b6af53055f1b88f84a47"
+    },
+    "php_8.0+ubuntu22.04.tar.xz": {
+      "id": 552873313,
+      "size": 17532516,
+      "digest": "sha256:e87e74ea05898667870c09d0d3d3beed950ca67e8ea8e85e53b80e4735a8a223"
+    },
+    "php_8.0+ubuntu22.04.tar.zst": {
+      "id": 552873329,
+      "size": 19243834,
+      "digest": "sha256:7a17513039c2705b62e9f51615b505a5afd6a9bbe6c9cf48137cf67acd1a859a"
+    },
+    "php_8.0+ubuntu22.04_arm64.tar.xz": {
+      "id": 552873056,
+      "size": 15864368,
+      "digest": "sha256:ea09b5e7f63b488b9945ec73a7636b349c039b4fe5bee0cb3ea006352300d866"
+    },
+    "php_8.0+ubuntu22.04_arm64.tar.zst": {
+      "id": 552873122,
+      "size": 18520986,
+      "digest": "sha256:fa69a29b0dccdbaad58c064011b916326588950523c66e9c5272796741272a94"
+    },
+    "php_8.0+ubuntu24.04.tar.xz": {
+      "id": 552873639,
+      "size": 17733252,
+      "digest": "sha256:434eec0768c2a87cb9d2081f4a548f26f990f403208659653150189eae987a33"
+    },
+    "php_8.0+ubuntu24.04.tar.zst": {
+      "id": 552873692,
+      "size": 19228981,
+      "digest": "sha256:909cb46d6b09f397308cf24c2ee88abf3d939ba4c1c69f03690cacf3f05864c8"
+    },
+    "php_8.0+ubuntu24.04_arm64.tar.xz": {
+      "id": 552873501,
+      "size": 16004964,
+      "digest": "sha256:08ede75b5d98d3865cfad41a1696a98a91b039eafb649889bc1b372cb2651bc5"
+    },
+    "php_8.0+ubuntu24.04_arm64.tar.zst": {
+      "id": 552873506,
+      "size": 18450984,
+      "digest": "sha256:093154a6ef1706cba7a18fb42a5171c332decc095b037f5a86343e8a9c4ff5cd"
+    },
+    "php_8.0+ubuntu26.04.tar.xz": {
+      "id": 552874289,
+      "size": 18129880,
+      "digest": "sha256:15014fd9e052bd0e10da3d4ccb41b13d9dfdde8c98c23edd1d11d7fb470384b3"
+    },
+    "php_8.0+ubuntu26.04.tar.zst": {
+      "id": 552874341,
+      "size": 19575778,
+      "digest": "sha256:ba49afcfae72b92dbb9bd664e1f8a49ac16aed237bc4209b95e40c928b6a3e4a"
+    },
+    "php_8.0+ubuntu26.04_arm64.tar.xz": {
+      "id": 552874135,
+      "size": 15935172,
+      "digest": "sha256:5daac22b19bec269a974e4c63e09284a8ae4a979310dc940ca9520e791c5ef67"
+    },
+    "php_8.0+ubuntu26.04_arm64.tar.zst": {
+      "id": 552874179,
+      "size": 18313080,
+      "digest": "sha256:b66619250f17d75ceb0d4a0caffa5b8f68679b5b6a46d285a2bc1487fff12481"
+    },
+    "php_8.0-dbgsym+debian12.tar.xz": {
+      "id": 552872978,
+      "size": 284525776,
+      "digest": "sha256:6012d26a7472f15df475023cd0f1c8c1476ea2ba99cfa6af12f7ceab677c839e"
+    },
+    "php_8.0-dbgsym+debian12.tar.zst": {
+      "id": 552872974,
+      "size": 285363300,
+      "digest": "sha256:c18cd7844bb3c84a33677773a63472e413a96855562dc259088636f22f80830c"
+    },
+    "php_8.0-dbgsym+debian13.tar.xz": {
+      "id": 552873034,
+      "size": 286598292,
+      "digest": "sha256:8f1153d8b53b11c93db4557d604237c2b661d92c7b2947fd7941d819e7deb7de"
+    },
+    "php_8.0-dbgsym+debian13.tar.zst": {
+      "id": 552873028,
+      "size": 287360650,
+      "digest": "sha256:c1706a3512d4841f5a1d15de16c4fa79cba9b245e550759ae52fb16fa7ae9dcf"
+    },
+    "php_8.0-dbgsym+ubuntu22.04.tar.xz": {
+      "id": 552873384,
+      "size": 290339636,
+      "digest": "sha256:cdfd4748afb10b053d71edbe480c77238f7fee0ee6841c47f53e5423d28238ac"
+    },
+    "php_8.0-dbgsym+ubuntu22.04.tar.zst": {
+      "id": 552873383,
+      "size": 291306664,
+      "digest": "sha256:e819bc1b3c6e250ed365203591b1fd634792cc5a5602e315d0f56ad75fd05238"
+    },
+    "php_8.0-dbgsym+ubuntu22.04_arm64.tar.xz": {
+      "id": 552873178,
+      "size": 284915912,
+      "digest": "sha256:d3425604444686c05c5f374ff1281d3c4f972d5db185ec8642788a870477c5d6"
+    },
+    "php_8.0-dbgsym+ubuntu22.04_arm64.tar.zst": {
+      "id": 552873293,
+      "size": 286951821,
+      "digest": "sha256:da97926b8c7588f78a7b0b83f1d54a33b79c81c50cdd6aa3a5c9d7cd81a20abb"
+    },
+    "php_8.0-dbgsym+ubuntu24.04.tar.xz": {
+      "id": 552874058,
+      "size": 285235752,
+      "digest": "sha256:1490057d07ca454201f996ac6f015e07bb64335a098567f165213596cc1d8202"
+    },
+    "php_8.0-dbgsym+ubuntu24.04.tar.zst": {
+      "id": 552874127,
+      "size": 286051212,
+      "digest": "sha256:e1a4b18aa49907d3802fb2951573646aeca80096b94cbf961897f29115c146bd"
+    },
+    "php_8.0-dbgsym+ubuntu24.04_arm64.tar.xz": {
+      "id": 552873570,
+      "size": 278619768,
+      "digest": "sha256:7d07ebf75d00452ea3f35fff2245f68eb36a6a5bf9a07fa3a3b60f354dd3e71f"
+    },
+    "php_8.0-dbgsym+ubuntu24.04_arm64.tar.zst": {
+      "id": 552873581,
+      "size": 280555720,
+      "digest": "sha256:d8253b7063f90488756292c55dedb77a781ef1c4c86e36c506b431f2090ad08a"
+    },
+    "php_8.0-dbgsym+ubuntu26.04.tar.xz": {
+      "id": 552874395,
+      "size": 287774300,
+      "digest": "sha256:ed1c9b0f54adee67bb8a2821364e3bcfdb0ad11c1aa9b58f549254a14a94a37d"
+    },
+    "php_8.0-dbgsym+ubuntu26.04.tar.zst": {
+      "id": 552874461,
+      "size": 287445238,
+      "digest": "sha256:503ed79d9926aaac9e8bcc7a4a12ed964d44cde3f3fc38cb75b0116eab2250c5"
+    },
+    "php_8.0-dbgsym+ubuntu26.04_arm64.tar.xz": {
+      "id": 552874237,
+      "size": 278588968,
+      "digest": "sha256:c89f3cac14ce19185b023ea4c1b0ccf50879e095f415744473cd82c9ce0fdb9c"
+    },
+    "php_8.0-dbgsym+ubuntu26.04_arm64.tar.zst": {
+      "id": 552874238,
+      "size": 280103674,
+      "digest": "sha256:6f7b1ef969b697506749306f52fb0652243db0e9a0eaea58027b94266f5ce375"
+    },
+    "php_8.0-zts+debian12.tar.xz": {
+      "id": 552874462,
+      "size": 17734660,
+      "digest": "sha256:bddb5206b8a5c74d9bf8023b6d544d896446e43dd0d7125458961d2483583eb2"
+    },
+    "php_8.0-zts+debian12.tar.zst": {
+      "id": 552874502,
+      "size": 19280867,
+      "digest": "sha256:cc3733ef7cdbb2f1279f95fd1b2b6b2c46d8f7144ded221139306d1d4018616b"
+    },
+    "php_8.0-zts+debian13.tar.xz": {
+      "id": 552874552,
+      "size": 18072508,
+      "digest": "sha256:6139f2fc63a49f3980dd81b68922eab76cf897b520039ed45e31a2978c93c890"
+    },
+    "php_8.0-zts+debian13.tar.zst": {
+      "id": 552874604,
+      "size": 19545296,
+      "digest": "sha256:b8d42a0d2f23a6e20e4c8fd73c5efbee5d394456f6cf9a8e3f3eb0a6af938a62"
+    },
+    "php_8.0-zts+ubuntu22.04.tar.xz": {
+      "id": 552874859,
+      "size": 17622216,
+      "digest": "sha256:c613eeb73b5db7df2842c0c8c67f741db93976a46c08e211963f5db48b5114f8"
+    },
+    "php_8.0-zts+ubuntu22.04.tar.zst": {
+      "id": 552874912,
+      "size": 19373494,
+      "digest": "sha256:ea333987187c899f32310e14ba1619cc5b443216f3a146ca659c21e762841334"
+    },
+    "php_8.0-zts+ubuntu22.04_arm64.tar.xz": {
+      "id": 552874771,
+      "size": 15992324,
+      "digest": "sha256:38def0c1ac186ab9a37c32072efba62fd7536694eb2cf8e12234552b49832c82"
+    },
+    "php_8.0-zts+ubuntu22.04_arm64.tar.zst": {
+      "id": 552874811,
+      "size": 18657065,
+      "digest": "sha256:1961a27e76d8852d0416762b56fa56b95adbf52508eda1353a04fb6417e48ed9"
+    },
+    "php_8.0-zts+ubuntu24.04.tar.xz": {
+      "id": 552875280,
+      "size": 17846464,
+      "digest": "sha256:3e081dab97d9e9ec03a682af00079c9c40d3d3d70734c057fa2c33348c530bda"
+    },
+    "php_8.0-zts+ubuntu24.04.tar.zst": {
+      "id": 552875299,
+      "size": 19347366,
+      "digest": "sha256:e2c017819a58ac73caf25044801285ef565cca0627dfa85a4af787ca5c3ee800"
+    },
+    "php_8.0-zts+ubuntu24.04_arm64.tar.xz": {
+      "id": 552875082,
+      "size": 16077560,
+      "digest": "sha256:433f3745ab7c178743f4b824710426cb4fb32a63f1920201daf02d9aadc9fb44"
+    },
+    "php_8.0-zts+ubuntu24.04_arm64.tar.zst": {
+      "id": 552875139,
+      "size": 18541032,
+      "digest": "sha256:496b6049c87e352349d6436659190e64d0e01b099bd4d696c5b0f65739b24c58"
+    },
+    "php_8.0-zts+ubuntu26.04.tar.xz": {
+      "id": 552876129,
+      "size": 18238868,
+      "digest": "sha256:0334e3918681c6842397f8a67ed4c576a4b6ebea81b0d75b52ed23fe52a6338d"
+    },
+    "php_8.0-zts+ubuntu26.04.tar.zst": {
+      "id": 552876191,
+      "size": 19702611,
+      "digest": "sha256:4ff21302372394b391274b425ecbdd14a2b1edc6a30ebc780cbda873520f9a87"
+    },
+    "php_8.0-zts+ubuntu26.04_arm64.tar.xz": {
+      "id": 552876051,
+      "size": 16025644,
+      "digest": "sha256:c5175e8e4ac67e7526024e9d87aae883235da91ad9deac37811e5771122abf30"
+    },
+    "php_8.0-zts+ubuntu26.04_arm64.tar.zst": {
+      "id": 552876065,
+      "size": 18432599,
+      "digest": "sha256:da0ae562bde2b78dc84e19a8c9f8d9ad21fda686368a9c03d6d57eb37e0ecc8a"
+    },
+    "php_8.0-zts-dbgsym+debian12.tar.xz": {
+      "id": 552874520,
+      "size": 285329888,
+      "digest": "sha256:ca347101535f51b884b6a77425cd1e1c2bfb03148e6daac995d1f86a9248ddc7"
+    },
+    "php_8.0-zts-dbgsym+debian12.tar.zst": {
+      "id": 552874523,
+      "size": 286156127,
+      "digest": "sha256:2c560e84e59d1ef97f70222b69f7401bf11e6e579268d45a2771bdb3c27850eb"
+    },
+    "php_8.0-zts-dbgsym+debian13.tar.xz": {
+      "id": 552874667,
+      "size": 287434848,
+      "digest": "sha256:bbce95c12b0462ec76f10211a53e1e3bd8f2c2c16b191cc5f8a6d78102482602"
+    },
+    "php_8.0-zts-dbgsym+debian13.tar.zst": {
+      "id": 552874697,
+      "size": 288125178,
+      "digest": "sha256:14674e57efceb371bf43df64230d51ac779cff304140cb5ed47002d4f2b0ec12"
+    },
+    "php_8.0-zts-dbgsym+ubuntu22.04.tar.xz": {
+      "id": 552874952,
+      "size": 290561876,
+      "digest": "sha256:ded587d67057361e02a76dc8536061f23d403f5da5e0a50382bd7e96e8fbcdf6"
+    },
+    "php_8.0-zts-dbgsym+ubuntu22.04.tar.zst": {
+      "id": 552874999,
+      "size": 291562546,
+      "digest": "sha256:9975d349046ab83093fa548cdbb8e0ed340a0ab20e398121163cef3702a605c7"
+    },
+    "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.xz": {
+      "id": 552874814,
+      "size": 285506568,
+      "digest": "sha256:5bad3c386848a08e3361628e94bc067f816264db0d94363163a0e3a5222d39e2"
+    },
+    "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.zst": {
+      "id": 552874818,
+      "size": 287565370,
+      "digest": "sha256:e832b69de0c964fba2de41e33dd694510b697be3bd065438e478c0e4bcfe0797"
+    },
+    "php_8.0-zts-dbgsym+ubuntu24.04.tar.xz": {
+      "id": 552875743,
+      "size": 286138588,
+      "digest": "sha256:59c7f8f15ad57e39e7e30b4109c58e98810ec95aeced75311db5d2d1e9aaa15f"
+    },
+    "php_8.0-zts-dbgsym+ubuntu24.04.tar.zst": {
+      "id": 552875753,
+      "size": 286863318,
+      "digest": "sha256:02e0be2a8e73b6fedead01e8c64a04f4daac91b46c6d7c61a3edd39309afca02"
+    },
+    "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.xz": {
+      "id": 552875140,
+      "size": 279802144,
+      "digest": "sha256:6765248b7f60f717e89bd2e2dd40a06515fe39a4ce47ed864fa67c52e4e15ce5"
+    },
+    "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.zst": {
+      "id": 552875192,
+      "size": 281655828,
+      "digest": "sha256:90414d06c90fb748d8f579ca81f40550712c0af1e7f2c19413be99123385623b"
+    },
+    "php_8.0-zts-dbgsym+ubuntu26.04.tar.xz": {
+      "id": 552876211,
+      "size": 287252592,
+      "digest": "sha256:321a6a89e5cbdc7f15d6c6b749cb3643ceedb88bb9f91ba350cd66094ba7c106"
+    },
+    "php_8.0-zts-dbgsym+ubuntu26.04.tar.zst": {
+      "id": 552876221,
+      "size": 287766638,
+      "digest": "sha256:b7ad888ccb905769dccc7446ae8dc0f4b450cc48b6b487e8192a58c1e2015f4b"
+    },
+    "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.xz": {
+      "id": 552876099,
+      "size": 280060124,
+      "digest": "sha256:8789b720c858efbe854b040653346eff502bca3d100d197f86cd19e33357aa62"
+    },
+    "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.zst": {
+      "id": 552876115,
+      "size": 281541217,
+      "digest": "sha256:9975ad28837c1431d9088d7d7bb7036a44675577b6eb6ed8ebb87efc8df46d96"
+    }
+  },
+  "explicit_owner_promotion": true,
+  "recoverable_backups_verified_locally": true
+}
