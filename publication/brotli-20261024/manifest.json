@@ -1,0 +1,2940 @@
+{
+  "5.6": {
+    "php": "5.6",
+    "full_version": "5.6.40",
+    "run": 40104986886,
+    "head": "c17474cd245f4e16a51e6f4db25db9eea0139462",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_5.6-zts+ubuntu22.04.tar.zst": "sha256:919f215589387291c9de9d67ea757315d3c532bf94c561166411278e11ea5058",
+      "php_5.6-zts+ubuntu26.04_arm64.tar.zst": "sha256:523fa074cdbccc34582ba687e72af0c55ed5e03c469bb3e15bb746faf2e05bcd",
+      "php_5.6-zts+ubuntu22.04_arm64.tar.zst": "sha256:1ec153a3d6673701b33e442915c0de650b9f421a9cab4a4d79158b9f1e09d769",
+      "php_5.6+debian12.tar.zst": "sha256:1145e4eb6d498599fbcf4ec12e316c86baf56bc1ba44d44e5d81532fa4b7f2f0",
+      "php_5.6+ubuntu26.04.tar.zst": "sha256:3eab70c9ae50ecd5313f1950536ca9efa6b4b4cc52e5e633820ddf5952077917",
+      "php_5.6-zts+debian12.tar.zst": "sha256:6f9e8d6e768e056f6d1661c544df727fb1aa9933d404e8832a67f6903b8eb1c0",
+      "php_5.6+ubuntu24.04_arm64.tar.zst": "sha256:bd3e7ebe6e952dc3dbb52a65f5fcec5d7c8fe82006d2de084a141e0d9993387e",
+      "php_5.6-zts+ubuntu26.04.tar.zst": "sha256:af5758e449ceab2abbb0e8938f0224f1da17f86e96a89bad0dea799f182b14a7",
+      "php_5.6+ubuntu22.04.tar.zst": "sha256:1c9fe0c3b1e25bc8f3558c0254cacecefdaaa28dcab7f15a511ae56e9788b842",
+      "php_5.6+debian13.tar.zst": "sha256:79d0b8550616467707310bb736d36231259ec6ced635d4b0ef37177e0b23201a",
+      "php_5.6-zts+debian13.tar.zst": "sha256:7a8dab1fd87fd547a1206d2eb6c15be71fb0ea4298f5b2d741d27a5e6ac7d4b8",
+      "php_5.6+ubuntu24.04.tar.zst": "sha256:3c2b37bd4144b7fffd513e5761a6d29f3c95828f683ed87a502d0cfb37bcde14",
+      "php_5.6-zts+ubuntu24.04_arm64.tar.zst": "sha256:1329d46417839effbae757c638c77963225e28903439e0cba29394e66692c16e",
+      "php_5.6+ubuntu26.04_arm64.tar.zst": "sha256:f2de362e2ea3cf5cad4bc6c2ef3fb2ff6e554999b8b5d612b45396d6fab49e45",
+      "php_5.6+ubuntu22.04_arm64.tar.zst": "sha256:8209a1ea517e7a581b72f638c56d1720b4a1724729825340f5e7ead639ff8ef7",
+      "php_5.6-zts+ubuntu24.04.tar.zst": "sha256:85228fdb46bb9065e0060fcf882dd3a971d9906d2e4efc449c9cc905f1efed5c"
+    },
+    "artifacts": [
+      {
+        "id": 12565955107,
+        "name": "php5.6-nts+debian-12",
+        "digest": "sha256:017cc98ae01ba4b88a5bad33d92455ed3523415e908aae4f232f311054ed470e",
+        "size_in_bytes": 211271642,
+        "members": [
+          "php_5.6+debian12.tar.xz",
+          "php_5.6+debian12.tar.zst",
+          "php_5.6-dbgsym+debian12.tar.xz",
+          "php_5.6-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565637086,
+        "name": "php5.6-nts+debian-trixie",
+        "digest": "sha256:bcebef5dddfef323a1e54d56612677420a9571a81d8b401fcd0478c5628b1891",
+        "size_in_bytes": 211552281,
+        "members": [
+          "php_5.6+debian13.tar.xz",
+          "php_5.6+debian13.tar.zst",
+          "php_5.6-dbgsym+debian13.tar.xz",
+          "php_5.6-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564758984,
+        "name": "php5.6-nts+ubuntu-22.04",
+        "digest": "sha256:a5e6893f2d004d458cf63b567c241fc016bd414d02480bcb64554cdda94c1905",
+        "size_in_bytes": 213536298,
+        "members": [
+          "php_5.6+ubuntu22.04.tar.xz",
+          "php_5.6+ubuntu22.04.tar.zst",
+          "php_5.6-dbgsym+ubuntu22.04.tar.xz",
+          "php_5.6-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565651515,
+        "name": "php5.6-nts+ubuntu-22.04-arm",
+        "digest": "sha256:b2336afdc3b115b4c46aaa2ed5f13f9c21fe715c95c7a61b17dd6cb0ee7dba9b",
+        "size_in_bytes": 210638316,
+        "members": [
+          "php_5.6+ubuntu22.04_arm64.tar.xz",
+          "php_5.6+ubuntu22.04_arm64.tar.zst",
+          "php_5.6-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_5.6-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565143786,
+        "name": "php5.6-nts+ubuntu-24.04",
+        "digest": "sha256:7707a09b32167fa3be6def88efdae28293a0ac9f319a10ade7ef26a8bc3320dc",
+        "size_in_bytes": 212259818,
+        "members": [
+          "php_5.6+ubuntu24.04.tar.xz",
+          "php_5.6+ubuntu24.04.tar.zst",
+          "php_5.6-dbgsym+ubuntu24.04.tar.xz",
+          "php_5.6-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565587423,
+        "name": "php5.6-nts+ubuntu-24.04-arm",
+        "digest": "sha256:0e02090bc0253e844016702eb0cc6569ac3022676ed6fe1bc37479501fc2c644",
+        "size_in_bytes": 208452901,
+        "members": [
+          "php_5.6+ubuntu24.04_arm64.tar.xz",
+          "php_5.6+ubuntu24.04_arm64.tar.zst",
+          "php_5.6-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_5.6-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565437688,
+        "name": "php5.6-nts+ubuntu-26.04",
+        "digest": "sha256:e12a0f7209b61eddf12dbf7f797edc21bc5bd2f67c9929e40bd5b510c8ab951c",
+        "size_in_bytes": 214192909,
+        "members": [
+          "php_5.6+ubuntu26.04.tar.xz",
+          "php_5.6+ubuntu26.04.tar.zst",
+          "php_5.6-dbgsym+ubuntu26.04.tar.xz",
+          "php_5.6-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565123555,
+        "name": "php5.6-nts+ubuntu-26.04-arm",
+        "digest": "sha256:988d8a9a74b37c3585a50ec8a7081d2549a982c0460b7d1ffdfb8730126e6904",
+        "size_in_bytes": 209114545,
+        "members": [
+          "php_5.6+ubuntu26.04_arm64.tar.xz",
+          "php_5.6+ubuntu26.04_arm64.tar.zst",
+          "php_5.6-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_5.6-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565137513,
+        "name": "php5.6-zts+debian-12",
+        "digest": "sha256:a204846e82be2640911c42daaf4916b2adcb32abd3ff8944361204afc8905846",
+        "size_in_bytes": 215903797,
+        "members": [
+          "php_5.6-zts+debian12.tar.xz",
+          "php_5.6-zts+debian12.tar.zst",
+          "php_5.6-zts-dbgsym+debian12.tar.xz",
+          "php_5.6-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565537726,
+        "name": "php5.6-zts+debian-trixie",
+        "digest": "sha256:dd7a0a7e4040e8a84a025edbdd34533b912542814a283dc942acd3de8b890c61",
+        "size_in_bytes": 216503780,
+        "members": [
+          "php_5.6-zts+debian13.tar.xz",
+          "php_5.6-zts+debian13.tar.zst",
+          "php_5.6-zts-dbgsym+debian13.tar.xz",
+          "php_5.6-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565413063,
+        "name": "php5.6-zts+ubuntu-22.04",
+        "digest": "sha256:91740cdf4762de05faa14d3293040a4823a8d01257acc2bce74eccb69846e754",
+        "size_in_bytes": 218841172,
+        "members": [
+          "php_5.6-zts+ubuntu22.04.tar.xz",
+          "php_5.6-zts+ubuntu22.04.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565397666,
+        "name": "php5.6-zts+ubuntu-22.04-arm",
+        "digest": "sha256:1a7474c1c695feebd3f903a908bb2806c030351581ed188199e124a56e99c346",
+        "size_in_bytes": 215474587,
+        "members": [
+          "php_5.6-zts+ubuntu22.04_arm64.tar.xz",
+          "php_5.6-zts+ubuntu22.04_arm64.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565331768,
+        "name": "php5.6-zts+ubuntu-24.04",
+        "digest": "sha256:52c537ad55ca6735bb147bb374dc4b3a6b286c47d3f3c07fed0d03383c84ec9b",
+        "size_in_bytes": 217428760,
+        "members": [
+          "php_5.6-zts+ubuntu24.04.tar.xz",
+          "php_5.6-zts+ubuntu24.04.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564883567,
+        "name": "php5.6-zts+ubuntu-24.04-arm",
+        "digest": "sha256:2da4bda5d61c49721e426eb6aba06f03e0169911bf442af360df0efe5e5e8514",
+        "size_in_bytes": 213484830,
+        "members": [
+          "php_5.6-zts+ubuntu24.04_arm64.tar.xz",
+          "php_5.6-zts+ubuntu24.04_arm64.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565845496,
+        "name": "php5.6-zts+ubuntu-26.04",
+        "digest": "sha256:73bd8bba5fe36092426156ff6ccb425740297d3520755bc674294081b36bb471",
+        "size_in_bytes": 219521915,
+        "members": [
+          "php_5.6-zts+ubuntu26.04.tar.xz",
+          "php_5.6-zts+ubuntu26.04.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564813316,
+        "name": "php5.6-zts+ubuntu-26.04-arm",
+        "digest": "sha256:435e5821dcb2dd44ce5a02751e916d8c2f25f1e0fab3d7fa60d2de5bdd9ec745",
+        "size_in_bytes": 213995524,
+        "members": [
+          "php_5.6-zts+ubuntu26.04_arm64.tar.xz",
+          "php_5.6-zts+ubuntu26.04_arm64.tar.zst",
+          "php_5.6-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_5.6-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "7.0": {
+    "php": "7.0",
+    "full_version": "7.0.33",
+    "run": 40094021984,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_7.0+ubuntu26.04_arm64.tar.zst": "sha256:9076ef645411d0c9707cd1818d116a5c714e94a7c4a7df8972c2f062451c7c6e",
+      "php_7.0+debian12.tar.zst": "sha256:c8ca33997d8b26d9aeb13da86c009162a0f528203085c8cc50c5f382584c726f",
+      "php_7.0+ubuntu22.04.tar.zst": "sha256:59e115ab90356c0a346bde6eb09b9d1de1cd33c7e956fb3bcc2b1b7f803e24a5",
+      "php_7.0-zts+debian13.tar.zst": "sha256:e9ca53a718a38a464a49dd8d8a6095840655fc37224ba666b768e2677b8cf760",
+      "php_7.0+ubuntu24.04_arm64.tar.zst": "sha256:a0c646cae4c011b3c6006adcfad076486e65c5d37c176a17d81cd4b402d84559"
+    },
+    "artifacts": [
+      {
+        "id": 12564478344,
+        "name": "php7.0-nts+debian-12",
+        "digest": "sha256:b48e73272f942f15f33bb3caa2dbf284790fb3299c123f14adce671985f00e06",
+        "size_in_bytes": 561588445,
+        "members": [
+          "php_7.0+debian12.tar.xz",
+          "php_7.0+debian12.tar.zst",
+          "php_7.0-dbgsym+debian12.tar.xz",
+          "php_7.0-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564553031,
+        "name": "php7.0-nts+debian-trixie",
+        "digest": "sha256:d2a133a432faaf0355dbb2b68bd76f87ea48598ce03c6721d4560d93e90b42bc",
+        "size_in_bytes": 563578240,
+        "members": [
+          "php_7.0+debian13.tar.xz",
+          "php_7.0+debian13.tar.zst",
+          "php_7.0-dbgsym+debian13.tar.xz",
+          "php_7.0-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564058313,
+        "name": "php7.0-nts+ubuntu-22.04",
+        "digest": "sha256:fc701bbe7e5e6ab8f1b6c8bec49832c4791358b8969a8fabe9e626de4ce75fe4",
+        "size_in_bytes": 573436003,
+        "members": [
+          "php_7.0+ubuntu22.04.tar.xz",
+          "php_7.0+ubuntu22.04.tar.zst",
+          "php_7.0-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.0-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563804051,
+        "name": "php7.0-nts+ubuntu-22.04-arm",
+        "digest": "sha256:9801ecb84b7795621e0674fa700856156576d6b83eb0b6af8676cd52ed83ba6c",
+        "size_in_bytes": 564856543,
+        "members": [
+          "php_7.0+ubuntu22.04_arm64.tar.xz",
+          "php_7.0+ubuntu22.04_arm64.tar.zst",
+          "php_7.0-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.0-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564029823,
+        "name": "php7.0-nts+ubuntu-24.04",
+        "digest": "sha256:016e9b21ad3297c67a9b63c8614c05f2af0f363262271f297ee78b450addd9c6",
+        "size_in_bytes": 561992826,
+        "members": [
+          "php_7.0+ubuntu24.04.tar.xz",
+          "php_7.0+ubuntu24.04.tar.zst",
+          "php_7.0-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.0-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564153864,
+        "name": "php7.0-nts+ubuntu-24.04-arm",
+        "digest": "sha256:ee23b1ac7eb3dcbc93ace7060489ffd77112dea48c6c80ffef5b38ced196405e",
+        "size_in_bytes": 553333223,
+        "members": [
+          "php_7.0+ubuntu24.04_arm64.tar.xz",
+          "php_7.0+ubuntu24.04_arm64.tar.zst",
+          "php_7.0-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.0-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564472533,
+        "name": "php7.0-nts+ubuntu-26.04",
+        "digest": "sha256:caaa84a0a12d6d106619349e71665bb1cb061e032b1bf182c6b30154ba58ef3c",
+        "size_in_bytes": 567080105,
+        "members": [
+          "php_7.0+ubuntu26.04.tar.xz",
+          "php_7.0+ubuntu26.04.tar.zst",
+          "php_7.0-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.0-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564641503,
+        "name": "php7.0-nts+ubuntu-26.04-arm",
+        "digest": "sha256:10195deccbbe81cd8d8a5d98497dc462d920d98f7b41b3d4007fea18888b1c35",
+        "size_in_bytes": 555505614,
+        "members": [
+          "php_7.0+ubuntu26.04_arm64.tar.xz",
+          "php_7.0+ubuntu26.04_arm64.tar.zst",
+          "php_7.0-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.0-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564621537,
+        "name": "php7.0-zts+debian-12",
+        "digest": "sha256:3bf1b7c436523253347638e0e8667613a5fe604fe5fda0966e06bfdd958fa1fe",
+        "size_in_bytes": 563144726,
+        "members": [
+          "php_7.0-zts+debian12.tar.xz",
+          "php_7.0-zts+debian12.tar.zst",
+          "php_7.0-zts-dbgsym+debian12.tar.xz",
+          "php_7.0-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564319025,
+        "name": "php7.0-zts+debian-trixie",
+        "digest": "sha256:35df487aaabc1dfce4ffbcc69da61f0280c8f5826646025b768ec720f5a6619e",
+        "size_in_bytes": 564674313,
+        "members": [
+          "php_7.0-zts+debian13.tar.xz",
+          "php_7.0-zts+debian13.tar.zst",
+          "php_7.0-zts-dbgsym+debian13.tar.xz",
+          "php_7.0-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564735584,
+        "name": "php7.0-zts+ubuntu-22.04",
+        "digest": "sha256:1eac6ed04f50a1ae4419292d5903c7fe76e4011395fb5d2899254c42c905c421",
+        "size_in_bytes": 574936996,
+        "members": [
+          "php_7.0-zts+ubuntu22.04.tar.xz",
+          "php_7.0-zts+ubuntu22.04.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564642065,
+        "name": "php7.0-zts+ubuntu-22.04-arm",
+        "digest": "sha256:cf1ee9f3a0c6af9befb149d545bb8572ddb0ff480be7e64719f4ca0e5bbfe631",
+        "size_in_bytes": 566956209,
+        "members": [
+          "php_7.0-zts+ubuntu22.04_arm64.tar.xz",
+          "php_7.0-zts+ubuntu22.04_arm64.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564234531,
+        "name": "php7.0-zts+ubuntu-24.04",
+        "digest": "sha256:bf86304689d6abf8c227fd15af7d6b9dbd1689f95b3085694a8fc2234c82046e",
+        "size_in_bytes": 563652561,
+        "members": [
+          "php_7.0-zts+ubuntu24.04.tar.xz",
+          "php_7.0-zts+ubuntu24.04.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563744357,
+        "name": "php7.0-zts+ubuntu-24.04-arm",
+        "digest": "sha256:8d3608affaea8fac916c164ebe3011081973c5a21ba1cb90926fe74dce5a8265",
+        "size_in_bytes": 554290914,
+        "members": [
+          "php_7.0-zts+ubuntu24.04_arm64.tar.xz",
+          "php_7.0-zts+ubuntu24.04_arm64.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564064684,
+        "name": "php7.0-zts+ubuntu-26.04",
+        "digest": "sha256:c450db2de4679d4717327b1d8868e8cb96ec45554edecf2b6b6d87e2e98e5807",
+        "size_in_bytes": 568482984,
+        "members": [
+          "php_7.0-zts+ubuntu26.04.tar.xz",
+          "php_7.0-zts+ubuntu26.04.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564297946,
+        "name": "php7.0-zts+ubuntu-26.04-arm",
+        "digest": "sha256:5c6b07afffe67c874ebb13fbbb96ec0f1ea1350a6d91e8e8df9d0094ae971f5c",
+        "size_in_bytes": 555116688,
+        "members": [
+          "php_7.0-zts+ubuntu26.04_arm64.tar.xz",
+          "php_7.0-zts+ubuntu26.04_arm64.tar.zst",
+          "php_7.0-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.0-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "7.1": {
+    "php": "7.1",
+    "full_version": "7.1.33",
+    "run": 40094023499,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_7.1+ubuntu24.04_arm64.tar.zst": "sha256:da956a46cb5ce6c51b64dca0331e2fa60801048a26602886eac1306a79ee77df",
+      "php_7.1-zts+debian13.tar.zst": "sha256:0103339b2a0d0315401e9eba9b928e731701ba4ad224b0feafc419e635b66bcc",
+      "php_7.1+debian12.tar.zst": "sha256:14cee20fa35b64f657e5082c53891a005f6088b998a49b62ddf590e4cfa4e1b0",
+      "php_7.1+ubuntu26.04_arm64.tar.zst": "sha256:a3ba764cc8064e019c9789bea12cc7209f5579453befd76f3c7b5363cf099a46",
+      "php_7.1+ubuntu22.04.tar.zst": "sha256:bee33d3731b06597b34d73272dbd138667c024919cf453a7490871583ff680ba"
+    },
+    "artifacts": [
+      {
+        "id": 12565320115,
+        "name": "php7.1-nts+debian-12",
+        "digest": "sha256:e780c4394419cbf198d1deff053a953c653f1977c595b708d1183a15af085951",
+        "size_in_bytes": 581515584,
+        "members": [
+          "php_7.1+debian12.tar.xz",
+          "php_7.1+debian12.tar.zst",
+          "php_7.1-dbgsym+debian12.tar.xz",
+          "php_7.1-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564787484,
+        "name": "php7.1-nts+debian-trixie",
+        "digest": "sha256:5ed1872e70d4e8cbbb5ab84a5e9f36cfcc30c9e1bca10846c3b925bd8694c374",
+        "size_in_bytes": 582808485,
+        "members": [
+          "php_7.1+debian13.tar.xz",
+          "php_7.1+debian13.tar.zst",
+          "php_7.1-dbgsym+debian13.tar.xz",
+          "php_7.1-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565176362,
+        "name": "php7.1-nts+ubuntu-22.04",
+        "digest": "sha256:abf2f3d4c1c50bb39996801442caa189c409bc8a69eb08df28b566ff362d9b74",
+        "size_in_bytes": 593593647,
+        "members": [
+          "php_7.1+ubuntu22.04.tar.xz",
+          "php_7.1+ubuntu22.04.tar.zst",
+          "php_7.1-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.1-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565320716,
+        "name": "php7.1-nts+ubuntu-22.04-arm",
+        "digest": "sha256:a06e8dd7ac7e5e2fddc46940f7b9f5bea0f15a294e4eb26bcf001a7bbc2c7927",
+        "size_in_bytes": 585301911,
+        "members": [
+          "php_7.1+ubuntu22.04_arm64.tar.xz",
+          "php_7.1+ubuntu22.04_arm64.tar.zst",
+          "php_7.1-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.1-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565101578,
+        "name": "php7.1-nts+ubuntu-24.04",
+        "digest": "sha256:8dc5f03768ebc4a84e88878799c398ef548b22a8ef6a0ae10ca9ce99362a101b",
+        "size_in_bytes": 582818410,
+        "members": [
+          "php_7.1+ubuntu24.04.tar.xz",
+          "php_7.1+ubuntu24.04.tar.zst",
+          "php_7.1-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.1-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565010945,
+        "name": "php7.1-nts+ubuntu-24.04-arm",
+        "digest": "sha256:3bd7f199932262792ae4648e78a5d4af4758986a1019fa29c5e53e8ad42af1f1",
+        "size_in_bytes": 571068651,
+        "members": [
+          "php_7.1+ubuntu24.04_arm64.tar.xz",
+          "php_7.1+ubuntu24.04_arm64.tar.zst",
+          "php_7.1-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.1-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564439942,
+        "name": "php7.1-nts+ubuntu-26.04",
+        "digest": "sha256:ab7013d8535b10b613a2aee35362c1b8cfb11054dbdbcb3a23a115afd82bed9e",
+        "size_in_bytes": 586327797,
+        "members": [
+          "php_7.1+ubuntu26.04.tar.xz",
+          "php_7.1+ubuntu26.04.tar.zst",
+          "php_7.1-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.1-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564169893,
+        "name": "php7.1-nts+ubuntu-26.04-arm",
+        "digest": "sha256:8256b6092bf1039e448253b90a448483afe27e8ae13ff8e12fd3d4f63f97d39b",
+        "size_in_bytes": 571372414,
+        "members": [
+          "php_7.1+ubuntu26.04_arm64.tar.xz",
+          "php_7.1+ubuntu26.04_arm64.tar.zst",
+          "php_7.1-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.1-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565175704,
+        "name": "php7.1-zts+debian-12",
+        "digest": "sha256:af0dbf6ed39017aa4da72f75f200c76fd5c2f073484166ea72fc12e38415c4c6",
+        "size_in_bytes": 583157686,
+        "members": [
+          "php_7.1-zts+debian12.tar.xz",
+          "php_7.1-zts+debian12.tar.zst",
+          "php_7.1-zts-dbgsym+debian12.tar.xz",
+          "php_7.1-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564314776,
+        "name": "php7.1-zts+debian-trixie",
+        "digest": "sha256:0d649650ab8f6a61048c461e8bfdb4bd5e0cd0867e87142dac6aed3f9a5ba7d2",
+        "size_in_bytes": 582898718,
+        "members": [
+          "php_7.1-zts+debian13.tar.xz",
+          "php_7.1-zts+debian13.tar.zst",
+          "php_7.1-zts-dbgsym+debian13.tar.xz",
+          "php_7.1-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564667385,
+        "name": "php7.1-zts+ubuntu-22.04",
+        "digest": "sha256:893da3a5c2fd7294639cda410651470438fccee81badfcf4a9c69c4e54281858",
+        "size_in_bytes": 595290377,
+        "members": [
+          "php_7.1-zts+ubuntu22.04.tar.xz",
+          "php_7.1-zts+ubuntu22.04.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564344957,
+        "name": "php7.1-zts+ubuntu-22.04-arm",
+        "digest": "sha256:fe9c9d0fb54c173505c491d326f84e0468c7e0af5bd84030b9bc64ade99c06ca",
+        "size_in_bytes": 584778449,
+        "members": [
+          "php_7.1-zts+ubuntu22.04_arm64.tar.xz",
+          "php_7.1-zts+ubuntu22.04_arm64.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565080521,
+        "name": "php7.1-zts+ubuntu-24.04",
+        "digest": "sha256:a07fe2c77f3113f1a219df7bfb88b07272774c73210dcc92d28dd989800cbb6d",
+        "size_in_bytes": 584371435,
+        "members": [
+          "php_7.1-zts+ubuntu24.04.tar.xz",
+          "php_7.1-zts+ubuntu24.04.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564961699,
+        "name": "php7.1-zts+ubuntu-24.04-arm",
+        "digest": "sha256:f234c0251c397d64aea6c0c3aa08c5199c3c2f95a37903eff90784cdf2dca2a4",
+        "size_in_bytes": 572480079,
+        "members": [
+          "php_7.1-zts+ubuntu24.04_arm64.tar.xz",
+          "php_7.1-zts+ubuntu24.04_arm64.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565255681,
+        "name": "php7.1-zts+ubuntu-26.04",
+        "digest": "sha256:4f7b549c63d44a9f091c47ea7b2046fb183af59eae19974345d7d19b375614e0",
+        "size_in_bytes": 588473636,
+        "members": [
+          "php_7.1-zts+ubuntu26.04.tar.xz",
+          "php_7.1-zts+ubuntu26.04.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564528558,
+        "name": "php7.1-zts+ubuntu-26.04-arm",
+        "digest": "sha256:945b97c7f369c374a8034453256c878b701f679393dce18f91b051573a0dacfd",
+        "size_in_bytes": 574025060,
+        "members": [
+          "php_7.1-zts+ubuntu26.04_arm64.tar.xz",
+          "php_7.1-zts+ubuntu26.04_arm64.tar.zst",
+          "php_7.1-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.1-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "7.2": {
+    "php": "7.2",
+    "full_version": "7.2.34",
+    "run": 40094025059,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_7.2+ubuntu22.04.tar.zst": "sha256:8b8ef845b2dae6f8931e2bdea14f8608eb5ed01bbbb19f451faa81bce3c9ac83",
+      "php_7.2+ubuntu24.04_arm64.tar.zst": "sha256:13447beadd0390ad4655093dbd5340b0f6f2702f5299a08e3ed8b841f7c17202",
+      "php_7.2-zts+debian13.tar.zst": "sha256:6a06e336d605006f2606e347d0345bb676d30da302e7716c5bf0d8931fbba2a1",
+      "php_7.2+debian12.tar.zst": "sha256:6660e8155c55115a685d4b2a843a59af1b88b3a313cd4b5123794670d830eb70",
+      "php_7.2+ubuntu26.04_arm64.tar.zst": "sha256:330b6e46bddaf8655e5b0c7589cd79b4ef2f3b437830c8d6fc5f168a4a9eefaf"
+    },
+    "artifacts": [
+      {
+        "id": 12564664821,
+        "name": "php7.2-nts+debian-12",
+        "digest": "sha256:abc2493296fedf26b663db12e15482abea864b7168df5d8a42f7ab85d48c4b9d",
+        "size_in_bytes": 603338914,
+        "members": [
+          "php_7.2+debian12.tar.xz",
+          "php_7.2+debian12.tar.zst",
+          "php_7.2-dbgsym+debian12.tar.xz",
+          "php_7.2-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565222141,
+        "name": "php7.2-nts+debian-trixie",
+        "digest": "sha256:8a979b0e5fd190605f5c5d62ec8a074bf23bf831d8e4cbab15ccd54df52b3149",
+        "size_in_bytes": 606090990,
+        "members": [
+          "php_7.2+debian13.tar.xz",
+          "php_7.2+debian13.tar.zst",
+          "php_7.2-dbgsym+debian13.tar.xz",
+          "php_7.2-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565446855,
+        "name": "php7.2-nts+ubuntu-22.04",
+        "digest": "sha256:1a06ff2a05d40d6b4fca55bcf5d8a88bd871f9a0478b51dac8ebd0eb45187914",
+        "size_in_bytes": 616368749,
+        "members": [
+          "php_7.2+ubuntu22.04.tar.xz",
+          "php_7.2+ubuntu22.04.tar.zst",
+          "php_7.2-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.2-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565246951,
+        "name": "php7.2-nts+ubuntu-22.04-arm",
+        "digest": "sha256:618aa4e4c409b768c10bf052c917d56ffa00e9734febace0443be75db636cd38",
+        "size_in_bytes": 605401426,
+        "members": [
+          "php_7.2+ubuntu22.04_arm64.tar.xz",
+          "php_7.2+ubuntu22.04_arm64.tar.zst",
+          "php_7.2-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.2-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564958098,
+        "name": "php7.2-nts+ubuntu-24.04",
+        "digest": "sha256:6d1237fcd9e05480f3210c75a9c94f6dc6ab2ccf249d290231b5bcee4c0a8e4a",
+        "size_in_bytes": 604692113,
+        "members": [
+          "php_7.2+ubuntu24.04.tar.xz",
+          "php_7.2+ubuntu24.04.tar.zst",
+          "php_7.2-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.2-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565037998,
+        "name": "php7.2-nts+ubuntu-24.04-arm",
+        "digest": "sha256:36a87b5b0ca97fb70adcbe26a5936f63330d018bba335baefe2d185648e21e51",
+        "size_in_bytes": 590328672,
+        "members": [
+          "php_7.2+ubuntu24.04_arm64.tar.xz",
+          "php_7.2+ubuntu24.04_arm64.tar.zst",
+          "php_7.2-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.2-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565072964,
+        "name": "php7.2-nts+ubuntu-26.04",
+        "digest": "sha256:97219eff667da0f2bcd1d828b5988de779c59cc776e6a6f2c1dfeb87f9f39dbd",
+        "size_in_bytes": 608429942,
+        "members": [
+          "php_7.2+ubuntu26.04.tar.xz",
+          "php_7.2+ubuntu26.04.tar.zst",
+          "php_7.2-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.2-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565047009,
+        "name": "php7.2-nts+ubuntu-26.04-arm",
+        "digest": "sha256:40c8409bd143f808da2b43f18486d688499069ae8fe4f2e583a8f6fe53a06fde",
+        "size_in_bytes": 593653125,
+        "members": [
+          "php_7.2+ubuntu26.04_arm64.tar.xz",
+          "php_7.2+ubuntu26.04_arm64.tar.zst",
+          "php_7.2-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.2-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565701596,
+        "name": "php7.2-zts+debian-12",
+        "digest": "sha256:704fd3c8a7e4f4ed817f8d33af4b6ffcf0cf39bebf4e3fd7052737af8389867b",
+        "size_in_bytes": 603447744,
+        "members": [
+          "php_7.2-zts+debian12.tar.xz",
+          "php_7.2-zts+debian12.tar.zst",
+          "php_7.2-zts-dbgsym+debian12.tar.xz",
+          "php_7.2-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564973364,
+        "name": "php7.2-zts+debian-trixie",
+        "digest": "sha256:4e87bfcf4214b028f11abc76164a4c50f6bcd42308c29523722c23ace57e03b1",
+        "size_in_bytes": 607803756,
+        "members": [
+          "php_7.2-zts+debian13.tar.xz",
+          "php_7.2-zts+debian13.tar.zst",
+          "php_7.2-zts-dbgsym+debian13.tar.xz",
+          "php_7.2-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565107746,
+        "name": "php7.2-zts+ubuntu-22.04",
+        "digest": "sha256:94f8b66c586a6e808b1df9af8b517b737ee6669edae1ca1f827d1fa1d8a57587",
+        "size_in_bytes": 616345432,
+        "members": [
+          "php_7.2-zts+ubuntu22.04.tar.xz",
+          "php_7.2-zts+ubuntu22.04.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564802901,
+        "name": "php7.2-zts+ubuntu-22.04-arm",
+        "digest": "sha256:a6a7fb3df266725f9bdc25659acf9057f468dcbd4889a847cb788754a778afff",
+        "size_in_bytes": 606860253,
+        "members": [
+          "php_7.2-zts+ubuntu22.04_arm64.tar.xz",
+          "php_7.2-zts+ubuntu22.04_arm64.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564508831,
+        "name": "php7.2-zts+ubuntu-24.04",
+        "digest": "sha256:3806daa6a96d01abb54afed3284d266c28eaf79cd88c3a324d5b762af77db6d8",
+        "size_in_bytes": 605682457,
+        "members": [
+          "php_7.2-zts+ubuntu24.04.tar.xz",
+          "php_7.2-zts+ubuntu24.04.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564799161,
+        "name": "php7.2-zts+ubuntu-24.04-arm",
+        "digest": "sha256:891d7ff09548e318f24dc1a15957884f676f0adfb668955a5cc6b920a4f0271a",
+        "size_in_bytes": 591508879,
+        "members": [
+          "php_7.2-zts+ubuntu24.04_arm64.tar.xz",
+          "php_7.2-zts+ubuntu24.04_arm64.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564896733,
+        "name": "php7.2-zts+ubuntu-26.04",
+        "digest": "sha256:d268805b2ed5dc53742081c440e2a08b91f2adc1a2e613dadd5c6c392e0dc671",
+        "size_in_bytes": 611335160,
+        "members": [
+          "php_7.2-zts+ubuntu26.04.tar.xz",
+          "php_7.2-zts+ubuntu26.04.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564767330,
+        "name": "php7.2-zts+ubuntu-26.04-arm",
+        "digest": "sha256:70b9faf2da5b26cbea84cab86dac2f383296d7b01d051f6016b4c0db5486bf1a",
+        "size_in_bytes": 594676051,
+        "members": [
+          "php_7.2-zts+ubuntu26.04_arm64.tar.xz",
+          "php_7.2-zts+ubuntu26.04_arm64.tar.zst",
+          "php_7.2-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.2-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "7.3": {
+    "php": "7.3",
+    "full_version": "7.3.33",
+    "run": 40094026528,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_7.3+debian12.tar.zst": "sha256:d5ef483e8f0beab81b4dda5299dc0b60a726702bfaee0213d99c7b11a2b1975e",
+      "php_7.3+ubuntu26.04_arm64.tar.zst": "sha256:a03cec62aee443306d535f6afc940492c6a5cf4380963fc27a8bd3171f348528",
+      "php_7.3+ubuntu22.04.tar.zst": "sha256:a4a0e4f287a7509540376cf9988713be95799d945d3b47a07a577d3baef1b3c4",
+      "php_7.3+ubuntu24.04_arm64.tar.zst": "sha256:09a49db9089dbd15cb09039ba01646ed863270e89a4c2b636e467086deed5276",
+      "php_7.3-zts+debian13.tar.zst": "sha256:f88200d998259c28fcee2f23e2276d1d927ce7a45a02be478c3b6358986e42db"
+    },
+    "artifacts": [
+      {
+        "id": 12565476944,
+        "name": "php7.3-nts+debian-12",
+        "digest": "sha256:57fb8f82e9a87c96ae5fe3a89e6e5e4d91a13cac3c4be9c013196ffe3ca1d17a",
+        "size_in_bytes": 608686934,
+        "members": [
+          "php_7.3+debian12.tar.xz",
+          "php_7.3+debian12.tar.zst",
+          "php_7.3-dbgsym+debian12.tar.xz",
+          "php_7.3-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564949332,
+        "name": "php7.3-nts+debian-trixie",
+        "digest": "sha256:bf161f7a0f20cb958c4cea295706549c3676e1c1e5ffebb9698b4682141f4439",
+        "size_in_bytes": 611456534,
+        "members": [
+          "php_7.3+debian13.tar.xz",
+          "php_7.3+debian13.tar.zst",
+          "php_7.3-dbgsym+debian13.tar.xz",
+          "php_7.3-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565063992,
+        "name": "php7.3-nts+ubuntu-22.04",
+        "digest": "sha256:4a9e57cbb97aa11491690c12b4469b7aa884e4bd23b8311b90314c05808cffa1",
+        "size_in_bytes": 619779994,
+        "members": [
+          "php_7.3+ubuntu22.04.tar.xz",
+          "php_7.3+ubuntu22.04.tar.zst",
+          "php_7.3-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.3-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565091766,
+        "name": "php7.3-nts+ubuntu-22.04-arm",
+        "digest": "sha256:54c03c59bd44b4d46b46dd78721045674bae47617a0b3439b9decbbd5ca3ded1",
+        "size_in_bytes": 610464976,
+        "members": [
+          "php_7.3+ubuntu22.04_arm64.tar.xz",
+          "php_7.3+ubuntu22.04_arm64.tar.zst",
+          "php_7.3-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.3-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565167502,
+        "name": "php7.3-nts+ubuntu-24.04",
+        "digest": "sha256:ff5fb9ddbc3021c33beab618e61fce465e309ad19cb257e6455d01185644fd1b",
+        "size_in_bytes": 610592620,
+        "members": [
+          "php_7.3+ubuntu24.04.tar.xz",
+          "php_7.3+ubuntu24.04.tar.zst",
+          "php_7.3-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.3-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565132666,
+        "name": "php7.3-nts+ubuntu-24.04-arm",
+        "digest": "sha256:954e92d40efa49b6cdc87c8abaf8c5947da398f9fd2665239fa0cc685ce5f4d3",
+        "size_in_bytes": 596659948,
+        "members": [
+          "php_7.3+ubuntu24.04_arm64.tar.xz",
+          "php_7.3+ubuntu24.04_arm64.tar.zst",
+          "php_7.3-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.3-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565157372,
+        "name": "php7.3-nts+ubuntu-26.04",
+        "digest": "sha256:30cfb57b615fabc9d6723b5e8e9ada3c9f0fc09fb29ce0f225e61ef79a5cb357",
+        "size_in_bytes": 615067994,
+        "members": [
+          "php_7.3+ubuntu26.04.tar.xz",
+          "php_7.3+ubuntu26.04.tar.zst",
+          "php_7.3-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.3-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565626188,
+        "name": "php7.3-nts+ubuntu-26.04-arm",
+        "digest": "sha256:3aa4a7a071f4e4dcba85258dc20bf0e02b4c1013be81a2a469a996a55f93e4a3",
+        "size_in_bytes": 596591880,
+        "members": [
+          "php_7.3+ubuntu26.04_arm64.tar.xz",
+          "php_7.3+ubuntu26.04_arm64.tar.zst",
+          "php_7.3-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.3-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565800955,
+        "name": "php7.3-zts+debian-12",
+        "digest": "sha256:3218feae4708d583190f3c4d56918f83bdf760d4bd17f0ad5b0556aeb1214f92",
+        "size_in_bytes": 608963748,
+        "members": [
+          "php_7.3-zts+debian12.tar.xz",
+          "php_7.3-zts+debian12.tar.zst",
+          "php_7.3-zts-dbgsym+debian12.tar.xz",
+          "php_7.3-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564843485,
+        "name": "php7.3-zts+debian-trixie",
+        "digest": "sha256:4a2c7ba5a64743bd759be80e12940e6ae3e812b642f4f4e6c87d77569c6370ab",
+        "size_in_bytes": 610585215,
+        "members": [
+          "php_7.3-zts+debian13.tar.xz",
+          "php_7.3-zts+debian13.tar.zst",
+          "php_7.3-zts-dbgsym+debian13.tar.xz",
+          "php_7.3-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564992627,
+        "name": "php7.3-zts+ubuntu-22.04",
+        "digest": "sha256:4de737b95b1cbe6687ab5097b6bcf359a7c1d5c0ff5e101bb3e6bee7749a0183",
+        "size_in_bytes": 621064146,
+        "members": [
+          "php_7.3-zts+ubuntu22.04.tar.xz",
+          "php_7.3-zts+ubuntu22.04.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564508979,
+        "name": "php7.3-zts+ubuntu-22.04-arm",
+        "digest": "sha256:078b93b9bcb305d6c944e763a0ab86fc9194f7f4197300c554296b3f012f98c2",
+        "size_in_bytes": 611226203,
+        "members": [
+          "php_7.3-zts+ubuntu22.04_arm64.tar.xz",
+          "php_7.3-zts+ubuntu22.04_arm64.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565331861,
+        "name": "php7.3-zts+ubuntu-24.04",
+        "digest": "sha256:8a784204b4541c89c4287666f76d287b2bbaa0909211a1858e1ca5ce957122f8",
+        "size_in_bytes": 610718131,
+        "members": [
+          "php_7.3-zts+ubuntu24.04.tar.xz",
+          "php_7.3-zts+ubuntu24.04.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565416878,
+        "name": "php7.3-zts+ubuntu-24.04-arm",
+        "digest": "sha256:bfd89841a07f1495ac565e96e6dd0b1e50b3bff7eefb506c7b4fe4ec2aae2a6c",
+        "size_in_bytes": 597242750,
+        "members": [
+          "php_7.3-zts+ubuntu24.04_arm64.tar.xz",
+          "php_7.3-zts+ubuntu24.04_arm64.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565313219,
+        "name": "php7.3-zts+ubuntu-26.04",
+        "digest": "sha256:b55b0d92bafe021f6cb0648fc47014842ac9d5b56cd72a32e48d55ad4f2f8694",
+        "size_in_bytes": 613944956,
+        "members": [
+          "php_7.3-zts+ubuntu26.04.tar.xz",
+          "php_7.3-zts+ubuntu26.04.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565615513,
+        "name": "php7.3-zts+ubuntu-26.04-arm",
+        "digest": "sha256:cf595f3c166136c4a5c14cedbc2cb75c43172702242db472dfaa0289a20dfeb0",
+        "size_in_bytes": 599255166,
+        "members": [
+          "php_7.3-zts+ubuntu26.04_arm64.tar.xz",
+          "php_7.3-zts+ubuntu26.04_arm64.tar.zst",
+          "php_7.3-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.3-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "7.4": {
+    "php": "7.4",
+    "full_version": "7.4.33",
+    "run": 40094028063,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_7.4+ubuntu24.04_arm64.tar.zst": "sha256:59e92f082f0da98e3a861c756ed30401f6b813fa5bf8f9de5851b0c451007157",
+      "php_7.4+ubuntu22.04.tar.zst": "sha256:313594507b8212d6ba42ce0d42e452db6eaf9b794021c6336f59a6a9c27d8ca0",
+      "php_7.4-zts+debian13.tar.zst": "sha256:25eb1acaedb625b98bd1a5725475dc7e89449371c7c1fb367d4a6440b61f7650",
+      "php_7.4+debian12.tar.zst": "sha256:372ae7210ab97d5688cd4e12cc51861bb5e57f648f7ce37621020ac5c267f5b2",
+      "php_7.4+ubuntu26.04_arm64.tar.zst": "sha256:46450dffd9a22ca7b9c9001a36b61bfdd4285f76dd7d4e163714e8f1821f378e"
+    },
+    "artifacts": [
+      {
+        "id": 12565239311,
+        "name": "php7.4-nts+debian-12",
+        "digest": "sha256:7b5840b34e4767be9294f68d0cbb20fbdfbfbc3a9b34240a330618ccb3dd2795",
+        "size_in_bytes": 635947704,
+        "members": [
+          "php_7.4+debian12.tar.xz",
+          "php_7.4+debian12.tar.zst",
+          "php_7.4-dbgsym+debian12.tar.xz",
+          "php_7.4-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565825908,
+        "name": "php7.4-nts+debian-trixie",
+        "digest": "sha256:09900eb9b4fc5f12160af55f3664b9f096d30846163886d1eae1e879c77cb274",
+        "size_in_bytes": 638881492,
+        "members": [
+          "php_7.4+debian13.tar.xz",
+          "php_7.4+debian13.tar.zst",
+          "php_7.4-dbgsym+debian13.tar.xz",
+          "php_7.4-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565268791,
+        "name": "php7.4-nts+ubuntu-22.04",
+        "digest": "sha256:d1083f49696d13e57207745cfaa380b426e9185fb6bf2c038eb7bd3319d3024c",
+        "size_in_bytes": 649366083,
+        "members": [
+          "php_7.4+ubuntu22.04.tar.xz",
+          "php_7.4+ubuntu22.04.tar.zst",
+          "php_7.4-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.4-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565701757,
+        "name": "php7.4-nts+ubuntu-22.04-arm",
+        "digest": "sha256:9bf7ebd928259ef1d342a867910d443da4e9d1f31984a1f94b5a4b94139a322a",
+        "size_in_bytes": 636985127,
+        "members": [
+          "php_7.4+ubuntu22.04_arm64.tar.xz",
+          "php_7.4+ubuntu22.04_arm64.tar.zst",
+          "php_7.4-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.4-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565746597,
+        "name": "php7.4-nts+ubuntu-24.04",
+        "digest": "sha256:ec899684517ad44d5bdf51c9764d4736554c1824a6ba7f9f76a6f51489bf2c5c",
+        "size_in_bytes": 638239573,
+        "members": [
+          "php_7.4+ubuntu24.04.tar.xz",
+          "php_7.4+ubuntu24.04.tar.zst",
+          "php_7.4-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.4-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565860245,
+        "name": "php7.4-nts+ubuntu-24.04-arm",
+        "digest": "sha256:f43024f1374ca060457e2245f52c8672366a26c4c05f35b95946576588caf073",
+        "size_in_bytes": 624487146,
+        "members": [
+          "php_7.4+ubuntu24.04_arm64.tar.xz",
+          "php_7.4+ubuntu24.04_arm64.tar.zst",
+          "php_7.4-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.4-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564634446,
+        "name": "php7.4-nts+ubuntu-26.04",
+        "digest": "sha256:563e5749b155267fdb9d9edc3f6371bb4e591b3aa7421d04ef24abae3328707f",
+        "size_in_bytes": 640658689,
+        "members": [
+          "php_7.4+ubuntu26.04.tar.xz",
+          "php_7.4+ubuntu26.04.tar.zst",
+          "php_7.4-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.4-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564823499,
+        "name": "php7.4-nts+ubuntu-26.04-arm",
+        "digest": "sha256:59cd983599d7e99ca9735f6ebddeec638197894763db74c0668f23e8d6d2f0d1",
+        "size_in_bytes": 625530885,
+        "members": [
+          "php_7.4+ubuntu26.04_arm64.tar.xz",
+          "php_7.4+ubuntu26.04_arm64.tar.zst",
+          "php_7.4-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.4-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565361819,
+        "name": "php7.4-zts+debian-12",
+        "digest": "sha256:fcf7b31d13c86bcbd93f0e630794a7c25f14a0e87f4b89cee91daa8b413acb98",
+        "size_in_bytes": 635866977,
+        "members": [
+          "php_7.4-zts+debian12.tar.xz",
+          "php_7.4-zts+debian12.tar.zst",
+          "php_7.4-zts-dbgsym+debian12.tar.xz",
+          "php_7.4-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565582994,
+        "name": "php7.4-zts+debian-trixie",
+        "digest": "sha256:e49457312ace8d16cd66b5000f4bcabd26cf94ccd42150599f8628a1aa30230d",
+        "size_in_bytes": 639700491,
+        "members": [
+          "php_7.4-zts+debian13.tar.xz",
+          "php_7.4-zts+debian13.tar.zst",
+          "php_7.4-zts-dbgsym+debian13.tar.xz",
+          "php_7.4-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565402643,
+        "name": "php7.4-zts+ubuntu-22.04",
+        "digest": "sha256:8d49cb398ea6acaeb3711fea0677b18748528679c69b3ff0385f8e9ba332a3c6",
+        "size_in_bytes": 648817144,
+        "members": [
+          "php_7.4-zts+ubuntu22.04.tar.xz",
+          "php_7.4-zts+ubuntu22.04.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565715933,
+        "name": "php7.4-zts+ubuntu-22.04-arm",
+        "digest": "sha256:f65b1870d18f9eb78c3e2503ac8e034b8f71afe3a450075028a5eefe48451cdd",
+        "size_in_bytes": 639244690,
+        "members": [
+          "php_7.4-zts+ubuntu22.04_arm64.tar.xz",
+          "php_7.4-zts+ubuntu22.04_arm64.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565846240,
+        "name": "php7.4-zts+ubuntu-24.04",
+        "digest": "sha256:204e9056fb28eec41dcf62175a13e1b65755fca2d2c29d4f5d8b983cc8d58eeb",
+        "size_in_bytes": 637529915,
+        "members": [
+          "php_7.4-zts+ubuntu24.04.tar.xz",
+          "php_7.4-zts+ubuntu24.04.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565293527,
+        "name": "php7.4-zts+ubuntu-24.04-arm",
+        "digest": "sha256:48bdeca3a2048f4502c5cdf0eb42141450bb9b68db752f3244a0c58f95148318",
+        "size_in_bytes": 623894549,
+        "members": [
+          "php_7.4-zts+ubuntu24.04_arm64.tar.xz",
+          "php_7.4-zts+ubuntu24.04_arm64.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564718881,
+        "name": "php7.4-zts+ubuntu-26.04",
+        "digest": "sha256:7b9bfd676db70457d7d44d4b268909796654ed576aaba8147177619272d43771",
+        "size_in_bytes": 644182553,
+        "members": [
+          "php_7.4-zts+ubuntu26.04.tar.xz",
+          "php_7.4-zts+ubuntu26.04.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564959026,
+        "name": "php7.4-zts+ubuntu-26.04-arm",
+        "digest": "sha256:ab7f06565c8f1f02c12afe562b213f8773ba2b0398a3fa4eb295ad996df813a8",
+        "size_in_bytes": 626325398,
+        "members": [
+          "php_7.4-zts+ubuntu26.04_arm64.tar.xz",
+          "php_7.4-zts+ubuntu26.04_arm64.tar.zst",
+          "php_7.4-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_7.4-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.0": {
+    "php": "8.0",
+    "full_version": "8.0.30",
+    "run": 40094029413,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.0+ubuntu22.04.tar.zst": "sha256:980628b185d9a2c6f5c216763af8d01a691c75647425ba5cbe940e5817a3518f",
+      "php_8.0+debian12.tar.zst": "sha256:4387762cf00b0d0ccac407c2d2801a1e6856dbd94afb2319da4dca6b67299e1a",
+      "php_8.0+ubuntu26.04_arm64.tar.zst": "sha256:61a1c18d28f97045cc6ba412ba153fd6a05be919fde1a2cbcb2ba2ee3f052825",
+      "php_8.0-zts+debian13.tar.zst": "sha256:4a989f104b47ad05a970f27985a14cedbe6f622b5de508119ed4adcea15366c8",
+      "php_8.0+ubuntu24.04_arm64.tar.zst": "sha256:210569c3e87d265b7c275e6242c7af48e82c605133ada037d7273e283dc2135c"
+    },
+    "artifacts": [
+      {
+        "id": 12565607158,
+        "name": "php8.0-nts+debian-12",
+        "digest": "sha256:7c3d33e7e4bcb1fa5ef5e9f93930dc6f16b1953dd588bc91ffb3415650138e17",
+        "size_in_bytes": 621176803,
+        "members": [
+          "php_8.0+debian12.tar.xz",
+          "php_8.0+debian12.tar.zst",
+          "php_8.0-dbgsym+debian12.tar.xz",
+          "php_8.0-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565184496,
+        "name": "php8.0-nts+debian-trixie",
+        "digest": "sha256:dffa4376e4b0117bdf5b4db6be793565f3e09b56279be1005c9bb76b0fb8beea",
+        "size_in_bytes": 626801213,
+        "members": [
+          "php_8.0+debian13.tar.xz",
+          "php_8.0+debian13.tar.zst",
+          "php_8.0-dbgsym+debian13.tar.xz",
+          "php_8.0-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565593370,
+        "name": "php8.0-nts+ubuntu-22.04",
+        "digest": "sha256:c55d6cc8d7e0446ba09b745e2613e223ecbb4f6316db538bac74b8254a35127a",
+        "size_in_bytes": 633527278,
+        "members": [
+          "php_8.0+ubuntu22.04.tar.xz",
+          "php_8.0+ubuntu22.04.tar.zst",
+          "php_8.0-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.0-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565084091,
+        "name": "php8.0-nts+ubuntu-22.04-arm",
+        "digest": "sha256:a0618b7c4db72d40787fe375762a25fc158c75ae61eae71f911244b2fc8c2f22",
+        "size_in_bytes": 622440254,
+        "members": [
+          "php_8.0+ubuntu22.04_arm64.tar.xz",
+          "php_8.0+ubuntu22.04_arm64.tar.zst",
+          "php_8.0-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.0-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565483821,
+        "name": "php8.0-nts+ubuntu-24.04",
+        "digest": "sha256:6b4826842f8a874dd543aaf7e7fc76547951d96a9eb27c730efe6c32ad74c6dd",
+        "size_in_bytes": 625745759,
+        "members": [
+          "php_8.0+ubuntu24.04.tar.xz",
+          "php_8.0+ubuntu24.04.tar.zst",
+          "php_8.0-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.0-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565149162,
+        "name": "php8.0-nts+ubuntu-24.04-arm",
+        "digest": "sha256:b376752327b7f1ba80adfde442c097769cd7d94a9f8f52650d5dee6dc6014985",
+        "size_in_bytes": 611167255,
+        "members": [
+          "php_8.0+ubuntu24.04_arm64.tar.xz",
+          "php_8.0+ubuntu24.04_arm64.tar.zst",
+          "php_8.0-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.0-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565566159,
+        "name": "php8.0-nts+ubuntu-26.04",
+        "digest": "sha256:cee345812dd9c328dd0f5b590bd1d6b005f6a1e20507b59ca4406e12b9382861",
+        "size_in_bytes": 631420093,
+        "members": [
+          "php_8.0+ubuntu26.04.tar.xz",
+          "php_8.0+ubuntu26.04.tar.zst",
+          "php_8.0-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.0-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565049050,
+        "name": "php8.0-nts+ubuntu-26.04-arm",
+        "digest": "sha256:aded6ea51804fac9c741d529ee36e6efaa6102baf5a2733a3b2b4cf710955d0b",
+        "size_in_bytes": 611335819,
+        "members": [
+          "php_8.0+ubuntu26.04_arm64.tar.xz",
+          "php_8.0+ubuntu26.04_arm64.tar.zst",
+          "php_8.0-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.0-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565702254,
+        "name": "php8.0-zts+debian-12",
+        "digest": "sha256:06fcc44475f93540dc50e3f87d5f9a67e7f6f2c459f66a6f79141cfab73b80a1",
+        "size_in_bytes": 624059835,
+        "members": [
+          "php_8.0-zts+debian12.tar.xz",
+          "php_8.0-zts+debian12.tar.zst",
+          "php_8.0-zts-dbgsym+debian12.tar.xz",
+          "php_8.0-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565741631,
+        "name": "php8.0-zts+debian-trixie",
+        "digest": "sha256:88dc6558c3347232d352a4daaad6971f784d97ae013862013a46ec3327103c9a",
+        "size_in_bytes": 625730530,
+        "members": [
+          "php_8.0-zts+debian13.tar.xz",
+          "php_8.0-zts+debian13.tar.zst",
+          "php_8.0-zts-dbgsym+debian13.tar.xz",
+          "php_8.0-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565777180,
+        "name": "php8.0-zts+ubuntu-22.04",
+        "digest": "sha256:efa024bb8d14592f39473dd1d7f6aab5d3fa1ae4d690d3c9b32da3c52ac9aa17",
+        "size_in_bytes": 636173888,
+        "members": [
+          "php_8.0-zts+ubuntu22.04.tar.xz",
+          "php_8.0-zts+ubuntu22.04.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565313391,
+        "name": "php8.0-zts+ubuntu-22.04-arm",
+        "digest": "sha256:30a5f26e6b91998aec37851e637a781c56fc0d07087c7a2ec883f3abe1d2c9a6",
+        "size_in_bytes": 623217041,
+        "members": [
+          "php_8.0-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.0-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565698125,
+        "name": "php8.0-zts+ubuntu-24.04",
+        "digest": "sha256:7d4c0270cd812588c758da7ab7b9b2c45614663473f53f7f86001b93b720bfb9",
+        "size_in_bytes": 624617886,
+        "members": [
+          "php_8.0-zts+ubuntu24.04.tar.xz",
+          "php_8.0-zts+ubuntu24.04.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565776722,
+        "name": "php8.0-zts+ubuntu-24.04-arm",
+        "digest": "sha256:7f811508a1e39fe662c9d687b705848360e886174614f3485948800cc47d1210",
+        "size_in_bytes": 610672913,
+        "members": [
+          "php_8.0-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.0-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565172793,
+        "name": "php8.0-zts+ubuntu-26.04",
+        "digest": "sha256:300a8595c0a39285d38f7454758d340f720caff5a45206a3878aac757731d059",
+        "size_in_bytes": 632310545,
+        "members": [
+          "php_8.0-zts+ubuntu26.04.tar.xz",
+          "php_8.0-zts+ubuntu26.04.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12566045055,
+        "name": "php8.0-zts+ubuntu-26.04-arm",
+        "digest": "sha256:122de34f3cf628f3bc7e626e76532037e2c25972600d53ba51f1c0e86e0f275e",
+        "size_in_bytes": 612626960,
+        "members": [
+          "php_8.0-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.0-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.0-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.1": {
+    "php": "8.1",
+    "full_version": "8.1.34",
+    "run": 40094030844,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.1+ubuntu22.04.tar.zst": "sha256:a54f7a8e1dccfc6a56fa4f03b6c0c1093965e8a1409de56f1d8d440ea64a6835",
+      "php_8.1+ubuntu24.04_arm64.tar.zst": "sha256:f9355a5a3777662de96cd5c317a80bf1ceb505f936e3f8d95f1d40172d0390cb",
+      "php_8.1+debian12.tar.zst": "sha256:b43e5ed2df89dfe0385b0524a80205dbfdf2b6df7b02ddd50ad9306ed6447d42",
+      "php_8.1+ubuntu26.04_arm64.tar.zst": "sha256:ed29335ab718b4568b6f3a870283000173655ffc14dc3d226bc0cd40cf03e0a5",
+      "php_8.1-zts+debian13.tar.zst": "sha256:9c77996d87c56df951ebf2613cc17dd83f130fa90651c7a316b63137bd4ffb36"
+    },
+    "artifacts": [
+      {
+        "id": 12565588829,
+        "name": "php8.1-nts+debian-12",
+        "digest": "sha256:b83e7025b05f42c45a5d94988f9baf7d246354701a1b44a2e60e99d3b74feba6",
+        "size_in_bytes": 660933364,
+        "members": [
+          "php_8.1+debian12.tar.xz",
+          "php_8.1+debian12.tar.zst",
+          "php_8.1-dbgsym+debian12.tar.xz",
+          "php_8.1-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565119570,
+        "name": "php8.1-nts+debian-trixie",
+        "digest": "sha256:aa5116e5e08626c8ac7937dc304104e4c6ab4cdb6d4bc12406236c66c67dc944",
+        "size_in_bytes": 665107936,
+        "members": [
+          "php_8.1+debian13.tar.xz",
+          "php_8.1+debian13.tar.zst",
+          "php_8.1-dbgsym+debian13.tar.xz",
+          "php_8.1-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12565308901,
+        "name": "php8.1-nts+ubuntu-22.04",
+        "digest": "sha256:283f36aa74084227f17a4bb8c3e0627965dd406a67f4a89cdf949d1bbd28fbbe",
+        "size_in_bytes": 673010202,
+        "members": [
+          "php_8.1+ubuntu22.04.tar.xz",
+          "php_8.1+ubuntu22.04.tar.zst",
+          "php_8.1-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.1-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565188332,
+        "name": "php8.1-nts+ubuntu-22.04-arm",
+        "digest": "sha256:a8516948d258cad51b7f852cd1f9e2af0428403465055379d2520036af7b913d",
+        "size_in_bytes": 660359615,
+        "members": [
+          "php_8.1+ubuntu22.04_arm64.tar.xz",
+          "php_8.1+ubuntu22.04_arm64.tar.zst",
+          "php_8.1-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.1-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565333193,
+        "name": "php8.1-nts+ubuntu-24.04",
+        "digest": "sha256:f6558ab5a8cd57c5b9f0ff60bc6abcf2f8325c881315f9fda6a794ebed5f5899",
+        "size_in_bytes": 664058154,
+        "members": [
+          "php_8.1+ubuntu24.04.tar.xz",
+          "php_8.1+ubuntu24.04.tar.zst",
+          "php_8.1-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.1-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12566041407,
+        "name": "php8.1-nts+ubuntu-24.04-arm",
+        "digest": "sha256:06190153850421115765f78d79bfe522ee89a8500a8e47f1d7cfc40f9b78519d",
+        "size_in_bytes": 648394911,
+        "members": [
+          "php_8.1+ubuntu24.04_arm64.tar.xz",
+          "php_8.1+ubuntu24.04_arm64.tar.zst",
+          "php_8.1-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.1-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565995684,
+        "name": "php8.1-nts+ubuntu-26.04",
+        "digest": "sha256:1acd4ed251bbef061c32ffea8bcb809d15d1c99e17949e128ea671980cba32b6",
+        "size_in_bytes": 668198090,
+        "members": [
+          "php_8.1+ubuntu26.04.tar.xz",
+          "php_8.1+ubuntu26.04.tar.zst",
+          "php_8.1-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.1-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565638331,
+        "name": "php8.1-nts+ubuntu-26.04-arm",
+        "digest": "sha256:8490221425b4cfb08167b8af87d884cb26be2eb49b072e6f10bd0303560d277f",
+        "size_in_bytes": 646467263,
+        "members": [
+          "php_8.1+ubuntu26.04_arm64.tar.xz",
+          "php_8.1+ubuntu26.04_arm64.tar.zst",
+          "php_8.1-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.1-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565812509,
+        "name": "php8.1-zts+debian-12",
+        "digest": "sha256:f673e176ce19b5f3b879716248db0d75e1ce636bfb2cc95ad00508f95119ac12",
+        "size_in_bytes": 661109265,
+        "members": [
+          "php_8.1-zts+debian12.tar.xz",
+          "php_8.1-zts+debian12.tar.zst",
+          "php_8.1-zts-dbgsym+debian12.tar.xz",
+          "php_8.1-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12565823523,
+        "name": "php8.1-zts+debian-trixie",
+        "digest": "sha256:4a77194104b3d75e660f4f36e43d9039939f6c2baa7740ba46d6e26cec2edfa4",
+        "size_in_bytes": 667694132,
+        "members": [
+          "php_8.1-zts+debian13.tar.xz",
+          "php_8.1-zts+debian13.tar.zst",
+          "php_8.1-zts-dbgsym+debian13.tar.xz",
+          "php_8.1-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12566245347,
+        "name": "php8.1-zts+ubuntu-22.04",
+        "digest": "sha256:e69777486beb1c38ebe662edae4e7c0823590a09a4b85a86b6f070848b41c906",
+        "size_in_bytes": 674560923,
+        "members": [
+          "php_8.1-zts+ubuntu22.04.tar.xz",
+          "php_8.1-zts+ubuntu22.04.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565359784,
+        "name": "php8.1-zts+ubuntu-22.04-arm",
+        "digest": "sha256:d6c93401c18bbb13904cda5bcbf4fbc7728354d01ad16ddfe4b3e8c59d577c4c",
+        "size_in_bytes": 659464598,
+        "members": [
+          "php_8.1-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.1-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565966658,
+        "name": "php8.1-zts+ubuntu-24.04",
+        "digest": "sha256:eacd7675836bc2605164fb14c39a9c305ca308de01b32b5fbf39b9162c32ff33",
+        "size_in_bytes": 664371719,
+        "members": [
+          "php_8.1-zts+ubuntu24.04.tar.xz",
+          "php_8.1-zts+ubuntu24.04.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565847327,
+        "name": "php8.1-zts+ubuntu-24.04-arm",
+        "digest": "sha256:3fe635bf35c50a609310d7fd887dee46858c1fce0a20b56251605629e2da0fc3",
+        "size_in_bytes": 649458315,
+        "members": [
+          "php_8.1-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.1-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12565617657,
+        "name": "php8.1-zts+ubuntu-26.04",
+        "digest": "sha256:77866da2eb440279f554846970319d0aa5f073fc23d7ffb5692c977c0ca025c9",
+        "size_in_bytes": 670123984,
+        "members": [
+          "php_8.1-zts+ubuntu26.04.tar.xz",
+          "php_8.1-zts+ubuntu26.04.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565492292,
+        "name": "php8.1-zts+ubuntu-26.04-arm",
+        "digest": "sha256:7997d305463b45c842a26f13edb51b075357758b17aae33ffdf27406a60df17b",
+        "size_in_bytes": 648324172,
+        "members": [
+          "php_8.1-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.1-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.1-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.1-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.2": {
+    "php": "8.2",
+    "full_version": "8.2.35",
+    "run": 40086372847,
+    "head": "1ad5ec57711de775120e0ec847c64c56acb93af2",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.2+ubuntu24.04_arm64.tar.zst": "sha256:0827348cc4728c25fa2d90b52509818040c4b42f9cad33ca9692495ae0902278",
+      "php_8.2+ubuntu22.04.tar.zst": "sha256:371c16e68ebeeecb1710210bd26897a2aa24f870580bad9ac2631739086cfc43",
+      "php_8.2+ubuntu26.04_arm64.tar.zst": "sha256:9812cb93fec942e07c30a66a827aee982766352e4a3d7328a5d0e786eb7bb9e2",
+      "php_8.2+debian12.tar.zst": "sha256:248dd73d37b9543cd1a0d3d5e4cd3a96b4875efb277428d98a4c05ebf51e4d30",
+      "php_8.2-zts+debian13.tar.zst": "sha256:94b1af6b408524849b6ef7aeb25746626f5e6a2dc4550441d14f56fb7b7b66d7"
+    },
+    "artifacts": [
+      {
+        "id": 12561851936,
+        "name": "php8.2-nts+debian-12",
+        "digest": "sha256:94bc822a11d20c73d91aebc76620af7bcdacf9d1adfc1e32893ee435b7ee1a7b",
+        "size_in_bytes": 675247811,
+        "members": [
+          "php_8.2+debian12.tar.xz",
+          "php_8.2+debian12.tar.zst",
+          "php_8.2-dbgsym+debian12.tar.xz",
+          "php_8.2-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12562075799,
+        "name": "php8.2-nts+debian-trixie",
+        "digest": "sha256:19aaa76a81d4113ed050ba52289f5d75e986fc185763e5897faca158070466cf",
+        "size_in_bytes": 679444699,
+        "members": [
+          "php_8.2+debian13.tar.xz",
+          "php_8.2+debian13.tar.zst",
+          "php_8.2-dbgsym+debian13.tar.xz",
+          "php_8.2-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12560714122,
+        "name": "php8.2-nts+ubuntu-22.04",
+        "digest": "sha256:986caabf850a62aec1cb72e0604b1b7eb59dd589e8b2b0633345ecae9250f61e",
+        "size_in_bytes": 686002526,
+        "members": [
+          "php_8.2+ubuntu22.04.tar.xz",
+          "php_8.2+ubuntu22.04.tar.zst",
+          "php_8.2-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.2-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561478294,
+        "name": "php8.2-nts+ubuntu-22.04-arm",
+        "digest": "sha256:381d57ed873087a86919512d39d42ba69880d6039e70caaa8afb74bd76affce2",
+        "size_in_bytes": 674270264,
+        "members": [
+          "php_8.2+ubuntu22.04_arm64.tar.xz",
+          "php_8.2+ubuntu22.04_arm64.tar.zst",
+          "php_8.2-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.2-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561339681,
+        "name": "php8.2-nts+ubuntu-24.04",
+        "digest": "sha256:e131671abc844baee6a95887056831d2929497a8b5fb10f072f712488005b166",
+        "size_in_bytes": 674527202,
+        "members": [
+          "php_8.2+ubuntu24.04.tar.xz",
+          "php_8.2+ubuntu24.04.tar.zst",
+          "php_8.2-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.2-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561109944,
+        "name": "php8.2-nts+ubuntu-24.04-arm",
+        "digest": "sha256:dbef4a8f420f8d5bed4e461ab086d7aab4b37a02b38e9f22496b8615c44b9f17",
+        "size_in_bytes": 660418165,
+        "members": [
+          "php_8.2+ubuntu24.04_arm64.tar.xz",
+          "php_8.2+ubuntu24.04_arm64.tar.zst",
+          "php_8.2-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.2-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561631157,
+        "name": "php8.2-nts+ubuntu-26.04",
+        "digest": "sha256:4ec84fdb801b577b2691a315aaa70e9a1cc21be3525d3c287d62b33ebfb44676",
+        "size_in_bytes": 680014966,
+        "members": [
+          "php_8.2+ubuntu26.04.tar.xz",
+          "php_8.2+ubuntu26.04.tar.zst",
+          "php_8.2-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.2-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561358510,
+        "name": "php8.2-nts+ubuntu-26.04-arm",
+        "digest": "sha256:71ec6108acf6266fe081bb4b30867ce89a75aa6f92dd2726862e21997bee7b62",
+        "size_in_bytes": 662019631,
+        "members": [
+          "php_8.2+ubuntu26.04_arm64.tar.xz",
+          "php_8.2+ubuntu26.04_arm64.tar.zst",
+          "php_8.2-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.2-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561776146,
+        "name": "php8.2-zts+debian-12",
+        "digest": "sha256:6526ef89b6eeba5d62a5189a563fa3b87712576f24270354a8aa9e795eb15515",
+        "size_in_bytes": 674532038,
+        "members": [
+          "php_8.2-zts+debian12.tar.xz",
+          "php_8.2-zts+debian12.tar.zst",
+          "php_8.2-zts-dbgsym+debian12.tar.xz",
+          "php_8.2-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12561254359,
+        "name": "php8.2-zts+debian-trixie",
+        "digest": "sha256:858da0f7f11a52d704da8786dfae14cc57cbee39fd7bc321503adfa0893b03f5",
+        "size_in_bytes": 679962699,
+        "members": [
+          "php_8.2-zts+debian13.tar.xz",
+          "php_8.2-zts+debian13.tar.zst",
+          "php_8.2-zts-dbgsym+debian13.tar.xz",
+          "php_8.2-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12561532531,
+        "name": "php8.2-zts+ubuntu-22.04",
+        "digest": "sha256:e57667456422569e902e8b27ef453f3215a5e3de0f1580d91d60d6c880f5e8c8",
+        "size_in_bytes": 686045969,
+        "members": [
+          "php_8.2-zts+ubuntu22.04.tar.xz",
+          "php_8.2-zts+ubuntu22.04.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561710901,
+        "name": "php8.2-zts+ubuntu-22.04-arm",
+        "digest": "sha256:0cd6bd2ef8257464dd4b19c18f1e2b697bd11c1d35396160f5a2e1aa9a6cb9d9",
+        "size_in_bytes": 674966738,
+        "members": [
+          "php_8.2-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.2-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561971586,
+        "name": "php8.2-zts+ubuntu-24.04",
+        "digest": "sha256:2bf10a126eb5750c6b348c08e9ffab59f2c3f6b1fc21e64d8de4484293389ddc",
+        "size_in_bytes": 679042063,
+        "members": [
+          "php_8.2-zts+ubuntu24.04.tar.xz",
+          "php_8.2-zts+ubuntu24.04.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12560714292,
+        "name": "php8.2-zts+ubuntu-24.04-arm",
+        "digest": "sha256:df72490717adaff71a959d62005616d00f7b1833672f690f6c120aef25620b38",
+        "size_in_bytes": 662661314,
+        "members": [
+          "php_8.2-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.2-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561478259,
+        "name": "php8.2-zts+ubuntu-26.04",
+        "digest": "sha256:e7bff3c983025d6b51c5187082a20e6997251b105cf85c3cb1d17832ca4634c7",
+        "size_in_bytes": 684894351,
+        "members": [
+          "php_8.2-zts+ubuntu26.04.tar.xz",
+          "php_8.2-zts+ubuntu26.04.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561675777,
+        "name": "php8.2-zts+ubuntu-26.04-arm",
+        "digest": "sha256:884a1f681ec22eedc5a4d720b80b710351cedd6dbbf94784d6d01e5c5f8ac306",
+        "size_in_bytes": 665055336,
+        "members": [
+          "php_8.2-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.2-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.2-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.2-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.3": {
+    "php": "8.3",
+    "full_version": "8.3.36",
+    "run": 40086373944,
+    "head": "1ad5ec57711de775120e0ec847c64c56acb93af2",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.3-zts+debian12.tar.zst": "sha256:fc9db28e57b126c60f448b38a6071aa8a970e7c71769e48424003b7b0c3a1591",
+      "php_8.3+ubuntu26.04_arm64.tar.zst": "sha256:57e9d0c39edb040e3e6486368d1bb62e19db5fa28255ecbfaf4f85e6250c9cba",
+      "php_8.3-zts+debian13.tar.zst": "sha256:ce0b41471f27e30ffb9f89729962b7a162ef956424c441cfd046fbbbec5be8c5",
+      "php_8.3+ubuntu24.04_arm64.tar.zst": "sha256:b336113376cae0f99281dfa56850985092c03e2cee8051b069101f92549f587d",
+      "php_8.3-zts+ubuntu22.04.tar.zst": "sha256:db5bc866fc69de772f6922eb6f526b6530ad5ef918c637806e88201935c026de"
+    },
+    "artifacts": [
+      {
+        "id": 12563025515,
+        "name": "php8.3-nts+debian-12",
+        "digest": "sha256:6a88c3184bb5b1418e133acc62797000a575c22fb634102f228899b01b2c34cd",
+        "size_in_bytes": 678566776,
+        "members": [
+          "php_8.3+debian12.tar.xz",
+          "php_8.3+debian12.tar.zst",
+          "php_8.3-dbgsym+debian12.tar.xz",
+          "php_8.3-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12562221761,
+        "name": "php8.3-nts+debian-trixie",
+        "digest": "sha256:fe09c9d6677a3e8b2668985c90fa587f7ae0d599fc0c1f6d2c0bf9433fc2fba9",
+        "size_in_bytes": 683869717,
+        "members": [
+          "php_8.3+debian13.tar.xz",
+          "php_8.3+debian13.tar.zst",
+          "php_8.3-dbgsym+debian13.tar.xz",
+          "php_8.3-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562720517,
+        "name": "php8.3-nts+ubuntu-22.04",
+        "digest": "sha256:b05f58115a535e05a035314ecb5317fd85836dfd18a9dd89c95b42c2fa9e15b5",
+        "size_in_bytes": 687826583,
+        "members": [
+          "php_8.3+ubuntu22.04.tar.xz",
+          "php_8.3+ubuntu22.04.tar.zst",
+          "php_8.3-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.3-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562700088,
+        "name": "php8.3-nts+ubuntu-22.04-arm",
+        "digest": "sha256:df0da968aedacc524fc14ac0365e4fa8ed6e2127ad38dc9f0cbbfe573d7e8879",
+        "size_in_bytes": 677180821,
+        "members": [
+          "php_8.3+ubuntu22.04_arm64.tar.xz",
+          "php_8.3+ubuntu22.04_arm64.tar.zst",
+          "php_8.3-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.3-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561857623,
+        "name": "php8.3-nts+ubuntu-24.04",
+        "digest": "sha256:267dccb7776e83998cd2317ff8ed7f00589f0dfc5ccc7c4dea4f22c6a9bef1e1",
+        "size_in_bytes": 680440402,
+        "members": [
+          "php_8.3+ubuntu24.04.tar.xz",
+          "php_8.3+ubuntu24.04.tar.zst",
+          "php_8.3-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.3-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561814381,
+        "name": "php8.3-nts+ubuntu-24.04-arm",
+        "digest": "sha256:551a3d2d1ea4f28a7a57fb6ad86b7808b8d0c8345359ec812d7071e6870ec609",
+        "size_in_bytes": 664800998,
+        "members": [
+          "php_8.3+ubuntu24.04_arm64.tar.xz",
+          "php_8.3+ubuntu24.04_arm64.tar.zst",
+          "php_8.3-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.3-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562267699,
+        "name": "php8.3-nts+ubuntu-26.04",
+        "digest": "sha256:bc23a27906a50f2d2619d0b2b596fd0b0f882830d6c7c89d58ea666d3b1b0bd9",
+        "size_in_bytes": 684372791,
+        "members": [
+          "php_8.3+ubuntu26.04.tar.xz",
+          "php_8.3+ubuntu26.04.tar.zst",
+          "php_8.3-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.3-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561762531,
+        "name": "php8.3-nts+ubuntu-26.04-arm",
+        "digest": "sha256:de49041b46b694567edd66fc28430293844a357bbe3f15d0a2b24700d93089de",
+        "size_in_bytes": 664653818,
+        "members": [
+          "php_8.3+ubuntu26.04_arm64.tar.xz",
+          "php_8.3+ubuntu26.04_arm64.tar.zst",
+          "php_8.3-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.3-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562262670,
+        "name": "php8.3-zts+debian-12",
+        "digest": "sha256:6765623a0d3fac611df4a5fefa16e51075d38e44ce6817cc83d18a8e6b4a73f5",
+        "size_in_bytes": 679651500,
+        "members": [
+          "php_8.3-zts+debian12.tar.xz",
+          "php_8.3-zts+debian12.tar.zst",
+          "php_8.3-zts-dbgsym+debian12.tar.xz",
+          "php_8.3-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12561433958,
+        "name": "php8.3-zts+debian-trixie",
+        "digest": "sha256:81dc5b4753025c453e62f64d4d344c94f9ff87c355ce54d3245987f206640c4f",
+        "size_in_bytes": 683237587,
+        "members": [
+          "php_8.3-zts+debian13.tar.xz",
+          "php_8.3-zts+debian13.tar.zst",
+          "php_8.3-zts-dbgsym+debian13.tar.xz",
+          "php_8.3-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562322099,
+        "name": "php8.3-zts+ubuntu-22.04",
+        "digest": "sha256:b3ffa8479c8dfe7e6da918ae56d676d1ea52e5a8ac68cbc87ba7038d3161012f",
+        "size_in_bytes": 690724480,
+        "members": [
+          "php_8.3-zts+ubuntu22.04.tar.xz",
+          "php_8.3-zts+ubuntu22.04.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561968560,
+        "name": "php8.3-zts+ubuntu-22.04-arm",
+        "digest": "sha256:d89333d3ef7525eb79cd1de67e0edf4127b95af59192944184991fab3e2e7dba",
+        "size_in_bytes": 679344149,
+        "members": [
+          "php_8.3-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.3-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562023884,
+        "name": "php8.3-zts+ubuntu-24.04",
+        "digest": "sha256:99ee11971be0dedc6461bfb7902bef4350c2dbb59f6d35f8542b86b9bb04f74e",
+        "size_in_bytes": 682123714,
+        "members": [
+          "php_8.3-zts+ubuntu24.04.tar.xz",
+          "php_8.3-zts+ubuntu24.04.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562581290,
+        "name": "php8.3-zts+ubuntu-24.04-arm",
+        "digest": "sha256:2df0e99d4ef4d471ccd86a0a044158e17d59711dd25c8cb021cd7348523e73d0",
+        "size_in_bytes": 667980695,
+        "members": [
+          "php_8.3-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.3-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561828454,
+        "name": "php8.3-zts+ubuntu-26.04",
+        "digest": "sha256:b636a85913ad8322122f24d7dcbc21d070354da7c11779a0024ab58c6f29b50e",
+        "size_in_bytes": 687060882,
+        "members": [
+          "php_8.3-zts+ubuntu26.04.tar.xz",
+          "php_8.3-zts+ubuntu26.04.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561667845,
+        "name": "php8.3-zts+ubuntu-26.04-arm",
+        "digest": "sha256:1badf633343bbacefb2344127d9c0b66d84739a64f4a09b0ce10a71fce960019",
+        "size_in_bytes": 666018172,
+        "members": [
+          "php_8.3-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.3-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.3-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.3-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.4": {
+    "php": "8.4",
+    "full_version": "8.4.27",
+    "run": 40086375062,
+    "head": "1ad5ec57711de775120e0ec847c64c56acb93af2",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.4+ubuntu24.04_arm64.tar.zst": "sha256:aef07b04314467ab6bb5f7cfce5a0c43aacd15db5672c35dd08b141ef2964304",
+      "php_8.4+ubuntu22.04.tar.zst": "sha256:b596c6ea6d8a1f799874b4fec6551f4d59306b87ab61bc95ee80bb3c8e6552ec",
+      "php_8.4+ubuntu26.04_arm64.tar.zst": "sha256:6d4b2b86c03da496463a939977ca2786b0a1c45e10024653053305df2883d4e7",
+      "php_8.4-zts+debian12.tar.zst": "sha256:26cf85a4cd1a840c35516190e7ae2c1db2506e864f590cd3964296bffe848342",
+      "php_8.4-zts+debian13.tar.zst": "sha256:27010bbb12f9a14b02d5348f091e760f53d90e0c3820ab30e289b653ac6452d4"
+    },
+    "artifacts": [
+      {
+        "id": 12562701973,
+        "name": "php8.4-nts+debian-12",
+        "digest": "sha256:cea81f1cab5515d7c616f76f363ffd68ebe12c1f505ada60bbec0f96ec3bf84c",
+        "size_in_bytes": 694101060,
+        "members": [
+          "php_8.4+debian12.tar.xz",
+          "php_8.4+debian12.tar.zst",
+          "php_8.4-dbgsym+debian12.tar.xz",
+          "php_8.4-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12562781237,
+        "name": "php8.4-nts+debian-trixie",
+        "digest": "sha256:4206a7ee50e8dd7b9b688df55f436f3520a18e62db4dcd34cb063926581b8291",
+        "size_in_bytes": 701167516,
+        "members": [
+          "php_8.4+debian13.tar.xz",
+          "php_8.4+debian13.tar.zst",
+          "php_8.4-dbgsym+debian13.tar.xz",
+          "php_8.4-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562149528,
+        "name": "php8.4-nts+ubuntu-22.04",
+        "digest": "sha256:0c7c7736e81d6c4e6c1b3635c097786d1db58244123514cd0ebd1e9e60f4041e",
+        "size_in_bytes": 705357615,
+        "members": [
+          "php_8.4+ubuntu22.04.tar.xz",
+          "php_8.4+ubuntu22.04.tar.zst",
+          "php_8.4-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.4-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562088931,
+        "name": "php8.4-nts+ubuntu-22.04-arm",
+        "digest": "sha256:2c125427256e9ef8b7ba62cd88ec2492680e4d28912e4264c699f868dbd084d1",
+        "size_in_bytes": 688504929,
+        "members": [
+          "php_8.4+ubuntu22.04_arm64.tar.xz",
+          "php_8.4+ubuntu22.04_arm64.tar.zst",
+          "php_8.4-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.4-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562701161,
+        "name": "php8.4-nts+ubuntu-24.04",
+        "digest": "sha256:1e047c5acab201ca0baafda037a6d396114bc9f1e9f3c08f085ef87def5add3a",
+        "size_in_bytes": 698947934,
+        "members": [
+          "php_8.4+ubuntu24.04.tar.xz",
+          "php_8.4+ubuntu24.04.tar.zst",
+          "php_8.4-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.4-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562458027,
+        "name": "php8.4-nts+ubuntu-24.04-arm",
+        "digest": "sha256:05be584425e511c976319d0c48fbfeeb06cb2c47db40b4dda6630f81185d45d8",
+        "size_in_bytes": 680054813,
+        "members": [
+          "php_8.4+ubuntu24.04_arm64.tar.xz",
+          "php_8.4+ubuntu24.04_arm64.tar.zst",
+          "php_8.4-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.4-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562288909,
+        "name": "php8.4-nts+ubuntu-26.04",
+        "digest": "sha256:ae6f65a6de5adbe324f9db9b4f6d321ba2f85208fee4ff620735cbfcebe6ec52",
+        "size_in_bytes": 704477730,
+        "members": [
+          "php_8.4+ubuntu26.04.tar.xz",
+          "php_8.4+ubuntu26.04.tar.zst",
+          "php_8.4-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.4-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562635638,
+        "name": "php8.4-nts+ubuntu-26.04-arm",
+        "digest": "sha256:8828e24855b4d827a9291e21226de574696f57c85fe5f6017e19e543a8a52cbb",
+        "size_in_bytes": 680148075,
+        "members": [
+          "php_8.4+ubuntu26.04_arm64.tar.xz",
+          "php_8.4+ubuntu26.04_arm64.tar.zst",
+          "php_8.4-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.4-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12561993192,
+        "name": "php8.4-zts+debian-12",
+        "digest": "sha256:53428391546d2de564479def5bd461d5338d2d56051f054fe324421f283481cd",
+        "size_in_bytes": 698867776,
+        "members": [
+          "php_8.4-zts+debian12.tar.xz",
+          "php_8.4-zts+debian12.tar.zst",
+          "php_8.4-zts-dbgsym+debian12.tar.xz",
+          "php_8.4-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12562771322,
+        "name": "php8.4-zts+debian-trixie",
+        "digest": "sha256:622224540dc1892bce82701b6f8b82623855d1e7e3647cefdbbb38170ad289fb",
+        "size_in_bytes": 702431602,
+        "members": [
+          "php_8.4-zts+debian13.tar.xz",
+          "php_8.4-zts+debian13.tar.zst",
+          "php_8.4-zts-dbgsym+debian13.tar.xz",
+          "php_8.4-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562821136,
+        "name": "php8.4-zts+ubuntu-22.04",
+        "digest": "sha256:10c16dae7cf66fad52039e1191627d17b0c88a985b9fb64eb64f14d87b85229a",
+        "size_in_bytes": 709468347,
+        "members": [
+          "php_8.4-zts+ubuntu22.04.tar.xz",
+          "php_8.4-zts+ubuntu22.04.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562411993,
+        "name": "php8.4-zts+ubuntu-22.04-arm",
+        "digest": "sha256:510e813540b62493854ac90ae9fc7e3f6f409879f6351350982de44ff2bd556d",
+        "size_in_bytes": 693270489,
+        "members": [
+          "php_8.4-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.4-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562253112,
+        "name": "php8.4-zts+ubuntu-24.04",
+        "digest": "sha256:f379ded3f49cdc516a111adf5b88c2a316589f3aa9a78b09aaada397af6dbb86",
+        "size_in_bytes": 699580029,
+        "members": [
+          "php_8.4-zts+ubuntu24.04.tar.xz",
+          "php_8.4-zts+ubuntu24.04.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562393352,
+        "name": "php8.4-zts+ubuntu-24.04-arm",
+        "digest": "sha256:0f7d5280b811009f01828305846d84f2c96f55d25bb9a08c89d1284ad2307617",
+        "size_in_bytes": 680558300,
+        "members": [
+          "php_8.4-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.4-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562333921,
+        "name": "php8.4-zts+ubuntu-26.04",
+        "digest": "sha256:47a94ad8d56733e2e13dcfa542f02d61562413b6df1a822b111c695d0e9fe672",
+        "size_in_bytes": 705791847,
+        "members": [
+          "php_8.4-zts+ubuntu26.04.tar.xz",
+          "php_8.4-zts+ubuntu26.04.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561874610,
+        "name": "php8.4-zts+ubuntu-26.04-arm",
+        "digest": "sha256:2f4a1ce5b2c3369a1cafd7cc9b7c9d916a9705094e384436f4a380142ed4ebe0",
+        "size_in_bytes": 680662725,
+        "members": [
+          "php_8.4-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.4-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.4-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.4-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.5": {
+    "php": "8.5",
+    "full_version": "8.5.12",
+    "run": 40086376198,
+    "head": "1ad5ec57711de775120e0ec847c64c56acb93af2",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.5+debian12.tar.zst": "sha256:dc5930a721355b71ddb278a226c77d6db23278e810eb57133c007a34bc179ab3",
+      "php_8.5+ubuntu26.04_arm64.tar.zst": "sha256:6af700517f9653a6a2ef41509512bf4a53597580905e62a62506fe9bfc13a57e",
+      "php_8.5-zts+ubuntu26.04_arm64.tar.zst": "sha256:e00c643a49ac9505b0373d80243b7576e302d3110d8424ba742e0da055ba7325",
+      "php_8.5-zts+ubuntu22.04.tar.zst": "sha256:ba9753e18701a646cd56405feb7a08067e256d9aa2d876aee6ddb52ee34f69e8",
+      "php_8.5+ubuntu24.04_arm64.tar.zst": "sha256:98f0dacf3c6272620a7f373b361850f6b32c1b54dc3040823cc0bc831c987e95",
+      "php_8.5+debian13.tar.zst": "sha256:dfe07a351fa0641e41551a8c069b9d7ee644c826d3e944f0036ed4c5cfc8b3bc"
+    },
+    "artifacts": [
+      {
+        "id": 12562861135,
+        "name": "php8.5-nts+debian-12",
+        "digest": "sha256:4287bdc96b903114dc05128e550ef09804363223716f0b451a648ada6d002be6",
+        "size_in_bytes": 683726658,
+        "members": [
+          "php_8.5+debian12.tar.xz",
+          "php_8.5+debian12.tar.zst",
+          "php_8.5-dbgsym+debian12.tar.xz",
+          "php_8.5-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12561864833,
+        "name": "php8.5-nts+debian-trixie",
+        "digest": "sha256:dd2003e78503e584492665d175856c5ed2eb64c8e6c8b0810860d067a451a8df",
+        "size_in_bytes": 689887028,
+        "members": [
+          "php_8.5+debian13.tar.xz",
+          "php_8.5+debian13.tar.zst",
+          "php_8.5-dbgsym+debian13.tar.xz",
+          "php_8.5-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562392747,
+        "name": "php8.5-nts+ubuntu-22.04",
+        "digest": "sha256:fe561151ae9e683c20a49f3af730a57922eafee80198c0ee17bd252baf80e761",
+        "size_in_bytes": 694354079,
+        "members": [
+          "php_8.5+ubuntu22.04.tar.xz",
+          "php_8.5+ubuntu22.04.tar.zst",
+          "php_8.5-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.5-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562243244,
+        "name": "php8.5-nts+ubuntu-22.04-arm",
+        "digest": "sha256:324727462da34f737d35089606494347b0f95ceb027ea018ee21eedc70512652",
+        "size_in_bytes": 680685076,
+        "members": [
+          "php_8.5+ubuntu22.04_arm64.tar.xz",
+          "php_8.5+ubuntu22.04_arm64.tar.zst",
+          "php_8.5-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.5-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562068001,
+        "name": "php8.5-nts+ubuntu-24.04",
+        "digest": "sha256:4af0fd4d34672284ce17a946f79e198dbc470bbdb0a38b4f3082a922cc4b8107",
+        "size_in_bytes": 688085379,
+        "members": [
+          "php_8.5+ubuntu24.04.tar.xz",
+          "php_8.5+ubuntu24.04.tar.zst",
+          "php_8.5-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.5-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561799700,
+        "name": "php8.5-nts+ubuntu-24.04-arm",
+        "digest": "sha256:ecfef869e89b4688961a4b19a8fec673d880df0b598d5341516cf083c8644237",
+        "size_in_bytes": 669350735,
+        "members": [
+          "php_8.5+ubuntu24.04_arm64.tar.xz",
+          "php_8.5+ubuntu24.04_arm64.tar.zst",
+          "php_8.5-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.5-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562522436,
+        "name": "php8.5-nts+ubuntu-26.04",
+        "digest": "sha256:9d64ed11ec4419000d898de32de62622115098516a2c6086e75218a7f5455264",
+        "size_in_bytes": 694048692,
+        "members": [
+          "php_8.5+ubuntu26.04.tar.xz",
+          "php_8.5+ubuntu26.04.tar.zst",
+          "php_8.5-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.5-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562063257,
+        "name": "php8.5-nts+ubuntu-26.04-arm",
+        "digest": "sha256:9d99c3d65fb0b3ce74d1f263efd007236edb803f4ba62f80bf0870258b4e617e",
+        "size_in_bytes": 671921755,
+        "members": [
+          "php_8.5+ubuntu26.04_arm64.tar.xz",
+          "php_8.5+ubuntu26.04_arm64.tar.zst",
+          "php_8.5-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.5-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562612622,
+        "name": "php8.5-zts+debian-12",
+        "digest": "sha256:ea7981fbd83ae6b8a7d74cd9a49a10e2bff9a8aa7b57d50f8ec4484591adf112",
+        "size_in_bytes": 688439031,
+        "members": [
+          "php_8.5-zts+debian12.tar.xz",
+          "php_8.5-zts+debian12.tar.zst",
+          "php_8.5-zts-dbgsym+debian12.tar.xz",
+          "php_8.5-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12561948400,
+        "name": "php8.5-zts+debian-trixie",
+        "digest": "sha256:045cd38343e43a4e18f7066df68ca349efb41ae74944930de09c9837ecf2fdc3",
+        "size_in_bytes": 688961969,
+        "members": [
+          "php_8.5-zts+debian13.tar.xz",
+          "php_8.5-zts+debian13.tar.zst",
+          "php_8.5-zts-dbgsym+debian13.tar.xz",
+          "php_8.5-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12562148610,
+        "name": "php8.5-zts+ubuntu-22.04",
+        "digest": "sha256:cce2383988c4cdfc8aa4aa17d14897a473eb2c853b08388bf25fcb4aa618e6a2",
+        "size_in_bytes": 696459209,
+        "members": [
+          "php_8.5-zts+ubuntu22.04.tar.xz",
+          "php_8.5-zts+ubuntu22.04.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12562710111,
+        "name": "php8.5-zts+ubuntu-22.04-arm",
+        "digest": "sha256:597f5b8e02215e41039ed8ff7ae845cef4caff38378cab0cb6c4c2ac108c9671",
+        "size_in_bytes": 683470390,
+        "members": [
+          "php_8.5-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.5-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562013403,
+        "name": "php8.5-zts+ubuntu-24.04",
+        "digest": "sha256:44e2f0c51c2182eddcbdcd3db7cf33b7cf199b094eaf487fe040ac40e874f28a",
+        "size_in_bytes": 689840575,
+        "members": [
+          "php_8.5-zts+ubuntu24.04.tar.xz",
+          "php_8.5-zts+ubuntu24.04.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12561419652,
+        "name": "php8.5-zts+ubuntu-24.04-arm",
+        "digest": "sha256:c3e8c8d2cd2c3b7fbc090ac4bf06ce9014a5b552a6bf52be99cc333b6a8ea5a8",
+        "size_in_bytes": 672161674,
+        "members": [
+          "php_8.5-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.5-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12562209009,
+        "name": "php8.5-zts+ubuntu-26.04",
+        "digest": "sha256:04b9605244fa862bca7f26ed3e2381fd5070fddecbfced32785c178989b0db61",
+        "size_in_bytes": 697005684,
+        "members": [
+          "php_8.5-zts+ubuntu26.04.tar.xz",
+          "php_8.5-zts+ubuntu26.04.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12565480839,
+        "name": "php8.5-zts+ubuntu-26.04-arm",
+        "digest": "sha256:c96b384f8bbbb2ddeb511733e4969225f515ec57847a3ae0c63ad2bec58fa07c",
+        "size_in_bytes": 673281127,
+        "members": [
+          "php_8.5-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.5-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.5-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.5-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.6": {
+    "php": "8.6",
+    "full_version": "8.6.0-dev",
+    "run": 40092712884,
+    "head": "93ef1fd966cd5f889a141944505617d1fe0f8578",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.6-zts+debian13.tar.zst": "sha256:ad2d5b6d154f18b58b83530cad77ac22baf8f240510e27ab0f97b912ca94aa6c",
+      "php_8.6+ubuntu22.04.tar.zst": "sha256:610fc389f683def35222a3a9179f48389e6134cc3d5ff067a99e5282a11a8e1b",
+      "php_8.6+debian12.tar.zst": "sha256:e37bc045dd9d17bb8e9f38b475e47bffc4985ad31dba0b6cd71ecf3203005619",
+      "php_8.6+ubuntu26.04_arm64.tar.zst": "sha256:858aaf1d4c407f46bf09923239ae6afab956e93d10d56f0cde084b6d001379a3",
+      "php_8.6+ubuntu24.04_arm64.tar.zst": "sha256:cb296dc85f491089e3b46667eae78a4e3e2f699bf67c012137290e7960a1670e"
+    },
+    "artifacts": [
+      {
+        "id": 12564505669,
+        "name": "php8.6-nts+debian-12",
+        "digest": "sha256:ebd62130ff0782880f99b6fa1d41f69f62434ff79776c09537be3eed7927bf1c",
+        "size_in_bytes": 661960588,
+        "members": [
+          "php_8.6+debian12.tar.xz",
+          "php_8.6+debian12.tar.zst",
+          "php_8.6-dbgsym+debian12.tar.xz",
+          "php_8.6-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564036689,
+        "name": "php8.6-nts+debian-trixie",
+        "digest": "sha256:b71ddf660aa91f75199b7354030e9b77f242907d15dbdbe55ab559f070441e8b",
+        "size_in_bytes": 660289054,
+        "members": [
+          "php_8.6+debian13.tar.xz",
+          "php_8.6+debian13.tar.zst",
+          "php_8.6-dbgsym+debian13.tar.xz",
+          "php_8.6-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564462209,
+        "name": "php8.6-nts+ubuntu-22.04",
+        "digest": "sha256:bbaf0b2635558b4a5261ed3fa932b94e89f642e686767178f492c813706bdbe2",
+        "size_in_bytes": 671070161,
+        "members": [
+          "php_8.6+ubuntu22.04.tar.xz",
+          "php_8.6+ubuntu22.04.tar.zst",
+          "php_8.6-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.6-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563703289,
+        "name": "php8.6-nts+ubuntu-22.04-arm",
+        "digest": "sha256:ca1c1cb0912ebf8ebd41ff847eeee920e17b81185d19193f4a627947aede6b42",
+        "size_in_bytes": 647461361,
+        "members": [
+          "php_8.6+ubuntu22.04_arm64.tar.xz",
+          "php_8.6+ubuntu22.04_arm64.tar.zst",
+          "php_8.6-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.6-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12563399858,
+        "name": "php8.6-nts+ubuntu-24.04",
+        "digest": "sha256:2f777c501db239f6e354114b3af5ddb067168ca0bf9441ec00362c0e9ec57f09",
+        "size_in_bytes": 664474101,
+        "members": [
+          "php_8.6+ubuntu24.04.tar.xz",
+          "php_8.6+ubuntu24.04.tar.zst",
+          "php_8.6-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.6-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564352003,
+        "name": "php8.6-nts+ubuntu-24.04-arm",
+        "digest": "sha256:299cf48bec9c54008e98c201edec8a1c7736e011ccb6cda25a14d14bb29165a7",
+        "size_in_bytes": 642112587,
+        "members": [
+          "php_8.6+ubuntu24.04_arm64.tar.xz",
+          "php_8.6+ubuntu24.04_arm64.tar.zst",
+          "php_8.6-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.6-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564371635,
+        "name": "php8.6-nts+ubuntu-26.04",
+        "digest": "sha256:efa1f15dd86c5c9376830ee9d98f3307bbe6fde91f3ac49fd441d41cb062028e",
+        "size_in_bytes": 666826778,
+        "members": [
+          "php_8.6+ubuntu26.04.tar.xz",
+          "php_8.6+ubuntu26.04.tar.zst",
+          "php_8.6-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.6-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564172347,
+        "name": "php8.6-nts+ubuntu-26.04-arm",
+        "digest": "sha256:e4b32ef564ba675f752139557c41b84fa1920298dedd434ad2be5a256ab21eec",
+        "size_in_bytes": 640646358,
+        "members": [
+          "php_8.6+ubuntu26.04_arm64.tar.xz",
+          "php_8.6+ubuntu26.04_arm64.tar.zst",
+          "php_8.6-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.6-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564332163,
+        "name": "php8.6-zts+debian-12",
+        "digest": "sha256:6035386a6e0bbe5b535069da5e7914044349f140b701366913cd000644ac807f",
+        "size_in_bytes": 665909849,
+        "members": [
+          "php_8.6-zts+debian12.tar.xz",
+          "php_8.6-zts+debian12.tar.zst",
+          "php_8.6-zts-dbgsym+debian12.tar.xz",
+          "php_8.6-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564511706,
+        "name": "php8.6-zts+debian-trixie",
+        "digest": "sha256:f1ac5e3fa227f9429a0068e51240ee35b875ac1905eab3ff81082ff451102cd4",
+        "size_in_bytes": 669202740,
+        "members": [
+          "php_8.6-zts+debian13.tar.xz",
+          "php_8.6-zts+debian13.tar.zst",
+          "php_8.6-zts-dbgsym+debian13.tar.xz",
+          "php_8.6-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564188454,
+        "name": "php8.6-zts+ubuntu-22.04",
+        "digest": "sha256:258f1976fc9bd34a7cb6839bcbcaecd22832e2a4962a21985965d6c705c9ad5f",
+        "size_in_bytes": 678156624,
+        "members": [
+          "php_8.6-zts+ubuntu22.04.tar.xz",
+          "php_8.6-zts+ubuntu22.04.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563777969,
+        "name": "php8.6-zts+ubuntu-22.04-arm",
+        "digest": "sha256:867b1e3346d7f9860eb9257495d0b320fbf00c815b42bd3e50ad7bdf64b19aae",
+        "size_in_bytes": 653779406,
+        "members": [
+          "php_8.6-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.6-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564251795,
+        "name": "php8.6-zts+ubuntu-24.04",
+        "digest": "sha256:bb6827233e12dd1e96ac03b2f9b9a59c23de8ea93e1543b207b739d57850fc80",
+        "size_in_bytes": 667539585,
+        "members": [
+          "php_8.6-zts+ubuntu24.04.tar.xz",
+          "php_8.6-zts+ubuntu24.04.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563673440,
+        "name": "php8.6-zts+ubuntu-24.04-arm",
+        "digest": "sha256:bc9b3655562ed9e86fe9118c5473545e7e3ac4de9c3e501cd3795055b1e418b9",
+        "size_in_bytes": 642934869,
+        "members": [
+          "php_8.6-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.6-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12563842409,
+        "name": "php8.6-zts+ubuntu-26.04",
+        "digest": "sha256:c69fa68ac6014428228be201a4c9831607f5ca6ff91332da35bbd933e2c8b563",
+        "size_in_bytes": 671924401,
+        "members": [
+          "php_8.6-zts+ubuntu26.04.tar.xz",
+          "php_8.6-zts+ubuntu26.04.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564142455,
+        "name": "php8.6-zts+ubuntu-26.04-arm",
+        "digest": "sha256:ab44867c17f50ce21c4d8931922d8037acd1b9aaf5147ccf540beaf05a50cd9f",
+        "size_in_bytes": 646700223,
+        "members": [
+          "php_8.6-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.6-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.6-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.6-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  },
+  "8.7": {
+    "php": "8.7",
+    "full_version": "8.7.0-dev",
+    "run": 40086377359,
+    "head": "1ad5ec57711de775120e0ec847c64c56acb93af2",
+    "merged_commit": "e94bafcb8731c2db921b536e3c498c02784d8c50",
+    "installer_digest": "sha256:11f13025c2c0158c1b67d31c8b50abfb21424ed620e70bb96b7cfe08942e3160",
+    "audited_members": {
+      "php_8.7+ubuntu24.04_arm64.tar.zst": "sha256:4e991b756cf89a1450671744eb0633d1090dcadff14288e04a2f8a66fa2b9e25",
+      "php_8.7+ubuntu22.04.tar.zst": "sha256:eb94d95764e8be5db845570ea4bc58309cdb53f8dc5626aace39600e1e6b38e8",
+      "php_8.7+ubuntu26.04_arm64.tar.zst": "sha256:d02483d4a44551f35c8d0c9042578d6ffcc88f015f2b8256c39cc035a1b4896b",
+      "php_8.7-zts+debian13.tar.zst": "sha256:bc0d2a7fee29a2783d0e678e9066d3b822d1e24deca25248bac2947f396fa33d",
+      "php_8.7+debian12.tar.zst": "sha256:8295e304fefddd145dd98b3aff7e47c31c47f0fce76becf2c05183817ffd017d"
+    },
+    "artifacts": [
+      {
+        "id": 12564274135,
+        "name": "php8.7-nts+debian-12",
+        "digest": "sha256:511926e923b20ca7ca84a7f5052206a135de5c47d729a66764d9e0722b4ca2b6",
+        "size_in_bytes": 663871177,
+        "members": [
+          "php_8.7+debian12.tar.xz",
+          "php_8.7+debian12.tar.zst",
+          "php_8.7-dbgsym+debian12.tar.xz",
+          "php_8.7-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564746440,
+        "name": "php8.7-nts+debian-trixie",
+        "digest": "sha256:93c48dcfc6569ab96107ef60e5aceac5c967a94c43e0c22158e3e6f63d6925c4",
+        "size_in_bytes": 663881543,
+        "members": [
+          "php_8.7+debian13.tar.xz",
+          "php_8.7+debian13.tar.zst",
+          "php_8.7-dbgsym+debian13.tar.xz",
+          "php_8.7-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564870718,
+        "name": "php8.7-nts+ubuntu-22.04",
+        "digest": "sha256:4736acba7a20ff97946583783b4ab93fb7eb900cb71681d4f5d3485ff56b0cac",
+        "size_in_bytes": 673696402,
+        "members": [
+          "php_8.7+ubuntu22.04.tar.xz",
+          "php_8.7+ubuntu22.04.tar.zst",
+          "php_8.7-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.7-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564442952,
+        "name": "php8.7-nts+ubuntu-22.04-arm",
+        "digest": "sha256:69ef9b127678ad39b970e48540846a8a5e7d6364a94540ffa88605cd25ba3b6e",
+        "size_in_bytes": 650460656,
+        "members": [
+          "php_8.7+ubuntu22.04_arm64.tar.xz",
+          "php_8.7+ubuntu22.04_arm64.tar.zst",
+          "php_8.7-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.7-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564363302,
+        "name": "php8.7-nts+ubuntu-24.04",
+        "digest": "sha256:1109c546bdf46fe676a1b2555d8daf9dbc13b3b8e172d07fb847ca7afbd3ab87",
+        "size_in_bytes": 664114023,
+        "members": [
+          "php_8.7+ubuntu24.04.tar.xz",
+          "php_8.7+ubuntu24.04.tar.zst",
+          "php_8.7-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.7-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564198782,
+        "name": "php8.7-nts+ubuntu-24.04-arm",
+        "digest": "sha256:f9a0d369d90a9e2a37a8f0bd9f9efd4795958774f60068d76c71a9678835e646",
+        "size_in_bytes": 640234273,
+        "members": [
+          "php_8.7+ubuntu24.04_arm64.tar.xz",
+          "php_8.7+ubuntu24.04_arm64.tar.zst",
+          "php_8.7-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.7-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564647019,
+        "name": "php8.7-nts+ubuntu-26.04",
+        "digest": "sha256:7c86f1bc724df342f8824f969474bead2c831d1e49b8d9d1aad82993aec1df47",
+        "size_in_bytes": 665457940,
+        "members": [
+          "php_8.7+ubuntu26.04.tar.xz",
+          "php_8.7+ubuntu26.04.tar.zst",
+          "php_8.7-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.7-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564203069,
+        "name": "php8.7-nts+ubuntu-26.04-arm",
+        "digest": "sha256:4603270556bec85d1b20fe2aecd8bfacf42554fa1f242224cc4f34bbc94c3fb2",
+        "size_in_bytes": 640494242,
+        "members": [
+          "php_8.7+ubuntu26.04_arm64.tar.xz",
+          "php_8.7+ubuntu26.04_arm64.tar.zst",
+          "php_8.7-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.7-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564682682,
+        "name": "php8.7-zts+debian-12",
+        "digest": "sha256:e8e59cacb186843b1c027eb60073b29dffcd2fd2293793beb9c8df8220e1504a",
+        "size_in_bytes": 664105784,
+        "members": [
+          "php_8.7-zts+debian12.tar.xz",
+          "php_8.7-zts+debian12.tar.zst",
+          "php_8.7-zts-dbgsym+debian12.tar.xz",
+          "php_8.7-zts-dbgsym+debian12.tar.zst"
+        ]
+      },
+      {
+        "id": 12564685803,
+        "name": "php8.7-zts+debian-trixie",
+        "digest": "sha256:f79fc00c494b35e65c080de465d8f440d6d42f6b227bfb4c249408d8d60e260a",
+        "size_in_bytes": 669312478,
+        "members": [
+          "php_8.7-zts+debian13.tar.xz",
+          "php_8.7-zts+debian13.tar.zst",
+          "php_8.7-zts-dbgsym+debian13.tar.xz",
+          "php_8.7-zts-dbgsym+debian13.tar.zst"
+        ]
+      },
+      {
+        "id": 12564552828,
+        "name": "php8.7-zts+ubuntu-22.04",
+        "digest": "sha256:32ca3997144cdb77db5eee4fa156bea0168ca182e3671bfb7adb04a217f354a5",
+        "size_in_bytes": 679114945,
+        "members": [
+          "php_8.7-zts+ubuntu22.04.tar.xz",
+          "php_8.7-zts+ubuntu22.04.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu22.04.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu22.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564223832,
+        "name": "php8.7-zts+ubuntu-22.04-arm",
+        "digest": "sha256:97047915a0f625677bbce6043c4735ca7989fc16c1b2e4038d12f5189bd675e4",
+        "size_in_bytes": 658664764,
+        "members": [
+          "php_8.7-zts+ubuntu22.04_arm64.tar.xz",
+          "php_8.7-zts+ubuntu22.04_arm64.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu22.04_arm64.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu22.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564950632,
+        "name": "php8.7-zts+ubuntu-24.04",
+        "digest": "sha256:dc1e90d92f643c95ec42723a9c047c85293d85187d26916747080b8b2ca88de7",
+        "size_in_bytes": 665534824,
+        "members": [
+          "php_8.7-zts+ubuntu24.04.tar.xz",
+          "php_8.7-zts+ubuntu24.04.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu24.04.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu24.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12563798789,
+        "name": "php8.7-zts+ubuntu-24.04-arm",
+        "digest": "sha256:a951327fe69331d495d5e4222a9d8088c00b83dbb0d6b0142a37d16f5e8c187f",
+        "size_in_bytes": 646441513,
+        "members": [
+          "php_8.7-zts+ubuntu24.04_arm64.tar.xz",
+          "php_8.7-zts+ubuntu24.04_arm64.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu24.04_arm64.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu24.04_arm64.tar.zst"
+        ]
+      },
+      {
+        "id": 12564159194,
+        "name": "php8.7-zts+ubuntu-26.04",
+        "digest": "sha256:e2853b734a22e513f1b7116b781880d6d6e5a65cd28864e0f87b10814b17fbab",
+        "size_in_bytes": 674938319,
+        "members": [
+          "php_8.7-zts+ubuntu26.04.tar.xz",
+          "php_8.7-zts+ubuntu26.04.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu26.04.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu26.04.tar.zst"
+        ]
+      },
+      {
+        "id": 12564397462,
+        "name": "php8.7-zts+ubuntu-26.04-arm",
+        "digest": "sha256:6b5540a043ca2ee9465d11d593a21258bc79880cdd70ed30e50691afda71a84a",
+        "size_in_bytes": 648344510,
+        "members": [
+          "php_8.7-zts+ubuntu26.04_arm64.tar.xz",
+          "php_8.7-zts+ubuntu26.04_arm64.tar.zst",
+          "php_8.7-zts-dbgsym+ubuntu26.04_arm64.tar.xz",
+          "php_8.7-zts-dbgsym+ubuntu26.04_arm64.tar.zst"
+        ]
+      }
+    ]
+  }
+}
