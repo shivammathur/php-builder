@@ -1,0 +1,21 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 6 Oct 2026 15:29:40 +0200
+Subject: fix skipif section
+
+---
+ ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt b/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
+index abf5e04..69b8936 100644
+--- a/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
++++ b/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
+@@ -3,7 +3,7 @@ GHSA-fpwc-w8rq-cr92: strip credentials from user headers on cross-origin redirec
+ --INI--
+ allow_url_fopen=1
+ --SKIPIF--
+-<?php require 'server.inc'; http_server_skipif(); ?>
++<?php require 'server.inc'; http_server_skipif("tcp://127.0.0.1:12342"); ?>
+ --FILE--
+ <?php
+ require 'server.inc';

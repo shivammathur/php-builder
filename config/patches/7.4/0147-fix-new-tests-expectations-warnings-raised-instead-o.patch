@@ -1,0 +1,324 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Tue, 6 Oct 2026 11:29:42 +0200
+Subject: fix new tests expectations - warnings raised instead of exceptions -
+ no more XFAIL
+
+(cherry picked from commit a126d5b8ec46f1f4edd021a025836a85ea16d716)
+---
+ .../tests/ghsa-r6x9-5r99-36j7-auth-packet-affected-rows.phpt       | 7 ++++---
+ .../ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id-no-space.phpt   | 7 ++++---
+ .../tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id.phpt      | 7 ++++---
+ .../tests/ghsa-r6x9-5r99-36j7-auth-packet-warning-count.phpt       | 7 ++++---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-switch-unterminated.phpt | 5 ++---
+ .../tests/ghsa-r6x9-5r99-36j7-chg-user-switch-unterminated.phpt    | 4 +---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt        | 3 ---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet-string.phpt      | 7 ++++---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet.phpt             | 7 ++++---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-scramble-len.phpt       | 7 ++++---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-affected-rows.phpt  | 4 +---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-last-insert-id.phpt | 4 +---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-message-len.phpt    | 4 +---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-warning-count.phpt  | 4 +---
+ 14 files changed, 35 insertions(+), 42 deletions(-)
+
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-affected-rows.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-affected-rows.phpt
+index 6c7e3e1..0f9a237 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-affected-rows.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-affected-rows.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - auth packet over-read in affected rows)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ print "done!";
+ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::__construct(): AUTH_RESPONSE packet shorter than expected in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id-no-space.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id-no-space.phpt
+index a04d494..1d01894 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id-no-space.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id-no-space.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - auth packet with no space for last inserted id)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ print "done!";
+ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::__construct(): AUTH_RESPONSE packet shorter than expected in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id.phpt
+index 5ac991a..7232ec6 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-last-insert-id.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - auth packet over-read in last inserted id)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ print "done!";
+ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::__construct(): AUTH_RESPONSE packet shorter than expected in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-warning-count.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-warning-count.phpt
+index c3741e7..a122511 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-warning-count.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-packet-warning-count.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - auth packet over-read in warning count)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ print "done!";
+ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::__construct(): AUTH_RESPONSE packet shorter than expected in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-switch-unterminated.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-switch-unterminated.phpt
+index e271f33..2bc1e8f 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-switch-unterminated.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-auth-switch-unterminated.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - auth switch response with an unterminated plugin name)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,6 @@ print "done!";
+ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::__construct(): AUTH_RESPONSE packet shorter than expected in %s on line %d
+-mysqlnd cannot connect to MySQL 4.1+ using the old insecure authentication. Please use an administration tool to reset your password with the command SET PASSWORD = PASSWORD('your_existing_password'). This will store a new, and more secure, hash value in mysql.user. If this user is used in other scripts executed by PHP 5.2 or earlier you might need to remove the old-passwords flag from your my.cnf file
++
++Warning: mysqli::__construct(): (HY000/2000): mysqlnd cannot connect to MySQL 4.1+ using the old insecure authentication. Please use an administration tool to reset your password with the command SET PASSWORD = PASSWORD('your_existing_password'). This will store a new, and more secure, hash value in mysql.user. If this user is used in other scripts executed by PHP 5.2 or earlier you might need to remove the old-passwords flag from your my.cnf file in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-chg-user-switch-unterminated.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-chg-user-switch-unterminated.phpt
+index af00ee7..454bac6 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-chg-user-switch-unterminated.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-chg-user-switch-unterminated.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - change user response with an unterminated plugin name)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -41,5 +39,5 @@ print "done!";
+ Warning: mysqli::change_user(): Premature end of data (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ 
+ Warning: mysqli::change_user(): CHANGE_USER packet shorter than expected in %s on line %d
+-mysqlnd cannot connect to MySQL 4.1+ using the old insecure authentication. Please use an administration tool to reset your password with the command SET PASSWORD = PASSWORD('your_existing_password'). This will store a new, and more secure, hash value in mysql.user. If this user is used in other scripts executed by PHP 5.2 or earlier you might need to remove the old-passwords flag from your my.cnf file
++bool(false)
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
+index 6680acd..4932646 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - eof packet over-read in warning count)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -42,5 +40,4 @@ Warning: mysqli::multi_query(): EOF packet shorter than expected in %s on line %
+ 
+ Warning: mysqli::multi_query(): Error while reading SET_OPTION's response packet. PID=%d in %s on line %d
+ [*] Received: 140000000353454c45435420313b2053454c45435420323b
+-MySQL server has gone away
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet-string.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet-string.phpt
+index 8efea03..db21535 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet-string.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet-string.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - greet packet over-read string)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d
+ Warning: mysqli::__construct(): GREET packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::__construct(): Error while reading greeting packet. PID=%d in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet.phpt
+index 5f980d3..2a7f9a8 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-packet.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - greet packet over-read)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d
+ Warning: mysqli::__construct(): GREET packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::__construct(): Error while reading greeting packet. PID=%d in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-scramble-len.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-scramble-len.phpt
+index 91c551f..21f10e9 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-scramble-len.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-greet-scramble-len.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - greet packet scramble length over-read)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -35,5 +33,8 @@ Warning: mysqli::__construct(): Premature end of data (mysqlnd_wireprotocol.c:%d
+ Warning: mysqli::__construct(): GREET packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::__construct(): Error while reading greeting packet. PID=%d in %s on line %d
+-Unknown error while trying to connect via tcp://127.0.0.1:%d
++
++Warning: mysqli::__construct(): [2002]  (trying to connect via (null)) in %s
++
++Warning: mysqli::__construct(): (HY000/2002):  in %s
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-affected-rows.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-affected-rows.phpt
+index ce55be9..960f998 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-affected-rows.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-affected-rows.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - ok packet over-read in affected rows)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -40,5 +38,5 @@ Warning: mysqli::select_db(): Premature end of data (mysqlnd_wireprotocol.c:%d)
+ Warning: mysqli::select_db(): OK packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::select_db(): Error while reading INIT_DB's response packet. PID=%d in %s on line %d
+-Malformed packet
++bool(false)
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-last-insert-id.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-last-insert-id.phpt
+index 93d6e1b..1bd2445 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-last-insert-id.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-last-insert-id.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - ok packet over-read in last inserted id)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -40,5 +38,5 @@ Warning: mysqli::select_db(): Premature end of data (mysqlnd_wireprotocol.c:%d)
+ Warning: mysqli::select_db(): OK packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::select_db(): Error while reading INIT_DB's response packet. PID=%d in %s on line %d
+-Malformed packet
++bool(false)
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-message-len.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-message-len.phpt
+index f456a00..d25ee8d 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-message-len.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-message-len.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - ok packet over-read in message length)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -40,5 +38,5 @@ Warning: mysqli::select_db(): Premature end of data (mysqlnd_wireprotocol.c:%d)
+ Warning: mysqli::select_db(): OK packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::select_db(): Error while reading INIT_DB's response packet. PID=%d in %s on line %d
+-Malformed packet
++bool(false)
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-warning-count.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-warning-count.phpt
+index f2df33b..0d3bf7d 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-warning-count.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-ok-packet-warning-count.phpt
+@@ -2,8 +2,6 @@
+ GHSA-r6x9-5r99-36j7 (Various packet overreads in mysqlnd_writeprotocol.c - ok packet over-read in warning count)
+ --EXTENSIONS--
+ mysqli
+---XFAIL--
+-TODO issue partially fixed
+ --FILE--
+ <?php
+ require_once 'fake_server.inc';
+@@ -40,5 +38,5 @@ Warning: mysqli::select_db(): Premature end of data (mysqlnd_wireprotocol.c:%d)
+ Warning: mysqli::select_db(): OK packet shorter than expected in %s on line %d
+ 
+ Warning: mysqli::select_db(): Error while reading INIT_DB's response packet. PID=%d in %s on line %d
+-Malformed packet
++bool(false)
+ done!
