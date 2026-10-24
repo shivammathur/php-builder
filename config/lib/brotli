@@ -1,0 +1,33 @@
+# shellcheck disable=SC2034,SC2016
+# Sourced by the library scripts; prepare commands are expanded by the builder.
+# Keep each Ubuntu release on its existing Brotli series while fixing CVE-2026-111497.
+LIB_TARGETS=(ubuntu-22.04 ubuntu-24.04 ubuntu-26.04)
+case "${ID:-}-${VERSION_ID:-}" in
+  ubuntu-22.04)
+    LIB_UPSTREAM_REF=v1.0.10
+    LIB_UPSTREAM_SHA256=b517ebdb5266b963d28d6e639b973479874ec72086deb6ee4a2d639e1b13606b
+    LIB_PACKAGING_REF=77585164666cd226e1308ca722d8afe007fdd510
+    ;;
+  ubuntu-24.04)
+    LIB_UPSTREAM_REF=v1.1.1
+    LIB_UPSTREAM_SHA256=1a84dfaa740994d19254bf78aa7d74a4a8040d1638f3d5f2cdecb188fd520da8
+    LIB_PACKAGING_REF=8f110fe999ece4be029c1a156742ac797955eb68
+    ;;
+  ubuntu-26.04)
+    LIB_UPSTREAM_REF=v1.2.1
+    LIB_UPSTREAM_SHA256=98d35d11a78dc453aebb7d10c3748f3f73ff78c8267c0dc697b8631f67bf7e8f
+    LIB_PACKAGING_REF=53bca9692b90e82793abfb9ff5f455de7a9a266a
+    ;;
+  *) return 0 ;;
+esac
+LIB_UPSTREAM_URL=https://github.com/google/brotli/archive/refs/tags/$LIB_UPSTREAM_REF.tar.gz
+LIB_PACKAGE_VERSION=${LIB_UPSTREAM_REF#v}-1~phpbuilder1
+LIB_PACKAGING_URL=https://salsa.debian.org/debian/brotli.git
+LIB_REFERENCE_URL=https://github.com/google/brotli
+LIB_PACKAGING_REFERENCE_URL=https://salsa.debian.org/debian/brotli
+LIB_BINARY_PACKAGES=(libbrotli-dev libbrotli1)
+LIB_BUILD_OPTIONS=parallel=2
+LIB_PREPARE_COMMANDS=(
+  'bash "$repo_dir/scripts/lib/prepare-brotli.sh"'
+  'DEBFULLNAME="Shivam Mathur" DEBEMAIL="shivammathur@users.noreply.github.com" dch --newversion "$LIB_PACKAGE_VERSION" --distribution "$VERSION_CODENAME" --force-distribution "Fix CVE-2026-111497 using upstream $LIB_UPSTREAM_REF."'
+)
