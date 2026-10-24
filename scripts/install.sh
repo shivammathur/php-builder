@@ -109,6 +109,28 @@ local_deps() {
   install_packages "${deps[@]}"
 }
 
+# Keep this check self-contained: release users download only install.sh.
+update_debian_brotli_security() {
+  local minimum package installed_version architecture
+  case "$ID-$VERSION_ID" in
+    debian-12) minimum=1.0.9-2+deb12u1 ;;
+    debian-13) minimum=1.1.0-2+deb13u1 ;;
+    *) return 0 ;;
+  esac
+  # Refresh even when another PHP installation already created /tmp/setup_php.
+  sudo apt-get update || return 1
+  install_packages libbrotli1 libbrotli-dev || return 1
+  architecture=$(dpkg --print-architecture) || return 1
+  for package in libbrotli1 libbrotli-dev; do
+    installed_version=$(dpkg-query -W -f='${Version}' "$package:$architecture") || return 1
+    if ! dpkg --compare-versions "$installed_version" ge "$minimum"; then
+      printf 'Error: %s %s is vulnerable to CVE-2026-111497; enable %s-security and install >= %s.\n' \
+        "$package" "$installed_version" "$VERSION_CODENAME" "$minimum" >&2
+      return 1
+    fi
+  done
+}
+
 github_deps() {
   local deps
   deps=(libavif-dev libevent-dev libfreetype6-dev libgearman-dev libheif-dev libimagequant-dev libjpeg-dev libkrb5-dev libmcrypt-dev libpng-dev libraqm-dev librdkafka-dev librrd-dev libsmbclient-dev libssh2-1-dev libtiff-dev libwebp-dev libxpm-dev zlib1g-dev)
@@ -176,10 +198,14 @@ install() {
   fi
   tar_file="php_$version$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
   get -q "/tmp/$tar_file" "https://github.com/shivammathur/php-builder/releases/download/$version/$tar_file"
+  # Finish package installation before extracting patched library overlays.
+  if [[ -n ${to_wait[*]// } ]]; then
+    wait "$to_wait" || return 1
+  fi
+  update_debian_brotli_security || return 1
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
-  extract_build "$tar_file" /tmp/php"$version"
-  [[ -n ${to_wait[*]// } ]] && wait "$to_wait"
+  extract_build "$tar_file" /tmp/php"$version" || return 1
   . /etc/os-release
 }
 
@@ -312,7 +338,7 @@ list_file="$list_dir/$ID.sources"
 upstream_lsb='/etc/upstream-release/lsb-release'
 dist_info_dir='/usr/share/distro-info'
 command -v sudo >/dev/null && SUDO=sudo || SUDO=
-install "$runner"
+install "$runner" || exit 1
 switch_version
 add_pear
 configure

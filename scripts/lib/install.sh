@@ -144,6 +144,10 @@ fi
 libraries=()
 while IFS= read -r configured_library; do
   [ -n "$configured_library" ] || continue
+  if ! library_matches_target "$config_dir/$configured_library" "$ID" "$VERSION_ID"; then
+    log "Skipping $configured_library for $ID-$VERSION_ID"
+    continue
+  fi
   if [ -z "$library" ] && ! library_matches_php_version "$configured_library" "$php_version"; then
     log "Skipping $configured_library for PHP $php_version"
     continue

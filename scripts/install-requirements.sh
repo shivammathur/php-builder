@@ -69,6 +69,7 @@ if [ -z "${PHP_VERSION:-}" ]; then
 fi
 
 # Add OS information to the environment.
+# shellcheck source=/dev/null
 . /etc/os-release
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
@@ -208,6 +209,11 @@ install_packages apache2 \
                  unixodbc-dev \
                  uuid-dev \
                  zlib1g-dev
+
+# Refuse stale Debian packages even if an old image or mirror still provides them.
+# shellcheck source=scripts/lib/brotli-security.sh
+. "$script_dir/lib/brotli-security.sh"
+check_debian_brotli_security
 
 # Install locally built library overlays.
 bash "$script_dir/lib/install.sh" --php-version "$PHP_VERSION"
