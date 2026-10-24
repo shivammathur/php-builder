@@ -223,3 +223,7 @@
 0223-NEWS-from-8.2.31.patch
 0224-Fix-PEAR-installation-with-libxml2.13.patch
 0225-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch
+0226-Avoid-state-corruption-via-bailout.patch
+0227-Fix-repeated-warning-for-file-uploads-limit-exceedin.patch
+0228-Introduce-max_multipart_body_parts-INI.patch
+0229-Add-CVE-2023-0662-to-NEWS.patch

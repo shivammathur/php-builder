@@ -128,3 +128,8 @@
 0128-NEWS-from-8.2.31.patch
 0129-Fix-PEAR-installation-with-libxml2.13.patch
 0130-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch
+0131-libgd-patch-for-CVE-2026-9672.patch
+0132-Fix-SQL-injection-in-ext-pgsql-via-E-.-backslash-bre.patch
+0133-Fix-GHSA-vc5h-9ppw-p5f3-phar-circular-symlink-crash.patch
+0134-NEWS-from-8.2.33.patch
+0135-Avoid-state-corruption-via-bailout.patch
