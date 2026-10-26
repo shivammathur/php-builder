@@ -210,10 +210,10 @@ install_packages apache2 \
                  uuid-dev \
                  zlib1g-dev
 
-# Refuse stale Debian packages even if an old image or mirror still provides them.
+# Refuse stale Brotli packages even if an old image or mirror still provides them.
 # shellcheck source=scripts/lib/brotli-security.sh
 . "$script_dir/lib/brotli-security.sh"
-check_debian_brotli_security
+check_brotli_security
 
 # Install locally built library overlays.
 bash "$script_dir/lib/install.sh" --php-version "$PHP_VERSION"

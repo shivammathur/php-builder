@@ -11,25 +11,6 @@ library_names() {
   done
 }
 
-library_matches_target() {
-  local config=$1
-  # The target is also used by configs with different versions per distribution.
-  local ID=$2 VERSION_ID=$3
-  local targets supported_target
-
-  targets=$(
-    LIB_TARGETS=()
-    # shellcheck source=/dev/null
-    . "$config"
-    printf '%s\n' "${LIB_TARGETS[@]}"
-  ) || return 1
-  [ -n "$targets" ] || return 0
-  while IFS= read -r supported_target; do
-    [ "$supported_target" != "$ID-$VERSION_ID" ] || return 0
-  done <<< "$targets"
-  return 1
-}
-
 library_package_version_from_config() (
   local config=$1
   local LIB_PACKAGE_VERSION=

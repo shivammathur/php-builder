@@ -140,7 +140,7 @@ build_debian_package() {
     done
     dpkg-source --before-build .
     mk-build-deps --install --remove --tool 'apt-get -y --no-install-recommends' debian/control
-    DEB_BUILD_OPTIONS="${LIB_BUILD_OPTIONS:-${DEB_BUILD_OPTIONS:-nocheck}}" dpkg-buildpackage -us -uc -b -rfakeroot
+    DEB_BUILD_OPTIONS="${DEB_BUILD_OPTIONS:-nocheck}" dpkg-buildpackage -us -uc -b -rfakeroot
   )
 }
 
@@ -150,7 +150,6 @@ load_library_config() {
   unset LIB_UPSTREAM_TYPE LIB_UPSTREAM_URL LIB_UPSTREAM_REF LIB_UPSTREAM_SHA256
   unset LIB_PACKAGE_VERSION LIB_PACKAGING_URL LIB_PACKAGING_REF
   unset LIB_REFERENCE_URL LIB_PACKAGING_REFERENCE_URL
-  unset LIB_BUILD_OPTIONS
   LIB_BINARY_PACKAGES=()
   LIB_PACKAGING_REFS=()
   LIB_PREPARE_COMMANDS=()
@@ -300,10 +299,6 @@ install_build_tools
 built_any=false
 for config_file in "${config_files[@]}"; do
   source_name=$(basename "$config_file")
-  if ! library_matches_target "$config_file" "$ID" "$VERSION_ID"; then
-    log "Skipping $source_name for $ID-$VERSION_ID"
-    continue
-  fi
   load_library_config "$config_file"
   select_packaging_ref
   source_parent="$source_root/$source_name"
