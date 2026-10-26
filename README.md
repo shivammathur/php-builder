@@ -207,10 +207,6 @@ The scripts and documentation in this project are under the [MIT license](LICENS
 
 ## Dependencies
 
-The `Build Libraries` workflow accepts a space-separated `libraries` input to rebuild selected dependencies, such as `brotli`. Library configs can restrict build and installation targets with `LIB_TARGETS`.
-
-For CVE-2026-111497, Ubuntu 22.04, 24.04, and 26.04 use Brotli overlays built from 1.0.10, 1.1.1, and 1.2.1 respectively, on both amd64 and arm64. Debian uses its security repository packages: at least `1.0.9-2+deb12u1` on Debian 12 and `1.1.0-2+deb13u1` on Debian 13. Build dependency installation and the standalone PHP installer reject older Debian revisions.
-
 - [AMQP](https://github.com/php-amqp/php-amqp "AMQP PHP Extension")
 - [APCU](https://github.com/krakjoe/apcu "APCU PHP Extension")
 - [AST](https://github.com/nikic/php-ast "AST PHP Extension")

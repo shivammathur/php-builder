@@ -110,9 +110,12 @@ local_deps() {
 }
 
 # Keep this check self-contained: release users download only install.sh.
-update_debian_brotli_security() {
+update_brotli_security() {
   local minimum package installed_version architecture
   case "$ID-$VERSION_ID" in
+    ubuntu-22.04) minimum=1.0.9-2ubuntu0.1 ;;
+    ubuntu-24.04) minimum=1.1.0-2ubuntu0.1 ;;
+    ubuntu-26.04) minimum=1.2.0-3ubuntu0.1 ;;
     debian-12) minimum=1.0.9-2+deb12u1 ;;
     debian-13) minimum=1.1.0-2+deb13u1 ;;
     *) return 0 ;;
@@ -202,7 +205,7 @@ install() {
   if [[ -n ${to_wait[*]// } ]]; then
     wait "$to_wait" || return 1
   fi
-  update_debian_brotli_security || return 1
+  update_brotli_security || return 1
   sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version" || return 1

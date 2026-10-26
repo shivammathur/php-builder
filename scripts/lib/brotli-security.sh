@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 
-# Debian backports CVE-2026-111497 without changing the upstream Brotli version.
-check_debian_brotli_security() {
+# Ubuntu and Debian backport CVE-2026-111497 without changing the upstream Brotli version.
+check_brotli_security() {
   local minimum package version architecture
   case "$ID-$VERSION_ID" in
+    ubuntu-22.04) minimum=1.0.9-2ubuntu0.1 ;;
+    ubuntu-24.04) minimum=1.1.0-2ubuntu0.1 ;;
+    ubuntu-26.04) minimum=1.2.0-3ubuntu0.1 ;;
     debian-12) minimum=1.0.9-2+deb12u1 ;;
     debian-13) minimum=1.1.0-2+deb13u1 ;;
     *) return 0 ;;
