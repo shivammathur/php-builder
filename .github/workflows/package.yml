@@ -1,5 +1,5 @@
 name: Package PHP
-run-name: Package PHP ${{ inputs.php-version || '8.4' }}
+run-name: ${{ inputs.package-run-id && 'Validate PHP extension cache' || inputs.cache-only && 'Cache PHP extensions' || 'Package PHP' }} ${{ inputs.php-version || '8.4' }}
 
 on:
   workflow_dispatch:
@@ -7,13 +7,32 @@ on:
       source-run-id:
         description: 'Build PHP run ID to download SAPI artifacts from'
         required: true
+      package-run-id:
+        description: 'Reuse completed packages to validate and publish extension caches only'
+        default: ''
+        required: false
       rebuild-missing-sapi:
         description: 'Build any SAPI artifacts missing from the source run'
         default: 'false'
         required: false
+      use-release-package:
+        description: 'Use published PHP packages when source SAPI artifacts have expired'
+        type: boolean
+        default: false
+        required: false
       build-mode:
         description: 'Build mode: --build-all or --build-new'
         default: '--build-all'
+        required: false
+      force-rebuild-extensions:
+        description: 'Rebuild all extensions instead of reusing the release cache'
+        type: boolean
+        default: false
+        required: false
+      cache-only:
+        description: 'Publish only extension caches after validating the packages'
+        type: boolean
+        default: false
         required: false
       php-source:
         description: 'PHP source: --web-php or --php-src'
@@ -56,6 +75,24 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Validate package source run
+        if: inputs.package-run-id != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_RUN_ID: ${{ inputs.package-run-id }}
+          CACHE_ONLY: ${{ inputs.cache-only }}
+        run: |
+          if [ "$CACHE_ONLY" != true ]; then
+            echo 'Reusing package artifacts requires cache-only publication'
+            exit 1
+          fi
+          # Uploads can finish before a later check fails. The fresh-install
+          # matrix below independently validates every required artifact.
+          if [ "$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PACKAGE_RUN_ID" --jq '.status')" != completed ]; then
+            echo 'The package source run must have completed'
+            exit 1
+          fi
+
       - name: Get matrix
         id: set-matrix
         env:
@@ -78,6 +115,7 @@ jobs:
 
     steps:
       - name: List source artifacts
+        if: "!inputs.use-release-package && inputs.package-run-id == ''"
         id: list-artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -92,7 +130,7 @@ jobs:
 
   build_sapi:
     needs: [get-matrix, source-artifacts]
-    if: "!contains(inputs.build-mode, 'skip-build')"
+    if: "inputs.package-run-id == '' && !inputs.use-release-package && !contains(inputs.build-mode, 'skip-build') && inputs.rebuild-missing-sapi == 'true'"
     runs-on: ${{ matrix.container-base }}
     container: ${{ matrix.container }}
     strategy:
@@ -151,7 +189,7 @@ jobs:
 
   package:
     needs: [get-matrix, source-artifacts, build_sapi]
-    if: "!contains(inputs.build-mode, 'skip-merge') && !contains(inputs.build-mode, 'skip-extensions') && !contains(inputs.build-mode, 'skip-package')"
+    if: "!cancelled() && inputs.package-run-id == '' && needs.get-matrix.result == 'success' && needs.source-artifacts.result == 'success' && (needs.build_sapi.result == 'success' || needs.build_sapi.result == 'skipped') && !contains(inputs.build-mode, 'skip-merge') && !contains(inputs.build-mode, 'skip-extensions') && !contains(inputs.build-mode, 'skip-package')"
     container: ${{ matrix.container }}
     runs-on: ${{ matrix.container-base }}
     strategy:
@@ -168,7 +206,16 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Stage published PHP build
+        if: inputs.use-release-package
+        run: bash scripts/stage-extension-cache-base.sh
+        env:
+          BUILD: ${{ matrix.build }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_VERSION: ${{ matrix.php-version }}
+
       - name: Check source SAPI artifacts
+        if: '!inputs.use-release-package'
         id: source-sapi-artifacts
         shell: bash
         env:
@@ -201,6 +248,7 @@ jobs:
           merge-multiple: true
 
       - name: Download rebuilt SAPI artifacts
+        if: needs.build_sapi.result == 'success'
         continue-on-error: true
         uses: actions/download-artifact@v8
         with:
@@ -208,6 +256,7 @@ jobs:
           path: /tmp/rebuilt-artifacts
 
       - name: Stage builds
+        if: '!inputs.use-release-package'
         shell: bash
         env:
           SAPI_LIST: ${{ env.SAPI_LIST }}
@@ -225,6 +274,7 @@ jobs:
           done
 
       - name: Merge SAPI builds
+        if: '!inputs.use-release-package'
         run: bash scripts/build.sh merge
         env:
           BUILD: ${{ matrix.build }}
@@ -239,9 +289,11 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ inputs.php-source }}
 
-      - name: Build extensions
+      - name: Restore or build extensions
         run: bash scripts/build.sh build_extensions
         env:
+          EXTENSIONS_CACHE: 'true'
+          EXTENSIONS_CACHE_REFRESH: ${{ inputs.force-rebuild-extensions || false }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -262,6 +314,7 @@ jobs:
           GITHUB_WORKSPACE: ${{ github.workspace }}
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ inputs.php-source }}
+          SOURCE_DEBUG_ROOT: ${{ inputs.use-release-package && '/tmp/source-debug' || '' }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v7
@@ -302,7 +355,7 @@ jobs:
   local-test:
     needs: [package, get-matrix]
     runs-on: ${{ matrix.container-base }}
-    if: "!contains(inputs.build-mode, 'skip-local-test')"
+    if: "!cancelled() && needs.get-matrix.result == 'success' && (needs.package.result == 'success' || (needs.package.result == 'skipped' && inputs.package-run-id != '')) && !contains(inputs.build-mode, 'skip-local-test')"
     container: ${{ matrix.container }}
     strategy:
       fail-fast: false
@@ -315,6 +368,8 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.dist }}-${{ matrix.dist-version }}
+          run-id: ${{ inputs.package-run-id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: /tmp
 
       - name: Install PHP
@@ -342,10 +397,15 @@ jobs:
         env:
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Check packaged extensions
+        run: sudo PHP_VERSION="$PHP_VERSION" bash scripts/test_extensions.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
   github-test:
     needs: [package, get-matrix]
     runs-on: ${{ matrix.os }}
-    if: "!contains(inputs.build-mode, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
+    if: "!cancelled() && needs.get-matrix.result == 'success' && (needs.package.result == 'success' || (needs.package.result == 'skipped' && inputs.package-run-id != '')) && !contains(inputs.build-mode, 'skip-github-test') && contains(needs.get-matrix.outputs.container_only, 'false')"
     strategy:
       fail-fast: false
       matrix: ${{fromJson(needs.get-matrix.outputs.test_runner_os_matrix)}}
@@ -357,6 +417,8 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}+${{ matrix.os }}
+          run-id: ${{ inputs.package-run-id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: /tmp
 
       - name: Install PHP
@@ -381,10 +443,18 @@ jobs:
         env:
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Check packaged extensions
+        run: sudo PHP_VERSION="$PHP_VERSION" bash scripts/test_extensions.sh
+        env:
+          PHP_VERSION: ${{ matrix.php-version }}
+
   release-container-only:
+    concurrency:
+      group: php-release-${{ inputs.php-version || '8.4' }}
+      cancel-in-progress: false
     needs: [get-matrix, local-test]
     runs-on: ubuntu-latest
-    if: "!contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'true')"
+    if: "!cancelled() && needs.get-matrix.result == 'success' && needs.local-test.result == 'success' && !contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'true')"
 
     steps:
       - name: Checkout
@@ -394,21 +464,36 @@ jobs:
         run: mkdir builds
 
       - uses: actions/download-artifact@v8
+        if: '!inputs.cache-only'
         with:
+          run-id: ${{ inputs.package-run-id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: builds
+
+      - name: Download extension caches
+        if: inputs.cache-only
+        run: bash scripts/download-extension-caches.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_RUN_ID: ${{ inputs.package-run-id || github.run_id }}
+          PHP_VERSION: ${{ inputs.php-version }}
 
       - name: Release
         run: bash scripts/release.sh
         env:
+          EXTENSIONS_CACHE_ONLY: ${{ inputs.cache-only || false }}
           GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_LIST: ${{ inputs.php-version }}
           PHP_SOURCE: ${{ inputs.php-source }}
 
   release:
+    concurrency:
+      group: php-release-${{ inputs.php-version || '8.4' }}
+      cancel-in-progress: false
     needs: [get-matrix, local-test, github-test]
     runs-on: ubuntu-latest
-    if: "!contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'false')"
+    if: "!cancelled() && needs.get-matrix.result == 'success' && needs.local-test.result == 'success' && needs.github-test.result == 'success' && !contains(inputs.build-mode, 'skip-release') && contains(needs.get-matrix.outputs.container_only, 'false')"
 
     steps:
       - name: Checkout
@@ -418,12 +503,24 @@ jobs:
         run: mkdir builds
 
       - uses: actions/download-artifact@v8
+        if: '!inputs.cache-only'
         with:
+          run-id: ${{ inputs.package-run-id || github.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           path: builds
+
+      - name: Download extension caches
+        if: inputs.cache-only
+        run: bash scripts/download-extension-caches.sh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_RUN_ID: ${{ inputs.package-run-id || github.run_id }}
+          PHP_VERSION: ${{ inputs.php-version }}
 
       - name: Release
         run: bash scripts/release.sh
         env:
+          EXTENSIONS_CACHE_ONLY: ${{ inputs.cache-only || false }}
           GITHUB_MESSAGE: ${{ inputs.build-mode }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PHP_LIST: ${{ inputs.php-version }}

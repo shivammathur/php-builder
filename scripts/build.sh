@@ -378,7 +378,13 @@ elif [ "$action" = "build_extensions" ]; then
   export PHP_INSTALL_ROOT
   export EXTENSIONS_ONLY
   mkdir -p "$INSTALL_ROOT"
-  setup_custom_extensions
+  if [ "${EXTENSIONS_CACHE:-false}" = "true" ]; then
+    rm -rf "${INSTALL_ROOT:?}"
+    bash scripts/extensions-cache.sh --root "$INSTALL_ROOT" --php-root "$PHP_INSTALL_ROOT" \
+      --php "php$PHP_VERSION" --php-config "php-config$PHP_VERSION" --platform "$ID$VERSION_ID"
+  else
+    setup_custom_extensions
+  fi
 elif [ "$action" = "package" ]; then
   . scripts/build_partials/cleanup.sh
   . scripts/build_partials/extensions.sh
