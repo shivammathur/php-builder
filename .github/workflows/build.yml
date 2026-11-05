@@ -11,6 +11,11 @@ on:
         description: 'Build mode: --build-all or --build-new'
         default: '--build-new'
         required: false
+      force-rebuild-extensions:
+        description: 'Rebuild all extensions instead of reusing the release cache'
+        type: boolean
+        default: false
+        required: false
       php-source:
         description: 'PHP source: --web-php or --php-src'
         default: ''
@@ -162,10 +167,12 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ env.PHP_SOURCE }}
 
-      - name: Build extensions
+      - name: Restore or build extensions
         run: bash scripts/build.sh build_extensions
         env:
           ASAN: ${{ matrix.asan }}
+          EXTENSIONS_CACHE: 'true'
+          EXTENSIONS_CACHE_REFRESH: ${{ inputs.force-rebuild-extensions || false }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -310,6 +317,9 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
 
   release-container-only:
+    concurrency:
+      group: php-release-${{ inputs.php-version || '8.6' }}
+      cancel-in-progress: false
     needs: [get-matrix, local-test]
     runs-on: ubuntu-latest
     permissions:
@@ -336,6 +346,9 @@ jobs:
           PHP_SOURCE: ${{ env.PHP_SOURCE }}
 
   release:
+    concurrency:
+      group: php-release-${{ inputs.php-version || '8.6' }}
+      cancel-in-progress: false
     needs: [get-matrix, local-test, github-test]
     runs-on: ubuntu-latest
     permissions:

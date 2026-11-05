@@ -17,10 +17,12 @@ adapt test for 7.2
 (cherry picked from commit f91bcf961ac15eacabf33f86f62c17dbec4a39ab)
 (cherry picked from commit ab6fa685773d4efea4de2df4956c97ffd65637e2)
 (cherry picked from commit f91ab4e04bc2f254ea1e49e1b76ff55adbbe3892)
+
+adapt test for 5.6
 ---
  ext/soap/soap.c                         | 26 ++++++++++++--
- ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt | 60 +++++++++++++++++++++++++++++++++
- 2 files changed, 83 insertions(+), 3 deletions(-)
+ ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt | 62 +++++++++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+), 3 deletions(-)
  create mode 100644 ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt
 
 diff --git a/ext/soap/soap.c b/ext/soap/soap.c
@@ -76,10 +78,10 @@ index 569701a..21f11be 100644
  	}
 diff --git a/ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt b/ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt
 new file mode 100644
-index 0000000..6e4e9e7
+index 0000000..ae94c67
 --- /dev/null
 +++ b/ext/soap/tests/GHSA-m33r-qmcv-p97q.phpt
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,62 @@
 +--TEST--
 +GHSA-m33r-qmcv-p97q: Use-after-free after header parsing failure with SOAP_PERSISTENCE_SESSION
 +--CREDITS--
@@ -91,15 +93,17 @@ index 0000000..6e4e9e7
 +<?php
 +
 +class Handler {
-+    public function return()  {
++  function __call($name, $args) {
++    if ($name == "return") {
 +        return new SoapFault('Server', 'denied');
-+    }
-+    public function throw()  {
++    } else if ($name == "throw") {
 +        throw new SoapFault('Server', 'denied');
-+    }
-+    public function hello() {
++    } else if ($name == "hello") {
 +        return 'ok';
++    } else {
++      return new SoapFault("Server","Function $name doesn't exist");
 +    }
++  }
 +}
 +
 +session_start();

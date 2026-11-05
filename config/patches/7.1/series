@@ -180,3 +180,7 @@
 0180-NEWS-from-8.2.31.patch
 0181-Fix-PEAR-installation-with-libxml2.13.patch
 0182-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch
+0183-Avoid-state-corruption-via-bailout.patch
+0184-Fix-repeated-warning-for-file-uploads-limit-exceedin.patch
+0185-Introduce-max_multipart_body_parts-INI.patch
+0186-Add-CVE-2023-0662-to-NEWS.patch

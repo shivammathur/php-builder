@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 1 Oct 2026 15:11:30 +0200
+Subject: logtool changes from 8.2
+
+---
+ sapi/fpm/tests/logtool.inc | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/sapi/fpm/tests/logtool.inc b/sapi/fpm/tests/logtool.inc
+index 64a58ec..fc2043b 100644
+--- a/sapi/fpm/tests/logtool.inc
++++ b/sapi/fpm/tests/logtool.inc
+@@ -513,7 +513,11 @@ class LogTool
+         }
+         $this->trace("Matching EXPECTED: $expectedMessage");
+ 
+-        $pattern = sprintf('/^(?:%s )?%s: %s(%s)$/', self::P_TIME, $type, self::P_DEBUG, $expectedMessage);
++        // Allow expected message to contain %s and %s for any string or number as in run-tests.php
++        $expectRe = str_replace('%s', '[^\r\n]+', $expectedMessage);
++        $expectRe = str_replace('%d', '\d+', $expectRe);
++
++        $pattern = sprintf('/^(?:%s )?%s: %s(%s)$/', self::P_TIME, $type, self::P_DEBUG, $expectRe);
+         $this->trace("PATTERN: $pattern");
+ 
+         return function ($line) use ($expectedMessage, $pattern, $type, $ignoreErrorFor) {

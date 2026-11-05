@@ -1,0 +1,264 @@
+{
+  "checked_on": "2026-10-24",
+  "repository": "https://packages.sury.org/php/",
+  "compared_suites": [
+    "bookworm",
+    "bullseye",
+    "jammy",
+    "noble",
+    "resolute",
+    "trixie"
+  ],
+  "inrelease_signing_key": "15058500A0235D97F5D10063B188E2B695BD4743",
+  "canonical_suite": "bookworm",
+  "validation": [
+    "Verified all six InRelease signatures, source-index hashes and source-archive hashes.",
+    "The six published patch stacks are byte-identical for each PHP version.",
+    "Upstream archives used by php-builder and Sury original archives contain identical regular files and symlinks.",
+    "Applied both complete patch stacks to every source archive; all 97 imported patches apply with zero fuzz.",
+    "Every code and test file touched by the imported patches matches the final Sury tree byte for byte.",
+    "Existing PHP 7.3 NEWS-from-8.2.31 patch requires fuzz in NEWS only; all other local patches apply without fuzz.",
+    "Full PHP builds and runtime regression tests were not run for this source audit."
+  ],
+  "preserved_differences": [
+    "Builder FPM configuration and php-config API exports.",
+    "Existing libxml2.13/PEAR compatibility fix and its regression test.",
+    "Existing PHP 5.6 metaphone size_t hardening and its regression test.",
+    "Existing NEWS context and PHP 8.0 metaphone test-credit differences.",
+    "Existing additional PHP 7.1 GHSA-h96m-rvf9-jgm2 regression test.",
+    "Sury packaging telemetry, packaging credits and LiteSpeed-only build changes remain omitted."
+  ],
+  "updated_existing_patch": {
+    "php": "5.6",
+    "local": "0246-GHSA-m33r-qmcv-p97q-soap-Fix-use-after-free-after-he.patch",
+    "sury": "0253-GHSA-m33r-qmcv-p97q-soap-Fix-use-after-free-after-he.patch",
+    "reason": "Use Sury regression test adapted for PHP 5.6 reserved method names; runtime fix already matched."
+  },
+  "known_sury_limitation": "PHP 7.4 CVE-2025-1218 mysqlnd backport remains partial, with expected-failure regression tests as published by Sury. This audit establishes parity with published backports, not absence of vulnerabilities.",
+  "sources": [
+    {
+      "php": "5.6",
+      "upstream_version": "5.6.40",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-5.6.40.tar.gz",
+        "sha256": "56fb9878d12fdd921f6a0897e919f4e980d930160e154cbde2cc6d9206a27cac"
+      },
+      "sury_source_version": "5.6.40-105+0~20261022.135+debian12~1.gbp37a17e",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php5.6/php5.6_5.6.40.orig.tar.xz",
+        "sha256": "1369a51eee3995d7fbd1c5342e5cc917760e276d561595b6052b21ace2656d1c"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php5.6/php5.6_5.6.40-105+0~20261022.135+debian12~1.gbp37a17e.debian.tar.xz",
+        "sha256": "9b87b75b08921b559888381ad0cc9a7be64f67c3e246413dd1f0327c2651afff"
+      },
+      "imported_patch_count": 4,
+      "sury_patch_range": [
+        "0261-Avoid-state-corruption-via-bailout.patch",
+        "0264-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "local_patch_range": [
+        "0255-Avoid-state-corruption-via-bailout.patch",
+        "0258-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "series_sha256": "7ed206023ea41621d35c8db2fae95f4ecaf4a78191c626507f75effc0d81791f",
+      "matching_imported_code_and_test_files": 13
+    },
+    {
+      "php": "7.0",
+      "upstream_version": "7.0.33",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-7.0.33.tar.gz",
+        "sha256": "d71a6ecb6b13dc53fed7532a7f8f949c4044806f067502f8fb6f9facbb40452a"
+      },
+      "sury_source_version": "7.0.33-93+0~20261022.119+debian12~1.gbp952195",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.0/php7.0_7.0.33.orig.tar.xz",
+        "sha256": "ab8c5be6e32b1f8d032909dedaaaa4bbb1a209e519abb01a52ce3914f9a13d96"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.0/php7.0_7.0.33-93+0~20261022.119+debian12~1.gbp952195.debian.tar.xz",
+        "sha256": "926386e4c78a8f8b781bcdad61e82b269ad19936d8f30d98b9e3f6541136c25e"
+      },
+      "imported_patch_count": 4,
+      "sury_patch_range": [
+        "0230-Avoid-state-corruption-via-bailout.patch",
+        "0233-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "local_patch_range": [
+        "0226-Avoid-state-corruption-via-bailout.patch",
+        "0229-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "series_sha256": "78bb1bcf8b8782e8dd2acae30d4291ae7edcb159417c48243204e8190d2e2c9a",
+      "matching_imported_code_and_test_files": 16
+    },
+    {
+      "php": "7.1",
+      "upstream_version": "7.1.33",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-7.1.33.tar.gz",
+        "sha256": "0055f368ffefe51d5a4483755bd17475e88e74302c08b727952831c5b2682ea2"
+      },
+      "sury_source_version": "7.1.33-81+0~20261022.128+debian12~1.gbpa88ccf",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.1/php7.1_7.1.33.orig.tar.xz",
+        "sha256": "bd7c0a9bd5433289ee01fd440af3715309faf583f75832b64fe169c100d52968"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.1/php7.1_7.1.33-81+0~20261022.128+debian12~1.gbpa88ccf.debian.tar.xz",
+        "sha256": "02c8b0cda323d17826d34d56b4651e432615e38b3e712e3244bc828bba219230"
+      },
+      "imported_patch_count": 4,
+      "sury_patch_range": [
+        "0186-Avoid-state-corruption-via-bailout.patch",
+        "0189-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "local_patch_range": [
+        "0183-Avoid-state-corruption-via-bailout.patch",
+        "0186-Add-CVE-2023-0662-to-NEWS.patch"
+      ],
+      "series_sha256": "193e65d408447c86f56a9e49e37ff53f8a86f01b209f0f48ce304faf12521425",
+      "matching_imported_code_and_test_files": 16
+    },
+    {
+      "php": "7.2",
+      "upstream_version": "7.2.34",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-7.2.34.tar.gz",
+        "sha256": "8b2777c741e83f188d3ca6d8e98ece7264acafee86787298fae57e05d0dddc78"
+      },
+      "sury_source_version": "7.2.34-66+0~20261021.122+debian12~1.gbpe0bcd4",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.2/php7.2_7.2.34.orig.tar.xz",
+        "sha256": "409e11bc6a2c18707dfc44bc61c820ddfd81e17481470f3405ee7822d8379903"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.2/php7.2_7.2.34-66+0~20261021.122+debian12~1.gbpe0bcd4.debian.tar.xz",
+        "sha256": "b74a28979b65941b6f710871cbd5e08c2d31f87aad45c6fe4818202c78072b4b"
+      },
+      "imported_patch_count": 5,
+      "sury_patch_range": [
+        "0155-libgd-patch-for-CVE-2026-9672.patch",
+        "0159-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "local_patch_range": [
+        "0151-libgd-patch-for-CVE-2026-9672.patch",
+        "0155-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "series_sha256": "def0f4a885d9660673680e3bdd138aa6dddbaacd54eb8999a714e0bfadc8cf27",
+      "matching_imported_code_and_test_files": 30
+    },
+    {
+      "php": "7.3",
+      "upstream_version": "7.3.33",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-7.3.33.tar.gz",
+        "sha256": "9a369c32c6f52036b0a890f290327f148a1904ee66aa56e2c9a7546da6525ec8"
+      },
+      "sury_source_version": "7.3.33-35+0~20261021.144+debian12~1.gbpecf76f",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.3/php7.3_7.3.33.orig.tar.xz",
+        "sha256": "166eaccde933381da9516a2b70ad0f447d7cec4b603d07b9a916032b215b90cc"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.3/php7.3_7.3.33-35+0~20261021.144+debian12~1.gbpecf76f.debian.tar.xz",
+        "sha256": "6708d986af131aa0e0c7ecb65a47babacf2918d43a3d94d31341f64a734aa815"
+      },
+      "imported_patch_count": 5,
+      "sury_patch_range": [
+        "0135-libgd-patch-for-CVE-2026-9672.patch",
+        "0139-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "local_patch_range": [
+        "0131-libgd-patch-for-CVE-2026-9672.patch",
+        "0135-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "series_sha256": "910acbf9da628bbdd21555487fb62776e762df40efb88893f4220d96c05d12ec",
+      "matching_imported_code_and_test_files": 31
+    },
+    {
+      "php": "7.4",
+      "upstream_version": "7.4.33",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-7.4.33.tar.gz",
+        "sha256": "5a2337996f07c8a097e03d46263b5c98d2c8e355227756351421003bea8f463e"
+      },
+      "sury_source_version": "1:7.4.33-31+0~20261021.121+debian12~1.gbpe9c428",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.4/php7.4_7.4.33.orig.tar.xz",
+        "sha256": "924846abf93bc613815c55dd3f5809377813ac62a9ec4eb3778675b82a27b927"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php7.4/php7.4_7.4.33-31+0~20261021.121+debian12~1.gbpe9c428.debian.tar.xz",
+        "sha256": "4747b79a87b89a2591497704df4b80e68c7e78b64fbf23c205dca331ebf83496"
+      },
+      "imported_patch_count": 26,
+      "sury_patch_range": [
+        "0139-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0164-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "local_patch_range": [
+        "0135-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0160-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "series_sha256": "6f6525b8e98e7e2cece89e40eea184c351e730cbb133ec4de50a5ed9f15e3f9e",
+      "matching_imported_code_and_test_files": 116
+    },
+    {
+      "php": "8.0",
+      "upstream_version": "8.0.30",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-8.0.30.tar.gz",
+        "sha256": "449d2048fcb20a314d8c218097c6d1047a9f1c5bb72aa54d5d3eba0a27a4c80c"
+      },
+      "sury_source_version": "1:8.0.30-25+0~20261021.88+debian12~1.gbpabebea",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php8.0/php8.0_8.0.30.orig.tar.xz",
+        "sha256": "216ab305737a5d392107112d618a755dc5df42058226f1670e9db90e77d777d9"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php8.0/php8.0_8.0.30-25+0~20261021.88+debian12~1.gbpabebea.debian.tar.xz",
+        "sha256": "8dd2d897829859df423919744fa4db2a4a61c027ffa6afdef01d276262f5df6e"
+      },
+      "imported_patch_count": 26,
+      "sury_patch_range": [
+        "0112-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0137-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "local_patch_range": [
+        "0107-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0132-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "series_sha256": "b806088078ae0dfdade470c625dce216a34c48a4d57cbe6f7663d003b1113378",
+      "matching_imported_code_and_test_files": 116
+    },
+    {
+      "php": "8.1",
+      "upstream_version": "8.1.34",
+      "upstream_archive": {
+        "url": "https://github.com/php/web-php-distributions/raw/master/php-8.1.34.tar.gz",
+        "sha256": "3c5b060ec8e0d5dd1d8237823f3161cc8bc5342aab3c46893eba9857759c4bfa"
+      },
+      "sury_source_version": "8.1.34-9+0~20261021.82+debian12~1.gbp4e430a",
+      "sury_original_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php8.1/php8.1_8.1.34.orig.tar.xz",
+        "sha256": "ffa9e0982e82eeaea848f57687b425ed173aa278fe563001310ae2638db5c251"
+      },
+      "sury_packaging_archive": {
+        "url": "https://packages.sury.org/php/pool/main/p/php8.1/php8.1_8.1.34-9+0~20261021.82+debian12~1.gbp4e430a.debian.tar.xz",
+        "sha256": "03a83aeb5b1912d7b427e331c1287860d31a3a6c8b49ff40ac83df371283979c"
+      },
+      "imported_patch_count": 23,
+      "sury_patch_range": [
+        "0061-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0083-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "local_patch_range": [
+        "0058-Fix-heap-buffer-overflow-in-convert-stream-filters-w.patch",
+        "0080-Avoid-state-corruption-via-bailout.patch"
+      ],
+      "series_sha256": "31aa64cd828dec1044f59203b3c23eb017e64b11e90d47f538d608883114e8a1",
+      "matching_imported_code_and_test_files": 120
+    }
+  ]
+}

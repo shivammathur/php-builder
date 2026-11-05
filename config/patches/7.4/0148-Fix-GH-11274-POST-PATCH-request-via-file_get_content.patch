@@ -1,0 +1,179 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Fri, 19 May 2023 12:55:39 +0200
+Subject: Fix GH-11274: POST/PATCH request via file_get_contents +
+ stream_context_create switches to GET after a HTTP 308 redirect
+
+RFC 7231 states that status code 307 should keep the POST method upon
+redirect. RFC 7538 does the same for code 308. Although it's not
+mandated by the RFCs that PATCH is also kept (we can choose), it seems
+like keeping PATCH will be the most consistent and understandable behaviour.
+
+This patch also changes an existing test because it was testing for the
+wrong behaviour.
+
+Closes GH-11275.
+
+(cherry picked from commit 1ede3137c9abe19da1fafef66d8e4038c63516b4)
+(cherry picked from commit 4e5d8e83fdb2ffd95d786ae24ae181fc9a221d0e)
+---
+ ext/standard/http_fopen_wrapper.c     | 19 ++++++++---
+ ext/standard/tests/http/bug67430.phpt |  2 +-
+ ext/standard/tests/http/gh11274.phpt  | 62 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 77 insertions(+), 6 deletions(-)
+ create mode 100644 ext/standard/tests/http/gh11274.phpt
+
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index 46f7c7e..d9cafba 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -82,6 +82,7 @@
+ 
+ #define HTTP_WRAPPER_HEADER_INIT    1
+ #define HTTP_WRAPPER_REDIRECTED     2
++#define HTTP_WRAPPER_KEEP_METHOD    4
+ 
+ static inline void strip_header(char *header_bag, char *lc_header_bag,
+ 		const char *lc_header_name)
+@@ -343,6 +344,7 @@ static php_stream *php_stream_url_wrap_http_ex(php_stream_wrapper *wrapper,
+ 	char *user_headers = NULL;
+ 	int header_init = ((flags & HTTP_WRAPPER_HEADER_INIT) != 0);
+ 	int redirected = ((flags & HTTP_WRAPPER_REDIRECTED) != 0);
++	int redirect_keep_method = ((flags & HTTP_WRAPPER_KEEP_METHOD) != 0);
+ 	int response_code;
+ 	smart_str req_buf = {0};
+ 	zend_bool custom_request_method;
+@@ -582,7 +584,7 @@ finish:
+ 		if (Z_TYPE_P(tmpzval) == IS_STRING && Z_STRLEN_P(tmpzval) > 0) {
+ 			/* As per the RFC, automatically redirected requests MUST NOT use other methods than
+ 			 * GET and HEAD unless it can be confirmed by the user */
+-			if (!redirected
++			if (!redirected || redirect_keep_method
+ 				|| (Z_STRLEN_P(tmpzval) == 3 && memcmp("GET", Z_STRVAL_P(tmpzval), 3) == 0)
+ 				|| (Z_STRLEN_P(tmpzval) == 4 && memcmp("HEAD",Z_STRVAL_P(tmpzval), 4) == 0)
+ 			) {
+@@ -670,7 +672,7 @@ finish:
+ 			php_strtolower(ZSTR_VAL(tmp), ZSTR_LEN(tmp));
+ 			t = ZSTR_VAL(tmp);
+ 
+-			if (!header_init) {
++			if (!header_init && !redirect_keep_method) {
+ 				/* strip POST headers on redirect */
+ 				strip_header(user_headers, t, "content-length:");
+ 				strip_header(user_headers, t, "content-type:");
+@@ -818,7 +820,7 @@ finish:
+ 		 * see bug #44603 for details. Since Content-Type maybe part of user's headers we need to do this check first.
+ 		 */
+ 		if (
+-				header_init &&
++				(header_init || redirect_keep_method) &&
+ 				context &&
+ 				!(have_header & HTTP_HEADER_CONTENT_LENGTH) &&
+ 				(tmpzval = php_stream_context_get_option(context, "http", "content")) != NULL &&
+@@ -836,7 +838,7 @@ finish:
+ 	}
+ 
+ 	/* Request content, such as for POST requests */
+-	if (header_init && context &&
++	if ((header_init || redirect_keep_method) && context &&
+ 		(tmpzval = php_stream_context_get_option(context, "http", "content")) != NULL &&
+ 		Z_TYPE_P(tmpzval) == IS_STRING && Z_STRLEN_P(tmpzval) > 0) {
+ 		if (!(have_header & HTTP_HEADER_CONTENT_LENGTH)) {
+@@ -1100,9 +1102,16 @@ finish:
+ 				CHECK_FOR_CNTRL_CHARS(resource->pass);
+ 				CHECK_FOR_CNTRL_CHARS(resource->path);
+ 			}
++			int new_flags = HTTP_WRAPPER_REDIRECTED;
++			if (response_code == 307 || response_code == 308) {
++				/* RFC 7538 specifies that status code 308 does not allow changing the request method from POST to GET.
++				 * RFC 7231 does the same for status code 307.
++				 * To keep consistency between POST and PATCH requests, we'll also not change the request method from PATCH to GET, even though it's allowed it's not mandated by the RFC. */
++				new_flags |= HTTP_WRAPPER_KEEP_METHOD;
++			}
+ 			stream = php_stream_url_wrap_http_ex(
+ 				wrapper, new_path, mode, options, opened_path, context,
+-				--redirect_max, HTTP_WRAPPER_REDIRECTED, response_header STREAMS_CC);
++				--redirect_max, new_flags, response_header STREAMS_CC);
+ 			efree(new_path);
+ 		} else {
+ 			php_stream_wrapper_log_error(wrapper, options, "HTTP request failed! %s", tmp_line);
+diff --git a/ext/standard/tests/http/bug67430.phpt b/ext/standard/tests/http/bug67430.phpt
+index a563951..61c7080 100644
+--- a/ext/standard/tests/http/bug67430.phpt
++++ b/ext/standard/tests/http/bug67430.phpt
+@@ -41,7 +41,7 @@ POST / HTTP/1.0
+ Host: 127.0.0.1:12342
+ Connection: close
+ 
+-GET /foo HTTP/1.0
++POST /foo HTTP/1.0
+ Host: 127.0.0.1:12342
+ Connection: close
+ 
+diff --git a/ext/standard/tests/http/gh11274.phpt b/ext/standard/tests/http/gh11274.phpt
+new file mode 100644
+index 0000000..fc125bf
+--- /dev/null
++++ b/ext/standard/tests/http/gh11274.phpt
+@@ -0,0 +1,62 @@
++--TEST--
++GH-11274 (POST/PATCH request via file_get_contents + stream_context_create switches to GET after a HTTP 308 redirect)
++--INI--
++allow_url_fopen=1
++--CONFLICTS--
++server
++--FILE--
++<?php
++$serverCode = <<<'CODE'
++$uri = $_SERVER['REQUEST_URI'];
++if (isset($_GET["desired_status"]) && $uri[strlen($uri) - 1] !== '/') {
++    $desired_status = (int) $_GET["desired_status"];
++    http_response_code($desired_status);
++    header("Location: $uri/");
++    exit;
++}
++
++echo "method: ", $_SERVER['REQUEST_METHOD'], "; body: ", file_get_contents('php://input'), "\n";
++CODE;
++
++include __DIR__."/../../../../sapi/cli/tests/php_cli_server.inc";
++php_cli_server_start($serverCode, null, []);
++
++foreach ([null, 301, 302, 307, 308] as $status) {
++    if (is_null($status)) {
++        echo "-- Testing unredirected request --\n";
++    } else {
++        echo "-- Testing redirect status code $status --\n";
++    }
++    $suffix = $status ? "?desired_status=$status" : "";
++    echo file_get_contents("http://" . PHP_CLI_SERVER_ADDRESS . "/test$suffix", false, stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-type: application/x-www-form-urlencoded', 'content' => http_build_query(['hello' => 'world'])]]));
++    echo file_get_contents("http://" . PHP_CLI_SERVER_ADDRESS . "/test$suffix", false, stream_context_create(['http' => ['method' => 'PATCH', 'header' => 'Content-type: application/x-www-form-urlencoded', 'content' => http_build_query(['hello' => 'world'])]]));
++    echo file_get_contents("http://" . PHP_CLI_SERVER_ADDRESS . "/test/$suffix", false, stream_context_create(['http' => ['method' => 'POST', 'header' => 'Content-type: application/x-www-form-urlencoded', 'content' => http_build_query(['hello' => 'world'])]]));
++    echo file_get_contents("http://" . PHP_CLI_SERVER_ADDRESS . "/test/$suffix", false, stream_context_create(['http' => ['method' => 'PATCH', 'header' => 'Content-type: application/x-www-form-urlencoded', 'content' => http_build_query(['hello' => 'world'])]]));
++}
++?>
++--EXPECT--
++-- Testing unredirected request --
++method: POST; body: hello=world
++method: PATCH; body: hello=world
++method: POST; body: hello=world
++method: PATCH; body: hello=world
++-- Testing redirect status code 301 --
++method: GET; body: 
++method: GET; body: 
++method: GET; body: 
++method: GET; body: 
++-- Testing redirect status code 302 --
++method: GET; body: 
++method: GET; body: 
++method: GET; body: 
++method: GET; body: 
++-- Testing redirect status code 307 --
++method: POST; body: hello=world
++method: PATCH; body: hello=world
++method: POST; body: hello=world
++method: PATCH; body: hello=world
++-- Testing redirect status code 308 --
++method: POST; body: hello=world
++method: PATCH; body: hello=world
++method: POST; body: hello=world
++method: PATCH; body: hello=world

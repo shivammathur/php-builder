@@ -55,14 +55,24 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   # Build assets array with builds.
   shopt -s nullglob
   assets=()
-  for asset in ./builds/*/php_"$PHP_VERSION"*; do
-    assets+=("$asset")
-  done
+  if [ "${EXTENSIONS_CACHE_ONLY:-false}" = true ]; then
+    assets=(./builds/*/php_"$PHP_VERSION"-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-zts-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-asan-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-zts-asan-extensions-cache+*.tar.zst)
+    [ "${#assets[@]}" -gt 0 ] || { echo "No extension caches for PHP $PHP_VERSION" >&2; exit 1; }
+  else
+    for asset in ./builds/*/php_"$PHP_VERSION"*; do
+      assets+=("$asset")
+    done
+  fi
   shopt -u nullglob
   if [ "${#assets[@]}" -ne 0 ]; then
     # Update logs.
-    log_version
-    log_build
+    if [ "${EXTENSIONS_CACHE_ONLY:-false}" != true ]; then
+      log_version
+      log_build
+    fi
 
     # Create or update release.
     if ! gh release view "$PHP_VERSION"; then

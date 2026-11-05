@@ -1,0 +1,46 @@
+From: Ilija Tovilo <ilija.tovilo@me.com>
+Date: Fri, 25 Sep 2026 15:00:52 +0200
+Subject: Skip recursion tests on ASAN
+
+ASAN stack usage is unreliable so we might overflow before the limit is reached.
+
+(cherry picked from commit 1b8d390d73b45cd687021197fec99ad4c8f9eb21)
+---
+ ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt | 6 ++++++
+ ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt | 6 ++++++
+ 2 files changed, 12 insertions(+)
+
+diff --git a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
+index e07f78d..a8e9647 100644
+--- a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
++++ b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
+@@ -2,6 +2,12 @@
+ GHSA-rgrp-mwpx-f6rm: Stack overflow on a chain of href references
+ --EXTENSIONS--
+ soap
++--SKIPIF--
++<?php
++if (getenv('SKIP_ASAN')) {
++    die('skip ASAN needs different stack limit setting due to more stack space usage');
++}
++?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
+index 5058ba1..9d27b4a 100644
+--- a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
++++ b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
+@@ -2,6 +2,12 @@
+ GHSA-rgrp-mwpx-f6rm: Stack overflow on an array element referencing its own array
+ --EXTENSIONS--
+ soap
++--SKIPIF--
++<?php
++if (getenv('SKIP_ASAN')) {
++    die('skip ASAN needs different stack limit setting due to more stack space usage');
++}
++?>
+ --FILE--
+ <?php
+ 

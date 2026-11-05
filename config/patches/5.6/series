@@ -252,3 +252,7 @@
 0252-relax-test-may-fail-when-script-not-in-status-page.patch
 0253-fix-test-name.patch
 0254-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch
+0255-Avoid-state-corruption-via-bailout.patch
+0256-Fix-repeated-warning-for-file-uploads-limit-exceedin.patch
+0257-Introduce-max_multipart_body_parts-INI.patch
+0258-Add-CVE-2023-0662-to-NEWS.patch
