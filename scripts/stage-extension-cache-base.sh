@@ -7,6 +7,7 @@ set -euo pipefail
 suffix=''
 arch_suffix=''
 [ "$BUILD" != zts ] || suffix=-zts
+[ "${ASAN:-}" != asan ] || suffix="${suffix}-asan"
 [[ "$(arch)" != aarch64 && "$(arch)" != arm64 ]] || arch_suffix=_arm64
 SOURCE_ARTIFACT_DIR=/tmp/cache-source-artifacts
 SOURCE_DEBUG_ROOT=/tmp/source-debug

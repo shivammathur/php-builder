@@ -404,6 +404,7 @@ cache_main() (
   cache_arch=$(dpkg --print-architecture)
   case "$cache_arch" in amd64) ;; arm64) arch_suffix=_arm64 ;; *) echo 'Unsupported architecture' >&2; exit 1 ;; esac
   [ "$BUILD" != zts ] || suffix=-zts
+  [ "${ASAN:-}" != asan ] || suffix="${suffix}-asan"
   asset="php_$PHP_VERSION$suffix-extensions-cache+$cache_platform$arch_suffix.tar.zst"
   cache_context > "$cache_work/context.json"
   cache_ext_dir=$("$cache_php_config" --extension-dir)

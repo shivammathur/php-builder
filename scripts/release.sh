@@ -57,7 +57,9 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   assets=()
   if [ "${EXTENSIONS_CACHE_ONLY:-false}" = true ]; then
     assets=(./builds/*/php_"$PHP_VERSION"-extensions-cache+*.tar.zst
-            ./builds/*/php_"$PHP_VERSION"-zts-extensions-cache+*.tar.zst)
+            ./builds/*/php_"$PHP_VERSION"-zts-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-asan-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-zts-asan-extensions-cache+*.tar.zst)
     [ "${#assets[@]}" -gt 0 ] || { echo "No extension caches for PHP $PHP_VERSION" >&2; exit 1; }
   else
     for asset in ./builds/*/php_"$PHP_VERSION"*; do

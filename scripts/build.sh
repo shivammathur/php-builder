@@ -72,7 +72,8 @@ configure_build_flags() {
   extra_warning_flags="-Wall -pedantic"
   [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
 
-  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
+  # Set and export FLAGS
+  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
 
@@ -80,6 +81,17 @@ configure_build_flags() {
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
+
+  # Add ASAN/UBSan flags
+  if [ "${ASAN:-}" = "asan" ]; then
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
+    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
+    LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
+    if [ "$PHP_VERSION" = "8.0" ]; then
+      CFLAGS="$CFLAGS -DZEND_TRACK_ARENA_ALLOC"
+      CXXFLAGS="$CXXFLAGS -DZEND_TRACK_ARENA_ALLOC"
+    fi
+  fi
 
   if [ "$build_target" = "extensions" ] && [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.[01])$ ]]; then
     c23_flag="$(get_c23_standard_flag)"
@@ -143,6 +155,12 @@ build_php() {
   if ! php-build -v -i "$default_ini" "$PHP_VERSION" "$prefix"; then
     echo 'Failed to build PHP'
     exit 1
+  fi
+
+  # Match PHP's arena allocation mode in separately built extensions.
+  if [ "${ASAN:-}" = asan ] && dpkg --compare-versions "$PHP_VERSION" lt 8.6; then
+    sed -i '1i#define ZEND_TRACK_ARENA_ALLOC 1' \
+      "$INSTALL_ROOT"/usr/include/php/*/main/php_config.h
   fi
   echo "::endgroup::"
 }
@@ -208,6 +226,18 @@ merge_sapi() {
   # Copy switch_sapi and switch_jit scripts
   cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/sbin/switch_sapi
   cp -fp scripts/switch_jit "$INSTALL_ROOT"/usr/sbin/switch_jit
+
+  # Package the Apache environment only for ASAN builds.
+  if [ "${ASAN:-}" = asan ]; then
+    asan_lib=$(ldd "$INSTALL_ROOT/usr/bin/php$PHP_VERSION" | awk '/libasan\.so/ {print $3; exit}')
+    if [ ! -f "$asan_lib" ]; then
+      echo "Cannot find the ASAN runtime for PHP $PHP_VERSION" >&2
+      return 1
+    fi
+    mkdir -p "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2" "$INSTALL_ROOT/etc/apache2/conf-available"
+    sed "s|ASAN_LIB|$asan_lib|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
+    cp -fp config/apache2-asan.conf "$INSTALL_ROOT/etc/apache2/conf-available/php-asan-env.conf"
+  fi
 
   # Make sure the binaries are executable.
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
@@ -338,6 +368,12 @@ default_ini="production"
 # Set thread-safe options.
 if [ "${BUILD:?}" = "zts" ]; then
   export PHP_PKG_SUFFIX=-zts
+fi
+
+# Set ASAN options.
+if [ "${ASAN:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="${PHP_PKG_SUFFIX:-}-asan"
+  export PHP_PKG_SUFFIX
 fi
 
 # Import OS information to the environment.
