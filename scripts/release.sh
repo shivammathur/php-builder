@@ -7,41 +7,35 @@ log_build() {
   assets+=("./build.log")
 }
 
-# Function to get the latest stable release tag for a PHP version.
-get_github_release_tag() {
-  github_headers=()
-  [ -n "${GITHUB_TOKEN:-}" ] && github_headers=(-H "Authorization: Bearer $GITHUB_TOKEN")
-  curl "${github_headers[@]}" -sL "https://api.github.com/repos/php/php-src/git/matching-refs/tags%2Fphp-$PHP_VERSION." | grep -Eo "php-[0-9]+\.[0-9]+\.[0-9]+\"" | sort -V | tail -1 | cut -d '"' -f 1 || true
-}
-
-get_stable_release_tag() {
-  source=$1
-  if [ "$source" = "--web-php" ]; then
-    release_tag="$(curl -sL https://www.php.net/releases/feed.php | grep -Po -m 1 "php-(${PHP_VERSION//./\\.}\.[0-9]+)" | head -n 1)"
-    release_tag="${release_tag:-$(curl -sL https://www.php.net/releases | grep -Po "${PHP_VERSION//./\\.}\.[0-9]+" | head -n1 | sed 's/^/php-/')}"
-    echo "${release_tag:-$(get_github_release_tag)}"
-  else
-    get_github_release_tag
-  fi
-}
-
-# Function to get the PHP version from a branch.
-get_version_from_branch() {
-  curl -sL https://raw.githubusercontent.com/php/php-src/"$1"/main/php_version.h | grep -Po 'PHP_VERSION "\K[0-9]+\.[0-9]+\.[0-9][0-9a-zA-Z-]*' 2>/dev/null || true
-}
-
-# Function to update the PHP version log
+# Record the version actually packaged, even if upstream advances before release.
 log_version() {
-  assets+=("scripts/install.sh")
-  new_version=$(get_stable_release_tag "$PHP_SOURCE")
-  if [ "$new_version" = "" ]; then
-    new_version=$(get_version_from_branch PHP-"$PHP_VERSION")
-    if [ "$new_version" = "" ]; then
-      new_version=$(get_version_from_branch master)
+  local asset package_version new_version=
+  for asset in "${assets[@]}"; do
+    case "${asset##*/}" in
+      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz) ;;
+      *) continue ;;
+    esac
+    package_version=$(set -o pipefail; tar -xJOf "$asset" --wildcards './usr/include/php/*/main/php_version.h' |
+      sed -nE 's/^#define PHP_VERSION "([^"]+)"$/\1/p') || return 1
+    if [[ ! "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+((alpha|beta|RC)[0-9]+)?(-dev)?$ ]] ||
+       [[ "$package_version" != "$PHP_VERSION".* ]]; then
+      echo "Invalid PHP $PHP_VERSION version in $asset: $package_version" >&2
+      return 1
     fi
+    if [ -n "$new_version" ] && [ "$new_version" != "$package_version" ]; then
+      echo "PHP $PHP_VERSION packages disagree: $new_version and $package_version ($asset)" >&2
+      return 1
+    fi
+    new_version=$package_version
+  done
+  if [ -z "$new_version" ]; then
+    echo "No PHP $PHP_VERSION runtime package found for the version log" >&2
+    return 1
   fi
-  echo "$new_version" > "php$PHP_VERSION.log"
-  assets+=("./php$PHP_VERSION.log")
+  # Stable-build checks compare this log with upstream tag names.
+  [[ "$new_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && new_version="php-$new_version"
+  printf '%s\n' "$new_version" > "php$PHP_VERSION.log" || return 1
+  assets+=("scripts/install.sh" "./php$PHP_VERSION.log")
 }
 
 # Exit if commit message has skip-release.
@@ -68,7 +62,7 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   if [ "${#assets[@]}" -ne 0 ]; then
     # Update logs.
     if [ "${EXTENSIONS_CACHE_ONLY:-false}" != true ]; then
-      log_version
+      log_version || exit 1
       log_build
     fi
 
