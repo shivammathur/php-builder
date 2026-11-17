@@ -28,9 +28,9 @@ index 7ebd1c8e06d..4f1939eec1d 100644
 @@ -149,6 +151,7 @@ phpize_copy_files()
    test -d build || mkdir build
  
-   (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
-+  (cd "$aclocaldir" && cp $LIBTOOL_FILES "$builddir"/build)
-   (cd "$phpdir" && cp $FILES "$builddir")
+   (cd "$phpdir" && cp -f $FILES_BUILD "$builddir"/build) || exit 1
++  (cd "$aclocaldir" && cp -f $LIBTOOL_FILES "$builddir"/build) || exit 1
+   (cd "$phpdir" && cp -f $FILES "$builddir") || exit 1
  }
  
 -- 

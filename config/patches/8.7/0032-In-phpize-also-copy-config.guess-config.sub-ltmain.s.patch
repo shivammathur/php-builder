@@ -33,10 +33,10 @@ index 4f1939eec1d..3383c6a64c4 100644
    config.nice configure configure.ac \
 @@ -152,6 +159,7 @@ phpize_copy_files()
  
-   (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
-   (cd "$aclocaldir" && cp $LIBTOOL_FILES "$builddir"/build)
-+  (cd "$auxdir" && cp $AUX_FILES "$builddir"/build)
-   (cd "$phpdir" && cp $FILES "$builddir")
+   (cd "$phpdir" && cp -f $FILES_BUILD "$builddir"/build) || exit 1
+   (cd "$aclocaldir" && cp -f $LIBTOOL_FILES "$builddir"/build) || exit 1
++  (cd "$auxdir" && cp -f $AUX_FILES "$builddir"/build) || exit 1
+   (cd "$phpdir" && cp -f $FILES "$builddir") || exit 1
  }
  
 -- 
