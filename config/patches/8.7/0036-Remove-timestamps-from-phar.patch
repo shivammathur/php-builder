@@ -6,15 +6,16 @@ Thanks to Jelle van der Waa!
 
 https://gist.github.com/jelly/96847934239aac19c512c54ca65d6baa
 ---
- ext/phar/phar.c | 2 +-
- ext/phar/util.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ ext/phar/phar.c        | 2 +-
+ ext/phar/phar_object.c | 6 +++---
+ ext/phar/stream.c      | 2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/ext/phar/phar.c b/ext/phar/phar.c
-index 76a5809..06ddf58 100644
+index bee5fe7..bc91d12 100644
 --- a/ext/phar/phar.c
 +++ b/ext/phar/phar.c
-@@ -2973,7 +2973,7 @@ void phar_flush_ex(phar_archive_data *phar, zend_string *user_stub, bool is_defa
+@@ -2906,7 +2906,7 @@ ZEND_ATTRIBUTE_NONNULL_ARGS(1, 4) int phar_flush_ex(phar_archive_data *phar, zen
  			4: metadata-len
  			+: metadata
  		*/
@@ -23,16 +24,47 @@ index 76a5809..06ddf58 100644
  		phar_set_32(entry_buffer, entry->uncompressed_filesize);
  		phar_set_32(entry_buffer+4, mytime);
  		phar_set_32(entry_buffer+8, entry->compressed_filesize);
-diff --git a/ext/phar/util.c b/ext/phar/util.c
-index 0639481..9b683f2 100644
---- a/ext/phar/util.c
-+++ b/ext/phar/util.c
-@@ -700,7 +700,7 @@ phar_entry_data *phar_get_or_create_entry_data(char *fname, size_t fname_len, ch
+diff --git a/ext/phar/phar_object.c b/ext/phar/phar_object.c
+index 9d3bd84..ff6ba4c 100644
+--- a/ext/phar/phar_object.c
++++ b/ext/phar/phar_object.c
+@@ -1367,7 +1367,7 @@ static phar_entry_data *phar_build_entry_data(zend_string *fname, char *path, si
  
- 	phar_add_virtual_dirs(phar, path, path_len);
- 	etemp.is_modified = 1;
--	etemp.timestamp = timestamp;
-+	etemp.timestamp = 0;
- 	etemp.is_crc_checked = 1;
- 	etemp.phar = phar;
- 	etemp.filename = zend_string_init(path, path_len, false);
+ 		timestamp = Z_LVAL(rv);
+ 	} else {
+-		timestamp = time(NULL);
++		timestamp = 0;
+ 	}
+ 
+ 	return phar_get_or_create_entry_data(fname, path, path_len, "w+b", 0, error, true, timestamp);
+@@ -3640,7 +3640,7 @@ static void phar_add_file(phar_archive_data **pphar, zend_string *file_name, con
+ 	}
+ #endif
+ 
+-	phar_entry_data *data = phar_get_or_create_entry_data((*pphar)->fname, filename, filename_len, "w+b", 0, &error, true, time(NULL));
++	phar_entry_data *data = phar_get_or_create_entry_data((*pphar)->fname, filename, filename_len, "w+b", 0, &error, true, 0);
+ 	if (!data) {
+ 		if (error) {
+ 			zend_throw_exception_ex(spl_ce_BadMethodCallException, 0, "Entry %s does not exist and cannot be created: %s", filename, error);
+@@ -3714,7 +3714,7 @@ static void phar_mkdir(phar_archive_data **pphar, zend_string *dir_name)
+ 		(*pphar)->fname,
+ 		ZSTR_VAL(dir_name), ZSTR_LEN(dir_name),
+ 		"w+b", 2, &error, true,
+-		time(NULL)
++		0
+ 	);
+ 	if (!data) {
+ 		if (error) {
+diff --git a/ext/phar/stream.c b/ext/phar/stream.c
+index 86ec22e..30a74c5 100644
+--- a/ext/phar/stream.c
++++ b/ext/phar/stream.c
+@@ -197,7 +197,7 @@ static php_stream * phar_wrapper_open_url(php_stream_wrapper *wrapper, const cha
+ 	/* strip leading "/" */
+ 	internal_file = estrndup(ZSTR_VAL(resource->path) + 1, ZSTR_LEN(resource->path) - 1);
+ 	if (mode[0] == 'w' || (mode[0] == 'r' && mode[1] == '+')) {
+-		if (NULL == (idata = phar_get_or_create_entry_data(resource->host, internal_file, strlen(internal_file), mode, 0, &error, true, time(NULL)))) {
++		if (NULL == (idata = phar_get_or_create_entry_data(resource->host, internal_file, strlen(internal_file), mode, 0, &error, true, 0))) {
+ 			if (error) {
+ 				php_stream_wrapper_log_warn(wrapper, context, options, CreateFailed, "%s", error);
+ 				efree(error);

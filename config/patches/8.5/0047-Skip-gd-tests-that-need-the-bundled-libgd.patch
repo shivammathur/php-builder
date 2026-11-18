@@ -1,0 +1,38 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:39 +0100
+Subject: Skip gd tests that need the bundled libgd
+
+---
+ ext/gd/tests/bug73272.phpt                  | 1 +
+ ext/gd/tests/createfromstring-overflow.phpt | 6 ++++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/ext/gd/tests/bug73272.phpt b/ext/gd/tests/bug73272.phpt
+index 0f0920b..d54a646 100644
+--- a/ext/gd/tests/bug73272.phpt
++++ b/ext/gd/tests/bug73272.phpt
+@@ -4,6 +4,7 @@
+ gd
+ --SKIPIF--
+ <?php
++if (!GD_BUNDLED) die("skip upstream bugfix has not been released");
+ if (!(imagetypes() & IMG_PNG)) {
+     die("skip No PNG support");
+ }
+diff --git a/ext/gd/tests/createfromstring-overflow.phpt b/ext/gd/tests/createfromstring-overflow.phpt
+index e79f380..a1d0614 100644
+--- a/ext/gd/tests/createfromstring-overflow.phpt
++++ b/ext/gd/tests/createfromstring-overflow.phpt
+@@ -2,6 +2,12 @@
+ imagecreatefromstring overflow with compressed chunk of size INT_MAX
+ --EXTENSIONS--
+ gd
++--SKIPIF--
++<?php
++if (!GD_BUNDLED && version_compare(GD_VERSION, "2.3.3", ">=")) {
++    die("skip test requires GD 2.3.2 or older");
++}
++?>
+ --FILE--
+ <?php
+ 

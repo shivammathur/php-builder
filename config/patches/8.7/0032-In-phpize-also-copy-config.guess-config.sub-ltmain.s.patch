@@ -31,13 +31,9 @@ index 4f1939eec1d..3383c6a64c4 100644
  LIBTOOL_FILES="pkg.m4 libtool.m4 ltoptions.m4 ltsugar.m4 ltversion.m4 lt~obsolete.m4"
  CLEAN_FILES="$FILES *.o *.lo *.la .libs/ build/ modules/ \
    config.nice configure configure.ac \
-@@ -152,6 +159,7 @@ phpize_copy_files()
- 
-   (cd "$phpdir" && cp -f $FILES_BUILD "$builddir"/build) || exit 1
+@@ -152,2 +159,3 @@ phpize_copy_files()
    (cd "$aclocaldir" && cp -f $LIBTOOL_FILES "$builddir"/build) || exit 1
 +  (cd "$auxdir" && cp -f $AUX_FILES "$builddir"/build) || exit 1
-   (cd "$phpdir" && cp -f $FILES "$builddir") || exit 1
- }
  
 -- 
 2.50.1 (Apple Git-155)

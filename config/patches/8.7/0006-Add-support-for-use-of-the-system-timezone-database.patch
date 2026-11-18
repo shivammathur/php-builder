@@ -44,7 +44,7 @@ r1: initial revision
  2 files changed, 545 insertions(+), 3 deletions(-)
 
 diff --git a/ext/date/config0.m4 b/ext/date/config0.m4
-index 9091803..53cccdd 100644
+index aab6d3d..5657854 100644
 --- a/ext/date/config0.m4
 +++ b/ext/date/config0.m4
 @@ -4,6 +4,19 @@ AC_CHECK_HEADERS([io.h])
@@ -65,10 +65,10 @@ index 9091803..53cccdd 100644
 +fi
 +
  AX_CHECK_COMPILE_FLAG([-Wno-implicit-fallthrough],
-   [PHP_DATE_CFLAGS="$PHP_DATE_CFLAGS -Wno-implicit-fallthrough"],,
-   [-Werror])
+   [PHP_DATE_CFLAGS="$PHP_DATE_CFLAGS -Wno-implicit-fallthrough"])
+ 
 diff --git a/ext/date/lib/parse_tz.c b/ext/date/lib/parse_tz.c
-index c7f9358..88a746c 100644
+index c3cd798..25d1788 100644
 --- a/ext/date/lib/parse_tz.c
 +++ b/ext/date/lib/parse_tz.c
 @@ -26,9 +26,22 @@
@@ -106,7 +106,7 @@ index c7f9358..88a746c 100644
  	/* read ID */
  	version = (*tzf)[3] - '0';
  	*tzf += 4;
-@@ -577,7 +595,429 @@ void timelib_dump_tzinfo(timelib_tzinfo *tz)
+@@ -578,7 +596,429 @@ void timelib_dump_tzinfo(timelib_tzinfo *tz)
  	}
  }
  
@@ -537,7 +537,7 @@ index c7f9358..88a746c 100644
  {
  	int left = 0, right = tzdb->index_size - 1;
  
-@@ -603,9 +1043,48 @@ static int seek_to_tz_position(const unsigned char **tzf, const char *timezone,
+@@ -604,9 +1044,48 @@ static int seek_to_tz_position(const unsigned char **tzf, const char *timezone,
  	return 0;
  }
  
@@ -586,7 +586,7 @@ index c7f9358..88a746c 100644
  }
  
  const timelib_tzdb_index_entry *timelib_timezone_identifiers_list(const timelib_tzdb *tzdb, int *count)
-@@ -617,7 +1096,30 @@ const timelib_tzdb_index_entry *timelib_timezone_identifiers_list(const timelib_
+@@ -618,7 +1097,30 @@ const timelib_tzdb_index_entry *timelib_timezone_identifiers_list(const timelib_
  int timelib_timezone_id_is_valid(const char *timezone, const timelib_tzdb *tzdb)
  {
  	const unsigned char *tzf;
@@ -618,7 +618,7 @@ index c7f9358..88a746c 100644
  }
  
  static int skip_64bit_preamble(const unsigned char **tzf, timelib_tzinfo *tz)
-@@ -662,6 +1164,8 @@ static timelib_tzinfo* timelib_tzinfo_ctor(const char *name)
+@@ -663,6 +1165,8 @@ static timelib_tzinfo* timelib_tzinfo_ctor(const char *name)
  timelib_tzinfo *timelib_parse_tzfile(const char *timezone, const timelib_tzdb *tzdb, int *error_code)
  {
  	const unsigned char *tzf;
@@ -627,7 +627,7 @@ index c7f9358..88a746c 100644
  	timelib_tzinfo *tmp;
  	int version;
  	int transitions_result, types_result;
-@@ -669,7 +1173,7 @@ timelib_tzinfo *timelib_parse_tzfile(const char *timezone, const timelib_tzdb *t
+@@ -670,7 +1174,7 @@ timelib_tzinfo *timelib_parse_tzfile(const char *timezone, const timelib_tzdb *t
  
  	*error_code = TIMELIB_ERROR_NO_ERROR;
  
@@ -636,7 +636,7 @@ index c7f9358..88a746c 100644
  		tmp = timelib_tzinfo_ctor(timezone);
  
  		version = read_preamble(&tzf, tmp, &type);
-@@ -712,11 +1216,36 @@ timelib_tzinfo *timelib_parse_tzfile(const char *timezone, const timelib_tzdb *t
+@@ -713,11 +1217,36 @@ timelib_tzinfo *timelib_parse_tzfile(const char *timezone, const timelib_tzdb *t
  			return NULL;
  		}
  

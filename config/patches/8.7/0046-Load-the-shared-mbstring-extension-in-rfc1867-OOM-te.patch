@@ -1,0 +1,25 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:23 +0100
+Subject: Load the shared mbstring extension in rfc1867 OOM tests
+
+---
+ tests/basic/oom_rfc1867.inc | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tests/basic/oom_rfc1867.inc b/tests/basic/oom_rfc1867.inc
+index 145fefe..7b9561f 100644
+--- a/tests/basic/oom_rfc1867.inc
++++ b/tests/basic/oom_rfc1867.inc
+@@ -52,6 +52,12 @@ function oom_rfc1867_request(callable $writeBody, string $memoryLimit = '8M', ar
+         '-d', 'fatal_error_backtraces=Off',
+     ];
+ 
++    /* mbstring may be built as a shared extension */
++    $mbstring = ini_get('extension_dir') . '/mbstring.' . PHP_SHLIB_SUFFIX;
++    if (preg_grep('/^mbstring\./', $extraIni) && file_exists($mbstring)) {
++        array_push($cmd, '-d', 'extension=' . $mbstring);
++    }
++
+     foreach ($extraIni as $ini) {
+         $cmd[] = '-d';
+         $cmd[] = $ini;
