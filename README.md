@@ -161,7 +161,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols.
 
 - [PHP 8.7.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.7)
-- [PHP 8.6.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.6)
+- [PHP 8.6.x](https://github.com/shivammathur/php-builder/releases/tag/8.6)
 - [PHP 8.5.x](https://github.com/shivammathur/php-builder/releases/tag/8.5)
 - [PHP 8.4.x](https://github.com/shivammathur/php-builder/releases/tag/8.4)
 - [PHP 8.3.x](https://github.com/shivammathur/php-builder/releases/tag/8.3)

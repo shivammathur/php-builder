@@ -58,13 +58,13 @@ expect_failure() {
   [ ! -s "$RELEASE_CALLS" ]
 }
 
-start_case nightly 8.6
-package php_8.6+ubuntu24.04.tar.xz 8.6.0-dev
-package php_8.6-zts+ubuntu24.04_arm64.tar.xz 8.6.0-dev
+start_case stable-ga 8.6
+package php_8.6+ubuntu24.04.tar.xz 8.6.0
+package php_8.6-zts+ubuntu24.04_arm64.tar.xz 8.6.0
 # Debug symbols and extension caches must not be treated as runtime packages.
 touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.xz
 touch builds/packages/php_8.6-extensions-cache+ubuntu24.04.tar.zst
-expect_log 8.6.0-dev
+expect_log php-8.6.0
 
 start_case stable 8.5
 package php_8.5+ubuntu22.04.tar.xz 8.5.13
