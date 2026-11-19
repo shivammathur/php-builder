@@ -1,0 +1,31 @@
+From 9de3e76e5fa4d29733194dcc40b2184c451c9fde Mon Sep 17 00:00:00 2001
+From: Ilija Tovilo <ilija.tovilo@me.com>
+Date: Wed, 11 Nov 2026 16:53:47 +0100
+Subject: [PATCH] Fix GHSA-fm2m-fjf5-v3cp: RCE via corrupted session file
+
+If the session write is interrupted, and the previous session file wasn't
+truncated, we can end up with two partial sessions concatenated together. The
+approximate location of failure may be attacker-controllable in threaded
+environments if another thread causes the process to _exit().
+
+(cherry picked from commit e7025cb116a997a0bdcd7407590b0b8adc52688d)
+(cherry picked from commit 90430ab02b4dea9f6d9ee73c120cbb4a0b802b9a)
+
+diff --git a/ext/session/mod_files.c b/ext/session/mod_files.c
+index 5c69ae33348af429f68b7cd001306e2b0b65a68f..9bf4ff63c0a31039c133312bfd87af29c6186ce5 100644
+--- a/ext/session/mod_files.c
++++ b/ext/session/mod_files.c
+@@ -414,10 +414,9 @@ PS_WRITE_FUNC(files)
+ 		return FAILURE;
+ 	}
+ 
+-	/* Truncate file if the amount of new data is smaller than the existing data set. */
+-
+-	if (vallen < (int)data->st_size) {
+-		php_ignore_value(ftruncate(data->fd, 0));
++	if (ftruncate(data->fd, 0) != 0) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "ftruncate() failed: %s (%d)", strerror(errno), errno);
++		return FAILURE;
+ 	}
+ 
+ #if defined(HAVE_PWRITE)

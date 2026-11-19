@@ -1,0 +1,207 @@
+From 9cf0de6c024bf45c51fc86206773e795b288f3be Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Mon, 26 Oct 2026 20:10:08 +0100
+Subject: [PATCH] Fix GHSA-3mg3-cr28-46gc: FPM XSS within status endpoint via
+ user and script
+
+The fix for GHSA-7qg2-v9fj-4mwv escaped only the request URI and query
+string. The request method, auth user and script filename were still
+printed raw in the full status output. Escape all of them using a common
+helper.
+
+(cherry picked from commit 1ecb92f2cdeb235bb10d6c220c9be4a13f527243)
+(cherry picked from commit 6c7fb8fcb2bbbebfa6bd12fe9e015eb19319b3ea)
+
+diff --git a/sapi/fpm/fpm/fpm_status.c b/sapi/fpm/fpm/fpm_status.c
+index d9a82630892f7455d907a42507cc9140fe9bda47..d2ba77fd7567ca53511ac0dbae18243b244a2d74 100644
+--- a/sapi/fpm/fpm/fpm_status.c
++++ b/sapi/fpm/fpm/fpm_status.c
+@@ -46,13 +46,65 @@ int fpm_status_init_child(struct fpm_worker_pool_s *wp) /* {{{ */
+ }
+ /* }}} */
+ 
++static char *fpm_status_escape(const char *str, zend_bool encode_html, zend_bool encode_json, char **tmp TSRMLS_DC)
++{
++	*tmp = NULL;
++	if (str[0] == '\0') {
++		return NULL;
++	}
++	if (encode_html) {
++		size_t len;
++		*tmp = php_escape_html_entities_ex((unsigned char *) str, strlen(str), &len, 1,
++				ENT_DISALLOWED | ENT_HTML_DOC_XML1 | ENT_COMPAT, NULL, 1 TSRMLS_CC);
++		return *tmp;
++	}
++	if (encode_json) {
++		const unsigned char *p = (const unsigned char *) str;
++		const unsigned char *end = p + strlen(str);
++		char *out;
++		static const char hex[] = "0123456789abcdef";
++
++		*tmp = safe_emalloc(6, strlen(str), 1);
++		out = *tmp;
++		while (*p) {
++			if (*p >= 0x80) {
++				size_t len = 0;
++				int status;
++
++				php_next_utf8_char(p, end - p, &len, &status);
++				if (status == SUCCESS) {
++					memcpy(out, p, len);
++					out += len;
++				}
++				p += len;
++				continue;
++			}
++			if (*p == '"' || *p == '\\') {
++				*out++ = '\\';
++				*out++ = *p;
++			} else if (*p < 0x20) {
++				memcpy(out, "\\u00", 4);
++				out += 4;
++				*out++ = hex[*p >> 4];
++				*out++ = hex[*p & 15];
++			} else {
++				*out++ = *p;
++			}
++			++p;
++		}
++		*out = '\0';
++		return *tmp;
++	}
++	return (char *) str;
++}
++
+ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ {
+ 	struct fpm_scoreboard_s scoreboard, *scoreboard_p;
+ 	struct fpm_scoreboard_proc_s proc;
+ 	char *buffer, *time_format, time_buffer[64];
+ 	time_t now_epoch;
+-	int full, encode;
++	int full, encode_html, encode_json;
+ 	char *short_syntax, *short_post;
+ 	char *full_pre, *full_syntax, *full_post, *full_separator;
+ 
+@@ -129,13 +181,14 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 		full = (fpm_php_get_string_from_table("_GET", "full" TSRMLS_CC) != NULL);
+ 		short_syntax = short_post = NULL;
+ 		full_separator = full_pre = full_syntax = full_post = NULL;
+-		encode = 0;
++		encode_html = 0;
++		encode_json = 0;
+ 
+ 		/* HTML */
+ 		if (fpm_php_get_string_from_table("_GET", "html" TSRMLS_CC)) {
+ 			sapi_add_header_ex(ZEND_STRL("Content-Type: text/html"), 1, 1 TSRMLS_CC);
+ 			time_format = "%d/%b/%Y:%H:%M:%S %z";
+-			encode = 1;
++			encode_html = 1;
+ 
+ 			short_syntax =
+ 				"<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Strict//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd\">\n"
+@@ -210,7 +263,7 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 		} else if (fpm_php_get_string_from_table("_GET", "xml" TSRMLS_CC)) {
+ 			sapi_add_header_ex(ZEND_STRL("Content-Type: text/xml"), 1, 1 TSRMLS_CC);
+ 			time_format = "%s";
+-			encode = 1;
++			encode_html = 1;
+ 
+ 			short_syntax =
+ 				"<?xml version=\"1.0\" ?>\n"
+@@ -261,6 +314,7 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 			/* JSON */
+ 		} else if (fpm_php_get_string_from_table("_GET", "json" TSRMLS_CC)) {
+ 			sapi_add_header_ex(ZEND_STRL("Content-Type: application/json"), 1, 1 TSRMLS_CC);
++			encode_json = 1;
+ 			time_format = "%s";
+ 
+ 			short_syntax =
+@@ -383,9 +437,12 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 
+ 		/* no need to test the var 'full' */
+ 		if (full_syntax) {
+-			int i, first;
+-			size_t len, len_uri;
+-			char *query_string, *request_uri_string;
++			unsigned int i;
++			int first;
++			char *tmp_request_method_string, *tmp_request_uri_string, *tmp_query_string;
++			char *tmp_auth_user_string, *tmp_script_filename_string;
++			char *request_method_string, *request_uri_string, *query_string;
++			char *auth_user_string, *script_filename_string;
+ 			struct timeval duration, now;
+ #ifdef HAVE_FPM_LQ
+ 			float cpu;
+@@ -412,24 +469,11 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 					}
+ 				}
+ 
+-				request_uri_string = NULL;
+-				len_uri = 0;
+-				if (proc.request_uri[0] != '\0') {
+-					if (!encode) {
+-						request_uri_string = proc.request_uri;
+-					} else {
+-						request_uri_string = php_escape_html_entities_ex((unsigned char *)proc.request_uri, strlen(proc.request_uri), &len_uri, 1, ENT_DISALLOWED | ENT_HTML_DOC_XML1 | ENT_COMPAT, NULL, 1 TSRMLS_CC);
+-					}
+-				}
+-				query_string = NULL;
+-				len = 0;
+-				if (proc.query_string[0] != '\0') {
+-					if (!encode) {
+-						query_string = proc.query_string;
+-					} else {
+-						query_string = php_escape_html_entities_ex((unsigned char *)proc.query_string, strlen(proc.query_string), &len, 1, ENT_DISALLOWED | ENT_HTML_DOC_XML1 | ENT_COMPAT, NULL, 1 TSRMLS_CC);
+-					}
+-				}
++				request_method_string = fpm_status_escape(proc.request_method, encode_html, encode_json, &tmp_request_method_string TSRMLS_CC);
++				request_uri_string = fpm_status_escape(proc.request_uri, encode_html, encode_json, &tmp_request_uri_string TSRMLS_CC);
++				query_string = fpm_status_escape(proc.query_string, encode_html, encode_json, &tmp_query_string TSRMLS_CC);
++				auth_user_string = fpm_status_escape(proc.auth_user, encode_html, encode_json, &tmp_auth_user_string TSRMLS_CC);
++				script_filename_string = fpm_status_escape(proc.script_filename, encode_html, encode_json, &tmp_script_filename_string TSRMLS_CC);
+ 
+ #ifdef HAVE_FPM_LQ
+ 				/* prevent NaN */
+@@ -453,13 +497,13 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 					now_epoch - proc.start_epoch,
+ 					proc.requests,
+ 					duration.tv_sec * 1000000UL + duration.tv_usec,
+-					proc.request_method[0] != '\0' ? proc.request_method : "-",
++					request_method_string ? request_method_string : "-",
+ 					request_uri_string ? request_uri_string: "-",
+ 					query_string ? "?" : "",
+ 					query_string ? query_string : "",
+ 					proc.content_length,
+-					proc.auth_user[0] != '\0' ? proc.auth_user : "-",
+-					proc.script_filename[0] != '\0' ? proc.script_filename : "-",
++					auth_user_string ? auth_user_string : "-",
++					script_filename_string ? script_filename_string : "-",
+ #ifdef HAVE_FPM_LQ
+ 					proc.request_stage == FPM_REQUEST_ACCEPTING ? cpu : 0.,
+ #endif
+@@ -467,11 +511,20 @@ int fpm_status_handle_request(TSRMLS_D) /* {{{ */
+ 				PUTS(buffer);
+ 				efree(buffer);
+ 
+-				if (len > 0 && query_string) {
+-					efree(query_string);
++				if (tmp_request_method_string) {
++					efree(tmp_request_method_string);
++				}
++				if (tmp_request_uri_string) {
++					efree(tmp_request_uri_string);
++				}
++				if (tmp_query_string) {
++					efree(tmp_query_string);
++				}
++				if (tmp_auth_user_string) {
++					efree(tmp_auth_user_string);
+ 				}
+-				if (len_uri > 0 && request_uri_string) {
+-					efree(request_uri_string);
++				if (tmp_script_filename_string) {
++					efree(tmp_script_filename_string);
+ 				}
+ 			}
+ 

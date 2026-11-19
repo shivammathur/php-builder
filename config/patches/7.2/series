@@ -153,3 +153,15 @@
 0153-Fix-GHSA-vc5h-9ppw-p5f3-phar-circular-symlink-crash.patch
 0154-NEWS-from-8.2.33.patch
 0155-Avoid-state-corruption-via-bailout.patch
+0156-Fix-GHSA-q23r-hr55-xmpg.patch
+0157-Fix-GHSA-68fq-fh7h-f8gr.patch
+0158-Fix-GHSA-5j3f-64r7-f564.patch
+0159-Fix-GHSA-3mg3-cr28-46gc.patch
+0160-Fix-GHSA-qc49-hpvq-g2w6.patch
+0161-Fix-GHSA-4646-p932-gw34.patch
+0162-Fix-GHSA-gr4f-wgx5-jpfv.patch
+0163-Fix-GHSA-fm2m-fjf5-v3cp.patch
+0164-Fix-GHSA-658j-r8rw-q6mx.patch
+0165-Fix-GHSA-f6gg-rchx-xw8j.patch
+0166-Fix-GHSA-jm4m-qfqx-967m.patch
+0167-Restrict-SOAP-element-lookups-to-XML-element-nodes.patch

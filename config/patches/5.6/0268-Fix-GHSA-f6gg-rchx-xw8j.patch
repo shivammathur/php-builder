@@ -1,0 +1,38 @@
+From 8fd68412e09da5c269894622a1db17c6eeb88084 Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Fri, 6 Nov 2026 21:46:18 +0100
+Subject: [PATCH] Fix GHSA-f6gg-rchx-xw8j: mixed case HTTPS and FTPS
+
+Determine TLS use from a case-insensitive comparison of the complete
+URL scheme, preventing mixed-case HTTPS and FTPS URLs from downgrading
+to plaintext. Add regression tests for both wrappers.
+
+(cherry picked from commit 1886e01684583a47cc884106340de0e637fe8320)
+(cherry picked from commit c07cffed46b5efe8a353468917fd4f929fc01eb3)
+
+diff --git a/ext/standard/ftp_fopen_wrapper.c b/ext/standard/ftp_fopen_wrapper.c
+index 5bffa47855c1e89894c1e25a43213021c86a607c..2125529645cf7cf201603671cbb3df3572305b87 100644
+--- a/ext/standard/ftp_fopen_wrapper.c
++++ b/ext/standard/ftp_fopen_wrapper.c
+@@ -150,7 +150,7 @@ static php_stream *php_ftp_fopen_connect(php_stream_wrapper *wrapper, const char
+ 		return NULL;
+ 	}
+ 
+-	use_ssl = resource->scheme && (strlen(resource->scheme) > 3) && resource->scheme[3] == 's';
++	use_ssl = resource->scheme && strcasecmp(resource->scheme, "ftps") == 0;
+ 
+ 	/* use port 21 if one wasn't specified */
+ 	if (resource->port == 0)
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index 157ffd718f156be99783964fb52656d01cff79c7..71aa61f5621542f7879606edadf9b12abf703ff0 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -188,7 +188,7 @@ php_stream *php_stream_url_wrap_http_ex(php_stream_wrapper *wrapper,
+ 			zval_dtor(&ztmp);
+ 		}
+ 
+-		use_ssl = resource->scheme && (strlen(resource->scheme) > 4) && resource->scheme[4] == 's';
++		use_ssl = resource->scheme && strcasecmp(resource->scheme, "https") == 0;
+ 		/* choose default ports */
+ 		if (use_ssl && resource->port == 0)
+ 			resource->port = 443;

@@ -227,3 +227,15 @@
 0227-Fix-repeated-warning-for-file-uploads-limit-exceedin.patch
 0228-Introduce-max_multipart_body_parts-INI.patch
 0229-Add-CVE-2023-0662-to-NEWS.patch
+0230-Fix-GHSA-q23r-hr55-xmpg.patch
+0231-Fix-GHSA-68fq-fh7h-f8gr.patch
+0232-Fix-GHSA-5j3f-64r7-f564.patch
+0233-Fix-GHSA-3mg3-cr28-46gc.patch
+0234-Fix-GHSA-qc49-hpvq-g2w6.patch
+0235-Fix-GHSA-4646-p932-gw34.patch
+0236-Fix-GHSA-gr4f-wgx5-jpfv.patch
+0237-Fix-GHSA-fm2m-fjf5-v3cp.patch
+0238-Fix-GHSA-658j-r8rw-q6mx.patch
+0239-Fix-GHSA-f6gg-rchx-xw8j.patch
+0240-Fix-GHSA-jm4m-qfqx-967m.patch
+0241-Restrict-SOAP-element-lookups-to-XML-element-nodes.patch

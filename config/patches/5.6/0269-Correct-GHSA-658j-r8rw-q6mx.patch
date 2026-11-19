@@ -1,0 +1,80 @@
+From: PHP Security Backports
+Subject: [PATCH] Correct GHSA-658j-r8rw-q6mx follow-up from updated security source
+
+Source baseline: 8fd68412e09da5c269894622a1db17c6eeb88084
+Updated source: 048228913b6eeda72b784c59c43a7bfe8eb05f34
+
+diff --git a/ext/session/session.c b/ext/session/session.c
+index 820847ea69fd1e2683e432c69b9b88658f615c1b..36932370765f9b06a232af7a5486c3fbbf06501f 100644
+--- a/ext/session/session.c
++++ b/ext/session/session.c
+@@ -1828,6 +1828,15 @@ static PHP_FUNCTION(session_set_save_handler)
+ 		RETURN_FALSE;
+ 	}
+ 
++	if (argc != 1 && argc != 2 && argc != 6 && argc != 7) {
++		WRONG_PARAM_COUNT;
++	}
++
++	if (PS(rfc1867_enabled) && PS(mod) != &ps_mod_user) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Session ini settings cannot be changed at runtime when session.upload_progress.enabled is On");
++		RETURN_FALSE;
++	}
++
+ 	if (argc > 0 && argc <= 2) {
+ 		zval *obj = NULL, *callback = NULL;
+ 		zend_uint func_name_len;
+@@ -1912,15 +1921,14 @@ static PHP_FUNCTION(session_set_save_handler)
+ 		}
+ 
+ 		if (PS(mod) && PS(session_status) == php_session_none && PS(mod) != &ps_mod_user) {
+-			zend_alter_ini_entry("session.save_handler", sizeof("session.save_handler"), "user", sizeof("user")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME);
++			if (zend_alter_ini_entry("session.save_handler", sizeof("session.save_handler"), "user", sizeof("user")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME) == FAILURE) {
++				RETURN_FALSE;
++			}
+ 		}
+ 
+ 		RETURN_TRUE;
+ 	}
+ 
+-	if (argc != 6 && argc != 7) {
+-		WRONG_PARAM_COUNT;
+-	}
+ 
+ 	if (zend_parse_parameters(argc TSRMLS_CC, "+", &args, &num_args) == FAILURE) {
+ 		return;
+@@ -1941,7 +1949,10 @@ static PHP_FUNCTION(session_set_save_handler)
+ 	}
+ 
+ 	if (PS(mod) && PS(mod) != &ps_mod_user) {
+-		zend_alter_ini_entry("session.save_handler", sizeof("session.save_handler"), "user", sizeof("user")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME);
++		if (zend_alter_ini_entry("session.save_handler", sizeof("session.save_handler"), "user", sizeof("user")-1, PHP_INI_USER, PHP_INI_STAGE_RUNTIME) == FAILURE) {
++			efree(args);
++			RETURN_FALSE;
++		}
+ 	}
+ 
+ 	for (i = 0; i < argc; i++) {
+diff --git a/ext/session/tests/session_set_save_handler_upload_progress.phpt b/ext/session/tests/session_set_save_handler_upload_progress.phpt
+new file mode 100644
+index 0000000000000000000000000000000000000000..17ce0d36d8747b2a3b0d139067cd0bf5b9bcfa9a
+--- /dev/null
++++ b/ext/session/tests/session_set_save_handler_upload_progress.phpt
+@@ -0,0 +1,17 @@
++--TEST--
++session_set_save_handler reports failure when upload progress blocks handler changes
++--INI--
++session.upload_progress.enabled=1
++--FILE--
++<?php
++var_dump(@session_set_save_handler());
++$callback = function () { return true; };
++var_dump(@session_set_save_handler(new SessionHandler()));
++var_dump(@session_set_save_handler($callback, $callback, $callback, $callback, $callback, $callback));
++var_dump(ini_get('session.save_handler'));
++?>
++--EXPECT--
++NULL
++bool(false)
++bool(false)
++string(5) "files"

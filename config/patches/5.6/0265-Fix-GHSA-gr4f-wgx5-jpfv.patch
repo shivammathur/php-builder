@@ -1,0 +1,29 @@
+From c92943d2f321d5919c1d6cb2b1bcb66702dc1b9c Mon Sep 17 00:00:00 2001
+From: Ilija Tovilo <ilija.tovilo@me.com>
+Date: Sun, 15 Nov 2026 15:25:20 +0100
+Subject: [PATCH] Fix GHSA-gr4f-wgx5-jpfv: DATEG(tzcache) use-after-free
+
+(cherry picked from commit bec24bd8d748fac37c99d5b1ce4107570cd265d9)
+(cherry picked from commit d1deba6ab5065fee71ba9e0c5c95ac0c0f6dd24e)
+
+diff --git a/main/main.c b/main/main.c
+index 68678ae2934d4721ed9261ab8afb30fbaa0a230c..589b5f5a8eae45910c5370f9eb6a7fc6d85a7b4e 100644
+--- a/main/main.c
++++ b/main/main.c
+@@ -704,15 +704,7 @@ PHPAPI void php_log_err(char *log_message TSRMLS_DC)
+ 			char *error_time_str;
+ 
+ 			time(&error_time);
+-#ifdef ZTS
+-			if (!php_during_module_startup()) {
+-				error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 1 TSRMLS_CC);
+-			} else {
+-				error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 0 TSRMLS_CC);
+-			}
+-#else
+-			error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 1 TSRMLS_CC);
+-#endif
++			error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, PG(modules_activated) && EG(active) TSRMLS_CC);
+ 			len = spprintf(&tmp, 0, "[%s] %s%s", error_time_str, log_message, PHP_EOL);
+ #ifdef PHP_WIN32
+ 			php_flock(fd, 2);

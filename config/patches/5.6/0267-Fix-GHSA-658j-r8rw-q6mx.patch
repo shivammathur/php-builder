@@ -1,0 +1,169 @@
+From 002f8228b60a017a473e9ef7b8512bdfe0bb19c6 Mon Sep 17 00:00:00 2001
+From: Arnaud Le Blanc <arnaud.lb@gmail.com>
+Date: Mon, 9 Nov 2026 12:02:32 +0100
+Subject: [PATCH] Fix GHSA-658j-r8rw-q6mx: session.upload_progress.enabled is
+ off by default
+
+Also prevent changes to session INI settings at runtime when
+session.upload_progress.enabled is On.
+
+(cherry picked from commit faa18671942f401dfa639c60dfe7946fd3aa4c7d)
+(cherry picked from commit 9d1638d9ea7ac12aa41d9cec8cfd11a0e9e6da6a)
+
+diff --git a/ext/session/session.c b/ext/session/session.c
+index 6d535f9261ed9191b05ffddb7448159b13def15e..820847ea69fd1e2683e432c69b9b88658f615c1b 100644
+--- a/ext/session/session.c
++++ b/ext/session/session.c
+@@ -80,6 +80,12 @@ zend_class_entry *php_session_id_iface_entry;
+ #define IF_SESSION_VARS() \
+ 	if (PS(http_session_vars) && PS(http_session_vars)->type == IS_ARRAY)
+ 
++#define SESSION_CHECK_UPLOAD_PROGRESS_STATE \
++	if (PS(rfc1867_enabled) && stage == ZEND_INI_STAGE_RUNTIME) { \
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Session ini settings cannot be changed at runtime when session.upload_progress.enabled is On"); \
++		return FAILURE; \
++	}
++
+ #define SESSION_CHECK_ACTIVE_STATE	\
+ 	if (PS(session_status) == php_session_active) {	\
+ 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "A session is active. You cannot change the session module's ini settings at this time");	\
+@@ -570,6 +576,7 @@ static void php_session_save_current_state(TSRMLS_D) /* {{{ */
+ static PHP_INI_MH(OnUpdateSaveHandler) /* {{{ */
+ {
+ 	ps_module *tmp;
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ 	SESSION_CHECK_ACTIVE_STATE;
+ 
+ 	tmp = _php_find_ps_module(new_value TSRMLS_CC);
+@@ -600,6 +607,7 @@ static PHP_INI_MH(OnUpdateSaveHandler) /* {{{ */
+ static PHP_INI_MH(OnUpdateSerializer) /* {{{ */
+ {
+ 	const ps_serializer *tmp;
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ 	SESSION_CHECK_ACTIVE_STATE;
+ 
+ 	tmp = _php_find_ps_serializer(new_value TSRMLS_CC);
+@@ -627,6 +635,7 @@ static PHP_INI_MH(OnUpdateSerializer) /* {{{ */
+ 
+ static PHP_INI_MH(OnUpdateTransSid) /* {{{ */
+ {
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ 	SESSION_CHECK_ACTIVE_STATE;
+ 
+ 	if (!strncasecmp(new_value, "on", sizeof("on"))) {
+@@ -641,6 +650,7 @@ static PHP_INI_MH(OnUpdateTransSid) /* {{{ */
+ 
+ static PHP_INI_MH(OnUpdateSaveDir) /* {{{ */
+ {
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ 	/* Only do the safemode/open_basedir check at runtime */
+ 	if (stage == PHP_INI_STAGE_RUNTIME || stage == PHP_INI_STAGE_HTACCESS) {
+ 		char *p;
+@@ -672,6 +682,7 @@ static PHP_INI_MH(OnUpdateSaveDir) /* {{{ */
+ 
+ static PHP_INI_MH(OnUpdateName) /* {{{ */
+ {
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ 	/* Numeric session.name won't work at all */
+ 	if ((!new_value_length || is_numeric_string(new_value, new_value_length, NULL, NULL, 0))) {
+ 		int err_type;
+@@ -699,6 +710,7 @@ static PHP_INI_MH(OnUpdateHashFunc) /* {{{ */
+ 	long val;
+ 	char *endptr = NULL;
+ 
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
+ #if defined(HAVE_HASH_EXT) && !defined(COMPILE_DL_HASH)
+ 	PS(hash_ops) = NULL;
+ #endif
+@@ -784,43 +796,61 @@ static ZEND_INI_MH(OnUpdateSmartStr) /* {{{ */
+ 
+ /* {{{ PHP_INI
+  */
++static PHP_INI_MH(OnUpdateSessionLong)
++{
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
++	return OnUpdateLong(entry, new_value, new_value_length, mh_arg1, mh_arg2, mh_arg3, stage TSRMLS_CC);
++}
++
++static PHP_INI_MH(OnUpdateSessionString)
++{
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
++	return OnUpdateString(entry, new_value, new_value_length, mh_arg1, mh_arg2, mh_arg3, stage TSRMLS_CC);
++}
++
++static PHP_INI_MH(OnUpdateSessionBool)
++{
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
++	return OnUpdateBool(entry, new_value, new_value_length, mh_arg1, mh_arg2, mh_arg3, stage TSRMLS_CC);
++}
++
+ PHP_INI_BEGIN()
+ 	STD_PHP_INI_ENTRY("session.save_path",          "/var/lib/php/sessions",          PHP_INI_ALL, OnUpdateSaveDir,save_path,          php_ps_globals,    ps_globals)
+ 	STD_PHP_INI_ENTRY("session.name",               "PHPSESSID", PHP_INI_ALL, OnUpdateName, session_name,       php_ps_globals,    ps_globals)
+ 	PHP_INI_ENTRY("session.save_handler",           "files",     PHP_INI_ALL, OnUpdateSaveHandler)
+ 	STD_PHP_INI_BOOLEAN("session.auto_start",       "0",         PHP_INI_PERDIR, OnUpdateBool,   auto_start,         php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.gc_probability",     "1",         PHP_INI_ALL, OnUpdateLong,   gc_probability,     php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.gc_divisor",         "100",       PHP_INI_ALL, OnUpdateLong,   gc_divisor,         php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.gc_maxlifetime",     "1440",      PHP_INI_ALL, OnUpdateLong,   gc_maxlifetime,     php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.gc_probability",     "1",         PHP_INI_ALL, OnUpdateSessionLong,   gc_probability,     php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.gc_divisor",         "100",       PHP_INI_ALL, OnUpdateSessionLong,   gc_divisor,         php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.gc_maxlifetime",     "1440",      PHP_INI_ALL, OnUpdateSessionLong,   gc_maxlifetime,     php_ps_globals,    ps_globals)
+ 	PHP_INI_ENTRY("session.serialize_handler",      "php",       PHP_INI_ALL, OnUpdateSerializer)
+-	STD_PHP_INI_ENTRY("session.cookie_lifetime",    "0",         PHP_INI_ALL, OnUpdateLong,   cookie_lifetime,    php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.cookie_path",        "/",         PHP_INI_ALL, OnUpdateString, cookie_path,        php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.cookie_domain",      "",          PHP_INI_ALL, OnUpdateString, cookie_domain,      php_ps_globals,    ps_globals)
+-	STD_PHP_INI_BOOLEAN("session.cookie_secure",    "",          PHP_INI_ALL, OnUpdateBool,   cookie_secure,      php_ps_globals,    ps_globals)
+-	STD_PHP_INI_BOOLEAN("session.cookie_httponly",  "",          PHP_INI_ALL, OnUpdateBool,   cookie_httponly,    php_ps_globals,    ps_globals)
+-	STD_PHP_INI_BOOLEAN("session.use_cookies",      "1",         PHP_INI_ALL, OnUpdateBool,   use_cookies,        php_ps_globals,    ps_globals)
+-	STD_PHP_INI_BOOLEAN("session.use_only_cookies", "1",         PHP_INI_ALL, OnUpdateBool,   use_only_cookies,   php_ps_globals,    ps_globals)
+-	STD_PHP_INI_BOOLEAN("session.use_strict_mode",  "0",         PHP_INI_ALL, OnUpdateBool,   use_strict_mode,    php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.referer_check",      "",          PHP_INI_ALL, OnUpdateString, extern_referer_chk, php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cookie_lifetime",    "0",         PHP_INI_ALL, OnUpdateSessionLong,   cookie_lifetime,    php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cookie_path",        "/",         PHP_INI_ALL, OnUpdateSessionString, cookie_path,        php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cookie_domain",      "",          PHP_INI_ALL, OnUpdateSessionString, cookie_domain,      php_ps_globals,    ps_globals)
++	STD_PHP_INI_BOOLEAN("session.cookie_secure",    "",          PHP_INI_ALL, OnUpdateSessionBool,   cookie_secure,      php_ps_globals,    ps_globals)
++	STD_PHP_INI_BOOLEAN("session.cookie_httponly",  "",          PHP_INI_ALL, OnUpdateSessionBool,   cookie_httponly,    php_ps_globals,    ps_globals)
++	STD_PHP_INI_BOOLEAN("session.use_cookies",      "1",         PHP_INI_ALL, OnUpdateSessionBool,   use_cookies,        php_ps_globals,    ps_globals)
++	STD_PHP_INI_BOOLEAN("session.use_only_cookies", "1",         PHP_INI_ALL, OnUpdateSessionBool,   use_only_cookies,   php_ps_globals,    ps_globals)
++	STD_PHP_INI_BOOLEAN("session.use_strict_mode",  "0",         PHP_INI_ALL, OnUpdateSessionBool,   use_strict_mode,    php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.referer_check",      "",          PHP_INI_ALL, OnUpdateSessionString, extern_referer_chk, php_ps_globals,    ps_globals)
+ #if HAVE_DEV_URANDOM
+-	STD_PHP_INI_ENTRY("session.entropy_file",       "/dev/urandom",          PHP_INI_ALL, OnUpdateString, entropy_file,       php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.entropy_length",     "32",         PHP_INI_ALL, OnUpdateLong,   entropy_length,     php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_file",       "/dev/urandom",          PHP_INI_ALL, OnUpdateSessionString, entropy_file,       php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_length",     "32",         PHP_INI_ALL, OnUpdateSessionLong,   entropy_length,     php_ps_globals,    ps_globals)
+ #elif HAVE_DEV_ARANDOM
+-	STD_PHP_INI_ENTRY("session.entropy_file",       "/dev/arandom",          PHP_INI_ALL, OnUpdateString, entropy_file,       php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.entropy_length",     "32",         PHP_INI_ALL, OnUpdateLong,   entropy_length,     php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_file",       "/dev/arandom",          PHP_INI_ALL, OnUpdateSessionString, entropy_file,       php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_length",     "32",         PHP_INI_ALL, OnUpdateSessionLong,   entropy_length,     php_ps_globals,    ps_globals)
+ #else
+-	STD_PHP_INI_ENTRY("session.entropy_file",       "",          PHP_INI_ALL, OnUpdateString, entropy_file,       php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.entropy_length",     "0",         PHP_INI_ALL, OnUpdateLong,   entropy_length,     php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_file",       "",          PHP_INI_ALL, OnUpdateSessionString, entropy_file,       php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.entropy_length",     "0",         PHP_INI_ALL, OnUpdateSessionLong,   entropy_length,     php_ps_globals,    ps_globals)
+ #endif
+-	STD_PHP_INI_ENTRY("session.cache_limiter",      "nocache",   PHP_INI_ALL, OnUpdateString, cache_limiter,      php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.cache_expire",       "180",       PHP_INI_ALL, OnUpdateLong,   cache_expire,       php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cache_limiter",      "nocache",   PHP_INI_ALL, OnUpdateSessionString, cache_limiter,      php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cache_expire",       "180",       PHP_INI_ALL, OnUpdateSessionLong,   cache_expire,       php_ps_globals,    ps_globals)
+ 	PHP_INI_ENTRY("session.use_trans_sid",          "0",         PHP_INI_ALL, OnUpdateTransSid)
+ 	PHP_INI_ENTRY("session.hash_function",          "0",         PHP_INI_ALL, OnUpdateHashFunc)
+-	STD_PHP_INI_ENTRY("session.hash_bits_per_character", "4",    PHP_INI_ALL, OnUpdateLong,   hash_bits_per_character, php_ps_globals, ps_globals)
++	STD_PHP_INI_ENTRY("session.hash_bits_per_character", "4",    PHP_INI_ALL, OnUpdateSessionLong,   hash_bits_per_character, php_ps_globals, ps_globals)
+ 
+ 	/* Upload progress */
+ 	STD_PHP_INI_BOOLEAN("session.upload_progress.enabled",
+-	                                                "1",     ZEND_INI_PERDIR, OnUpdateBool,        rfc1867_enabled, php_ps_globals, ps_globals)
++	                                                "0",     ZEND_INI_PERDIR, OnUpdateBool,        rfc1867_enabled, php_ps_globals, ps_globals)
+ 	STD_PHP_INI_BOOLEAN("session.upload_progress.cleanup",
+ 	                                                "1",     ZEND_INI_PERDIR, OnUpdateBool,        rfc1867_cleanup, php_ps_globals, ps_globals)
+ 	STD_PHP_INI_ENTRY("session.upload_progress.prefix",
+@@ -2438,6 +2468,7 @@ static PHP_GINIT_FUNCTION(ps) /* {{{ */
+ 	ps_globals->mod = NULL;
+ 	ps_globals->serializer = NULL;
+ 	ps_globals->mod_data = NULL;
++	ps_globals->rfc1867_enabled = 0;
+ 	ps_globals->session_status = php_session_none;
+ 	ps_globals->default_mod = NULL;
+ 	ps_globals->mod_user_implemented = 0;

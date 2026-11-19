@@ -1,0 +1,81 @@
+From bf8a9c5948863663c7633209deb177c269f2b815 Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Thu, 29 Oct 2026 11:19:04 +0100
+Subject: [PATCH] Fix GHSA-qc49-hpvq-g2w6: Drain unread request bodies
+
+Opening php://input can create a request body stream without
+consuming the input from the SAPI. Request shutdown treated the
+stream as proof that the body was read and skipped the drain.
+
+Drain whenever post_read is false, independently of whether the
+stream exists. This keeps unread FastCGI STDIN bytes from being
+parsed as another request when FCGI_KEEP_CONN is set.
+
+As a final safeguard, reject a new FastCGI request if the
+previous STDIN record was only partially consumed.
+
+(cherry picked from commit 28014fd092c7acdafb9c074e735f099893a5ef66)
+(cherry picked from commit d24cb8d102c2109f3c5350632c383d58c6e998c4)
+
+diff --git a/main/SAPI.c b/main/SAPI.c
+index 660012dabee522eee4a5ae356cc01c7a621e1d14..9ccde5f9be6cc3f88f88c7c75075ab44a59bd40b 100644
+--- a/main/SAPI.c
++++ b/main/SAPI.c
+@@ -515,7 +515,8 @@ SAPI_API void sapi_deactivate(TSRMLS_D)
+ 	zend_llist_destroy(&SG(sapi_headers).headers);
+ 	if (SG(request_info).request_body) {
+ 		SG(request_info).request_body = NULL;
+-	} else if (SG(server_context)) {
++	}
++	if (SG(server_context)) {
+ 		if (!SG(post_read)) {
+ 			/* make sure we've consumed all request input data */
+ 			char dummy[SAPI_POST_BLOCK_SIZE];
+diff --git a/sapi/cgi/fastcgi.c b/sapi/cgi/fastcgi.c
+index 5502c99b016d19ff2f1f9096ae939c428d744d76..dd26bc3f7fb3cb81354eb6b782ab2493f94aa392 100644
+--- a/sapi/cgi/fastcgi.c
++++ b/sapi/cgi/fastcgi.c
+@@ -885,6 +885,10 @@ static int fcgi_read_request(fcgi_request *req)
+ 	int len, padding;
+ 	unsigned char buf[FCGI_MAX_LENGTH+8];
+ 
++	if (req->in_len != 0) {
++		return 0;
++	}
++
+ 	req->keep = 0;
+ 	req->closed = 0;
+ 	req->in_len = 0;
+@@ -1140,6 +1144,8 @@ static inline void fcgi_close(fcgi_request *req, int force, int destroy)
+ 		req->nodelay = 0;
+ #endif
+ 		req->fd = -1;
++		/* a partially read STDIN record does not outlive its connection */
++		req->in_len = 0;
+ 	}
+ }
+ 
+diff --git a/sapi/fpm/fpm/fastcgi.c b/sapi/fpm/fpm/fastcgi.c
+index 778119e45aaf3c2d38c1bd9781f2cb4e978f3ca3..14d7accac741122dc19cc791fbfad537aec66363 100644
+--- a/sapi/fpm/fpm/fastcgi.c
++++ b/sapi/fpm/fpm/fastcgi.c
+@@ -510,6 +510,10 @@ static int fcgi_read_request(fcgi_request *req)
+ 	int len, padding;
+ 	unsigned char buf[FCGI_MAX_LENGTH+8];
+ 
++	if (req->in_len != 0) {
++		return 0;
++	}
++
+ 	req->keep = 0;
+ 	req->closed = 0;
+ 	req->in_len = 0;
+@@ -762,6 +766,8 @@ void fcgi_close(fcgi_request *req, int force, int destroy)
+ 		close(req->fd);
+ #endif
+ 		req->fd = -1;
++		/* a partially read STDIN record does not outlive its connection */
++		req->in_len = 0;
+ 		fpm_request_finished();
+ 	}
+ }

@@ -1,0 +1,79 @@
+From c1800292661a6da17e16bac863542defa06935fb Mon Sep 17 00:00:00 2001
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Date: Thu, 19 Nov 2026 22:26:42 +0530
+Subject: [PATCH] Restrict SOAP element lookups to XML element nodes
+
+Keep the DTD linked for document ownership while skipping non-elements during WSDL and schema name matching.
+
+diff --git a/ext/soap/php_xml.c b/ext/soap/php_xml.c
+index 26ba9a3dd115d0ae1cb7bb36aefd6b9371b30d70..b9060c6faf6a935d763ef9b85e1311a5d06a47f5 100644
+--- a/ext/soap/php_xml.c
++++ b/ext/soap/php_xml.c
+@@ -274,6 +274,10 @@ int attr_is_equal_ex(xmlAttrPtr node, char *name, char *ns)
+ 
+ int node_is_equal_ex(xmlNodePtr node, char *name, char *ns)
+ {
++	if (node->type != XML_ELEMENT_NODE) {
++		return FALSE;
++	}
++
+ 	if (name == NULL || ((node->name) && strcmp((char*)node->name, name) == 0)) {
+ 		if (ns) {
+ 			xmlNsPtr nsPtr = node_find_ns(node);
+diff --git a/ext/soap/tests/wsdl_document_element.phpt b/ext/soap/tests/wsdl_document_element.phpt
+new file mode 100644
+index 0000000000000000000000000000000000000000..31bd69747ecab2bd0d9b8fb87d5d94772b0c14eb
+--- /dev/null
++++ b/ext/soap/tests/wsdl_document_element.phpt
+@@ -0,0 +1,15 @@
++--TEST--
++SOAP loads the document element of a WSDL and imported schema with document types
++--SKIPIF--
++<?php if (!extension_loaded("soap")) die("skip soap extension required"); ?>
++--INI--
++soap.wsdl_cache_enabled=0
++--FILE--
++<?php
++$client = new SoapClient(__DIR__ . "/wsdl_document_element.wsdl");
++echo implode("\n", $client->__getTypes()), "\n";
++?>
++--EXPECT--
++struct Record {
++ string value;
++}
+diff --git a/ext/soap/tests/wsdl_document_element.wsdl b/ext/soap/tests/wsdl_document_element.wsdl
+new file mode 100644
+index 0000000000000000000000000000000000000000..6bce4e765da2781d17f1dbc7620eec621adcfb15
+--- /dev/null
++++ b/ext/soap/tests/wsdl_document_element.wsdl
+@@ -0,0 +1,17 @@
++<?xml version="1.0"?>
++<!DOCTYPE definitions>
++<definitions xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="urn:service"
++    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="urn:service">
++  <types>
++    <schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:service">
++      <import namespace="urn:types" schemaLocation="wsdl_document_element.xsd"/>
++    </schema>
++  </types>
++  <portType name="PortType"/>
++  <binding name="Binding" type="tns:PortType">
++    <soap:binding transport="http://schemas.xmlsoap.org/soap/http"/>
++  </binding>
++  <service name="Service">
++    <port name="Port" binding="tns:Binding"><soap:address location="http://example.invalid/"/></port>
++  </service>
++</definitions>
+diff --git a/ext/soap/tests/wsdl_document_element.xsd b/ext/soap/tests/wsdl_document_element.xsd
+new file mode 100644
+index 0000000000000000000000000000000000000000..fea056921d33ac21a25b18d8229a40b0554a3b35
+--- /dev/null
++++ b/ext/soap/tests/wsdl_document_element.xsd
+@@ -0,0 +1,7 @@
++<?xml version="1.0"?>
++<!DOCTYPE schema>
++<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="urn:types">
++  <complexType name="Record">
++    <sequence><element name="value" type="string"/></sequence>
++  </complexType>
++</schema>

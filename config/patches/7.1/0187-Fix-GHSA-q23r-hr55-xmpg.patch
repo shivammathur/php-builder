@@ -1,0 +1,21 @@
+From 8a96e2fec75ad762797c4787dba311f9bcb09683 Mon Sep 17 00:00:00 2001
+From: Alexandre Daubois <alex.daubois@gmail.com>
+Date: Mon, 21 Sep 2026 15:49:40 +0200
+Subject: [PATCH] Fix GHSA-q23r-hr55-xmpg: out-of-bounds read on empty
+ SOAP-ENC:arraySize
+
+(cherry picked from commit 59e46404a744b7ef469f51acd3ee225d518dbaf8)
+
+diff --git a/ext/soap/php_encoding.c b/ext/soap/php_encoding.c
+index 0210a5ebebc0d3aaa08fb989e1578caeb892d2eb..96a48e0365318aa9137c5d0a05a321b64184c728 100644
+--- a/ext/soap/php_encoding.c
++++ b/ext/soap/php_encoding.c
+@@ -2045,7 +2045,7 @@ static int calc_dimension_12(const char* str)
+ 		}
+ 		str++;
+ 	}
+-	return i;
++	return i != 0 ? i : 1;
+ }
+ 
+ static int* get_position_12(int dimension, const char* str)

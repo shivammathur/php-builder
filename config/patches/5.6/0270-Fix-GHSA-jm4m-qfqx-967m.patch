@@ -1,0 +1,40 @@
+From adff7447ad92d5cf39778ee830d392fb9785ef13 Mon Sep 17 00:00:00 2001
+From: "Ian P. Christian" <ian.christian@zoopla.co.uk>
+Date: Tue, 27 Oct 2026 17:59:48 +0100
+Subject: [PATCH] Fix GHSA-jm4m-qfqx-967m: FPM worker stdio pipe fd closed
+ twice
+
+Backport of the GH-24046 fix (cd161267c0d2ca293b6959114d7c68867273bbda).
+
+Co-authored-by: ndossche <7771979+ndossche@users.noreply.github.com>
+
+(cherry picked from commit 8c38b791449708540fd356ddc6927f463faeca91)
+
+diff --git a/sapi/fpm/fpm/fpm_children.c b/sapi/fpm/fpm/fpm_children.c
+index 74c2f38236649766553a47945f4225af967b790c..b42a48054453a430b57c97f3b667b1581476725b 100644
+--- a/sapi/fpm/fpm/fpm_children.c
++++ b/sapi/fpm/fpm/fpm_children.c
+@@ -69,7 +69,11 @@ static void fpm_child_close(struct fpm_child_s *child, int in_event_loop) /* {{{
+ 			fpm_event_fire(&child->ev_stdout);
+ 		}
+ 		if (child->fd_stdout != -1) {
++			if (in_event_loop) {
++				fpm_event_del(&child->ev_stdout);
++			}
+ 			close(child->fd_stdout);
++			child->fd_stdout = -1;
+ 		}
+ 	}
+ 
+@@ -78,7 +82,11 @@ static void fpm_child_close(struct fpm_child_s *child, int in_event_loop) /* {{{
+ 			fpm_event_fire(&child->ev_stderr);
+ 		}
+ 		if (child->fd_stderr != -1) {
++			if (in_event_loop) {
++				fpm_event_del(&child->ev_stderr);
++			}
+ 			close(child->fd_stderr);
++			child->fd_stderr = -1;
+ 		}
+ 	}
+ 

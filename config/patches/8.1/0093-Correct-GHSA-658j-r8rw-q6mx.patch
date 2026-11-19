@@ -1,0 +1,78 @@
+From: PHP Security Backports
+Subject: [PATCH] Correct GHSA-658j-r8rw-q6mx follow-up from updated security source
+
+Source baseline: e2e3a2573bcb7da8a939c0ace3bdc1350c6d7117
+Updated source: f18ec01d770266c3d651df5fddfc26003da0d1e4
+
+diff --git a/ext/session/session.c b/ext/session/session.c
+index b29fad233435782ae9bee5b1de0ef1fda190b91b..29d49bb483cf40423296d7e49d3598740cd356cd 100644
+--- a/ext/session/session.c
++++ b/ext/session/session.c
+@@ -723,6 +723,14 @@ static PHP_INI_MH(OnUpdateSessionString) /* {{{ */
+ /* }}} */
+ 
+ 
++static PHP_INI_MH(OnUpdateSessionCookieSameSite) /* {{{ */
++{
++	SESSION_CHECK_UPLOAD_PROGRESS_STATE;
++	return OnUpdateString(entry, new_value, mh_arg1, mh_arg2, mh_arg3, stage);
++}
++/* }}} */
++
++
+ static PHP_INI_MH(OnUpdateSessionBool) /* {{{ */
+ {
+ 	SESSION_CHECK_OUTPUT_STATE;
+@@ -821,7 +829,7 @@ PHP_INI_BEGIN()
+ 	STD_PHP_INI_ENTRY("session.cookie_domain",      "",          PHP_INI_ALL, OnUpdateSessionString, cookie_domain,      php_ps_globals,    ps_globals)
+ 	STD_PHP_INI_ENTRY("session.cookie_secure",      "0",         PHP_INI_ALL, OnUpdateSessionBool,   cookie_secure,      php_ps_globals,    ps_globals)
+ 	STD_PHP_INI_ENTRY("session.cookie_httponly",    "0",         PHP_INI_ALL, OnUpdateSessionBool,   cookie_httponly,    php_ps_globals,    ps_globals)
+-	STD_PHP_INI_ENTRY("session.cookie_samesite",    "",          PHP_INI_ALL, OnUpdateSessionString,        cookie_samesite,    php_ps_globals,    ps_globals)
++	STD_PHP_INI_ENTRY("session.cookie_samesite",    "",          PHP_INI_ALL, OnUpdateSessionCookieSameSite, cookie_samesite, php_ps_globals, ps_globals)
+ 	STD_PHP_INI_ENTRY("session.use_cookies",        "1",         PHP_INI_ALL, OnUpdateSessionBool,   use_cookies,        php_ps_globals,    ps_globals)
+ 	STD_PHP_INI_ENTRY("session.use_only_cookies",   "1",         PHP_INI_ALL, OnUpdateSessionBool,   use_only_cookies,   php_ps_globals,    ps_globals)
+ 	STD_PHP_INI_ENTRY("session.use_strict_mode",    "0",         PHP_INI_ALL, OnUpdateSessionBool,   use_strict_mode,    php_ps_globals,    ps_globals)
+diff --git a/ext/session/tests/session_cookie_samesite_active.phpt b/ext/session/tests/session_cookie_samesite_active.phpt
+new file mode 100644
+index 0000000000000000000000000000000000000000..881d8376edb1c180b580682c259931e53f91ce7b
+--- /dev/null
++++ b/ext/session/tests/session_cookie_samesite_active.phpt
+@@ -0,0 +1,15 @@
++--TEST--
++session.cookie_samesite can be changed during an active session when upload progress is disabled
++--INI--
++session.upload_progress.enabled=0
++session.use_cookies=0
++--FILE--
++<?php
++session_start();
++var_dump(ini_set('session.cookie_samesite', 'Lax'));
++var_dump(ini_get('session.cookie_samesite'));
++session_write_close();
++?>
++--EXPECT--
++string(0) ""
++string(3) "Lax"
+diff --git a/ext/session/tests/session_cookie_samesite_upload_progress.phpt b/ext/session/tests/session_cookie_samesite_upload_progress.phpt
+new file mode 100644
+index 0000000000000000000000000000000000000000..795b1dd1e56aaaf339dd97a62ffd31b043d4e2c3
+--- /dev/null
++++ b/ext/session/tests/session_cookie_samesite_upload_progress.phpt
+@@ -0,0 +1,17 @@
++--TEST--
++session.cookie_samesite remains protected while upload progress is enabled
++--INI--
++session.upload_progress.enabled=1
++--FILE--
++<?php
++try {
++    ini_set('session.cookie_samesite', 'Lax');
++    echo "unexpected success\n";
++} catch (Error $e) {
++    echo "rejected\n";
++}
++var_dump(ini_get('session.cookie_samesite'));
++?>
++--EXPECT--
++rejected
++string(0) ""
