@@ -73,6 +73,10 @@ patch_sqlsrv_stream_error() {
 
 # Function to patch sqlsrv source.
 patch_sqlsrv() {
+  # Backport microsoft/msphpsql#1659 for older driver releases.
+  if [ "${ASAN:-}" = asan ]; then
+    export CXXFLAGS="${CXXFLAGS:-} -fvisibility=hidden"
+  fi
   if [ -d source/sqlsrv ]; then
     cd source/sqlsrv || exit 1
     cp -rf ../shared ./
@@ -99,6 +103,9 @@ patch_swoole() {
 
 # Function to patch pdo_sqlsrv source.
 patch_pdo_sqlsrv() {
+  if [ "${ASAN:-}" = asan ]; then
+    export CXXFLAGS="${CXXFLAGS:-} -fvisibility=hidden"
+  fi
   if [ -d source/pdo_sqlsrv ]; then
     cd source/pdo_sqlsrv || exit 1
     cp -rf ../shared ./

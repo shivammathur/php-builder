@@ -8,6 +8,7 @@ set -euo pipefail
 
 suffix=
 [ "$BUILD" = zts ] && suffix=-zts
+[ "${ASAN:-}" = asan ] && suffix="${suffix}-asan"
 install_root="/tmp/debian/php$PHP_VERSION"
 debug_root="${SOURCE_DEBUG_ROOT:-/tmp/source-debug}"
 IFS=' ' read -r -a extensions <<<"${EXTENSIONS_TO_BUILD//,/ }"
