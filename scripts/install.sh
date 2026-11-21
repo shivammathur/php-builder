@@ -188,6 +188,7 @@ extract_build() {
 
 install() {
   to_wait=()
+  DIST_ID="$ID"
   arch="$(arch)"
   [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
   if [ "$1" != "github" ]; then
