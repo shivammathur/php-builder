@@ -1,0 +1,343 @@
+From: Anatol Belski <ab@php.net>
+Date: Thu, 29 Mar 2018 14:12:19 +0200
+Subject: Adjust tests for ICU 61.1 compatibility
+
+PHP 7.0 never got this change (PHP 7.1.17).
+
+(cherry picked from commit 398f56dbc85464c95671cbe491c951eccc1f665a)
+---
+ ext/intl/tests/formatter_format6.phpt              |   3 +-
+ ext/intl/tests/formatter_format7.phpt              | 130 +++++++++++++++++++++
+ ext/intl/tests/rbbiter_getBinaryRules_basic.phpt   |   3 +-
+ ext/intl/tests/rbbiter_getBinaryRules_basic2.phpt  |  57 +++++++++
+ ext/intl/tests/rbbiter_getRuleStatusVec_basic.phpt |   4 +-
+ ext/intl/tests/rbbiter_getRules_basic.phpt         |   7 +-
+ ext/intl/tests/rbbiter_getRules_basic2.phpt        |  40 +++++++
+ 7 files changed, 236 insertions(+), 8 deletions(-)
+ create mode 100644 ext/intl/tests/formatter_format7.phpt
+ create mode 100644 ext/intl/tests/rbbiter_getBinaryRules_basic2.phpt
+ create mode 100644 ext/intl/tests/rbbiter_getRules_basic2.phpt
+
+diff --git a/ext/intl/tests/formatter_format6.phpt b/ext/intl/tests/formatter_format6.phpt
+index 80894c3..7070378 100644
+--- a/ext/intl/tests/formatter_format6.phpt
++++ b/ext/intl/tests/formatter_format6.phpt
+@@ -1,7 +1,8 @@
+ --TEST--
+-numfmt_format() icu >= 56.1
++numfmt_format() icu >= 56.1 && icu < 61.1
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') >= 0) die('skip for ICU < 61.1'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '56.1') < 0) die('skip for ICU >= 56.1'); ?>
+ --FILE--
+ <?php
+diff --git a/ext/intl/tests/formatter_format7.phpt b/ext/intl/tests/formatter_format7.phpt
+new file mode 100644
+index 0000000..088c526
+--- /dev/null
++++ b/ext/intl/tests/formatter_format7.phpt
+@@ -0,0 +1,130 @@
++--TEST--
++numfmt_format() icu >= 61.1
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') < 0) die('skip for ICU >= 61.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Format a number using misc locales/patterns.
++ */
++
++/*
++ * TODO: doesn't pass on ICU 3.6 because 'ru' and 'de' locales changed
++ * currency and percent formatting.
++ */
++
++function ut_main()
++{
++    $styles = array(
++        NumberFormatter::PATTERN_DECIMAL => '##.#####################',
++        NumberFormatter::DECIMAL => '',
++        NumberFormatter::CURRENCY => '',
++        NumberFormatter::PERCENT => '',
++        NumberFormatter::SCIENTIFIC => '',
++        NumberFormatter::SPELLOUT => '@@@@@@@',
++        NumberFormatter::ORDINAL => '',
++        NumberFormatter::DURATION => '',
++        NumberFormatter::PATTERN_RULEBASED => '#####.###',
++        1234999, // bad one
++    );
++
++   $integer = array(
++        NumberFormatter::ORDINAL => '',
++        NumberFormatter::DURATION => '',
++   );
++    $locales = array(
++        'en_US',
++        'ru_UA',
++        'de',
++        'fr',
++        'en_UK'
++    );
++
++    $str_res = '';
++    $number = 1234567.891234567890000;
++
++    foreach( $locales as $locale )
++    {
++        $str_res .= "\nLocale is: $locale\n";
++        foreach( $styles as $style => $pattern )
++        {
++            $fmt = ut_nfmt_create( $locale, $style, $pattern );
++
++			if(!$fmt) {
++				$str_res .= "Bad formatter!\n";
++				continue;
++			}
++            $str_res .= dump( isset($integer[$style])?ut_nfmt_format( $fmt, $number, NumberFormatter::TYPE_INT32):ut_nfmt_format( $fmt, $number ) ) . "\n";
++        }
++    }
++    return $str_res;
++}
++
++include_once( 'ut_common.inc' );
++
++// Run the test
++ut_run();
++
++?>
++--EXPECTREGEX--
++Locale is: en_US
++'1234567.8912345\d+'
++'1,234,567.891'
++'\$1,234,567.89'
++'123,456,789%'
++'1.2345678912345\d+E6'
++'one million,? two hundred (and )?thirty-four thousand,? five hundred (and )?sixty-seven point eight nine one two three four five( six)? seven( nine)?'
++'1,234,567(th|ᵗʰ)'
++'342:56:07'
++'#####.###'
++'USD1,234,567.89'
++
++Locale is: ru_UA
++'1234567.8912345\d+'
++'1 234 567,891'
++'1 234 567,89 ?(грн\.|₴)'
++'123 456 789 ?%'
++'1.2345678912345\d+E6'
++'один миллион двести тридцать четыре тысячи пятьсот шестьдесят семь целых восемьдесят девять миллионов сто двадцать три тысячи четыреста пятьдесят семь стомиллионных'
++'1 234 567.?'
++'1 234 567'
++'#####.###'
++'1 234 567,89 UAH'
++
++Locale is: de
++'1234567.8912345\d+'
++'1.234.567,891'
++'(¤ )?1.234.567,89( ¤)?'
++'123\.456\.789 %'
++'1.2345678912345\d+E6'
++'eine Million zwei­hundert­vier­und­dreißig­tausend­fünf­hundert­sieben­und­sechzig Komma acht neun eins zwei drei vier fünf( sechs)? sieben( neun)?'
++'1.234.567.?'
++'1.234.567'
++'#####.###'
++'1.234.567,89 ¤¤'
++
++Locale is: fr
++'1234567.8912345\d+'
++'1 234 567,891'
++'1 234 567,89 ¤'
++'123 456 789 ?%'
++'1.2345678912345\d+E6'
++'un million deux cent trente-quatre mille cinq cent soixante-sept virgule huit neuf un deux trois quatre cinq( six)? sept( neuf)?'
++'1 234 567e'
++'1 234 567'
++'#####.###'
++'1 234 567,89 ¤¤'
++
++Locale is: en_UK
++'1234567.8912345\d+'
++'1,234,567.891'
++'¤1,234,567.89'
++'123,456,789%'
++'1.2345678912345\d+E6'
++'one million,? two hundred (and )?thirty-four thousand,? five hundred (and )?sixty-seven point eight nine one two three four five( six)? seven( nine)?'
++'1,234,567(th|ᵗʰ)'
++'342:56:07'
++'#####.###'
++'¤¤1,234,567.89'
+diff --git a/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt b/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
+index dce0714..95ea311 100644
+--- a/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
++++ b/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
+@@ -2,6 +2,7 @@
+ IntlRuleBasedBreakIterator::getBinaryRules(): basic test
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') >=  0) die('skip for ICU < 61.1'); ?>
+ <?php if(version_compare(INTL_ICU_VERSION, '4.8') < 0) print 'skip ICU >= 4.8 only'; ?>
+ --FILE--
+ <?php
+@@ -22,7 +23,7 @@ $rules = <<<RULES
+ !!safe_reverse;
+ RULES;
+ $rbbi = new IntlRuleBasedBreakIterator($rules);
+-$rbbi->setText('sdfkjsdf88á.... ,;');;
++$rbbi->setText('sdfkjsdf88á.... ,;');
+ 
+ $br = $rbbi->getBinaryRules();
+ 
+diff --git a/ext/intl/tests/rbbiter_getBinaryRules_basic2.phpt b/ext/intl/tests/rbbiter_getBinaryRules_basic2.phpt
+new file mode 100644
+index 0000000..f3b6c6c
+--- /dev/null
++++ b/ext/intl/tests/rbbiter_getBinaryRules_basic2.phpt
+@@ -0,0 +1,57 @@
++--TEST--
++IntlRuleBasedBreakIterator::getBinaryRules(): basic test
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if(version_compare(INTL_ICU_VERSION, '61.1') < 0) print 'skip ICU >= 61.1 only'; ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++
++$rules = <<<RULES
++\$LN = [[:letter:] [:number:]];
++\$S = [.;,:];
++
++!!forward;
++\$LN+ {1};
++\$S+ {42};
++!!reverse;
++\$LN+ {1};
++\$S+ {42};
++!!safe_forward;
++!!safe_reverse;
++RULES;
++$rbbi = new IntlRuleBasedBreakIterator($rules);
++$rbbi->setText('sdfkjsdf88á.... ,;');
++
++$br = $rbbi->getBinaryRules();
++
++$rbbi2 = new IntlRuleBasedBreakIterator($br, true);
++
++var_dump($rbbi->getRules(), $rbbi2->getRules());
++var_dump($rbbi->getRules() == $rbbi2->getRules());
++?>
++==DONE==
++--EXPECT--
++string(137) "$LN = [[:letter:] [:number:]];
++$S = [.;,:];
++!!forward;
++$LN+ {1};
++$S+ {42};
++!!reverse;
++$LN+ {1};
++$S+ {42};
++!!safe_forward;
++!!safe_reverse;"
++string(137) "$LN = [[:letter:] [:number:]];
++$S = [.;,:];
++!!forward;
++$LN+ {1};
++$S+ {42};
++!!reverse;
++$LN+ {1};
++$S+ {42};
++!!safe_forward;
++!!safe_reverse;"
++bool(true)
++==DONE==
+diff --git a/ext/intl/tests/rbbiter_getRuleStatusVec_basic.phpt b/ext/intl/tests/rbbiter_getRuleStatusVec_basic.phpt
+index a56f6bc..4a65450 100644
+--- a/ext/intl/tests/rbbiter_getRuleStatusVec_basic.phpt
++++ b/ext/intl/tests/rbbiter_getRuleStatusVec_basic.phpt
+@@ -25,7 +25,7 @@ $rules = <<<RULES
+ !!safe_reverse;
+ RULES;
+ $rbbi = new IntlRuleBasedBreakIterator($rules);
+-$rbbi->setText('sdfkjsdf88á.... ,;');;
++$rbbi->setText('sdfkjsdf88á.... ,;');
+ 
+ do {
+ 	var_dump($rbbi->current(), $rbbi->getRuleStatusVec());
+@@ -56,4 +56,4 @@ array(1) {
+   [0]=>
+   int(4)
+ }
+-==DONE==
+\ No newline at end of file
++==DONE==
+diff --git a/ext/intl/tests/rbbiter_getRules_basic.phpt b/ext/intl/tests/rbbiter_getRules_basic.phpt
+index 2f7a40e..3ad1a92 100644
+--- a/ext/intl/tests/rbbiter_getRules_basic.phpt
++++ b/ext/intl/tests/rbbiter_getRules_basic.phpt
+@@ -1,9 +1,8 @@
+ --TEST--
+ IntlRuleBasedBreakIterator::getRules(): basic test
+ --SKIPIF--
+-<?php
+-if (!extension_loaded('intl'))
+-	die('skip intl extension not enabled');
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') >=  0) die('skip for ICU < 61.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+@@ -29,4 +28,4 @@ var_dump($rbbi->getRules());
+ ==DONE==
+ --EXPECT--
+ string(128) "$LN = [[:letter:] [:number:]];$S = [.;,:];!!forward;$LN+ {1};$S+ {42};!!reverse;$LN+ {1};$S+ {42};!!safe_forward;!!safe_reverse;"
+-==DONE==
+\ No newline at end of file
++==DONE==
+diff --git a/ext/intl/tests/rbbiter_getRules_basic2.phpt b/ext/intl/tests/rbbiter_getRules_basic2.phpt
+new file mode 100644
+index 0000000..67b3831
+--- /dev/null
++++ b/ext/intl/tests/rbbiter_getRules_basic2.phpt
+@@ -0,0 +1,40 @@
++--TEST--
++IntlRuleBasedBreakIterator::getRules(): basic test
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') < 0) die('skip for ICU >= 61.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++
++$rules = <<<RULES
++\$LN = [[:letter:] [:number:]];
++\$S = [.;,:];
++
++!!forward;
++\$LN+ {1};
++\$S+ {42};
++!!reverse;
++\$LN+ {1};
++\$S+ {42};
++!!safe_forward;
++!!safe_reverse;
++RULES;
++$rbbi = new IntlRuleBasedBreakIterator($rules);
++var_dump($rbbi->getRules());
++
++?>
++==DONE==
++--EXPECT--
++string(137) "$LN = [[:letter:] [:number:]];
++$S = [.;,:];
++!!forward;
++$LN+ {1};
++$S+ {42};
++!!reverse;
++$LN+ {1};
++$S+ {42};
++!!safe_forward;
++!!safe_reverse;"
++==DONE==

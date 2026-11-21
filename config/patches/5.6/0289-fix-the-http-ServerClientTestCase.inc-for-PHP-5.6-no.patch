@@ -1,0 +1,67 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:08:59 +0200
+Subject: fix the http ServerClientTestCase.inc for PHP 5.6 (no scalar/return
+ types)
+
+---
+ ext/standard/tests/http/ServerClientTestCase.inc | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/ext/standard/tests/http/ServerClientTestCase.inc b/ext/standard/tests/http/ServerClientTestCase.inc
+index c74da44..375f808 100644
+--- a/ext/standard/tests/http/ServerClientTestCase.inc
++++ b/ext/standard/tests/http/ServerClientTestCase.inc
+@@ -4,17 +4,17 @@ const WORKER_ARGV_VALUE = 'RUN_WORKER';
+ 
+ const WORKER_DEFAULT_NAME = 'server';
+ 
+-function phpt_notify(string $worker = WORKER_DEFAULT_NAME, string $message = ""): void
++function phpt_notify($worker = WORKER_DEFAULT_NAME, $message = "")
+ {
+     ServerClientTestCase::getInstance()->notify($worker, $message);
+ }
+ 
+-function phpt_wait($worker = WORKER_DEFAULT_NAME, $timeout = null): ?string
++function phpt_wait($worker = WORKER_DEFAULT_NAME, $timeout = null)
+ {
+     return ServerClientTestCase::getInstance()->wait($worker, $timeout);
+ }
+ 
+-function phpt_notify_server_start($server): void
++function phpt_notify_server_start($server)
+ {
+     ServerClientTestCase::getInstance()->notify_server_start($server);
+ }
+@@ -133,7 +133,7 @@ class ServerClientTestCase
+      * @return void
+      * @throws Exception
+      */
+-    public function run(string $clientCode, $workerCode, bool $ephemeral = true): void
++    public function run($clientCode, $workerCode, $ephemeral = true)
+     {
+         if (!is_array($workerCode)) {
+             $workerCode = [WORKER_DEFAULT_NAME => $workerCode];
+@@ -164,7 +164,7 @@ class ServerClientTestCase
+         }
+     }
+ 
+-    public function wait($worker, $timeout = null): ?string
++    public function wait($worker, $timeout = null)
+     {
+         $handle = $this->isWorker ? STDIN : $this->workerStdOut[$worker];
+         if ($timeout === null) {
+@@ -183,12 +183,12 @@ class ServerClientTestCase
+         return $result;
+     }
+ 
+-    public function notify(string $worker, string $message = ""): void
++    public function notify($worker, $message = "")
+     {
+         fwrite($this->isWorker ? STDOUT : $this->workerStdIn[$worker], "$message\n");
+     }
+ 
+-    public function notify_server_start($server): void
++    public function notify_server_start($server)
+     {
+         echo stream_socket_get_name($server, false) . "\n";
+     }

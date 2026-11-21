@@ -74,7 +74,7 @@ index 797ef32..4db0dd6 100644
 --- a/sapi/cli/php.1.in
 +++ b/sapi/cli/php.1.in
 @@ -367,13 +367,14 @@ Shows configuration for extension
- Show configuration file names
+ Show INI entries that differ from the built-in default
  .SH FILES
  .TP 15
 -.B php\-cli.ini

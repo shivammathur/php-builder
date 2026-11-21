@@ -1,0 +1,26 @@
+From: atvoicu <avoicu@google.com>
+Date: Wed, 21 Mar 2018 14:45:14 -0700
+Subject: Add missing skip prefix for some SKIPIF messages
+
+PHP 7.0 never got this change (PHP 7.2.5). Only the bug63000 part is
+taken: without the prefix the test, which is for macOS only, also runs on
+Linux, where it fails on a build machine without network access.
+
+(cherry picked from commit 17ed2f21cfcf25f3c992b359c672171159d3516c)
+---
+ ext/sockets/tests/bug63000.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/sockets/tests/bug63000.phpt b/ext/sockets/tests/bug63000.phpt
+index 6f9ebea..9eef44c 100644
+--- a/ext/sockets/tests/bug63000.phpt
++++ b/ext/sockets/tests/bug63000.phpt
+@@ -6,7 +6,7 @@ if (!extension_loaded('sockets')) {
+     die('skip sockets extension not available.');
+ }
+ if (PHP_OS !== 'Darwin') {
+-    die('is not OSX.');
++    die('skip Is not OSX.');
+ }
+ $socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+ if ($socket === false) {

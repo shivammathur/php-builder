@@ -1,0 +1,79 @@
+From: Anatol Belski <ab@php.net>
+Date: Sat, 20 Oct 2018 23:02:06 +0200
+Subject: Fix tests for ICU 63.1
+
+The most of change is U+00A0 vs. new U+202F used in some outputs.
+
+PHP 7.0 never got this change (PHP 7.1.24).
+
+(cherry picked from commit 4461fb9c26463e4851f7181baa2ba137c6edb1b2)
+---
+ ext/intl/tests/formatter_format8.phpt | 14 +++++++-------
+ ext/intl/tests/msgfmt_bug70484.phpt   | 10 +++++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/ext/intl/tests/formatter_format8.phpt b/ext/intl/tests/formatter_format8.phpt
+index 55b10ff..3aad6bc 100644
+--- a/ext/intl/tests/formatter_format8.phpt
++++ b/ext/intl/tests/formatter_format8.phpt
+@@ -107,20 +107,20 @@ Locale is: de
+ 
+ Locale is: fr
+ '1234567.8912345\d+'
+-'1 234 567,891'
+-'1 234 567,89 XXX'
+-'123 456 789 ?%'
++'1.+234.+567,891'
++'1.+234.+567,89.+(XXX|¤)'
++'123.+456.+789(.+)?%'
+ '1.2345678912345\d+E6'
+ 'un million deux cent trente-quatre mille cinq cent soixante-sept virgule huit neuf un deux trois quatre cinq( six)? sept( neuf)?'
+-'1 234 567e'
+-'1 234 567'
++'1.+234.+567e'
++'1.+234.+567'
+ '#####.###'
+-'1 234 567,89 XXX'
++'1.+234.+567,89.+XXX'
+ 
+ Locale is: en_UK
+ '1234567.8912345\d+'
+ '1,234,567.891'
+-'XXX 1,234,567.89'
++'(¤|XXX )1,234,567.89'
+ '123,456,789%'
+ '1.2345678912345\d+E6'
+ 'one million,? two hundred (and )?thirty-four thousand,? five hundred (and )?sixty-seven point eight nine one two three four five( six)? seven( nine)?'
+diff --git a/ext/intl/tests/msgfmt_bug70484.phpt b/ext/intl/tests/msgfmt_bug70484.phpt
+index 9d0bdc4..1240498 100644
+--- a/ext/intl/tests/msgfmt_bug70484.phpt
++++ b/ext/intl/tests/msgfmt_bug70484.phpt
+@@ -37,7 +37,7 @@ foreach ($locale as $lc) {
+ 
+ ?>
+ ==DONE==
+---EXPECT--
++--EXPECTF--
+ de string key
+ string(8) "42-other"
+ string(11) "42,42-other"
+@@ -55,15 +55,15 @@ string(4) "five"
+ fr string key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ fr numeric key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ en string key

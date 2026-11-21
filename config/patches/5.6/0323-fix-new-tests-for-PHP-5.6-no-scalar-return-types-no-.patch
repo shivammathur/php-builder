@@ -1,0 +1,150 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:23:57 +0200
+Subject: fix new tests for PHP 5.6 (no scalar/return types,
+ no keyed list syntax)
+
+---
+ ext/phar/tests/tar/GHSA-j3wh-g957-2m85-longlink.phpt | 2 +-
+ ext/phar/tests/tar/GHSA-j3wh-g957-2m85-size.phpt     | 4 ++--
+ ext/phar/tests/tar/GHSA-j3wh-g957-2m85-typeflag.phpt | 2 +-
+ ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt   | 2 +-
+ ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt   | 2 +-
+ ext/soap/tests/GHSA-rgrp-mwpx-f6rm.phpt              | 2 +-
+ ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt         | 4 +++-
+ ext/soap/tests/soap_qname_crash.phpt                 | 2 +-
+ ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt     | 4 ++--
+ 9 files changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-longlink.phpt b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-longlink.phpt
+index b0e1f26..6257ced 100644
+--- a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-longlink.phpt
++++ b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-longlink.phpt
+@@ -6,7 +6,7 @@ GHSA-j3wh-g957-2m85 (././@LongLink name longer than the archive)
+ phar.require_hash=0
+ --FILE--
+ <?php
+-function tar_header(string $name, string $size, string $typeflag = '0'): string
++function tar_header($name, $size, $typeflag = '0')
+ {
+     $header = str_repeat("\0", 512);
+     $header = substr_replace($header, $name, 0, strlen($name));
+diff --git a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-size.phpt b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-size.phpt
+index 4dd5eca..b480916 100644
+--- a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-size.phpt
++++ b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-size.phpt
+@@ -6,7 +6,7 @@ GHSA-j3wh-g957-2m85 (tar entry injection via invalid entry size)
+ phar.require_hash=0
+ --FILE--
+ <?php
+-function tar_header(string $name, string $size, string $typeflag = '0'): string
++function tar_header($name, $size, $typeflag = '0')
+ {
+     $header = str_repeat("\0", 512);
+     $header = substr_replace($header, $name, 0, strlen($name));
+@@ -27,7 +27,7 @@ function tar_header(string $name, string $size, string $typeflag = '0'): string
+     return substr_replace($header, sprintf("%06o\0 ", $checksum), 148, 8);
+ }
+ 
+-function tar_dump(string $fname): void
++function tar_dump($fname)
+ {
+     try {
+         $phar = new PharData($fname);
+diff --git a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-typeflag.phpt b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-typeflag.phpt
+index 16a2d46..8a1737b 100644
+--- a/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-typeflag.phpt
++++ b/ext/phar/tests/tar/GHSA-j3wh-g957-2m85-typeflag.phpt
+@@ -6,7 +6,7 @@ GHSA-j3wh-g957-2m85 (tar entry injection via entry types that carry data)
+ phar.require_hash=0
+ --FILE--
+ <?php
+-function tar_header(string $name, string $size, string $typeflag = '0'): string
++function tar_header($name, $size, $typeflag = '0')
+ {
+     $header = str_repeat("\0", 512);
+     $header = substr_replace($header, $name, 0, strlen($name));
+diff --git a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
+index e07f78d..afb7870 100644
+--- a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
++++ b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-chain.phpt
+@@ -6,7 +6,7 @@ soap
+ <?php
+ 
+ /* The body stays four deep whatever $n is: the decoder walks the href chain. */
+-function chain(int $n): string
++function chain($n)
+ {
+     $links = '';
+     for ($i = 1; $i <= $n; $i++) {
+diff --git a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
+index 5058ba1..06f25b5 100644
+--- a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
++++ b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm-href-cycle.phpt
+@@ -5,7 +5,7 @@ soap
+ --FILE--
+ <?php
+ 
+-function envelope(string $param): string
++function envelope($param)
+ {
+     return '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"'
+         . ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+diff --git a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm.phpt b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm.phpt
+index f321396..98f398b 100644
+--- a/ext/soap/tests/GHSA-rgrp-mwpx-f6rm.phpt
++++ b/ext/soap/tests/GHSA-rgrp-mwpx-f6rm.phpt
+@@ -7,7 +7,7 @@ soap.wsdl_cache_enabled=0
+ --FILE--
+ <?php
+ 
+-function envelope(int $depth): string
++function envelope($depth)
+ {
+     return '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"><s:Body><test>'
+         . str_repeat('<a>', $depth) . 'leaf' . str_repeat('</a>', $depth)
+diff --git a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+index dc17ce3..9ba2f04 100644
+--- a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
++++ b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+@@ -134,7 +134,9 @@ function heavy_soap_server($wsdl, $headers)
+     exit(0);
+ }
+ 
+-['pid' => $pid, 'uri' => $uri] = heavy_soap_server($wsdl, $headers);
++$server = heavy_soap_server($wsdl, $headers);
++$pid = $server['pid'];
++$uri = $server['uri'];
+ 
+ $options = [
+     'trace' => false,
+diff --git a/ext/soap/tests/soap_qname_crash.phpt b/ext/soap/tests/soap_qname_crash.phpt
+index 7a1bf02..0028cc4 100644
+--- a/ext/soap/tests/soap_qname_crash.phpt
++++ b/ext/soap/tests/soap_qname_crash.phpt
+@@ -18,7 +18,7 @@ class TestSoapClient extends SoapClient {
+         $action,
+         $version,
+         $one_way = false
+-    ): ?string {
++    ) {
+         die($request);
+     }
+ }
+diff --git a/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt b/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
+index 69b8936..470d0ec 100644
+--- a/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
++++ b/ext/standard/tests/http/ghsa-fpwc-w8rq-cr92.phpt
+@@ -8,11 +8,11 @@ allow_url_fopen=1
+ <?php
+ require 'server.inc';
+ 
+-function count_header(string $requests, string $name): int {
++function count_header($requests, $name) {
+     return preg_match_all('/^' . preg_quote($name, '/') . ':/mi', $requests);
+ }
+ 
+-function report(string $label, string $requests): void {
++function report($label, $requests) {
+     echo $label, "\n";
+     foreach (['Authorization', 'Cookie', 'Proxy-Authorization', 'X-Custom'] as $name) {
+         echo "  $name: ", count_header($requests, $name), "\n";

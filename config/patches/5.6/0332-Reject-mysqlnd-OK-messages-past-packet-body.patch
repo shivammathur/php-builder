@@ -1,0 +1,103 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 3 Nov 2026 13:49:18 +0100
+Subject: Reject mysqlnd OK messages past packet body
+
+---
+ NEWS                                               |  2 +-
+ ext/mysqli/tests/fake_server.inc                   | 15 +++++++++++++++
+ .../tests/mysqlnd-ok-message-past-packet.phpt      | 22 ++++++++++++++++++++++
+ ext/mysqlnd/mysqlnd_wireprotocol.c                 | 12 +++++++++++-
+ 4 files changed, 49 insertions(+), 2 deletions(-)
+ create mode 100644 ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+
+diff --git a/NEWS b/NEWS
+index 13e54f6..10673f4 100644
+--- a/NEWS
++++ b/NEWS
+@@ -12,7 +12,7 @@ Backported from 8.2.34
+     due to partial address comparison). (CVE-2026-91768) (Alexandre Daubois)
+ 
+ - MySQLnd:
+-  . Hardened binary temporal field decoding against short lengths
++  . Hardened binary temporal fields and OK-packet messages against invalid lengths
+     (GHSA-r6x9-5r99-36j7, CVE-2025-1218).
+ 
+ - OpenSSL:
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 3f5ee34..98a2a16 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -711,6 +711,21 @@ function my_mysqli_test_stmt_response_row_over_read_string(my_mysqli_fake_server
+     $conn->read(65536);
+ }
+ 
++function my_mysqli_test_ok_message_length_past_packet(my_mysqli_fake_server_conn $conn)
++{
++    $p = $conn->packet_generator->server_ok();
++    $p->packet_number = '01';
++    $p->packet_length = '080000';
++    $p->message_len = '10';
++
++    $conn->send_server_greetings();
++    $conn->read();
++    $conn->send_server_ok();
++    $conn->read();
++    $conn->send($p->to_bytes(), 'OK message length past packet');
++    $conn->read();
++}
++
+ function my_mysqli_test_stmt_response_row_short_length(my_mysqli_fake_server_conn $conn, $field_name)
+ {
+     $rh = $conn->packet_generator->server_stmt_execute_data_response($field_name);
+diff --git a/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+new file mode 100644
+index 0000000..9c84edd
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects an OK message whose length exceeds the packet body
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('ok_message_length_past_packet', $port);
++$process->wait();
++try {
++    $conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++    var_dump($conn->select_db('php_test'));
++    $conn->close();
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*OK packet .*shorter than expected.*bool\(false\).*done
+diff --git a/ext/mysqlnd/mysqlnd_wireprotocol.c b/ext/mysqlnd/mysqlnd_wireprotocol.c
+index 161db86..16202cf 100644
+--- a/ext/mysqlnd/mysqlnd_wireprotocol.c
++++ b/ext/mysqlnd/mysqlnd_wireprotocol.c
+@@ -878,8 +878,18 @@ php_mysqlnd_ok_read(void * _packet, MYSQLND_CONN_DATA * conn TSRMLS_DC)
+ 	BAIL_IF_NO_MORE_DATA;
+ 
+ 	/* There is a message */
++	if (packet->header.size > (size_t) (p - buf)) {
++		size_t available = packet->header.size - (size_t) (p - buf);
++		size_t length_bytes = *p < 252 ? 1 : (*p == 252 ? 3 : (*p == 253 ? 4 : 9));
++		if (length_bytes > available) {
++			goto premature_end;
++		}
++	}
+ 	if (packet->header.size > (size_t) (p - buf) && (i = php_mysqlnd_net_field_length(&p))) {
+-		packet->message_len = MIN(i, buf_len - (p - begin));
++		if (i > packet->header.size - (size_t) (p - buf)) {
++			goto premature_end;
++		}
++		packet->message_len = i;
+ 		packet->message = mnd_pestrndup((char *)p, packet->message_len, FALSE);
+ 	} else {
+ 		packet->message = NULL;

@@ -1,0 +1,40 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Wed, 11 Aug 2021 10:11:12 +0200
+Subject: Fix openssl memory leaks
+
+Some leaks that snuck in during refactorings.
+
+Only the openssl_csr_get_public_key() part is needed here: the key
+returned by X509_REQ_get_pubkey() has to be freed after "Extract public
+key portion via PEM roundtrip". The other part is for code that PHP 7.2
+does not have.
+
+(cherry picked from commit 7d2a2c7dc0447c81316d14f3a43a4b6a8ce0b982)
+---
+ ext/openssl/openssl.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 1c0db26..1463c26 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -3660,7 +3660,7 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 	zend_resource *csr_resource;
+ 
+ 	X509_REQ *csr;
+-	EVP_PKEY *tpubkey;
++	EVP_PKEY *orig_key, *tpubkey;
+ 
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|b", &zcsr, &use_shortnames) == FAILURE) {
+ 		return;
+@@ -3673,7 +3673,9 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 	}
+ 
+ 	/* Retrieve the public key from the CSR */
+-	tpubkey = php_openssl_extract_public_key(X509_REQ_get_pubkey(csr));
++	orig_key = X509_REQ_get_pubkey(csr);
++	tpubkey = php_openssl_extract_public_key(orig_key);
++	EVP_PKEY_free(orig_key);
+ 
+ 	if (!csr_resource) {
+ 		/* We need to free the original CSR if it was freshly created */

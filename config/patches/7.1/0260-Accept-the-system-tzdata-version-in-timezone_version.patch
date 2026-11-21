@@ -1,0 +1,29 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:58 +0100
+Subject: Accept the system tzdata version in timezone_version_get tests
+
+---
+ ext/date/tests/timezone_version_get.phpt        | 2 +-
+ ext/date/tests/timezone_version_get_basic1.phpt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/date/tests/timezone_version_get.phpt b/ext/date/tests/timezone_version_get.phpt
+index c6e88e7..4e2db5a 100644
+--- a/ext/date/tests/timezone_version_get.phpt
++++ b/ext/date/tests/timezone_version_get.phpt
+@@ -10,4 +10,4 @@ date_default_timezone_set("America/Sao_Paulo");
+ var_dump(timezone_version_get());
+ ?>
+ --EXPECTREGEX--
+-string\([6-7]\) \"20[0-9][0-9]\.[1-9][0-9]?\"
++string\([6-8]\) \"(20[0-9][0-9]\.[1-9][0-9]?|0\.system)\"
+diff --git a/ext/date/tests/timezone_version_get_basic1.phpt b/ext/date/tests/timezone_version_get_basic1.phpt
+index f008486..6559608 100644
+--- a/ext/date/tests/timezone_version_get_basic1.phpt
++++ b/ext/date/tests/timezone_version_get_basic1.phpt
+@@ -9,4 +9,4 @@ date.timezone=UTC
+ <?php $versionTimezone = timezone_version_get();
+ echo $versionTimezone; ?>
+ --EXPECTREGEX--
+-^[12][0-9]{3}.[0-9]+$
++^([12][0-9]{3}.[0-9]+|0\.system)$

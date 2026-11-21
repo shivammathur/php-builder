@@ -1,0 +1,38 @@
+From: Anatol Belski <ab@php.net>
+Date: Sat, 1 Jun 2019 02:18:56 +0200
+Subject: Change ZPP only if compiled with ICU >= 64
+
+PHP 7.1 never got this change nor the one it adjusts, the
+locale_lookup() part of "Update tests for ICU 64" (b01d9fdab1c), both in
+PHP 7.2.20. Without them locale_lookup() with an empty locale and null as
+the default locale returns an empty string instead of the default locale
+when built with ICU 64 or newer (ext/intl/tests/locale_bug66289.phpt).
+
+(cherry picked from commit ee153deb1fc91cecb2095ada9bd12683ca801852)
+---
+ ext/intl/locale/locale_methods.c | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/ext/intl/locale/locale_methods.c b/ext/intl/locale/locale_methods.c
+index 959b2d3..40589f4 100644
+--- a/ext/intl/locale/locale_methods.c
++++ b/ext/intl/locale/locale_methods.c
+@@ -1554,11 +1554,17 @@ PHP_FUNCTION(locale_lookup)
+ 
+ 	intl_error_reset( NULL );
+ 
+-	if(zend_parse_parameters( ZEND_NUM_ARGS(), "as|bS", &arr, &loc_range, &loc_range_len,
++#if U_ICU_VERSION_MAJOR_NUM > 63
++# define BANG "!"
++#else
++# define BANG
++#endif	
++	if(zend_parse_parameters( ZEND_NUM_ARGS(), "as|bS" BANG, &arr, &loc_range, &loc_range_len,
+ 		&boolCanonical,	&fallback_loc_str) == FAILURE) {
+ 		intl_error_set( NULL, U_ILLEGAL_ARGUMENT_ERROR,	"locale_lookup: unable to parse input params", 0 );
+ 		RETURN_FALSE;
+ 	}
++#undef BANG
+ 
+ 	if(loc_range_len == 0) {
+ 		if(fallback_loc_str) {

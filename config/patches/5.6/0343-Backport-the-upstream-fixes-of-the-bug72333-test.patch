@@ -1,0 +1,113 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:33:44 +0100
+Subject: Backport the upstream fixes of the bug72333 test
+
+The test came with the backport of the fix for bug #72333 in its first
+version, in which the server stops reading before the client has written
+everything. Take the later upstream fixes of the test: commits f0e67d1a56d
+("Speed up test for bug72333"), 0c8ad36d924 ("Make test for bug #72333 a
+bit more reliable"), 53e2c9158d4 ("Consume data by server in test for bug
+#72333") and 6d066dc421e ("Lower timeout in test for but #72333"), all in
+PHP 7.0.18.
+---
+ ext/openssl/tests/bug72333.phpt | 79 ++++++++++++++++++++++++-----------------
+ 1 file changed, 46 insertions(+), 33 deletions(-)
+
+diff --git a/ext/openssl/tests/bug72333.phpt b/ext/openssl/tests/bug72333.phpt
+index ab2b607..ee14696 100644
+--- a/ext/openssl/tests/bug72333.phpt
++++ b/ext/openssl/tests/bug72333.phpt
+@@ -8,42 +8,56 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ --FILE--
+ <?php
+ $serverCode = <<<'CODE'
+-	$context = stream_context_create(['ssl' => ['local_cert' => __DIR__ . '/bug54992.pem']]);
++    $context = stream_context_create(['ssl' => ['local_cert' => __DIR__ . '/bug54992.pem']]);
+ 
+-	$flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+-	$fp = stream_socket_server("ssl://127.0.0.1:10011", $errornum, $errorstr, $flags, $context);
+-	phpt_notify();
+-	$conn = stream_socket_accept($fp);
+-
+-	for ($i = 0; $i < 5; $i++) {
+-		fread($conn, 100000);
+-		usleep(200000);
+-	}
++    $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
++    $fp = stream_socket_server("ssl://127.0.0.1:10011", $errornum, $errorstr, $flags, $context);
++    phpt_notify();
++    $conn = stream_socket_accept($fp);
++    $total = 100000;
++    $result = fread($conn, $total);
++    stream_set_blocking($conn, false);
++    usleep(50000);
++    $read = [$conn];
++    while (stream_select($read, $write, $except, 1)) {
++        $result = fread($conn, 100000);
++        if (!$result) {
++            break;
++        }
++        $total += strlen($result);
++        if ($total >= 4000000) {
++            break;
++        }
++    }
++    phpt_wait();
+ CODE;
+ 
+ $clientCode = <<<'CODE'
+-	$context = stream_context_create(['ssl' => ['verify_peer' => false, 'peer_name' => 'bug54992.local']]);
+-
+-	phpt_wait();
+-	$fp = stream_socket_client("ssl://127.0.0.1:10011", $errornum, $errorstr, 3000, STREAM_CLIENT_CONNECT, $context);
+-	stream_set_blocking($fp, 0);
+-
+-	function blocking_fwrite($fp, $buf) {
+-		$write = [$fp];
+-		$total = 0;
+-		while (stream_select($read, $write, $except, 180)) {
+-			$result = fwrite($fp, $buf);
+-			$total += $result;
+-			if ($total >= strlen($buf)) {
+-				return $total;
+-			}
+-			$buf = substr($buf, $total);
+-		}
+-	}
+-
+-	$str1 = str_repeat("a", 5000000);
+-	blocking_fwrite($fp, $str1);
+-	echo "done";
++    $context = stream_context_create(['ssl' => ['verify_peer' => false, 'peer_name' => 'bug54992.local']]);
++    
++    phpt_wait();
++    $fp = stream_socket_client("ssl://127.0.0.1:10011", $errornum, $errorstr, 3000, STREAM_CLIENT_CONNECT, $context);
++    stream_set_blocking($fp, false);
++    
++    function blocking_fwrite($fp, $buf) {
++        $write = [$fp];
++        $total = 0;
++        while (stream_select($read, $write, $except, 1)) {
++            $result = fwrite($fp, $buf);
++            if (!$result) {
++                break;
++            }
++            $total += $result;
++            if ($total >= strlen($buf)) {
++                return $total;
++            }
++            $buf = substr($buf, $total);
++        }
++    }
++    $str1 = str_repeat("a", 4000000);
++    blocking_fwrite($fp, $str1);
++    phpt_notify();
++    echo "done";
+ CODE;
+ 
+ include 'ServerClientTestCase.inc';
+@@ -51,4 +65,3 @@ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECT--
+ done
+-

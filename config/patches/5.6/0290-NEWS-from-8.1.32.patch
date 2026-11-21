@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:09:07 +0200
+Subject: NEWS from 8.1.32
+
+---
+diff --git a/NEWS b/NEWS
+--- a/NEWS
++++ b/NEWS
+@@ -34,6 +34,13 @@
+ - Standard:
+   . Fixed GHSA-96wq-48vp-hh57 (Signed integer overflow of char array offset).
+     (CVE-2026-7568) (TimWolla)
++Backported from 8.1.32
++
++- Streams:
++  . Fixed GHSA-hgf5-96fm-v528 (Stream HTTP wrapper header check might omit
++    basic auth header). (CVE-2025-1736) (Jakub Zelenka)
++  . Fixed bug #79265 (Improper injection of Host header when using fopen for
++    http requests). (Miguel Xavier Penha Neto)
+ 
+ Backported from 8.1.31
+ 

@@ -47,3 +47,5 @@
 0047-Skip-gd-tests-that-need-the-bundled-libgd.patch
 0048-Skip-enchant-bug13181-test-without-the-en-dictionary.patch
 0049-Accept-the-system-tzdata-version-in-timezone_version.patch
+0050-ext-soap-fix-DTD-node-being-matched-as-an-element.patch
+0051-fix-dtd_named_like_root_request-test-for-8.5-and-new.patch

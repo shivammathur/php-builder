@@ -1,0 +1,88 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 23 Feb 2021 15:32:54 +0100
+Subject: Fix #78719: http wrapper silently ignores long Location headers
+
+When opening HTTP streams, and reading the headers, we currently
+discard header lines longer than `HTTP_HEADER_BLOCK_SIZE` (1024 bytes).
+While this is not generally forbidden by RFC 7230, section 3.2.5, it
+is not generally allowed either, since that may change the "message
+framing or response semantics".
+
+We thus fix this by allowing arbitrarily long header lines.
+
+Closes GH-6720.
+
+(cherry picked from commit 51e2015af3fc4757a666736aae7899a43f76ae6d)
+(cherry picked from commit 1c967cc72fea4202d573ab2afd3645ab46b4df15)
+---
+ ext/standard/http_fopen_wrapper.c     | 18 +++++-------------
+ ext/standard/tests/http/bug78719.phpt | 26 ++++++++++++++++++++++++++
+ 2 files changed, 31 insertions(+), 13 deletions(-)
+ create mode 100644 ext/standard/tests/http/bug78719.phpt
+
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index e125364..e07f733 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -745,24 +745,16 @@ finish:
+ 
+ 	/* read past HTTP headers */
+ 
+-	http_header_line = emalloc(HTTP_HEADER_BLOCK_SIZE);
+-
+ 	while (!php_stream_eof(stream)) {
+ 		size_t http_header_line_length;
+ 
+-		if (php_stream_get_line(stream, http_header_line, HTTP_HEADER_BLOCK_SIZE, &http_header_line_length) && *http_header_line != '\n' && *http_header_line != '\r') {
++		if (http_header_line != NULL) {
++			efree(http_header_line);
++		}
++		if ((http_header_line = php_stream_get_line(stream, NULL, 0, &http_header_line_length)) && *http_header_line != '\n' && *http_header_line != '\r') {
+ 			char *e = http_header_line + http_header_line_length - 1;
+ 			char *http_header_value;
+-			if (*e != '\n') {
+-				do { /* partial header */
+-					if (php_stream_get_line(stream, http_header_line, HTTP_HEADER_BLOCK_SIZE, &http_header_line_length) == NULL) {
+-						php_stream_wrapper_log_error(wrapper, options, "Failed to read HTTP headers");
+-						goto out;
+-					}
+-					e = http_header_line + http_header_line_length - 1;
+-				} while (*e != '\n');
+-				continue;
+-			}
++
+ 			while (e >= http_header_line && (*e == '\n' || *e == '\r')) {
+ 				e--;
+ 			}
+diff --git a/ext/standard/tests/http/bug78719.phpt b/ext/standard/tests/http/bug78719.phpt
+new file mode 100644
+index 0000000..b12bd39
+--- /dev/null
++++ b/ext/standard/tests/http/bug78719.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++Bug #78719 (http wrapper silently ignores long Location headers)
++--SKIPIF--
++<?php require 'server.inc'; http_server_skipif('tcp://127.0.0.1:12342'); ?>
++--INI--
++allow_url_fopen=1
++--FILE--
++<?php
++require 'server.inc';
++
++$url = str_repeat('*', 2000);
++$responses = array(
++	"data://text/plain,HTTP/1.0 302 Ok\r\nLocation: $url\r\n\r\nBody",
++);
++$pid = http_server("tcp://127.0.0.1:12342", $responses, $output);
++
++$context = stream_context_create(['http' => ['follow_location' => 0]]);
++$stream = fopen('http://127.0.0.1:12342/', 'r', false, $context);
++var_dump(stream_get_contents($stream));
++var_dump(stream_get_meta_data($stream)['wrapper_data'][1] === "Location: $url");
++
++http_server_kill($pid);
++?>
++--EXPECTF--
++string(4) "Body"
++bool(true)

@@ -1,0 +1,26 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 12:22:40 +0100
+Subject: Don't use libimagequant in imagetruecolortopalette() (as in PHP 8.6)
+
+---
+ ext/gd/gd.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/ext/gd/gd.c b/ext/gd/gd.c
+index fde93bb..1ef83b6 100644
+--- a/ext/gd/gd.c
++++ b/ext/gd/gd.c
+@@ -1636,6 +1636,13 @@ PHP_FUNCTION(imagetruecolortopalette)
+ 		php_error_docref(NULL, E_WARNING, "Number of colors has to be greater than zero and no more than %d", INT_MAX);
+ 		RETURN_FALSE;
+ 	}
++
++#ifndef HAVE_GD_BUNDLED
++	/* Preserve PHP's historical palette conversion behavior regardless of
++	 * whether the system libgd was built with libimagequant support. */
++	gdImageTrueColorToPaletteSetMethod(im, GD_QUANT_JQUANT, 0);
++#endif
++
+ 	if (gdImageTrueColorToPalette(im, dither, (int)ncolors)) {
+ 		RETURN_TRUE;
+ 	} else {

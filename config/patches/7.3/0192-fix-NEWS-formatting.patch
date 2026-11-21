@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:54:52 +0200
+Subject: fix NEWS formatting
+
+---
+ NEWS | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/NEWS b/NEWS
+index 70025b0..f572f4c 100644
+--- a/NEWS
++++ b/NEWS
+@@ -123,7 +123,7 @@ Backported from 8.1.32
+   . Fixed GHSA-wg4p-4hqh-c3g9 (Reocurrence of #72714). (nielsdos)
+ 
+ - Streams:
+-  . Fixed GHSA-hgf54-96fm-v528 (Stream HTTP wrapper header check might omit
++  . Fixed GHSA-hgf5-96fm-v528 (Stream HTTP wrapper header check might omit
+     basic auth header). (CVE-2025-1736) (Jakub Zelenka)
+   . Fixed GHSA-52jp-hrpf-2jff (Stream HTTP wrapper truncate redirect location
+     to 1024 bytes). (CVE-2025-1861) (Jakub Zelenka)

@@ -1,0 +1,41 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:37:58 +0100
+Subject: Skip the recode 001 test when librecode recodes UTF-8 to HTML
+ incorrectly
+
+recode 3.7 no longer knows the charset name lat1, and with its iconv
+steps recode_string('utf-8..html') returns numeric entities with swapped
+bytes: iconv writes UCS-2 in the host byte order without a byte order
+mark and the next step reads it as big endian.
+---
+ ext/recode/tests/001.phpt | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/ext/recode/tests/001.phpt b/ext/recode/tests/001.phpt
+index 62dc40a..3b7226a 100644
+--- a/ext/recode/tests/001.phpt
++++ b/ext/recode/tests/001.phpt
+@@ -1,7 +1,10 @@
+ --TEST--
+ recode_string() function - Testing string conversions between latin1, UTF-8 and html
+ --SKIPIF--
+-<?php if (!extension_loaded("recode")) print "skip"; ?>
++<?php
++if (!extension_loaded("recode")) die("skip");
++if (@recode_string('utf-8..html', "\xc3\xa5") !== '&aring;') die("skip the system librecode recodes UTF-8 to HTML incorrectly");
++?>
+ --FILE--
+ <?php
+ function ascii2hex($ascii) {
+@@ -24,9 +27,9 @@ function hex2ascii($hex){
+ }
+ 
+ $lat1_hex_org = '31 32 33 e5 e4 f6 61 62 63';
+-$utf8_hex = ascii2hex(recode_string('lat1..utf-8', hex2ascii($lat1_hex_org)));
++$utf8_hex = ascii2hex(recode_string('latin1..utf-8', hex2ascii($lat1_hex_org)));
+ $html = recode_string('utf-8..html', hex2ascii($utf8_hex));
+-$lat1_hex = ascii2hex(recode_string('html..lat1', $html));
++$lat1_hex = ascii2hex(recode_string('html..latin1', $html));
+ 
+ echo "#" . $utf8_hex . "#\n";
+ echo "#" . $html . "#\n";

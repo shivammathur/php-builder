@@ -1,0 +1,320 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Thu, 18 Jun 2020 15:34:33 +0200
+Subject: Add SubjectAltName support to certificate generator
+
+And switch tests using SAN certificates to the generator.
+
+This is ugly, but there doesn't seem to be a more direct way
+to privide SAN in PHP.
+
+(cherry picked from commit c7fe71c8b764b36fdfd5e14f23d0af9e3a194afe)
+(cherry picked from commit 2d549c60c7abbf73558d761dfd73b2e240ed76ca)
+---
+ ext/openssl/tests/CertificateGenerator.inc | 24 +++++++++++++++++-----
+ ext/openssl/tests/bug68265.pem             | 33 ------------------------------
+ ext/openssl/tests/bug68265.phpt            | 15 ++++++++++++--
+ ext/openssl/tests/bug68879.pem             | 33 ------------------------------
+ ext/openssl/tests/bug68879.phpt            | 15 ++++++++++++--
+ ext/openssl/tests/san.cnf                  | 13 ++++++++++++
+ ext/openssl/tests/san_peer_matching.phpt   | 15 ++++++++++++--
+ 7 files changed, 71 insertions(+), 77 deletions(-)
+ delete mode 100644 ext/openssl/tests/bug68265.pem
+ delete mode 100644 ext/openssl/tests/bug68879.pem
+ create mode 100644 ext/openssl/tests/san.cnf
+
+diff --git a/ext/openssl/tests/CertificateGenerator.inc b/ext/openssl/tests/CertificateGenerator.inc
+index e915e81..4cd8540 100644
+--- a/ext/openssl/tests/CertificateGenerator.inc
++++ b/ext/openssl/tests/CertificateGenerator.inc
+@@ -3,6 +3,7 @@
+ class CertificateGenerator
+ {
+     const CONFIG = __DIR__. DIRECTORY_SEPARATOR . 'openssl.cnf';
++    const SAN_CONFIG = __DIR__ . DIRECTORY_SEPARATOR . 'san.cnf';
+ 
+     /** @var resource */
+     private $ca;
+@@ -82,23 +83,36 @@ class CertificateGenerator
+         openssl_x509_export_to_file($this->ca, $file);
+     }
+ 
+-    public function saveNewCertAsFileWithKey($commonNameForCert, $file, $keyLength = null)
+-    {
++    public function saveNewCertAsFileWithKey(
++        $commonNameForCert, $file, $keyLength = null, $subjectAltName = null
++    ) {
+         $dn = [
+             'countryName' => 'BY',
+             'stateOrProvinceName' => 'Minsk',
+             'localityName' => 'Minsk',
+             'organizationName' => 'Example Org',
+-            'commonName' => $commonNameForCert,
+         ];
++        if ($commonNameForCert !== null) {
++            $dn['commonName'] = $commonNameForCert;
++        }
++
++        $config = [
++            'digest_alg' => 'sha256',
++            'req_extensions' => 'v3_req',
++            'x509_extensions' => 'usr_cert',
++        ];
++        if ($subjectAltName !== null) {
++            putenv("PHP_SUBJECTALTNAME=$subjectAltName");
++            $config['config'] = self::SAN_CONFIG;
++        }
+ 
+         $this->lastKey = self::generateKey($keyLength);
+         $this->lastCert = openssl_csr_sign(
+-            openssl_csr_new($dn, $this->lastKey, ['req_extensions' => 'v3_req']),
++            openssl_csr_new($dn, $this->lastKey, $config),
+             $this->ca,
+             $this->caKey,
+             /* days */ 2,
+-            ['digest_alg' => 'sha256'],
++            $config,
+         );
+ 
+         $certText = '';
+diff --git a/ext/openssl/tests/bug68265.pem b/ext/openssl/tests/bug68265.pem
+deleted file mode 100644
+index 3d9e5bd..0000000
+--- a/ext/openssl/tests/bug68265.pem
++++ /dev/null
+@@ -1,33 +0,0 @@
+------BEGIN ENCRYPTED PRIVATE KEY-----
+-MIICxjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQIuw/AFD7RWcMCAggA
+-MBQGCCqGSIb3DQMHBAh98F6GmaGn1ASCAoBpzaFxyttEhyh4dhMjarJIqTz24DjO
+-yZnp1K5qthejSYx2P28uUsh+gQOh6F2jbVAq++eAWkTBGuc4pWhhoT7nY8vhf0Y0
+-6yTlVrTxuI/8MNo/lfa0xE/+ZD4B5zp0hQxfij4GTd8l6V/kpXMgiYD1JmIXArm7
+-sucn+9XV3RucsTBpeIJ1nLEDfpbyEWqNfhoyskQ+S3I6HkMgELI9JpsO6OR9fh1Q
+-ttdoYxBU+YjoDYcSWRGkTGrJFeGGhTQzz+L2ijgoqNWDSfrLBoQR1bqNVUuw6gcE
+-9PpA/vpRlxcHbUNNkOWft+4e0tV3I2EqscEcsYeNbd2Ta4yu7f6pk4/Kxn40wrQ8
+-6Ss9GZylghaFth2xppL/vpmGaCC7FqpZRh+NKqjlcBobIkwyRcsQrPHB0CYLPHA4
+-yak/dNTY8L5K8Rtd5XG3+E41CoDF6ssNY0Kw7l9kAn/neDVh+WnQkWIiWPmq210a
+-p4L/uiXRK7aYi+UqKJ5+svayNw2w1dkqpbeejwLq2F1+ek/447JFPVJcvP8Nm7sr
+-04Mcg+ZHusZdjiWEv4W6CBq8o6eF2JdhfpSDgPkHwiZ/EarHfx0vcYIMJhlEQBmk
+-a/XsZPk2wnamKSPfJautO3MIus0M6SniWF6eDA4/AZzSjXV8Vc0unb6lc+Nc8tJa
+-6MU1soTsmki/YraCmQswqpL+kXFZVeHuLowOC5oH+CimQoscmiZ9tBvpnYo6XwEZ
+-S9jZRIBQ77oMku+rlMPfz2FURgVXZpEfrGmxKvA5Vt3ojrYfTwwD2YqZHVcm39zy
+-iKqA1qVt7A2A90ILMAzYnN0VRE4SO3yIDN1ZBp5OOY61AduPrhpaHl81
+------END ENCRYPTED PRIVATE KEY-----
+------BEGIN CERTIFICATE-----
+-MIICdjCCAd+gAwIBAgIJAPbIVRT31Al2MA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV
+-BAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0RlZmF1bHQg
+-Q29tcGFueSBMdGQxFDASBgNVBAMMC3BocCB0ZXN0IGNhMB4XDTE1MDMwNTA2MTYz
+-MFoXDTI1MDMwMjA2MTYzMFowUjELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAlNDMRUw
+-EwYDVQQHDAxNeXJ0bGUgQmVhY2gxDDAKBgNVBAsMA1BIUDERMA8GA1UEAwwIdGVz
+-dC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKp5gxUbKvY5eFwZJti0
+-6d6YBo400Or6M+bLfIMnz5C1WQ7dMfiQpeFLpSIlOIaFqyrqkeeR9k5dsx1K9FOu
+-PAJ4+lmWA4R93RpdJFz8kmQoNu3P59JMATXi8wvNBIrN/Vc08NT0wBRImeyQSVHd
+-UcFIXBEbBM0dQsPKQ1k8n5WDAgMBAAGjTjBMMAkGA1UdEwQCMAAwCwYDVR0PBAQD
+-AgXgMDIGA1UdEQQrMCmCEmRlYnMuYWstb25saW5lLmJlLoITZGVicy5hay1vbmxp
+-bmUubmV0LjANBgkqhkiG9w0BAQsFAAOBgQB8PaLt+IX690UIbHKuko4qAdc5SzWA
+-Vbm3D4StZeFwWQbZbBGFCDn0/0ON0iDv4JUgZnaX84mBDPczN26QG2PJND0Cggmi
+-umylEVYhclPF4RoGcoKd3jT2igzDNyzk/lu+NUtRv/Nj161ds9vb9XiOrEkPn8Ne
+-mzz3wA0D5A65lw==
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug68265.phpt b/ext/openssl/tests/bug68265.phpt
+index 736ff29..e089f60 100644
+--- a/ext/openssl/tests/bug68265.phpt
++++ b/ext/openssl/tests/bug68265.phpt
+@@ -7,12 +7,14 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug68265.pem.tmp';
++$san = 'DNS:debs.ak-online.be., DNS:debs.ak-online.net.';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/bug68265.pem',
+-        'passphrase' => 'elephpant',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -20,6 +22,7 @@ $serverCode = <<<'CODE'
+ 
+     stream_socket_accept($server, 30);
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+@@ -35,8 +38,16 @@ $clientCode = <<<'CODE'
+     var_dump(stream_socket_client($serverUri, $errno, $errstr, 1, $clientFlags, $clientCtx));
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('test.com', $certFile, null, $san);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug68265.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+diff --git a/ext/openssl/tests/bug68879.pem b/ext/openssl/tests/bug68879.pem
+deleted file mode 100644
+index 15c6f03..0000000
+--- a/ext/openssl/tests/bug68879.pem
++++ /dev/null
+@@ -1,33 +0,0 @@
+------BEGIN ENCRYPTED PRIVATE KEY-----
+-MIICxjBABgkqhkiG9w0BBQ0wMzAbBgkqhkiG9w0BBQwwDgQIuw/AFD7RWcMCAggA
+-MBQGCCqGSIb3DQMHBAh98F6GmaGn1ASCAoBpzaFxyttEhyh4dhMjarJIqTz24DjO
+-yZnp1K5qthejSYx2P28uUsh+gQOh6F2jbVAq++eAWkTBGuc4pWhhoT7nY8vhf0Y0
+-6yTlVrTxuI/8MNo/lfa0xE/+ZD4B5zp0hQxfij4GTd8l6V/kpXMgiYD1JmIXArm7
+-sucn+9XV3RucsTBpeIJ1nLEDfpbyEWqNfhoyskQ+S3I6HkMgELI9JpsO6OR9fh1Q
+-ttdoYxBU+YjoDYcSWRGkTGrJFeGGhTQzz+L2ijgoqNWDSfrLBoQR1bqNVUuw6gcE
+-9PpA/vpRlxcHbUNNkOWft+4e0tV3I2EqscEcsYeNbd2Ta4yu7f6pk4/Kxn40wrQ8
+-6Ss9GZylghaFth2xppL/vpmGaCC7FqpZRh+NKqjlcBobIkwyRcsQrPHB0CYLPHA4
+-yak/dNTY8L5K8Rtd5XG3+E41CoDF6ssNY0Kw7l9kAn/neDVh+WnQkWIiWPmq210a
+-p4L/uiXRK7aYi+UqKJ5+svayNw2w1dkqpbeejwLq2F1+ek/447JFPVJcvP8Nm7sr
+-04Mcg+ZHusZdjiWEv4W6CBq8o6eF2JdhfpSDgPkHwiZ/EarHfx0vcYIMJhlEQBmk
+-a/XsZPk2wnamKSPfJautO3MIus0M6SniWF6eDA4/AZzSjXV8Vc0unb6lc+Nc8tJa
+-6MU1soTsmki/YraCmQswqpL+kXFZVeHuLowOC5oH+CimQoscmiZ9tBvpnYo6XwEZ
+-S9jZRIBQ77oMku+rlMPfz2FURgVXZpEfrGmxKvA5Vt3ojrYfTwwD2YqZHVcm39zy
+-iKqA1qVt7A2A90ILMAzYnN0VRE4SO3yIDN1ZBp5OOY61AduPrhpaHl81
+------END ENCRYPTED PRIVATE KEY-----
+------BEGIN CERTIFICATE-----
+-MIICkTCCAfqgAwIBAgIJAPbIVRT31Al1MA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV
+-BAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0RlZmF1bHQg
+-Q29tcGFueSBMdGQxFDASBgNVBAMMC3BocCB0ZXN0IGNhMB4XDTE1MDMwNTA0NTQx
+-NVoXDTI1MDMwMjA0NTQxNVowUjELMAkGA1UEBhMCVVMxCzAJBgNVBAgMAlNDMRUw
+-EwYDVQQHDAxNeXJ0bGUgQmVhY2gxDDAKBgNVBAsMA1BIUDERMA8GA1UEAwwIdGVz
+-dC5jb20wgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKp5gxUbKvY5eFwZJti0
+-6d6YBo400Or6M+bLfIMnz5C1WQ7dMfiQpeFLpSIlOIaFqyrqkeeR9k5dsx1K9FOu
+-PAJ4+lmWA4R93RpdJFz8kmQoNu3P59JMATXi8wvNBIrN/Vc08NT0wBRImeyQSVHd
+-UcFIXBEbBM0dQsPKQ1k8n5WDAgMBAAGjaTBnMAkGA1UdEwQCMAAwCwYDVR0PBAQD
+-AgXgME0GA1UdEQRGMESCCHRlc3QuY29tggx3d3cudGVzdC5jb22CEnN1YmRvbWFp
+-bi50ZXN0LmNvbYcQAAAAAAAAAAAAAP//CgIAAYcECgIAATANBgkqhkiG9w0BAQsF
+-AAOBgQBZ4TptNXV85gNj3wcB5feWFcwKO8cN4hwnhrbqiHN280r9O/g1CQiLmB4K
+-2txrJt06UNCnvWse7CdvsN14wu6rRGRk/+7M36NBw5ERkAzp5HXgZUWVdMl3YltB
+-PpqbLhGGrkVn7/jW2FdAxfax7qaGDYgC3qcQNfiK6K92SPxV7Q==
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug68879.phpt b/ext/openssl/tests/bug68879.phpt
+index 1f135ee..c951a2f 100644
+--- a/ext/openssl/tests/bug68879.phpt
++++ b/ext/openssl/tests/bug68879.phpt
+@@ -7,12 +7,14 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug68879.pem.tmp';
++$san = 'DNS:test.com, DNS:www.test.com, DNS:subdomain.test.com, IP:0:0:0:0:0:FFFF:A02:1, IP:10.2.0.1';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/bug68879.pem',
+-        'passphrase' => 'elephpant',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -20,6 +22,7 @@ $serverCode = <<<'CODE'
+ 
+     stream_socket_accept($server, 30);
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+@@ -35,8 +38,16 @@ $clientCode = <<<'CODE'
+     var_dump(stream_socket_client($serverUri, $errno, $errstr, 30, $clientFlags, $clientCtx));
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('test.com', $certFile, null, $san);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug68879.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+diff --git a/ext/openssl/tests/san.cnf b/ext/openssl/tests/san.cnf
+new file mode 100644
+index 0000000..fd34733
+--- /dev/null
++++ b/ext/openssl/tests/san.cnf
+@@ -0,0 +1,13 @@
++[ req ]
++distinguished_name = req_distinguished_name
++
++[ req_distinguished_name ]
++
++[ v3_req ]
++basicConstraints = CA:FALSE
++keyUsage = nonRepudiation, digitalSignature, keyEncipherment
++subjectAltName = ${ENV::PHP_SUBJECTALTNAME}
++
++[ usr_cert ]
++basicConstraints = CA:FALSE
++subjectAltName = ${ENV::PHP_SUBJECTALTNAME}
+diff --git a/ext/openssl/tests/san_peer_matching.phpt b/ext/openssl/tests/san_peer_matching.phpt
+index 87410dd..6b2c4e4 100644
+--- a/ext/openssl/tests/san_peer_matching.phpt
++++ b/ext/openssl/tests/san_peer_matching.phpt
+@@ -7,11 +7,14 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'san_peer_matching.pem.tmp';
++$san = 'DNS:example.org, DNS:www.example.org, DNS:test.example.org';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/san-cert.pem',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -20,13 +23,13 @@ $serverCode = <<<'CODE'
+     @stream_socket_accept($server, 1);
+     @stream_socket_accept($server, 1);
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $clientFlags = STREAM_CLIENT_CONNECT;
+     $clientCtx = stream_context_create(['ssl' => [
+         'verify_peer' => false,
+-        'cafile' => __DIR__ . '/san-ca.pem',
+     ]]);
+ 
+     phpt_wait();
+@@ -38,9 +41,17 @@ $clientCode = <<<'CODE'
+     var_dump(stream_socket_client($serverUri, $errno, $errstr, 1, $clientFlags, $clientCtx));
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey(null, $certFile, null, $san);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'san_peer_matching.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ 

@@ -1,0 +1,773 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 12:17:55 +0100
+Subject: Backport gd test expectations from PHP 8.6 that match the system
+ libgd
+
+---
+ ext/gd/tests/bug38212-mb.phpt            |  3 ++
+ ext/gd/tests/bug38212.phpt               |  3 ++
+ ext/gd/tests/bug39780_extern.phpt        |  8 +--
+ ext/gd/tests/bug41442.phpt               |  4 ++
+ ext/gd/tests/bug43073.phpt               | 30 ++++++------
+ ext/gd/tests/bug45799.phpt               |  2 +-
+ ext/gd/tests/bug48732-mb.phpt            |  5 +-
+ ext/gd/tests/bug48732.phpt               |  5 +-
+ ext/gd/tests/bug48801-mb.phpt            |  8 +--
+ ext/gd/tests/bug48801.phpt               |  8 +--
+ ext/gd/tests/bug53504.phpt               | 42 ++++++++--------
+ ext/gd/tests/bug65148.phpt               | 84 ++++++++++++++++----------------
+ ext/gd/tests/bug71912-mb.phpt            |  8 +++
+ ext/gd/tests/bug71912.phpt               |  9 +++-
+ ext/gd/tests/bug72339.phpt               | 10 +++-
+ ext/gd/tests/bug73155.phpt               |  3 ++
+ ext/gd/tests/bug73157.phpt               |  3 ++
+ ext/gd/tests/bug73159.phpt               |  3 ++
+ ext/gd/tests/bug73161.phpt               |  3 ++
+ ext/gd/tests/bug73868.phpt               |  3 ++
+ ext/gd/tests/bug73869.phpt               |  3 ++
+ ext/gd/tests/bug77479.phpt               |  2 +-
+ ext/gd/tests/crafted_gd2.phpt            |  3 ++
+ ext/gd/tests/createfromgd2.phpt          |  3 ++
+ ext/gd/tests/createfromwbmp2_extern.phpt |  2 +-
+ ext/gd/tests/gif2gd.phpt                 |  4 ++
+ ext/gd/tests/imagegd_truecolor.phpt      |  3 ++
+ ext/gd/tests/jpg2gd-mb.phpt              |  4 ++
+ ext/gd/tests/jpg2gd.phpt                 |  4 ++
+ ext/gd/tests/libgd00086_extern.phpt      |  5 +-
+ ext/gd/tests/png2gd.phpt                 |  4 ++
+ ext/gd/tests/xpm2gd.phpt                 |  4 ++
+ 32 files changed, 183 insertions(+), 102 deletions(-)
+
+diff --git a/ext/gd/tests/bug38212-mb.phpt b/ext/gd/tests/bug38212-mb.phpt
+index a7a3d65..2bd3542 100644
+--- a/ext/gd/tests/bug38212-mb.phpt
++++ b/ext/gd/tests/bug38212-mb.phpt
+@@ -3,6 +3,9 @@ Bug #38212 (Seg Fault on invalid imagecreatefromgd2part() parameters)
+ --SKIPIF--
+ <?php
+         if (!function_exists('imagecopy')) die("skip gd extension not available\n");
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug38212.phpt b/ext/gd/tests/bug38212.phpt
+index 039c6f9..e34b9e6 100644
+--- a/ext/gd/tests/bug38212.phpt
++++ b/ext/gd/tests/bug38212.phpt
+@@ -3,6 +3,9 @@ Bug #38212 (Seg Fault on invalid imagecreatefromgd2part() parameters)
+ --SKIPIF--
+ <?php
+         if (!function_exists('imagecopy')) die("skip gd extension not available\n");
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug39780_extern.phpt b/ext/gd/tests/bug39780_extern.phpt
+index 0656e52..8b3775b 100644
+--- a/ext/gd/tests/bug39780_extern.phpt
++++ b/ext/gd/tests/bug39780_extern.phpt
+@@ -12,7 +12,9 @@ $im = imagecreatefrompng(__DIR__ . '/bug39780.png');
+ var_dump($im);
+ ?>
+ --EXPECTF--
+-gd-png:  fatal libpng error: Read Error: truncated data
+-gd-png error: setjmp returns error condition 2
+-Warning: imagecreatefrompng(): '%sbug39780.png' is not a valid PNG file in /%s on line %d
++Warning: imagecreatefrompng(): gd-png: fatal libpng error: Read Error: truncated data%win %s on line %d
++
++Warning: imagecreatefrompng(): gd-png error: setjmp returns error condition %d%win %s on line %d
++
++Warning: imagecreatefrompng(): '%sbug39780.png' is not a valid PNG file in %s on line %d
+ bool(false)
+diff --git a/ext/gd/tests/bug41442.phpt b/ext/gd/tests/bug41442.phpt
+index 5c590de..1bfbcf7 100644
+--- a/ext/gd/tests/bug41442.phpt
++++ b/ext/gd/tests/bug41442.phpt
+@@ -5,6 +5,10 @@ Bug #41442 (imagegd2() under output control)
+ 	if (!extension_loaded('gd')) {
+ 		die("skip gd extension not available.");
+ 	}
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagegd2")) {
+ 		die("skip GD2 support unavailable");
+ 	}
+diff --git a/ext/gd/tests/bug43073.phpt b/ext/gd/tests/bug43073.phpt
+index a802733..c591be6 100644
+--- a/ext/gd/tests/bug43073.phpt
++++ b/ext/gd/tests/bug43073.phpt
+@@ -9,21 +9,21 @@ Bug #43073 (TrueType bounding box is wrong for angle<>0)
+ <?php
+ $exp = [
+ 	[501,400, 611,400, 611,376, 501,376],
+-	[492,361, 595,319, 586,296, 483,338],
+-	[470,329, 549,251, 531,233, 453,312],
+-	[439,307, 481,204, 458,195, 416,297],
+-	[400,299, 400,189, 376,189, 376,299],
+-	[361,307, 319,204, 296,213, 338,316],
+-	[329,329, 251,250, 233,267, 311,346],
+-	[307,360, 204,318, 195,341, 297,383],
+-	[299,400, 189,400, 189,424, 299,424],
+-	[307,438, 204,480, 213,503, 316,461],
+-	[329,470, 250,548, 267,566, 346,488],
+-	[360,492, 318,595, 341,604, 383,502],
++    [492,361, 597,319, 588,296, 483,338],
++    [470,329, 549,249, 533,233, 453,312],
++    [439,307, 481,202, 460,193, 416,297],
++    [400,299, 400,187, 376,187, 376,299],
++    [361,305, 319,201, 296,210, 338,314],
++    [329,327, 249,248, 233,265, 311,344],
++    [307,360, 202,316, 193,338, 297,383],
++    [299,400, 187,400, 187,424, 299,424],
++    [305,438, 201,480, 210,503, 314,461],
++    [327,470, 248,548, 265,566, 344,488],
++    [360,492, 316,595, 338,604, 383,502],
+ 	[400,501, 400,611, 424,611, 424,501],
+-	[438,492, 480,595, 503,586, 461,483],
++    [438,492, 480,597, 503,588, 461,483],
+ 	[470,470, 548,549, 566,532, 488,453],
+-	[492,439, 595,481, 604,458, 502,416]
++    [492,439, 595,481, 604,460, 502,416]
+ ];
+ $cwd = __DIR__;
+ $font = "$cwd/Tuffy.ttf";
+@@ -37,14 +37,14 @@ $y = 0;
+ $cos_t = cos(deg2rad($delta_t));
+ $sin_t = sin(deg2rad($delta_t));
+ for ($angle = 0.0, $i = 0; $angle < 360.0; $angle += $delta_t, $i++) {
+-  $bbox = imagettftext($g, 24, $angle, 400+$x, 400+$y, $black, $font, 'ABCDEF');
++  $bbox = imagettftext($g, 24, (int)$angle, (int)(400+$x), (int)(400+$y), $black, $font, 'ABCDEF');
+   imagepolygon($g, $bbox, 4, $red);
+   printf("%2d: ", $i);
+   for ($j = 0; $j < 8; $j++) {
+ 	if ($bbox[$j] >= $exp[$i][$j] - 1 && $bbox[$j] <= $exp[$i][$j] + 1) {
+ 		echo '.';
+ 	} else {
+-		echo "(expected $exp[$i][$j], got $bbox[$j])";
++		echo "(expected {$exp[$i][$j]}, got {$bbox[$j]})";
+ 	}
+   }
+   echo "\n";
+diff --git a/ext/gd/tests/bug45799.phpt b/ext/gd/tests/bug45799.phpt
+index 34fafa9..44c79d2 100644
+--- a/ext/gd/tests/bug45799.phpt
++++ b/ext/gd/tests/bug45799.phpt
+@@ -11,4 +11,4 @@ imagepng($img);
+ imagedestroy($img);
+ ?>
+ --EXPECTF--
+-Warning: imagepng(): gd-png error: no colors in palette in %s on line %d
++Warning: imagepng(): gd-png error: no colors in palette%win %s on line %d
+diff --git a/ext/gd/tests/bug48732-mb.phpt b/ext/gd/tests/bug48732-mb.phpt
+index 437731b..e9f5a22 100644
+--- a/ext/gd/tests/bug48732-mb.phpt
++++ b/ext/gd/tests/bug48732-mb.phpt
+@@ -18,6 +18,7 @@ imagepng($g, "$cwd/bug48732私はガラスを食べられます.png");
+ echo 'Left Bottom: (' . $bbox[0]  . ', ' . $bbox[1] . ')';
+ ?>
+ --CLEAN--
+-<?php @unlink(__DIR__ . '/bug48732私はガラスを食べられます.png'); ?>
++<?php @unlink(__DIR__ . '/bug48732私はガラスを食べられます.png');
++ ?>
+ --EXPECT--
+-Left Bottom: (0, 46)
++Left Bottom: (0, 40)
+diff --git a/ext/gd/tests/bug48732.phpt b/ext/gd/tests/bug48732.phpt
+index b2be6a4..b090396 100644
+--- a/ext/gd/tests/bug48732.phpt
++++ b/ext/gd/tests/bug48732.phpt
+@@ -17,6 +17,7 @@ imagepng($g, "$cwd/bug48732.png");
+ echo 'Left Bottom: (' . $bbox[0]  . ', ' . $bbox[1] . ')';
+ ?>
+ --CLEAN--
+-<?php @unlink(__DIR__ . '/bug48732.png'); ?>
++<?php @unlink(__DIR__ . '/bug48732.png'); 
++?>
+ --EXPECT--
+-Left Bottom: (0, 46)
++Left Bottom: (0, 40)
+diff --git a/ext/gd/tests/bug48801-mb.phpt b/ext/gd/tests/bug48801-mb.phpt
+index 1793ac3..dce2d40 100644
+--- a/ext/gd/tests/bug48801-mb.phpt
++++ b/ext/gd/tests/bug48801-mb.phpt
+@@ -17,7 +17,7 @@ echo '(' . $bbox[4] . ', ' . $bbox[5] . ")\n";
+ echo '(' . $bbox[6] . ', ' . $bbox[7] . ")\n";
+ ?>
+ --EXPECTREGEX--
+-\(4, 15\)
+-\(16[0-1], 15\)
+-\(16[0-1], -4[7-8]\)
+-\(4, -4[7-8]\)
++\(4, 1[4-5]\)
++\(16[0-1], 1[4-5]\)
++\(16[0-1], -4[6-8]\)
++\(4, -4[6-8]\)
+diff --git a/ext/gd/tests/bug48801.phpt b/ext/gd/tests/bug48801.phpt
+index b5e32af..4ca2359 100644
+--- a/ext/gd/tests/bug48801.phpt
++++ b/ext/gd/tests/bug48801.phpt
+@@ -16,7 +16,7 @@ echo '(' . $bbox[4] . ', ' . $bbox[5] . ")\n";
+ echo '(' . $bbox[6] . ', ' . $bbox[7] . ")\n";
+ ?>
+ --EXPECTREGEX--
+-\(4, 15\)
+-\(16[0-1], 15\)
+-\(16[0-1], -4[7-8]\)
+-\(4, -4[7-8]\)
++\(4, 14\)
++\(16[0-1], 14\)
++\(16[0-1], -4[6-8]\)
++\(4, -4[5-8]\)
+diff --git a/ext/gd/tests/bug53504.phpt b/ext/gd/tests/bug53504.phpt
+index 3b2ce4c..825572e 100644
+--- a/ext/gd/tests/bug53504.phpt
++++ b/ext/gd/tests/bug53504.phpt
+@@ -18,35 +18,35 @@ $blue = imagecolorallocate($g, 0, 0, 255);
+ 
+ $tests = [
+     // Kerning examples (unfortunately not available in "Tuffy" test font):
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 20, 'y' => 70, 'text' => 'AV Teg', 'exp' => [2,15, 208,15, 208,-48, 2,-48]],
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 350, 'text' => 'AV Teg', 'exp' => [15,-1, 15,-208, -48,-208, -48,-2]],
+-    ['fontSize' => 50, 'angle' => 40, 'x' => 130, 'y' => 280, 'text' => 'AV Teg', 'exp' => [11,11, 169,-122, 129,-171, -30,-39]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 20, 'y' => 70, 'text' => 'AV Teg', 'exp' => [2,14, 209,14, 209,-47, 2,-47]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 350, 'text' => 'AV Teg', 'exp' => [14,-2, 14,-209, -47,-209, -47,-2]],
++    ['fontSize' => 50, 'angle' => 40, 'x' => 130, 'y' => 280, 'text' => 'AV Teg', 'exp' => [11,9, 169,-123, 129,-170, -28,-37]],
+ 
+     // Shift-Test:
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 110, 'text' => 'H-Shift', 'exp' => [8,2, 386,2, 386,-97, 8,-97]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 110, 'text' => 'H-Shift', 'exp' => [8,1, 393,1, 393,-97, 8,-97]],
+ 
+     // Small/single chars:
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 220, 'text' => '-', 'exp' => [7,-37, 51,-37, 51,-46, 7,-46]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 430, 'y' => 220, 'text' => ',', 'exp' => [7,15, 21,15, 21,-13, 7,-13]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 510, 'y' => 220, 'text' => '.', 'exp' => [7,1, 21,1, 21,-13, 7,-13]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 590, 'y' => 220, 'text' => '|', 'exp' => [8,0, 17,0, 17,-95, 8,-95]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 670, 'y' => 220, 'text' => 'g', 'exp' => [5,29, 60,29, 60,-72, 5,-72]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 220, 'text' => '-', 'exp' => [7,-36, 56,-36, 56,-46, 7,-46]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 430, 'y' => 220, 'text' => ',', 'exp' => [6,14, 25,14, 25,-13, 6,-13]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 510, 'y' => 220, 'text' => '.', 'exp' => [6,0, 26,0, 26,-13, 6,-13]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 590, 'y' => 220, 'text' => '|', 'exp' => [8,0, 23,0, 23,-95, 8,-95]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 670, 'y' => 220, 'text' => 'g', 'exp' => [4,29, 66,29, 66,-71, 4,-71]],
+ 
+     // Multi-Line + rotation:
+-    ['fontSize' => 30, 'angle' => 0, 'x' => 20, 'y' => 400, 'text' => "Multi\nLine\nTest", 'exp' => [2,107, 80,107, 80,-29, 2,-29]],
+-    ['fontSize' => 30, 'angle' => 40, 'x' => 150, 'y' => 420, 'text' => "Multi\nLine\nTest", 'exp' => [70,81, 131,31, 43,-74, -18,-24]],
+-    ['fontSize' => 30, 'angle' => 90, 'x' => 250, 'y' => 340, 'text' => "Multi\nLine\nTest", 'exp' => [107,-1, 107,-80, -29,-80, -29,-2]],
++    ['fontSize' => 30, 'angle' => 0, 'x' => 20, 'y' => 400, 'text' => "Multi\nLine\nTest", 'exp' => [1,84, 81,84, 81,-28, 1,-28]],
++    ['fontSize' => 30, 'angle' => 40, 'x' => 150, 'y' => 420, 'text' => "Multi\nLine\nTest", 'exp' => [55,63, 116,12, 43,-74, -17,-22]],
++    ['fontSize' => 30, 'angle' => 90, 'x' => 250, 'y' => 340, 'text' => "Multi\nLine\nTest", 'exp' => [84,-1, 84,-81, -28,-81, -28,-1]],
+ 
+     // Some edge case glyphs:
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [0,-4, 0,-165, -47,-165, -47,-4]],
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 150, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-19,-2, -18,-167, -29,-167, -29,-2]],
+-    ['fontSize' => 50, 'angle' => 50, 'x' => 210, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [3,-3, 107,-127, 70,-157, -34,-33]],
+-    ['fontSize' => 50, 'angle' => 50, 'x' => 300, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-13,-13, 93,-141, 85,-147, -21,-20]],
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 650, 'text' => "iiiiiiiiiiii", 'exp' => [4,0, 165,0, 165,-47, 4,-47]],
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [2,-19, 167,-19, 167,-29, 2,-29]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [0,-4, 0,-165, -46,-165, -46,-4]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 150, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-18,-1, -18,-168, -27,-168, -27,-1]],
++    ['fontSize' => 50, 'angle' => 50, 'x' => 210, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [2,-3, 108,-129, 73,-159, -32,-33]],
++    ['fontSize' => 50, 'angle' => 50, 'x' => 300, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-12,-13, 94,-140, 86,-146, -20,-19]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 650, 'text' => "iiiiiiiiiiii", 'exp' => [4,0, 165,0, 165,-46, 4,-46]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [1,-18, 168,-18, 168,-27, 1,-27]],
+ 
+     // "Big" test:
+-    ['fontSize' => 200, 'angle' => 0, 'x' => 400, 'y' => 500, 'text' => "Big", 'exp' => [16,59, 329,59, 329,-190, 16,-190]],
++    ['fontSize' => 200, 'angle' => 0, 'x' => 400, 'y' => 500, 'text' => "Big", 'exp' => [15,58, 342,58, 342,-189, 15,-189]],
+ ];
+ 
+ foreach ($tests as $testnum => $test) {
+@@ -67,8 +67,8 @@ foreach ($tests as $testnum => $test) {
+ 
+     // check if both bboxes match when adding x/y offset:
+     for ($i = 0; $i < count($bbox); $i += 2) {
+-        if ($bbox[$i] + $test['x'] !== $bboxDrawn[$i]) echo "imageftbbox and imagefttext differ!\n";
+-        if ($bbox[$i + 1] + $test['y'] !== $bboxDrawn[$i + 1]) echo "imageftbbox and imagefttext differ!\n";
++        if (abs($bbox[$i] + $test['x'] - $bboxDrawn[$i]) > 1) echo "imageftbbox and imagefttext differ!\n";
++        if (abs($bbox[$i + 1] + $test['y'] - $bboxDrawn[$i + 1]) > 1) echo "imageftbbox and imagefttext differ!\n";
+     }
+ 
+     // draw bounding box:
+diff --git a/ext/gd/tests/bug65148.phpt b/ext/gd/tests/bug65148.phpt
+index 9effae9..167b138 100644
+--- a/ext/gd/tests/bug65148.phpt
++++ b/ext/gd/tests/bug65148.phpt
+@@ -51,128 +51,128 @@ Array
+ (
+     [IMG_BELL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BESSEL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BICUBIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BICUBIC_FIXED] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BILINEAR_FIXED] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BLACKMAN] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BOX] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BSPLINE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_CATMULLROM] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_GAUSSIAN] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_GENERALIZED_CUBIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HERMITE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HAMMING] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HANNING] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_MITCHELL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_POWER] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_QUADRATIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_SINC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_NEAREST_NEIGHBOUR] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_WEIGHTED4] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_TRIANGLE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+ )
+diff --git a/ext/gd/tests/bug71912-mb.phpt b/ext/gd/tests/bug71912-mb.phpt
+index d0bf3a8..a7beb7a 100644
+--- a/ext/gd/tests/bug71912-mb.phpt
++++ b/ext/gd/tests/bug71912-mb.phpt
+@@ -3,6 +3,14 @@ Bug #71912 (libgd: signedness vulnerability)
+ --SKIPIF--
+ <?php
+         if(!extension_loaded('gd')){ die('skip gd extension not available'); }
++        if (!GD_BUNDLED) {
++            if (version_compare(GD_VERSION, '2.2.0', '<')) {
++                die("skip test requires GD 2.2.0 or higher");
++            }
++            if (version_compare(GD_VERSION, '2.3.3', '>=')) {
++                die("skip test requires GD 2.3.2 or older");
++            }
++        }
+         if(!function_exists('imagecreatefromgd2')) die('skip imagecreatefromgd2() not available');
+ ?>
+ --FILE--
+diff --git a/ext/gd/tests/bug71912.phpt b/ext/gd/tests/bug71912.phpt
+index ed4665f..64cadbc 100644
+--- a/ext/gd/tests/bug71912.phpt
++++ b/ext/gd/tests/bug71912.phpt
+@@ -3,8 +3,13 @@ Bug #71912 (libgd: signedness vulnerability)
+ --SKIPIF--
+ <?php
+         if(!extension_loaded('gd')){ die('skip gd extension not available'); }
+-        if (!GD_BUNDLED && version_compare(GD_VERSION, '2.2.0', '<')) {
+-            die("skip test requires GD 2.2.0 or higher");
++        if (!GD_BUNDLED) {
++            if (version_compare(GD_VERSION, '2.2.0', '<')) {
++                die("skip test requires GD 2.2.0 or higher");
++            }
++            if (version_compare(GD_VERSION, '2.3.3', '>=')) {
++                die("skip test requires GD 2.3.2 or older");
++            }
+         }
+         if(!function_exists('imagecreatefromgd2')) die('skip imagecreatefromgd2() not available');
+ ?>
+diff --git a/ext/gd/tests/bug72339.phpt b/ext/gd/tests/bug72339.phpt
+index d63ce67..b8ed94f 100644
+--- a/ext/gd/tests/bug72339.phpt
++++ b/ext/gd/tests/bug72339.phpt
+@@ -3,8 +3,14 @@ Bug #72339 Integer Overflow in _gd2GetHeader() resulting in heap overflow
+ --SKIPIF--
+ <?php
+ if (!function_exists("imagecreatefromgd2")) print "skip";
+-if (!GD_BUNDLED && version_compare(GD_VERSION, '2.2.2', '<')) {
+-	die("skip test requires GD 2.2.2 or higher");
++
++if (!GD_BUNDLED) {
++    if (version_compare(GD_VERSION, '2.2.2', '<')) {
++        die("skip test requires GD 2.2.2 or higher");
++    }
++    if (version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ }
+ ?>
+ --FILE--
+diff --git a/ext/gd/tests/bug73155.phpt b/ext/gd/tests/bug73155.phpt
+index dc1791e..ed1dd5d 100644
+--- a/ext/gd/tests/bug73155.phpt
++++ b/ext/gd/tests/bug73155.phpt
+@@ -3,6 +3,9 @@ Bug #73155 (imagegd2() writes wrong chunk sizes on boundaries)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73157.phpt b/ext/gd/tests/bug73157.phpt
+index b03e91e..13cd59c 100644
+--- a/ext/gd/tests/bug73157.phpt
++++ b/ext/gd/tests/bug73157.phpt
+@@ -3,6 +3,9 @@ Bug #73157 (imagegd2() ignores 3rd param if 4 are given)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73159.phpt b/ext/gd/tests/bug73159.phpt
+index 4889ffb..7f18fc9 100644
+--- a/ext/gd/tests/bug73159.phpt
++++ b/ext/gd/tests/bug73159.phpt
+@@ -3,6 +3,9 @@ Bug #73159 (imagegd2(): unrecognized formats may result in corrupted files)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73161.phpt b/ext/gd/tests/bug73161.phpt
+index 42ad718..78631d1 100644
+--- a/ext/gd/tests/bug73161.phpt
++++ b/ext/gd/tests/bug73161.phpt
+@@ -5,6 +5,9 @@ We're testing for a memory leak that might not even show up with valgrind.
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73868.phpt b/ext/gd/tests/bug73868.phpt
+index 135be79..b3c5f78 100644
+--- a/ext/gd/tests/bug73868.phpt
++++ b/ext/gd/tests/bug73868.phpt
+@@ -3,6 +3,9 @@ Bug 73868 (DOS vulnerability in gdImageCreateFromGd2Ctx())
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73869.phpt b/ext/gd/tests/bug73869.phpt
+index 16b2edc..e3346e9 100644
+--- a/ext/gd/tests/bug73869.phpt
++++ b/ext/gd/tests/bug73869.phpt
+@@ -3,6 +3,9 @@ Bug #73869 (Signed Integer Overflow gd_io.c)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug77479.phpt b/ext/gd/tests/bug77479.phpt
+index 063f5d4..caba73e 100644
+--- a/ext/gd/tests/bug77479.phpt
++++ b/ext/gd/tests/bug77479.phpt
+@@ -18,7 +18,7 @@ imagewbmp($im, __DIR__ . '/77479.wbmp');
+ Warning: imagewbmp():%S product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
+  in %s on line %d
+ 
+-Warning: imagewbmp(): Could not create WBMP in %s on line %d
++Warning: imagewbmp(): Could not create WBMP%win %s on line %d
+ ===DONE===
+ --CLEAN--
+ <?php
+diff --git a/ext/gd/tests/crafted_gd2.phpt b/ext/gd/tests/crafted_gd2.phpt
+index 60687df..70b21c5 100644
+--- a/ext/gd/tests/crafted_gd2.phpt
++++ b/ext/gd/tests/crafted_gd2.phpt
+@@ -5,6 +5,9 @@ Test max colors for a gd image.
+ 	if (!extension_loaded('gd')) {
+ 		die("skip gd extension not available\n");
+ 	}
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/createfromgd2.phpt b/ext/gd/tests/createfromgd2.phpt
+index d6229d4..98b818e 100644
+--- a/ext/gd/tests/createfromgd2.phpt
++++ b/ext/gd/tests/createfromgd2.phpt
+@@ -3,6 +3,9 @@ imagecreatefromgd2
+ --SKIPIF--
+ <?php
+         if (!function_exists('imagecreatefromgd2')) die("skip gd extension not available\n");
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/createfromwbmp2_extern.phpt b/ext/gd/tests/createfromwbmp2_extern.phpt
+index ed73946..3bb2247 100644
+--- a/ext/gd/tests/createfromwbmp2_extern.phpt
++++ b/ext/gd/tests/createfromwbmp2_extern.phpt
+@@ -42,6 +42,6 @@ $im = imagecreatefromwbmp($filename);
+ unlink($filename);
+ ?>
+ --EXPECTF--
+-gd warning: product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
++Warning: imagecreatefromwbmp(): product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully%win %s on line %d
+ 
+ Warning: imagecreatefromwbmp(): '%s_tmp.wbmp' is not a valid WBMP file in %s on line %d
+diff --git a/ext/gd/tests/gif2gd.phpt b/ext/gd/tests/gif2gd.phpt
+index 3fe9397..9840644 100644
+--- a/ext/gd/tests/gif2gd.phpt
++++ b/ext/gd/tests/gif2gd.phpt
+@@ -6,6 +6,10 @@ gif --> gd1/gd2 conversion test
+ 		die("skip gd extension not available.");
+ 	}
+ 
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagecreatefromgif")) {
+ 		die("skip gif read support unavailable");
+ 	}
+diff --git a/ext/gd/tests/imagegd_truecolor.phpt b/ext/gd/tests/imagegd_truecolor.phpt
+index 6787ad3..04923e1 100644
+--- a/ext/gd/tests/imagegd_truecolor.phpt
++++ b/ext/gd/tests/imagegd_truecolor.phpt
+@@ -3,6 +3,9 @@ imagegd() writes truecolor images without palette conversion
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/jpg2gd-mb.phpt b/ext/gd/tests/jpg2gd-mb.phpt
+index b7c0b98..8ff7c6b 100644
+--- a/ext/gd/tests/jpg2gd-mb.phpt
++++ b/ext/gd/tests/jpg2gd-mb.phpt
+@@ -6,6 +6,10 @@ jpeg <--> gd1/gd2 conversion test
+ 		die("skip gd extension not available.");
+ 	}
+ 
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagecreatefromjpeg") || !function_exists("imagejpeg")) {
+ 		die("skip jpeg support unavailable");
+ 	}
+diff --git a/ext/gd/tests/jpg2gd.phpt b/ext/gd/tests/jpg2gd.phpt
+index 6ec714e..63d360e 100644
+--- a/ext/gd/tests/jpg2gd.phpt
++++ b/ext/gd/tests/jpg2gd.phpt
+@@ -6,6 +6,10 @@ jpeg <--> gd1/gd2 conversion test
+ 		die("skip gd extension not available.");
+ 	}
+ 
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagecreatefromjpeg") || !function_exists("imagejpeg")) {
+ 		die("skip jpeg support unavailable");
+ 	}
+diff --git a/ext/gd/tests/libgd00086_extern.phpt b/ext/gd/tests/libgd00086_extern.phpt
+index 36b79b4..781e049 100644
+--- a/ext/gd/tests/libgd00086_extern.phpt
++++ b/ext/gd/tests/libgd00086_extern.phpt
+@@ -12,8 +12,9 @@ $im = imagecreatefrompng(__DIR__ . '/libgd00086.png');
+ var_dump($im);
+ ?>
+ --EXPECTF--
+-gd-png:  fatal libpng error: Read Error: truncated data
+-gd-png error: setjmp returns error condition 1
++Warning: imagecreatefrompng(): gd-png: fatal libpng error: Read Error: truncated data%win %s on line %d
++
++Warning: imagecreatefrompng(): gd-png error: setjmp returns error condition %d%win %s on line %d
+ 
+ Warning: imagecreatefrompng(): '%slibgd00086.png' is not a valid PNG file in %s on line %d
+ bool(false)
+diff --git a/ext/gd/tests/png2gd.phpt b/ext/gd/tests/png2gd.phpt
+index ea70298..d340e5b 100644
+--- a/ext/gd/tests/png2gd.phpt
++++ b/ext/gd/tests/png2gd.phpt
+@@ -6,6 +6,10 @@ png <--> gd1/gd2 conversion test
+ 		die("skip gd extension not available.");
+ 	}
+ 
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagecreatefrompng") || !function_exists("imagepng")) {
+ 		die("skip png support unavailable");
+ 	}
+diff --git a/ext/gd/tests/xpm2gd.phpt b/ext/gd/tests/xpm2gd.phpt
+index f48dcb2..4b17a2f 100644
+--- a/ext/gd/tests/xpm2gd.phpt
++++ b/ext/gd/tests/xpm2gd.phpt
+@@ -6,6 +6,10 @@ xpm --> gd1/gd2 conversion test
+ 		die("skip gd extension not available.");
+ 	}
+ 
++    if (!GD_BUNDLED && version_compare(GD_VERSION, '2.3.3', '>=')) {
++        die("skip test requires GD 2.3.2 or older");
++    }
++
+ 	if (!function_exists("imagecreatefromxpm")) {
+ 		die("skip xpm read support unavailable");
+ 	}

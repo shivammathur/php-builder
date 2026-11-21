@@ -1,0 +1,27 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 11:22:13 +0100
+Subject: Skip the bug60723 test when time zone link names are case-sensitive
+
+0013-use_embedded_timezonedb.patch looks a time zone name up
+case-insensitively only in zone.tab, so the names that are links to other
+zones, such as Asia/Chongqing, are accepted only in their exact case and
+the date.timezone=ASIA/Chongqing of this test is an invalid value. The
+limitation is known and accepted; skip the test where it shows.
+---
+ ext/standard/tests/general_functions/bug60723.phpt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ext/standard/tests/general_functions/bug60723.phpt b/ext/standard/tests/general_functions/bug60723.phpt
+index 07b801b..93b6791 100644
+--- a/ext/standard/tests/general_functions/bug60723.phpt
++++ b/ext/standard/tests/general_functions/bug60723.phpt
+@@ -1,5 +1,9 @@
+ --TEST--
+ Bug #60723  (error_log error time has changed to UTC ignoring default timezo)
++--SKIPIF--
++<?php
++if (!@timezone_open('ASIA/Chongqing')) die('skip the system tzdata lookup accepts the link name Asia/Chongqing only in this case');
++?>
+ --INI--
+ date.timezone=ASIA/Chongqing
+ log_errors=On

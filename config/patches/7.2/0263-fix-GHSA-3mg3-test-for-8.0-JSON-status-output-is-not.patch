@@ -1,0 +1,25 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 17 Nov 2026 08:32:28 +0100
+Subject: fix GHSA-3mg3 test for 8.0 (JSON status output is not escaped there,
+ add the delay option to Tester::multiRequest())
+
+(cherry picked from commit 35f370409a96ddfb2c0d79d2922b3d9db597b2b1)
+(cherry picked from commit cbc13b6b6bc213584fad51638a50dd2e3eb7ea77)
+(cherry picked from commit 04ccb1e59382b6afa822ba156e4de6c7098cb075)
+
+---
+diff --git a/sapi/fpm/tests/tester.inc b/sapi/fpm/tests/tester.inc
+--- a/sapi/fpm/tests/tester.inc
++++ b/sapi/fpm/tests/tester.inc
+@@ -652,6 +652,11 @@
+                     $requestData['headers'] ?? [],
+                     $requestData['uri'] ?? null
+                 );
++
++                if (isset($requestData['delay'])) {
++                    usleep($requestData['delay']);
++                }
++
+                 return [
+                     'client' => $client,
+                     'requestId' => $client->async_request($params, false),

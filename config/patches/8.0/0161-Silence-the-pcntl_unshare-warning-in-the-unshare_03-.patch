@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:08:20 +0100
+Subject: Silence the pcntl_unshare() warning in the unshare_03 SKIPIF
+
+In a chroot the SKIPIF check prints a warning in front of its skip
+message, which run-tests.php reports as a borked test. Backport of
+upstream commit a6911cbd4d3 (PHP 8.3).
+---
+ ext/pcntl/tests/pcntl_unshare_03.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pcntl/tests/pcntl_unshare_03.phpt b/ext/pcntl/tests/pcntl_unshare_03.phpt
+index f82f27b..e369397 100644
+--- a/ext/pcntl/tests/pcntl_unshare_03.phpt
++++ b/ext/pcntl/tests/pcntl_unshare_03.phpt
+@@ -8,7 +8,7 @@ if (!function_exists("pcntl_unshare")) die("skip pcntl_unshare is not available"
+ if (!defined("CLONE_NEWNET")) die("skip flag unavailable");
+ if (posix_getuid() !== 0 &&
+     (!defined("CLONE_NEWUSER") ||
+-    (pcntl_unshare(CLONE_NEWUSER) == false && pcntl_get_last_error() == PCNTL_EPERM))) {
++    (@pcntl_unshare(CLONE_NEWUSER) == false && pcntl_get_last_error() == PCNTL_EPERM))) {
+     die("skip Insufficient privileges for CLONE_NEWUSER");
+ }
+ if (@pcntl_unshare(CLONE_NEWNET) == false && pcntl_get_last_error() == PCNTL_EPERM) {

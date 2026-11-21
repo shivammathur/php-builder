@@ -1,0 +1,30 @@
+From: Alexandre Daubois <alex.daubois@gmail.com>
+Date: Tue, 25 Aug 2026 11:23:52 +0200
+Subject: Fix GHSA-62xp-839h-2637: FastCGI allowed_clients compared only 96
+ bits of IPv6 addresses
+
+(cherry picked from commit dcdfcf86fcf7f42fa98dd3d000f310ebdad41965)
+(cherry picked from commit 8088695a6c91a7719f9aaf6a19627b2018e70dd6)
+(cherry picked from commit 6db1c1da4f80d1162c04997deffddd6a6d8a205a)
+(cherry picked from commit 7fb805393478dd5705c3101d7497900788bf5e90)
+(cherry picked from commit 6a9eec167a931266e70de9c0269eca08255b538f)
+(cherry picked from commit 709f5f21cd861dfcedbf4e186d3a608dd290da8c)
+(cherry picked from commit 3929c9026c6ef332b0459d9d5a8ddcea500b8c0e)
+(cherry picked from commit f6b687fa06dbb420918a817d05de5de24b655d40)
+---
+ sapi/fpm/fpm/fastcgi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sapi/fpm/fpm/fastcgi.c b/sapi/fpm/fpm/fastcgi.c
+index 778119e..6ac568b 100644
+--- a/sapi/fpm/fpm/fastcgi.c
++++ b/sapi/fpm/fpm/fastcgi.c
+@@ -786,7 +786,7 @@ static int fcgi_is_allowed() {
+ 	if (client_sa.sa.sa_family == AF_INET6) {
+ 		for (i=0 ; allowed_clients[i].sa.sa_family ; i++) {
+ 			if (allowed_clients[i].sa.sa_family == AF_INET6
+-				&& !memcmp(&client_sa.sa_inet6.sin6_addr, &allowed_clients[i].sa_inet6.sin6_addr, 12)) {
++				&& !memcmp(&client_sa.sa_inet6.sin6_addr, &allowed_clients[i].sa_inet6.sin6_addr, sizeof(client_sa.sa_inet6.sin6_addr))) {
+ 				return 1;
+ 			}
+ #ifdef IN6_IS_ADDR_V4MAPPED

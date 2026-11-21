@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:39 +0100
+Subject: Skip gd tests that need the bundled libgd
+
+---
+ ext/gd/tests/bug73272.phpt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ext/gd/tests/bug73272.phpt b/ext/gd/tests/bug73272.phpt
+index cf10eb2..0aa0975 100644
+--- a/ext/gd/tests/bug73272.phpt
++++ b/ext/gd/tests/bug73272.phpt
+@@ -2,6 +2,10 @@
+ Bug #73272 (imagescale() is not affected by, but affects imagesetinterpolation())
+ --EXTENSIONS--
+ gd
++--SKIPIF--
++<?php
++if (!GD_BUNDLED) die("skip upstream bugfix has not been released");
++?>
+ --FILE--
+ <?php
+ require_once __DIR__ . DIRECTORY_SEPARATOR . 'func.inc';

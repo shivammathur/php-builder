@@ -1,0 +1,380 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 12:17:55 +0100
+Subject: Backport gd test expectations from PHP 8.6 that match the system
+ libgd
+
+---
+ ext/gd/tests/bug43073.phpt    | 28 +++++++--------
+ ext/gd/tests/bug48732-mb.phpt |  5 +--
+ ext/gd/tests/bug48732.phpt    |  5 +--
+ ext/gd/tests/bug48801-mb.phpt |  8 ++---
+ ext/gd/tests/bug48801.phpt    |  8 ++---
+ ext/gd/tests/bug53504.phpt    | 42 +++++++++++-----------
+ ext/gd/tests/bug65148.phpt    | 84 +++++++++++++++++++++----------------------
+ ext/gd/tests/bug77269.phpt    |  2 +-
+ 8 files changed, 92 insertions(+), 90 deletions(-)
+
+diff --git a/ext/gd/tests/bug43073.phpt b/ext/gd/tests/bug43073.phpt
+index 5c54d87..d77b2c7 100644
+--- a/ext/gd/tests/bug43073.phpt
++++ b/ext/gd/tests/bug43073.phpt
+@@ -10,21 +10,21 @@ gd
+ <?php
+ $exp = [
+     [501,400, 611,400, 611,376, 501,376],
+-    [492,361, 595,319, 586,296, 483,338],
+-    [470,329, 549,251, 531,233, 453,312],
+-    [439,307, 481,204, 458,195, 416,297],
+-    [400,299, 400,189, 376,189, 376,299],
+-    [361,307, 319,204, 296,213, 338,316],
+-    [329,329, 251,250, 233,267, 311,346],
+-    [307,360, 204,318, 195,341, 297,383],
+-    [299,400, 189,400, 189,424, 299,424],
+-    [307,438, 204,480, 213,503, 316,461],
+-    [329,470, 250,548, 267,566, 346,488],
+-    [360,492, 318,595, 341,604, 383,502],
++    [492,361, 597,319, 588,296, 483,338],
++    [470,329, 549,249, 533,233, 453,312],
++    [439,307, 481,202, 460,193, 416,297],
++    [400,299, 400,187, 376,187, 376,299],
++    [361,305, 319,201, 296,210, 338,314],
++    [329,327, 249,248, 233,265, 311,344],
++    [307,360, 202,316, 193,338, 297,383],
++    [299,400, 187,400, 187,424, 299,424],
++    [305,438, 201,480, 210,503, 314,461],
++    [327,470, 248,548, 265,566, 344,488],
++    [360,492, 316,595, 338,604, 383,502],
+     [400,501, 400,611, 424,611, 424,501],
+-    [438,492, 480,595, 503,586, 461,483],
++    [438,492, 480,597, 503,588, 461,483],
+     [470,470, 548,549, 566,532, 488,453],
+-    [492,439, 595,481, 604,458, 502,416]
++    [492,439, 595,481, 604,460, 502,416]
+ ];
+ $cwd = __DIR__;
+ $font = "$cwd/Tuffy.ttf";
+@@ -45,7 +45,7 @@ for ($angle = 0.0, $i = 0; $angle < 360.0; $angle += $delta_t, $i++) {
+     if ($bbox[$j] >= $exp[$i][$j] - 1 && $bbox[$j] <= $exp[$i][$j] + 1) {
+         echo '.';
+     } else {
+-        echo "(expected $exp[$i][$j], got $bbox[$j])";
++        echo "(expected {$exp[$i][$j]}, got {$bbox[$j]})";
+     }
+   }
+   echo "\n";
+diff --git a/ext/gd/tests/bug48732-mb.phpt b/ext/gd/tests/bug48732-mb.phpt
+index 13a8812..d40bc0e 100644
+--- a/ext/gd/tests/bug48732-mb.phpt
++++ b/ext/gd/tests/bug48732-mb.phpt
+@@ -19,6 +19,7 @@ imagepng($g, "$cwd/bug48732私はガラスを食べられます.png");
+ echo 'Left Bottom: (' . $bbox[0]  . ', ' . $bbox[1] . ')';
+ ?>
+ --CLEAN--
+-<?php @unlink(__DIR__ . '/bug48732私はガラスを食べられます.png'); ?>
++<?php @unlink(__DIR__ . '/bug48732私はガラスを食べられます.png');
++ ?>
+ --EXPECT--
+-Left Bottom: (0, 46)
++Left Bottom: (0, 40)
+diff --git a/ext/gd/tests/bug48732.phpt b/ext/gd/tests/bug48732.phpt
+index 44e4204..805f46b 100644
+--- a/ext/gd/tests/bug48732.phpt
++++ b/ext/gd/tests/bug48732.phpt
+@@ -18,6 +18,7 @@ imagepng($g, "$cwd/bug48732.png");
+ echo 'Left Bottom: (' . $bbox[0]  . ', ' . $bbox[1] . ')';
+ ?>
+ --CLEAN--
+-<?php @unlink(__DIR__ . '/bug48732.png'); ?>
++<?php @unlink(__DIR__ . '/bug48732.png'); 
++?>
+ --EXPECT--
+-Left Bottom: (0, 46)
++Left Bottom: (0, 40)
+diff --git a/ext/gd/tests/bug48801-mb.phpt b/ext/gd/tests/bug48801-mb.phpt
+index 2471615..f073616 100644
+--- a/ext/gd/tests/bug48801-mb.phpt
++++ b/ext/gd/tests/bug48801-mb.phpt
+@@ -18,7 +18,7 @@ echo '(' . $bbox[4] . ', ' . $bbox[5] . ")\n";
+ echo '(' . $bbox[6] . ', ' . $bbox[7] . ")\n";
+ ?>
+ --EXPECTREGEX--
+-\(4, 15\)
+-\(16[0-1], 15\)
+-\(16[0-1], -4[7-8]\)
+-\(4, -4[7-8]\)
++\(4, 1[4-5]\)
++\(16[0-1], 1[4-5]\)
++\(16[0-1], -4[6-8]\)
++\(4, -4[6-8]\)
+diff --git a/ext/gd/tests/bug48801.phpt b/ext/gd/tests/bug48801.phpt
+index 361bf59..c9ca3c1 100644
+--- a/ext/gd/tests/bug48801.phpt
++++ b/ext/gd/tests/bug48801.phpt
+@@ -17,7 +17,7 @@ echo '(' . $bbox[4] . ', ' . $bbox[5] . ")\n";
+ echo '(' . $bbox[6] . ', ' . $bbox[7] . ")\n";
+ ?>
+ --EXPECTREGEX--
+-\(4, 15\)
+-\(16[0-1], 15\)
+-\(16[0-1], -4[7-8]\)
+-\(4, -4[7-8]\)
++\(4, 14\)
++\(16[0-1], 14\)
++\(16[0-1], -4[6-8]\)
++\(4, -4[5-8]\)
+diff --git a/ext/gd/tests/bug53504.phpt b/ext/gd/tests/bug53504.phpt
+index bb74497..d87043d 100644
+--- a/ext/gd/tests/bug53504.phpt
++++ b/ext/gd/tests/bug53504.phpt
+@@ -19,35 +19,35 @@ $blue = imagecolorallocate($g, 0, 0, 255);
+ 
+ $tests = [
+     // Kerning examples (unfortunately not available in "Tuffy" test font):
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 20, 'y' => 70, 'text' => 'AV Teg', 'exp' => [2,15, 208,15, 208,-48, 2,-48]],
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 350, 'text' => 'AV Teg', 'exp' => [15,-1, 15,-208, -48,-208, -48,-2]],
+-    ['fontSize' => 50, 'angle' => 40, 'x' => 130, 'y' => 280, 'text' => 'AV Teg', 'exp' => [11,11, 169,-122, 129,-171, -30,-39]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 20, 'y' => 70, 'text' => 'AV Teg', 'exp' => [2,14, 209,14, 209,-47, 2,-47]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 350, 'text' => 'AV Teg', 'exp' => [14,-2, 14,-209, -47,-209, -47,-2]],
++    ['fontSize' => 50, 'angle' => 40, 'x' => 130, 'y' => 280, 'text' => 'AV Teg', 'exp' => [11,9, 169,-123, 129,-170, -28,-37]],
+ 
+     // Shift-Test:
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 110, 'text' => 'H-Shift', 'exp' => [8,2, 386,2, 386,-97, 8,-97]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 110, 'text' => 'H-Shift', 'exp' => [8,1, 393,1, 393,-97, 8,-97]],
+ 
+     // Small/single chars:
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 220, 'text' => '-', 'exp' => [7,-37, 51,-37, 51,-46, 7,-46]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 430, 'y' => 220, 'text' => ',', 'exp' => [7,15, 21,15, 21,-13, 7,-13]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 510, 'y' => 220, 'text' => '.', 'exp' => [7,1, 21,1, 21,-13, 7,-13]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 590, 'y' => 220, 'text' => '|', 'exp' => [8,0, 17,0, 17,-95, 8,-95]],
+-    ['fontSize' => 100, 'angle' => 0, 'x' => 670, 'y' => 220, 'text' => 'g', 'exp' => [5,29, 60,29, 60,-72, 5,-72]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 350, 'y' => 220, 'text' => '-', 'exp' => [7,-36, 56,-36, 56,-46, 7,-46]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 430, 'y' => 220, 'text' => ',', 'exp' => [6,14, 25,14, 25,-13, 6,-13]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 510, 'y' => 220, 'text' => '.', 'exp' => [6,0, 26,0, 26,-13, 6,-13]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 590, 'y' => 220, 'text' => '|', 'exp' => [8,0, 23,0, 23,-95, 8,-95]],
++    ['fontSize' => 100, 'angle' => 0, 'x' => 670, 'y' => 220, 'text' => 'g', 'exp' => [4,29, 66,29, 66,-71, 4,-71]],
+ 
+     // Multi-Line + rotation:
+-    ['fontSize' => 30, 'angle' => 0, 'x' => 20, 'y' => 400, 'text' => "Multi\nLine\nTest", 'exp' => [2,107, 80,107, 80,-29, 2,-29]],
+-    ['fontSize' => 30, 'angle' => 40, 'x' => 150, 'y' => 420, 'text' => "Multi\nLine\nTest", 'exp' => [70,81, 131,31, 43,-74, -18,-24]],
+-    ['fontSize' => 30, 'angle' => 90, 'x' => 250, 'y' => 340, 'text' => "Multi\nLine\nTest", 'exp' => [107,-1, 107,-80, -29,-80, -29,-2]],
++    ['fontSize' => 30, 'angle' => 0, 'x' => 20, 'y' => 400, 'text' => "Multi\nLine\nTest", 'exp' => [1,84, 81,84, 81,-28, 1,-28]],
++    ['fontSize' => 30, 'angle' => 40, 'x' => 150, 'y' => 420, 'text' => "Multi\nLine\nTest", 'exp' => [55,63, 116,12, 43,-74, -17,-22]],
++    ['fontSize' => 30, 'angle' => 90, 'x' => 250, 'y' => 340, 'text' => "Multi\nLine\nTest", 'exp' => [84,-1, 84,-81, -28,-81, -28,-1]],
+ 
+     // Some edge case glyphs:
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [0,-4, 0,-165, -47,-165, -47,-4]],
+-    ['fontSize' => 50, 'angle' => 90, 'x' => 150, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-19,-2, -18,-167, -29,-167, -29,-2]],
+-    ['fontSize' => 50, 'angle' => 50, 'x' => 210, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [3,-3, 107,-127, 70,-157, -34,-33]],
+-    ['fontSize' => 50, 'angle' => 50, 'x' => 300, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-13,-13, 93,-141, 85,-147, -21,-20]],
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 650, 'text' => "iiiiiiiiiiii", 'exp' => [4,0, 165,0, 165,-47, 4,-47]],
+-    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [2,-19, 167,-19, 167,-29, 2,-29]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 70, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [0,-4, 0,-165, -46,-165, -46,-4]],
++    ['fontSize' => 50, 'angle' => 90, 'x' => 150, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-18,-1, -18,-168, -27,-168, -27,-1]],
++    ['fontSize' => 50, 'angle' => 50, 'x' => 210, 'y' => 750, 'text' => "iiiiiiiiiiii", 'exp' => [2,-3, 108,-129, 73,-159, -32,-33]],
++    ['fontSize' => 50, 'angle' => 50, 'x' => 300, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [-12,-13, 94,-140, 86,-146, -20,-19]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 650, 'text' => "iiiiiiiiiiii", 'exp' => [4,0, 165,0, 165,-46, 4,-46]],
++    ['fontSize' => 50, 'angle' => 0, 'x' => 430, 'y' => 750, 'text' => "~~~~~~~", 'exp' => [1,-18, 168,-18, 168,-27, 1,-27]],
+ 
+     // "Big" test:
+-    ['fontSize' => 200, 'angle' => 0, 'x' => 400, 'y' => 500, 'text' => "Big", 'exp' => [16,59, 329,59, 329,-190, 16,-190]],
++    ['fontSize' => 200, 'angle' => 0, 'x' => 400, 'y' => 500, 'text' => "Big", 'exp' => [15,58, 342,58, 342,-189, 15,-189]],
+ ];
+ 
+ foreach ($tests as $testnum => $test) {
+@@ -68,8 +68,8 @@ foreach ($tests as $testnum => $test) {
+ 
+     // check if both bboxes match when adding x/y offset:
+     for ($i = 0; $i < count($bbox); $i += 2) {
+-        if ($bbox[$i] + $test['x'] !== $bboxDrawn[$i]) echo "imageftbbox and imagefttext differ!\n";
+-        if ($bbox[$i + 1] + $test['y'] !== $bboxDrawn[$i + 1]) echo "imageftbbox and imagefttext differ!\n";
++        if (abs($bbox[$i] + $test['x'] - $bboxDrawn[$i]) > 1) echo "imageftbbox and imagefttext differ!\n";
++        if (abs($bbox[$i + 1] + $test['y'] - $bboxDrawn[$i + 1]) > 1) echo "imageftbbox and imagefttext differ!\n";
+     }
+ 
+     // draw bounding box:
+diff --git a/ext/gd/tests/bug65148.phpt b/ext/gd/tests/bug65148.phpt
+index 4dfa13c..c945eda 100644
+--- a/ext/gd/tests/bug65148.phpt
++++ b/ext/gd/tests/bug65148.phpt
+@@ -48,128 +48,128 @@ Array
+ (
+     [IMG_BELL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BESSEL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BICUBIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BICUBIC_FIXED] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BILINEAR_FIXED] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BLACKMAN] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BOX] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_BSPLINE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_CATMULLROM] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_GAUSSIAN] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_GENERALIZED_CUBIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HERMITE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HAMMING] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_HANNING] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_MITCHELL] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_POWER] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_QUADRATIC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_SINC] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_NEAREST_NEIGHBOUR] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_WEIGHTED4] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+     [IMG_TRIANGLE] => Array
+         (
+-            [x] => 40
+-            [y] => 23
++            [x] => 42
++            [y] => 24
+         )
+ 
+ )
+diff --git a/ext/gd/tests/bug77269.phpt b/ext/gd/tests/bug77269.phpt
+index f9b0b7b..d87ed96 100644
+--- a/ext/gd/tests/bug77269.phpt
++++ b/ext/gd/tests/bug77269.phpt
+@@ -16,5 +16,5 @@ imagescale($im, 1, 1, IMG_TRIANGLE);
+ 
+ ?>
+ --EXPECTF--
+-Warning: imagescale():%S Product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
++Warning: imagescale():%S %croduct of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
+  in %s on line %d

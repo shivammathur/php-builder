@@ -1,0 +1,1146 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:20:29 +0100
+Subject: Adjust the intl tests to ICU 76
+
+ICU 72 to 76 changed the formatted dates, the collation keys and some
+display names. Backport of the upstream split of these tests by ICU
+version (the *icu72-1, icu74.1 and icu76_1 variants from PHP 8.1 and 8.3,
+made from the PHP 7.4 tests), of the relaxed locale display expectations
+and of upstream commit 8d6a8281928 (PHP 8.0.21), which marks
+dateformat_format_variant3 as an expected failure.
+---
+ ext/intl/tests/bug62070_3.phpt                     |   1 +
+ ext/intl/tests/bug62070_icu76_1.phpt               |  15 ++
+ ext/intl/tests/bug69398-icu74.1.phpt               |  20 ++
+ ext/intl/tests/bug69398.phpt                       |   1 +
+ ext/intl/tests/collator_get_sort_key_variant7.phpt |   1 +
+ .../collator_get_sort_key_variant_icu76_1.phpt     |  98 +++++++
+ ext/intl/tests/dateformat_calendars_variant3.phpt  |   1 +
+ .../dateformat_calendars_variant_icu72-1.phpt      |  47 ++++
+ .../dateformat_formatObject_calendar_variant5.phpt |   1 +
+ ...rmat_formatObject_calendar_variant_icu72-1.phpt |  38 +++
+ .../dateformat_formatObject_datetime_variant5.phpt |   1 +
+ ...rmat_formatObject_datetime_variant_icu72-1.phpt |  31 +++
+ .../tests/dateformat_format_parse_version2.phpt    |   1 +
+ .../dateformat_format_parse_version_icu72-1.phpt   | 295 +++++++++++++++++++++
+ ext/intl/tests/dateformat_format_variant3.phpt     |   2 +
+ ext/intl/tests/dateformat_set_timezone_id3.phpt    |   1 +
+ .../tests/dateformat_set_timezone_id_icu72-1.phpt  |  85 ++++++
+ ext/intl/tests/locale_get_display_name8.phpt       |  24 +-
+ ext/intl/tests/locale_get_display_variant2.phpt    |  18 +-
+ ext/intl/tests/msgfmt_format_datetime.phpt         |   1 +
+ ext/intl/tests/msgfmt_format_datetime_icu72-1.phpt |  30 +++
+ ...msgfmt_format_simple_types_numeric_strings.phpt |   1 +
+ ...ormat_simple_types_numeric_strings_icu72-1.phpt |  55 ++++
+ ...esourcebundle_null_mandatory_args_variant2.phpt |   1 +
+ ...bundle_null_mandatory_args_variant_icu72-1.phpt |  25 ++
+ ext/intl/tests/timezone_IDforWindowsID_basic2.phpt |   1 +
+ .../timezone_IDforWindowsID_basic_icu76_1.phpt     |  42 +++
+ 27 files changed, 816 insertions(+), 21 deletions(-)
+ create mode 100644 ext/intl/tests/bug62070_icu76_1.phpt
+ create mode 100644 ext/intl/tests/bug69398-icu74.1.phpt
+ create mode 100644 ext/intl/tests/collator_get_sort_key_variant_icu76_1.phpt
+ create mode 100644 ext/intl/tests/dateformat_calendars_variant_icu72-1.phpt
+ create mode 100644 ext/intl/tests/dateformat_formatObject_calendar_variant_icu72-1.phpt
+ create mode 100644 ext/intl/tests/dateformat_formatObject_datetime_variant_icu72-1.phpt
+ create mode 100644 ext/intl/tests/dateformat_format_parse_version_icu72-1.phpt
+ create mode 100644 ext/intl/tests/dateformat_set_timezone_id_icu72-1.phpt
+ create mode 100644 ext/intl/tests/msgfmt_format_datetime_icu72-1.phpt
+ create mode 100644 ext/intl/tests/msgfmt_format_simple_types_numeric_strings_icu72-1.phpt
+ create mode 100644 ext/intl/tests/resourcebundle_null_mandatory_args_variant_icu72-1.phpt
+ create mode 100644 ext/intl/tests/timezone_IDforWindowsID_basic_icu76_1.phpt
+
+diff --git a/ext/intl/tests/bug62070_3.phpt b/ext/intl/tests/bug62070_3.phpt
+index 5510798..e10cd80 100644
+--- a/ext/intl/tests/bug62070_3.phpt
++++ b/ext/intl/tests/bug62070_3.phpt
+@@ -3,6 +3,7 @@ Bug #62070: Collator::getSortKey() returns garbage
+ --SKIPIF--
+ <?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '62.1') < 0) die('skip for ICU >= 62.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') >=  0) die('skip for ICU < 76.1'); ?>
+ --FILE--
+ <?php
+ $s1 = 'Hello';
+diff --git a/ext/intl/tests/bug62070_icu76_1.phpt b/ext/intl/tests/bug62070_icu76_1.phpt
+new file mode 100644
+index 0000000..b542cbf
+--- /dev/null
++++ b/ext/intl/tests/bug62070_icu76_1.phpt
+@@ -0,0 +1,15 @@
++--TEST--
++Bug #62070: Collator::getSortKey() returns garbage
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') < 0) die('skip for ICU >= 76.1'); ?>
++--FILE--
++<?php
++$s1 = 'Hello';
++
++$coll = collator_create('en_US');
++$res = collator_get_sort_key($coll, $s1);
++
++echo urlencode($res);
++--EXPECT--
++93AAG%01%09%01%DC%08
+diff --git a/ext/intl/tests/bug69398-icu74.1.phpt b/ext/intl/tests/bug69398-icu74.1.phpt
+new file mode 100644
+index 0000000..41c2ee8
+--- /dev/null
++++ b/ext/intl/tests/bug69398-icu74.1.phpt
+@@ -0,0 +1,20 @@
++--TEST--
++IntlDateFormatter::formatObject(): returns wrong value when time style is NONE.
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php
++if (version_compare(INTL_ICU_VERSION, '74.1') < 0) die('skip for ICU < 74.1');
++?>
++--FILE--
++<?php
++$millitimestamp = 1428133423941.0; // 14:43:43 April 04 2015
++$date = IntlCalendar::createInstance('Asia/Ho_Chi_Minh');
++$date->setTime($millitimestamp);
++echo IntlDateFormatter::formatObject($date, array(IntlDateFormatter::SHORT, IntlDateFormatter::NONE), 'vi_VN'), "\n";
++echo IntlDateFormatter::formatObject ($date, array(IntlDateFormatter::SHORT, IntlDateFormatter::NONE), 'ko_KR'), "\n";
++?>
++==DONE==
++--EXPECT--
++4/4/15
++15. 4. 4.
++==DONE==
+diff --git a/ext/intl/tests/bug69398.phpt b/ext/intl/tests/bug69398.phpt
+index 3c95eee..79d9771 100644
+--- a/ext/intl/tests/bug69398.phpt
++++ b/ext/intl/tests/bug69398.phpt
+@@ -4,6 +4,7 @@ IntlDateFormatter::formatObject(): returns wrong value when time style is NONE.
+ <?php
+ if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '50.1.2') < 0) die('skip for ICU >= 51.1.2'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '74.1') >= 0) die('skip for ICU >= 74.1'); ?>
+ --FILE--
+ <?php
+ $millitimestamp = 1428133423941.0; // 14:43:43 April 04 2015
+diff --git a/ext/intl/tests/collator_get_sort_key_variant7.phpt b/ext/intl/tests/collator_get_sort_key_variant7.phpt
+index e009d0e..9874ac5 100644
+--- a/ext/intl/tests/collator_get_sort_key_variant7.phpt
++++ b/ext/intl/tests/collator_get_sort_key_variant7.phpt
+@@ -3,6 +3,7 @@ collator_get_sort_key() icu >= 62.1
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '62.1') < 0) die('skip for ICU >= 62.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') >=  0) die('skip for ICU < 76.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/collator_get_sort_key_variant_icu76_1.phpt b/ext/intl/tests/collator_get_sort_key_variant_icu76_1.phpt
+new file mode 100644
+index 0000000..7eac5c7
+--- /dev/null
++++ b/ext/intl/tests/collator_get_sort_key_variant_icu76_1.phpt
+@@ -0,0 +1,98 @@
++--TEST--
++collator_get_sort_key() icu >= 62.1
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') < 0) die('skip for ICU >= 76.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Get sort keys using various locales
++ */
++function sort_arrays( $locale, $data )
++{
++    $res_str = '';
++
++    $coll = ut_coll_create( $locale );
++
++	foreach($data as $value) {
++		$res_val = ut_coll_get_sort_key( $coll, $value );
++		$res_str .= "source: ".$value."\n".
++					"key: ".bin2hex($res_val)."\n";
++	}
++
++    return $res_str;
++}
++
++
++function ut_main()
++{
++    $res_str = '';
++
++    // Regular strings keys
++    $test_params = array(
++		'abc', 'abd', 'aaa',
++		'аа', 'а', 'z',
++		'', null , '3',
++        'y'  , 'i'  , 'k'
++    );
++
++    $res_str .= sort_arrays( 'en_US', $test_params );
++
++    // Sort a non-ASCII array using ru_RU locale.
++    $test_params = array(
++		'абг', 'абв', 'жжж', 'эюя'
++    );
++
++    $res_str .= sort_arrays( 'ru_RU', $test_params );
++
++    // Sort an array using Lithuanian locale.
++    $res_str .= sort_arrays( 'lt_LT', $test_params );
++
++    return $res_str . "\n";
++}
++
++include_once( 'ut_common.inc' );
++ut_run();
++?>
++--EXPECT--
++source: abc
++key: 2b2d2f01070107
++source: abd
++key: 2b2d3101070107
++source: aaa
++key: 2b2b2b01070107
++source: аа
++key: 62060601060106
++source: а
++key: 620601050105
++source: z
++key: 5d01050105
++source: 
++key: 0101
++source: 
++key: 0101
++source: 3
++key: 1801050105
++source: y
++key: 5b01050105
++source: i
++key: 3b01050105
++source: k
++key: 3f01050105
++source: абг
++key: 28060c1001070107
++source: абв
++key: 28060c0e01070107
++source: жжж
++key: 282c2c2c01070107
++source: эюя
++key: 28eef0f401070107
++source: абг
++key: 62060c1001070107
++source: абв
++key: 62060c0e01070107
++source: жжж
++key: 622c2c2c01070107
++source: эюя
++key: 62eef0f401070107
+diff --git a/ext/intl/tests/dateformat_calendars_variant3.phpt b/ext/intl/tests/dateformat_calendars_variant3.phpt
+index d5bdac7..7a366cc 100644
+--- a/ext/intl/tests/dateformat_calendars_variant3.phpt
++++ b/ext/intl/tests/dateformat_calendars_variant3.phpt
+@@ -6,6 +6,7 @@ date.timezone=Atlantic/Azores
+ <?php
+ if (!extension_loaded('intl'))	die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '54.1') < 0) die('skip for ICU >= 54.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/dateformat_calendars_variant_icu72-1.phpt b/ext/intl/tests/dateformat_calendars_variant_icu72-1.phpt
+new file mode 100644
+index 0000000..f74102e
+--- /dev/null
++++ b/ext/intl/tests/dateformat_calendars_variant_icu72-1.phpt
+@@ -0,0 +1,47 @@
++--TEST--
++IntlDateFormatter, calendars and time zone
++--INI--
++date.timezone=Atlantic/Azores
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++
++$fmt1 = new IntlDateFormatter('en_US',
++	IntlDateFormatter::FULL,
++	IntlDateFormatter::FULL,
++	'GMT+05:12',
++	IntlDateFormatter::TRADITIONAL);
++$fmt2 = new IntlDateFormatter('en_US',
++	IntlDateFormatter::FULL,
++	IntlDateFormatter::FULL,
++	'GMT+05:12',
++	IntlDateFormatter::GREGORIAN);
++$fmt3 = new IntlDateFormatter('en_US@calendar=hebrew',
++	IntlDateFormatter::FULL,
++	IntlDateFormatter::FULL,
++	'GMT+05:12',
++	IntlDateFormatter::TRADITIONAL);
++var_dump($fmt1->format(strtotime('2012-01-01 00:00:00 +0000')));
++var_dump($fmt2->format(strtotime('2012-01-01 00:00:00 +0000')));
++var_dump($fmt3->format(strtotime('2012-01-01 00:00:00 +0000')));
++
++new IntlDateFormatter('en_US@calendar=hebrew',
++	IntlDateFormatter::FULL,
++	IntlDateFormatter::FULL,
++	'GMT+05:12',
++	-1);
++?>
++==DONE==
++--EXPECTF--
++string(49) "Sunday, January 1, 2012 at 5:12:00 AM GMT+05:12"
++string(49) "Sunday, January 1, 2012 at 5:12:00 AM GMT+05:12"
++string(46) "Sunday, 6 Tevet 5772 at 5:12:00 AM GMT+05:12"
++
++Fatal error: Uncaught IntlException: IntlDateFormatter::__construct(): datefmt_create: invalid value for calendar type; it must be one of IntlDateFormatter::TRADITIONAL (locale's default calendar) or IntlDateFormatter::GREGORIAN. Alternatively, it can be an IntlCalendar object in %sdateformat_calendars_variant_icu72-1.php:27
++Stack trace:
++#0 %sdateformat_calendars_variant_icu72-1.php(%d): IntlDateFormatter->__construct('en_US@calendar=...', 0, 0, 'GMT+05:12', -1)
++#1 {main}
++  thrown %sdateformat_calendars_variant_icu72-1.php on line %d
+diff --git a/ext/intl/tests/dateformat_formatObject_calendar_variant5.phpt b/ext/intl/tests/dateformat_formatObject_calendar_variant5.phpt
+index c8fd053..aeb285b 100644
+--- a/ext/intl/tests/dateformat_formatObject_calendar_variant5.phpt
++++ b/ext/intl/tests/dateformat_formatObject_calendar_variant5.phpt
+@@ -4,6 +4,7 @@ IntlDateFormatter::formatObject(): IntlCalendar tests
+ <?php
+ if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '55.1') < 0) die('skip for ICU >= 55.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/dateformat_formatObject_calendar_variant_icu72-1.phpt b/ext/intl/tests/dateformat_formatObject_calendar_variant_icu72-1.phpt
+new file mode 100644
+index 0000000..cc22408
+--- /dev/null
++++ b/ext/intl/tests/dateformat_formatObject_calendar_variant_icu72-1.phpt
+@@ -0,0 +1,38 @@
++--TEST--
++IntlDateFormatter::formatObject(): IntlCalendar tests
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++ini_set("date.timezone", "Europe/Lisbon");
++
++$cal = IntlCalendar::fromDateTime('2012-01-01 00:00:00'); //Europe/Lisbon
++echo IntlDateFormatter::formatObject($cal), "\n";
++echo IntlDateFormatter::formatObject($cal, IntlDateFormatter::FULL), "\n";
++echo IntlDateFormatter::formatObject($cal, null, "en-US"), "\n";
++echo IntlDateFormatter::formatObject($cal, array(IntlDateFormatter::SHORT, IntlDateFormatter::FULL), "en-US"), "\n";
++echo IntlDateFormatter::formatObject($cal, 'E y-MM-d HH,mm,ss.SSS v', "en-US"), "\n";
++
++$cal = IntlCalendar::fromDateTime('2012-01-01 05:00:00+03:00');
++echo datefmt_format_object($cal, IntlDateFormatter::FULL), "\n";
++
++$cal = IntlCalendar::createInstance(null,'en-US@calendar=islamic-civil');
++$cal->setTime(strtotime('2012-01-01 00:00:00')*1000.);
++echo IntlDateFormatter::formatObject($cal), "\n";
++echo IntlDateFormatter::formatObject($cal, IntlDateFormatter::FULL, "en-US"), "\n";
++
++?>
++==DONE==
++--EXPECTF--
++01/01/2012, 00:00:00
++domingo, 1 de janeiro de 2012 às 00:00:00 Hora padrão %Sda Europa Ocidental
++Jan 1, 2012, 12:00:00 AM
++1/1/12, 12:00:00 AM Western European Standard %STime
++Sun 2012-01-1 00,00,00.000 Portugal Time
++domingo, 1 de janeiro de 2012 às 05:00:00 GMT+03:00
++06/02/1433, 00:00:00
++Sunday, Safar 6, 1433 at 12:00:00 AM Western European Standard Time
++==DONE==
+diff --git a/ext/intl/tests/dateformat_formatObject_datetime_variant5.phpt b/ext/intl/tests/dateformat_formatObject_datetime_variant5.phpt
+index d3b671f..5965e31 100644
+--- a/ext/intl/tests/dateformat_formatObject_datetime_variant5.phpt
++++ b/ext/intl/tests/dateformat_formatObject_datetime_variant5.phpt
+@@ -4,6 +4,7 @@ IntlDateFormatter::formatObject(): DateTime tests
+ <?php
+ if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '55.1') < 0) die('skip for ICU >= 55.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/dateformat_formatObject_datetime_variant_icu72-1.phpt b/ext/intl/tests/dateformat_formatObject_datetime_variant_icu72-1.phpt
+new file mode 100644
+index 0000000..0e1d848
+--- /dev/null
++++ b/ext/intl/tests/dateformat_formatObject_datetime_variant_icu72-1.phpt
+@@ -0,0 +1,31 @@
++--TEST--
++IntlDateFormatter::formatObject(): DateTime tests
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU < 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++ini_set("date.timezone", "Europe/Lisbon");
++
++$dt = new DateTime('2012-01-01 00:00:00'); //Europe/Lisbon
++echo IntlDateFormatter::formatObject($dt), "\n";
++echo IntlDateFormatter::formatObject($dt, IntlDateFormatter::FULL), "\n";
++echo IntlDateFormatter::formatObject($dt, null, "en-US"), "\n";
++echo IntlDateFormatter::formatObject($dt, array(IntlDateFormatter::SHORT, IntlDateFormatter::FULL), "en-US"), "\n";
++echo IntlDateFormatter::formatObject($dt, 'E y-MM-d HH,mm,ss.SSS v', "en-US"), "\n";
++
++$dt = new DateTime('2012-01-01 05:00:00+03:00');
++echo IntlDateFormatter::formatObject($dt, IntlDateFormatter::FULL), "\n";
++
++?>
++==DONE==
++--EXPECTF--
++01/01/2012, 00:00:00
++domingo, 1 de janeiro de 2012 às 00:00:00 Hora padrão %Sda Europa Ocidental
++Jan 1, 2012, 12:00:00 AM
++1/1/12, 12:00:00 AM Western European Standard %STime
++Sun 2012-01-1 00,00,00.000 Portugal Time
++domingo, 1 de janeiro de 2012 às 05:00:00 GMT+03:00
++==DONE==
+diff --git a/ext/intl/tests/dateformat_format_parse_version2.phpt b/ext/intl/tests/dateformat_format_parse_version2.phpt
+index f672cd6..370295e 100644
+--- a/ext/intl/tests/dateformat_format_parse_version2.phpt
++++ b/ext/intl/tests/dateformat_format_parse_version2.phpt
+@@ -3,6 +3,7 @@ datefmt_format_code() and datefmt_parse_code()
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '51.2') < 0) die('skip for ICU >= 51.2'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/dateformat_format_parse_version_icu72-1.phpt b/ext/intl/tests/dateformat_format_parse_version_icu72-1.phpt
+new file mode 100644
+index 0000000..4144807
+--- /dev/null
++++ b/ext/intl/tests/dateformat_format_parse_version_icu72-1.phpt
+@@ -0,0 +1,295 @@
++--TEST--
++datefmt_format_code() and datefmt_parse_code()
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Test for the datefmt_format  function
++ */
++
++
++function ut_main()
++{
++	$timezone = 'GMT+05:00';
++
++	$locale_arr = array (
++		'en_US'
++	);
++
++	$datetype_arr = array (
++                IntlDateFormatter::FULL,
++                IntlDateFormatter::LONG,
++                IntlDateFormatter::MEDIUM
++        );
++
++        $res_str = '';
++
++
++	$time_arr = array (
++		0,
++		-1200000,
++		1200000,
++		2200000000,
++		-2200000000,
++		90099999,
++		3600,
++		-3600
++	);
++
++	$localtime_arr1 = array (
++	    'tm_sec' => 24 ,
++	    'tm_min' => 3,
++	    'tm_hour' => 19,
++	    'tm_mday' => 3,
++	    'tm_mon' => 3,
++	    'tm_year' => 105,
++	);
++	$localtime_arr2 = array (
++	    'tm_sec' => 21,
++	    'tm_min' => 5,
++	    'tm_hour' => 7,
++	    'tm_mday' => 13,
++	    'tm_mon' => 7,
++	    'tm_year' => 205,
++	);
++	$localtime_arr3 = array (
++            'tm_sec' => 11,
++            'tm_min' => 13,
++            'tm_hour' => 0,
++            'tm_mday' => 17,
++            'tm_mon' => 11,
++            'tm_year' => -5
++        );
++
++	$localtime_arr = array (
++		$localtime_arr1,
++		$localtime_arr2,
++		$localtime_arr3
++	);
++
++	//Test format and parse with a timestamp : long
++	foreach( $time_arr as $timestamp_entry){
++		$res_str .= "\n------------\n";
++		$res_str .= "\nInput timestamp is : $timestamp_entry";
++		$res_str .= "\n------------\n";
++		foreach( $locale_arr as $locale_entry ){
++			foreach( $datetype_arr as $datetype_entry ) {
++				$res_str .= "\nIntlDateFormatter locale= $locale_entry ,datetype = $datetype_entry ,timetype =$datetype_entry ";
++				$fmt = ut_datefmt_create( $locale_entry , $datetype_entry ,$datetype_entry,$timezone);
++				$formatted = ut_datefmt_format( $fmt , $timestamp_entry);
++				$res_str .= "\nFormatted timestamp is : $formatted";
++				$parsed = ut_datefmt_parse( $fmt , $formatted);
++				if( intl_get_error_code() == U_ZERO_ERROR){
++					$res_str .= "\nParsed timestamp is : $parsed";
++				}else{
++					$res_str .= "\nError while parsing as: '".intl_get_error_message()."'";
++				}
++			}
++		}
++	}
++
++	//Test format and parse with a localtime :array
++	foreach( $localtime_arr as $localtime_entry){
++		$res_str .= "\n------------\n";
++		$res_str .= "\nInput localtime is : ";
++		foreach( $localtime_entry as $key => $value){
++                    $res_str .= "$key : '$value' , ";
++		}
++
++		$res_str .= "\n------------\n";
++		foreach( $locale_arr as $locale_entry ){
++			foreach( $datetype_arr as $datetype_entry ) {
++				$res_str .= "\nIntlDateFormatter locale= $locale_entry ,datetype = $datetype_entry ,timetype =$datetype_entry ";
++				$fmt = ut_datefmt_create( $locale_entry , $datetype_entry ,$datetype_entry,$timezone);
++				$formatted1 = ut_datefmt_format( $fmt , $localtime_entry);
++				if( intl_get_error_code() == U_ZERO_ERROR){
++					$res_str .= "\nFormatted localtime_array is : $formatted1";
++				}else{
++					$res_str .= "\nError while formatting as: '".intl_get_error_message()."'";
++				}
++				//Parsing
++				$parsed_arr = ut_datefmt_localtime( $fmt, $formatted1 );
++
++				if( $parsed_arr){
++				    $res_str .= "\nParsed array is: ";
++				    foreach( $parsed_arr as $key => $value){
++					    $res_str .= "$key : '$value' , ";
++				    }
++				}
++/*
++				else{
++				    //$res_str .= "No values found from LocaleTime parsing.";
++				    $res_str .= "\tError : '".intl_get_error_message()."'";
++				}
++*/
++			}
++		}
++	}
++
++	return $res_str;
++
++}
++
++include_once( 'ut_common.inc' );
++
++// Run the test
++ut_run();
++?>
++--EXPECT--
++------------
++
++Input timestamp is : 0
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, January 1, 1970 at 5:00:00 AM GMT+05:00
++Parsed timestamp is : 0
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : January 1, 1970 at 5:00:00 AM GMT+5
++Parsed timestamp is : 0
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Jan 1, 1970, 5:00:00 AM
++Parsed timestamp is : 0
++------------
++
++Input timestamp is : -1200000
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, December 18, 1969 at 7:40:00 AM GMT+05:00
++Parsed timestamp is : -1200000
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : December 18, 1969 at 7:40:00 AM GMT+5
++Parsed timestamp is : -1200000
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Dec 18, 1969, 7:40:00 AM
++Parsed timestamp is : -1200000
++------------
++
++Input timestamp is : 1200000
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, January 15, 1970 at 2:20:00 AM GMT+05:00
++Parsed timestamp is : 1200000
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : January 15, 1970 at 2:20:00 AM GMT+5
++Parsed timestamp is : 1200000
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Jan 15, 1970, 2:20:00 AM
++Parsed timestamp is : 1200000
++------------
++
++Input timestamp is : 2200000000
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Monday, September 19, 2039 at 4:06:40 AM GMT+05:00
++Parsed timestamp is : 2200000000
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : September 19, 2039 at 4:06:40 AM GMT+5
++Parsed timestamp is : 2200000000
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Sep 19, 2039, 4:06:40 AM
++Parsed timestamp is : 2200000000
++------------
++
++Input timestamp is : -2200000000
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Sunday, April 15, 1900 at 5:53:20 AM GMT+05:00
++Parsed timestamp is : -2200000000
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : April 15, 1900 at 5:53:20 AM GMT+5
++Parsed timestamp is : -2200000000
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Apr 15, 1900, 5:53:20 AM
++Parsed timestamp is : -2200000000
++------------
++
++Input timestamp is : 90099999
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, November 9, 1972 at 12:46:39 AM GMT+05:00
++Parsed timestamp is : 90099999
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : November 9, 1972 at 12:46:39 AM GMT+5
++Parsed timestamp is : 90099999
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Nov 9, 1972, 12:46:39 AM
++Parsed timestamp is : 90099999
++------------
++
++Input timestamp is : 3600
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, January 1, 1970 at 6:00:00 AM GMT+05:00
++Parsed timestamp is : 3600
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : January 1, 1970 at 6:00:00 AM GMT+5
++Parsed timestamp is : 3600
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Jan 1, 1970, 6:00:00 AM
++Parsed timestamp is : 3600
++------------
++
++Input timestamp is : -3600
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted timestamp is : Thursday, January 1, 1970 at 4:00:00 AM GMT+05:00
++Parsed timestamp is : -3600
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted timestamp is : January 1, 1970 at 4:00:00 AM GMT+5
++Parsed timestamp is : -3600
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted timestamp is : Jan 1, 1970, 4:00:00 AM
++Parsed timestamp is : -3600
++------------
++
++Input localtime is : tm_sec : '24' , tm_min : '3' , tm_hour : '19' , tm_mday : '3' , tm_mon : '3' , tm_year : '105' , 
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted localtime_array is : Sunday, April 3, 2005 at 7:03:24 PM GMT+05:00
++Parsed array is: tm_sec : '24' , tm_min : '3' , tm_hour : '19' , tm_year : '105' , tm_mday : '3' , tm_wday : '0' , tm_yday : '93' , tm_mon : '3' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted localtime_array is : April 3, 2005 at 7:03:24 PM GMT+5
++Parsed array is: tm_sec : '24' , tm_min : '3' , tm_hour : '19' , tm_year : '105' , tm_mday : '3' , tm_wday : '0' , tm_yday : '93' , tm_mon : '3' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted localtime_array is : Apr 3, 2005, 7:03:24 PM
++Parsed array is: tm_sec : '24' , tm_min : '3' , tm_hour : '19' , tm_year : '105' , tm_mday : '3' , tm_wday : '0' , tm_yday : '93' , tm_mon : '3' , tm_isdst : '0' , 
++------------
++
++Input localtime is : tm_sec : '21' , tm_min : '5' , tm_hour : '7' , tm_mday : '13' , tm_mon : '7' , tm_year : '205' , 
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted localtime_array is : Thursday, August 13, 2105 at 7:05:21 AM GMT+05:00
++Parsed array is: tm_sec : '21' , tm_min : '5' , tm_hour : '7' , tm_year : '205' , tm_mday : '13' , tm_wday : '4' , tm_yday : '225' , tm_mon : '7' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted localtime_array is : August 13, 2105 at 7:05:21 AM GMT+5
++Parsed array is: tm_sec : '21' , tm_min : '5' , tm_hour : '7' , tm_year : '205' , tm_mday : '13' , tm_wday : '4' , tm_yday : '225' , tm_mon : '7' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted localtime_array is : Aug 13, 2105, 7:05:21 AM
++Parsed array is: tm_sec : '21' , tm_min : '5' , tm_hour : '7' , tm_year : '205' , tm_mday : '13' , tm_wday : '4' , tm_yday : '225' , tm_mon : '7' , tm_isdst : '0' , 
++------------
++
++Input localtime is : tm_sec : '11' , tm_min : '13' , tm_hour : '0' , tm_mday : '17' , tm_mon : '11' , tm_year : '-5' , 
++------------
++
++IntlDateFormatter locale= en_US ,datetype = 0 ,timetype =0 
++Formatted localtime_array is : Tuesday, December 17, 1895 at 12:13:11 AM GMT+05:00
++Parsed array is: tm_sec : '11' , tm_min : '13' , tm_hour : '0' , tm_year : '-5' , tm_mday : '17' , tm_wday : '2' , tm_yday : '351' , tm_mon : '11' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 1 ,timetype =1 
++Formatted localtime_array is : December 17, 1895 at 12:13:11 AM GMT+5
++Parsed array is: tm_sec : '11' , tm_min : '13' , tm_hour : '0' , tm_year : '-5' , tm_mday : '17' , tm_wday : '2' , tm_yday : '351' , tm_mon : '11' , tm_isdst : '0' , 
++IntlDateFormatter locale= en_US ,datetype = 2 ,timetype =2 
++Formatted localtime_array is : Dec 17, 1895, 12:13:11 AM
++Parsed array is: tm_sec : '11' , tm_min : '13' , tm_hour : '0' , tm_year : '-5' , tm_mday : '17' , tm_wday : '2' , tm_yday : '351' , tm_mon : '11' , tm_isdst : '0' ,
+diff --git a/ext/intl/tests/dateformat_format_variant3.phpt b/ext/intl/tests/dateformat_format_variant3.phpt
+index e2f9ec8..9d5cb1e 100644
+--- a/ext/intl/tests/dateformat_format_variant3.phpt
++++ b/ext/intl/tests/dateformat_format_variant3.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ datefmt_format_code()
++--XFAIL--
++This test assumes wrong data wrt to PDT. It is also too big and needs splitting up.
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '52.1') < 0) die('skip for ICU >= 52.1'); ?>
+diff --git a/ext/intl/tests/dateformat_set_timezone_id3.phpt b/ext/intl/tests/dateformat_set_timezone_id3.phpt
+index e25b9bf..0bce525 100644
+--- a/ext/intl/tests/dateformat_set_timezone_id3.phpt
++++ b/ext/intl/tests/dateformat_set_timezone_id3.phpt
+@@ -5,6 +5,7 @@ date.timezone=Atlantic/Azores
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '51.2') < 0) die('skip for ICU >= 51.2'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/dateformat_set_timezone_id_icu72-1.phpt b/ext/intl/tests/dateformat_set_timezone_id_icu72-1.phpt
+new file mode 100644
+index 0000000..159f60e
+--- /dev/null
++++ b/ext/intl/tests/dateformat_set_timezone_id_icu72-1.phpt
+@@ -0,0 +1,85 @@
++--TEST--
++datefmt_set_timezone_id_code() icu >= 4.8
++--INI--
++date.timezone=Atlantic/Azores
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++
++ini_set("intl.error_level", E_WARNING);
++ini_set("error_reporting", ~E_DEPRECATED);
++
++/*
++ * Test for the datefmt_set_timezone_id  function
++ */
++
++
++function ut_main()
++{
++	$timezone_id_arr = array (
++		'America/New_York',
++		'America/Los_Angeles',
++		'America/Chicago',
++		'CN'
++	);
++	$timestamp_entry = 0;
++
++	$res_str = '';
++
++	$fmt = ut_datefmt_create( "en_US",  IntlDateFormatter::FULL, IntlDateFormatter::FULL, 'US/Pacific' , IntlDateFormatter::GREGORIAN  );
++	$timezone_id = ut_datefmt_get_timezone_id( $fmt );
++	$res_str .= "\nAfter creation of the dateformatter :  timezone_id= $timezone_id\n";
++
++	foreach( $timezone_id_arr as $timezone_id_entry )
++	{
++
++		$res_str .= "-----------";
++		$res_str .= "\nTrying to set timezone_id= $timezone_id_entry";
++		ut_datefmt_set_timezone_id( $fmt , $timezone_id_entry );
++		$timezone_id = ut_datefmt_get_timezone_id( $fmt );
++		$res_str .= "\nAfter call to set_timezone_id :  timezone_id= $timezone_id";
++		$formatted = ut_datefmt_format( $fmt, 0);
++		$res_str .= "\nFormatting timestamp=0 resulted in  $formatted";
++		$formatted = ut_datefmt_format( $fmt, 3600);
++		$res_str .= "\nFormatting timestamp=3600 resulted in  $formatted";
++		$res_str .= "\n";
++
++	}
++
++	return $res_str;
++
++}
++
++include_once( 'ut_common.inc' );
++
++// Run the test
++ut_run();
++?>
++--EXPECTF--
++Warning: IntlDateFormatter::setTimeZone(): datefmt_set_timezone: no such time zone: 'CN' in %sut_common.inc on line %d
++
++Warning: datefmt_set_timezone(): datefmt_set_timezone: no such time zone: 'CN' in %sut_common.inc on line %d
++
++After creation of the dateformatter :  timezone_id= US/Pacific
++-----------
++Trying to set timezone_id= America/New_York
++After call to set_timezone_id :  timezone_id= America/New_York
++Formatting timestamp=0 resulted in  Wednesday, December 31, 1969 at 7:00:00 PM Eastern Standard Time
++Formatting timestamp=3600 resulted in  Wednesday, December 31, 1969 at 8:00:00 PM Eastern Standard Time
++-----------
++Trying to set timezone_id= America/Los_Angeles
++After call to set_timezone_id :  timezone_id= America/Los_Angeles
++Formatting timestamp=0 resulted in  Wednesday, December 31, 1969 at 4:00:00 PM Pacific Standard Time
++Formatting timestamp=3600 resulted in  Wednesday, December 31, 1969 at 5:00:00 PM Pacific Standard Time
++-----------
++Trying to set timezone_id= America/Chicago
++After call to set_timezone_id :  timezone_id= America/Chicago
++Formatting timestamp=0 resulted in  Wednesday, December 31, 1969 at 6:00:00 PM Central Standard Time
++Formatting timestamp=3600 resulted in  Wednesday, December 31, 1969 at 7:00:00 PM Central Standard Time
++-----------
++Trying to set timezone_id= CN
++After call to set_timezone_id :  timezone_id= America/Chicago
++Formatting timestamp=0 resulted in  Wednesday, December 31, 1969 at 6:00:00 PM Central Standard Time
++Formatting timestamp=3600 resulted in  Wednesday, December 31, 1969 at 7:00:00 PM Central Standard Time
+diff --git a/ext/intl/tests/locale_get_display_name8.phpt b/ext/intl/tests/locale_get_display_name8.phpt
+index 0666176..9539a52 100644
+--- a/ext/intl/tests/locale_get_display_name8.phpt
++++ b/ext/intl/tests/locale_get_display_name8.phpt
+@@ -111,9 +111,9 @@ disp_locale=fr :  display_name=slovène #Italie, NEDIS_KIRTI#
+ disp_locale=de :  display_name=Slowenisch #Italien, NEDIS_KIRTI#
+ -----------------
+ locale='sl_IT_nedis-a-kirti-x-xyz'
+-disp_locale=en :  display_name=Slovenian #Italy, NEDIS_A_KIRTI_X_XYZ#
+-disp_locale=fr :  display_name=slovène #Italie, NEDIS_A_KIRTI_X_XYZ#
+-disp_locale=de :  display_name=Slowenisch #Italien, NEDIS_A_KIRTI_X_XYZ#
++disp_locale=en :  display_name=Slovenian #Italy, NEDIS_A_KIRTI(_X_XYZ)?#
++disp_locale=fr :  display_name=slovène #Italie, NEDIS_A_KIRTI(_X_XYZ)?#
++disp_locale=de :  display_name=Slowenisch #Italien, NEDIS_A_KIRTI(_X_XYZ)?#
+ -----------------
+ locale='sl_IT_rozaj'
+ disp_locale=en :  display_name=Slovenian #Italy, Resian#
+@@ -316,14 +316,14 @@ disp_locale=fr :  display_name=anglais #États-Unis, attribute=islamcal#
+ disp_locale=de :  display_name=Englisch #Vereinigte Staaten, attribute=islamcal#
+ -----------------
+ locale='zh-CN-a-myExt-x-private'
+-disp_locale=en :  display_name=Chinese #China, a=myext, Private-Use=private#
+-disp_locale=fr :  display_name=chinois #Chine, a=myext, usage privé=private#
+-disp_locale=de :  display_name=Chinesisch #China, a=myext, Privatnutzung=private#
++disp_locale=en :  display_name=Chinese #China(, A_MYEXT(_X_PRIVATE)?)?, a=myext, Private-Use=private#
++disp_locale=fr :  display_name=chinois #Chine(, A_MYEXT(_X_PRIVATE)?)?, a=myext, usage privé=private#
++disp_locale=de :  display_name=Chinesisch #China(, A_MYEXT(_X_PRIVATE)?)?, a=myext, Privatnutzung=private#
+ -----------------
+ locale='en-a-myExt-b-another'
+-disp_locale=en :  display_name=English #a=myext, b=another#
+-disp_locale=fr :  display_name=anglais #a=myext, b=another#
+-disp_locale=de :  display_name=Englisch #a=myext, b=another#
++disp_locale=en :  display_name=English #(A_MYEXT_B_ANOTHER, )?a=myext, b=another#
++disp_locale=fr :  display_name=anglais #(A_MYEXT_B_ANOTHER, )?a=myext, b=another#
++disp_locale=de :  display_name=Englisch #(A_MYEXT_B_ANOTHER, )?a=myext, b=another#
+ -----------------
+ locale='de-419-DE'
+ disp_locale=en :  display_name=German #Latin America, DE#
+@@ -336,7 +336,7 @@ disp_locale=fr :  display_name=a #Allemagne#
+ disp_locale=de :  display_name=a #Deutschland#
+ -----------------
+ locale='ar-a-aaa-b-bbb-a-ccc'
+-disp_locale=en :  display_name=Arabic #a=aaa, b=bbb#
+-disp_locale=fr :  display_name=arabe #a=aaa, b=bbb#
+-disp_locale=de :  display_name=Arabisch #a=aaa, b=bbb#
++disp_locale=en :  display_name=Arabic #(A_AAA_B_BBB_A_CCC, )?a=aaa, b=bbb#
++disp_locale=fr :  display_name=arabe #(A_AAA_B_BBB_A_CCC, )?a=aaa, b=bbb#
++disp_locale=de :  display_name=Arabisch #(A_AAA_B_BBB_A_CCC, )?a=aaa, b=bbb#
+ -----------------
+diff --git a/ext/intl/tests/locale_get_display_variant2.phpt b/ext/intl/tests/locale_get_display_variant2.phpt
+index 88a623a..02a0228 100644
+--- a/ext/intl/tests/locale_get_display_variant2.phpt
++++ b/ext/intl/tests/locale_get_display_variant2.phpt
+@@ -248,14 +248,14 @@ disp_locale=fr :  display_variant=
+ disp_locale=de :  display_variant=
+ -----------------
+ locale='zh-CN-a-myExt-x-private'
+-disp_locale=en :  display_variant=
+-disp_locale=fr :  display_variant=
+-disp_locale=de :  display_variant=
++disp_locale=en :  display_variant=(A_MYEXT(_X_PRIVATE)?)?
++disp_locale=fr :  display_variant=(A_MYEXT(_X_PRIVATE)?)?
++disp_locale=de :  display_variant=(A_MYEXT(_X_PRIVATE)?)?
+ -----------------
+ locale='en-a-myExt-b-another'
+-disp_locale=en :  display_variant=(MYEXT_B_ANOTHER)?
+-disp_locale=fr :  display_variant=(MYEXT_B_ANOTHER)?
+-disp_locale=de :  display_variant=(MYEXT_B_ANOTHER)?
++disp_locale=en :  display_variant=((A_)?MYEXT_B_ANOTHER)?
++disp_locale=fr :  display_variant=((A_)?MYEXT_B_ANOTHER)?
++disp_locale=de :  display_variant=((A_)?MYEXT_B_ANOTHER)?
+ -----------------
+ locale='de-419-DE'
+ disp_locale=en :  display_variant=DE
+@@ -268,7 +268,7 @@ disp_locale=fr :  display_variant=
+ disp_locale=de :  display_variant=
+ -----------------
+ locale='ar-a-aaa-b-bbb-a-ccc'
+-disp_locale=en :  display_variant=(AAA_B_BBB_A_CCC)?
+-disp_locale=fr :  display_variant=(AAA_B_BBB_A_CCC)?
+-disp_locale=de :  display_variant=(AAA_B_BBB_A_CCC)?
++disp_locale=en :  display_variant=((A_)?AAA_B_BBB_A_CCC)?
++disp_locale=fr :  display_variant=((A_)?AAA_B_BBB_A_CCC)?
++disp_locale=de :  display_variant=((A_)?AAA_B_BBB_A_CCC)?
+ -----------------
+diff --git a/ext/intl/tests/msgfmt_format_datetime.phpt b/ext/intl/tests/msgfmt_format_datetime.phpt
+index bf0d24b..835c096 100644
+--- a/ext/intl/tests/msgfmt_format_datetime.phpt
++++ b/ext/intl/tests/msgfmt_format_datetime.phpt
+@@ -6,6 +6,7 @@ date.timezone=Atlantic/Azores
+ <?php
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1');
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/msgfmt_format_datetime_icu72-1.phpt b/ext/intl/tests/msgfmt_format_datetime_icu72-1.phpt
+new file mode 100644
+index 0000000..1711419
+--- /dev/null
++++ b/ext/intl/tests/msgfmt_format_datetime_icu72-1.phpt
+@@ -0,0 +1,30 @@
++--TEST--
++MessageFormatter::format(): DateTime accepted to format dates and times
++--INI--
++date.timezone=Atlantic/Azores
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++//ini_set("intl.default_locale", "nl");
++
++$fmt = <<<EOD
++{0,date} {0,time}
++EOD;
++
++$dt = new DateTime("2012-05-06 18:00:42", new DateTimeZone("Europe/Lisbon"));
++$dti = new DateTimeImmutable("2012-05-06 18:00:42", new DateTimeZone("Europe/Lisbon"));
++
++$mf = new MessageFormatter('en_US', $fmt);
++
++var_dump($mf->format(array($dt)));
++var_dump($mf->format(array($dti)));
++
++?>
++==DONE==
++--EXPECTF--
++string(%s) "May %d, 2012 %d:%d:42 %s"
++string(%s) "May %d, 2012 %d:%d:42 %s"
++==DONE==
+diff --git a/ext/intl/tests/msgfmt_format_simple_types_numeric_strings.phpt b/ext/intl/tests/msgfmt_format_simple_types_numeric_strings.phpt
+index 34d4577..b40875d 100644
+--- a/ext/intl/tests/msgfmt_format_simple_types_numeric_strings.phpt
++++ b/ext/intl/tests/msgfmt_format_simple_types_numeric_strings.phpt
+@@ -6,6 +6,7 @@ date.timezone=Atlantic/Azores
+ <?php
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1');
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/msgfmt_format_simple_types_numeric_strings_icu72-1.phpt b/ext/intl/tests/msgfmt_format_simple_types_numeric_strings_icu72-1.phpt
+new file mode 100644
+index 0000000..8415c93
+--- /dev/null
++++ b/ext/intl/tests/msgfmt_format_simple_types_numeric_strings_icu72-1.phpt
+@@ -0,0 +1,55 @@
++--TEST--
++MessageFormatter::format(): simple types handling with numeric strings
++--INI--
++date.timezone=Atlantic/Azores
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++//ini_set("intl.default_locale", "nl");
++
++$mf = new MessageFormatter('en_US',"
++	none			{a}
++	number			{b,number}
++	number integer	{c,number,integer}
++	number currency	{d,number,currency}
++	number percent	{e,number,percent}
++	date			{f,date}
++	time			{g,time}
++	spellout		{h,spellout}
++	ordinal			{i,ordinal}
++	duration		{j,duration}
++	");
++
++$ex = "1336317965.5 str";
++var_dump($mf->format(array(
++'a' => $ex,
++'b' => $ex,
++'c' => $ex,
++'d' => $ex,
++'e' => $ex,
++'f' => "  1336317965.5",
++'g' => "  1336317965.5",
++'h' => $ex,
++'i' => $ex,
++'j' => $ex,
++)));
++
++?>
++==DONE==
++--EXPECTF--
++string(%d) "
++	none			1336317965.5 str
++	number			1,336,317,965.5
++	number integer	1,336,317,965
++	number currency	$1,336,317,965.50
++	number percent	133,631,796,550%
++	date			May %d, 2012
++	time			%d:%d:05 PM
++	spellout		one billion three hundred thirty-six million three hundred seventeen thousand nine hundred sixty-five point five
++	ordinal			1,336,317,966th
++	duration		371,199:26:06
++	"
++==DONE==
+diff --git a/ext/intl/tests/resourcebundle_null_mandatory_args_variant2.phpt b/ext/intl/tests/resourcebundle_null_mandatory_args_variant2.phpt
+index cf721c8..8efd952 100644
+--- a/ext/intl/tests/resourcebundle_null_mandatory_args_variant2.phpt
++++ b/ext/intl/tests/resourcebundle_null_mandatory_args_variant2.phpt
+@@ -6,6 +6,7 @@ date.timezone=Atlantic/Azores
+ <?php
+ if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '51.2') < 0) die('skip for ICU >= 51.2'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') >= 0) die('skip for ICU < 72.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/resourcebundle_null_mandatory_args_variant_icu72-1.phpt b/ext/intl/tests/resourcebundle_null_mandatory_args_variant_icu72-1.phpt
+new file mode 100644
+index 0000000..55b9dda
+--- /dev/null
++++ b/ext/intl/tests/resourcebundle_null_mandatory_args_variant_icu72-1.phpt
+@@ -0,0 +1,25 @@
++--TEST--
++ResourceBundle constructor bundle accepts NULL for first two arguments
++--INI--
++date.timezone=Atlantic/Azores
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '72.1') < 0) die('skip for ICU >= 72.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++
++$r = new ResourceBundle('en_US', NULL);
++$c = $r->get('calendar')->get('gregorian')->get('DateTimePatterns')->get(0);
++var_dump($c);
++
++ini_set('intl.default_locale', 'pt_PT');
++$r = new ResourceBundle(NULL, NULL);
++$c = $r->get('calendar')->get('gregorian')->get('DateTimePatterns')->get(0);
++var_dump($c);
++?>
++==DONE==
++--EXPECT--
++string(16) "h:mm:ss a zzzz"
++string(13) "HH:mm:ss zzzz"
++==DONE==
+diff --git a/ext/intl/tests/timezone_IDforWindowsID_basic2.phpt b/ext/intl/tests/timezone_IDforWindowsID_basic2.phpt
+index 800fc9a..1e6aa5b 100644
+--- a/ext/intl/tests/timezone_IDforWindowsID_basic2.phpt
++++ b/ext/intl/tests/timezone_IDforWindowsID_basic2.phpt
+@@ -5,6 +5,7 @@ IntlTimeZone::getIDForWindowsID basic test
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '58.1') < 0) die('skip for ICU >= 58.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') >= 0) die('skip for ICU <= 76.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/timezone_IDforWindowsID_basic_icu76_1.phpt b/ext/intl/tests/timezone_IDforWindowsID_basic_icu76_1.phpt
+new file mode 100644
+index 0000000..be1023f
+--- /dev/null
++++ b/ext/intl/tests/timezone_IDforWindowsID_basic_icu76_1.phpt
+@@ -0,0 +1,42 @@
++--TEST--
++IntlTimeZone::getIDForWindowsID basic test
++--SKIPIF--
++<?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '76.1') < 0) die('skip for ICU >= 76.1'); ?>
++--FILE--
++<?php
++
++$tzs = array(
++  'Gnomeregan' => array(NULL),
++  'India Standard Time' => array(NULL),
++  'Pacific Standard Time' => array('001', 'CA', 'MX', 'US', 'ZZ'),
++  'Romance Standard Time' => array('001', 'BE', 'DK', 'ES', 'FR'),
++);
++
++foreach ($tzs as $tz => $regions) {
++  echo "** $tz\n";
++  foreach ($regions as $region) {
++    var_dump(IntlTimeZone::getIDForWindowsID($tz, $region));
++    if (intl_get_error_code() != U_ZERO_ERROR) {
++      echo "Error: ", intl_get_error_message(), "\n";
++    }
++  }
++}
++--EXPECT--
++** Gnomeregan
++bool(false)
++Error: intltz_get_windows_id: Unknown windows timezone: U_ILLEGAL_ARGUMENT_ERROR
++** India Standard Time
++string(13) "Asia/Calcutta"
++** Pacific Standard Time
++string(19) "America/Los_Angeles"
++string(17) "America/Vancouver"
++string(19) "America/Los_Angeles"
++string(19) "America/Los_Angeles"
++string(19) "America/Los_Angeles"
++** Romance Standard Time
++string(12) "Europe/Paris"
++string(15) "Europe/Brussels"
++string(17) "Europe/Copenhagen"
++string(13) "Europe/Madrid"
++string(12) "Europe/Paris"

@@ -1,0 +1,56 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:21:16 +0100
+Subject: Accept the results for the system tzdata in the date tests with
+ out-of-range timestamps
+
+The three tests pass the timestamp -123456789000 (year -1943) and list the
+results known for the bundled timezone database on 32-bit and 64-bit
+platforms. With the system tzdata Asia/Calcutta is at its local mean time
+(+05:53:28) then, which gives 04:51 in getdate() and moves the sunrise and
+sunset by one and two seconds. Accept these values as well.
+---
+ ext/date/tests/date_sunrise_variation9.phpt | 2 +-
+ ext/date/tests/date_sunset_variation9.phpt  | 4 ++--
+ ext/date/tests/getdate_variation7.phpt      | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/ext/date/tests/date_sunrise_variation9.phpt b/ext/date/tests/date_sunrise_variation9.phpt
+index 49af06d..0e3f5bd 100644
+--- a/ext/date/tests/date_sunrise_variation9.phpt
++++ b/ext/date/tests/date_sunrise_variation9.phpt
+@@ -43,5 +43,5 @@ int\((-1097256359|123456811756)\)
+ -- Testing date_sunrise\(\) function by passing float -12.3456789000e10 value to time --
+ string\(5\) "(07:42|08:48|08:04)"
+ float\((7.713[0-9]*|8.810[0-9]*|8.074[0-9]*)\)
+-int\((1097304168|-2147443882|-123456761731)\)
++int\((1097304168|-2147443882|-123456761731|-123456761730)\)
+ ===DONE===
+diff --git a/ext/date/tests/date_sunset_variation9.phpt b/ext/date/tests/date_sunset_variation9.phpt
+index 59a4b58..5fb609e 100644
+--- a/ext/date/tests/date_sunset_variation9.phpt
++++ b/ext/date/tests/date_sunset_variation9.phpt
+@@ -42,6 +42,6 @@ int\((-1097212211|123456853728)\)
+ 
+ -- Testing date_sunset\(\) function by passing float -12.3456789000e10 value to time --
+ string\(5\) "(19:03|18:12|18:48)"
+-float\((19.056[0-9]*|18.213[0-9]*|18.808[0-9]*)\)
+-int\((1097345002|-2147410031|-123456723090)\)
++float\((19.056[0-9]*|18.213[0-9]*|18.808[0-9]*|18.807[0-9]*)\)
++int\((1097345002|-2147410031|-123456723090|-123456723092)\)
+ ===DONE===
+diff --git a/ext/date/tests/getdate_variation7.phpt b/ext/date/tests/getdate_variation7.phpt
+index 3e47cc4..4a8e312 100644
+--- a/ext/date/tests/getdate_variation7.phpt
++++ b/ext/date/tests/getdate_variation7.phpt
+@@ -55,9 +55,9 @@ array\(11\) {
+   \["seconds"\]=>
+   int\((.+)\)
+   \["minutes"\]=>
+-  int\((39|23)\)
++  int\((39|23|51)\)
+   \["hours"\]=>
+-  int\((0|2|5)\)
++  int\((0|2|5|4)\)
+   \["mday"\]=>
+   int\((9|14|23)\)
+   \["wday"\]=>

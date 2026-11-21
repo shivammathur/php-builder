@@ -1,0 +1,19 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Fri, 20 Nov 2026 14:34:01 +0100
+Subject: fix dtd_named_like_root_request test for 8.5 and newer (SOAP 1.2
+ fault text carries xml:lang)
+
+---
+ ext/soap/tests/dtd_named_like_root_request.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/soap/tests/dtd_named_like_root_request.phpt b/ext/soap/tests/dtd_named_like_root_request.phpt
+index 9078c02..d01736c 100644
+--- a/ext/soap/tests/dtd_named_like_root_request.phpt
++++ b/ext/soap/tests/dtd_named_like_root_request.phpt
+@@ -24,4 +24,4 @@ function test($x) {
+ ?>
+ --EXPECT--
+ <?xml version="1.0" encoding="UTF-8"?>
+-<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"><env:Body><env:Fault><env:Code><env:Value>env:Receiver</env:Value></env:Code><env:Reason><env:Text>DTD are not supported by SOAP</env:Text></env:Reason></env:Fault></env:Body></env:Envelope>
++<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"><env:Body><env:Fault><env:Code><env:Value>env:Receiver</env:Value></env:Code><env:Reason><env:Text xml:lang="en">DTD are not supported by SOAP</env:Text></env:Reason></env:Fault></env:Body></env:Envelope>

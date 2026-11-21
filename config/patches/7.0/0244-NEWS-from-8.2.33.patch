@@ -1,0 +1,29 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:55:52 +0200
+Subject: NEWS from 8.2.33
+
+---
+ NEWS | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index eb50d4e..145523e 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,16 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.33
++
++- PGSQL:
++  . Fixed GHSA-7qpv-r5mr-78m4 (SQL injection via E'...' backslash breakout).
++    (CVE-2026-17543) (ilutov)
++
++- Phar:
++  . Fixed GHSA-vc5h-9ppw-p5f3 (Crash via recursive symlinks). (CVE-2026-7260)
++    (Jakub Zelenka)
++
+ Backported from 8.2.32
+ 
+ - OpenSSL:

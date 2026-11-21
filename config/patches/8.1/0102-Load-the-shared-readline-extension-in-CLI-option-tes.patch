@@ -1,0 +1,38 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:16 +0100
+Subject: Load the shared readline extension in CLI option tests
+
+---
+ sapi/cli/tests/009.phpt   | 3 +++
+ sapi/cli/tests/012-2.phpt | 4 ++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/sapi/cli/tests/009.phpt b/sapi/cli/tests/009.phpt
+index 904f680..c635ea0 100644
+--- a/sapi/cli/tests/009.phpt
++++ b/sapi/cli/tests/009.phpt
+@@ -8,6 +8,9 @@ readline
+ <?php
+ 
+ $php = getenv('TEST_PHP_EXECUTABLE');
++if (file_exists(ini_get('extension_dir') . '/readline.' . PHP_SHLIB_SUFFIX)) {
++    $php .= ' -d extension=' . escapeshellarg(ini_get('extension_dir') . '/readline.' . PHP_SHLIB_SUFFIX);
++}
+ 
+ var_dump(`$php -n -a -r "echo hello;"`);
+ var_dump(`$php -n -r "echo hello;" -a`);
+diff --git a/sapi/cli/tests/012-2.phpt b/sapi/cli/tests/012-2.phpt
+index 8ef9759..4e4e181 100644
+--- a/sapi/cli/tests/012-2.phpt
++++ b/sapi/cli/tests/012-2.phpt
+@@ -8,6 +8,10 @@ readline
+ <?php
+ 
+ $php = getenv('TEST_PHP_EXECUTABLE');
++if (file_exists(ini_get('extension_dir') . '/readline.' . PHP_SHLIB_SUFFIX)) {
++    // $php is used inside double quotes below
++    $php .= '" -d "extension=' . ini_get('extension_dir') . '/readline.' . PHP_SHLIB_SUFFIX;
++}
+ 
+ // -r : behavior = CLI_DIRECT
+ // -F / -R / -B / -E : behavior = PROCESS_STDIN

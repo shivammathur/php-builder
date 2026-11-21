@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:13:06 +0100
+Subject: Accept any getaddrinfo error in the ftp_ssl_connect_error test
+
+Without network access the name resolution fails with "Temporary failure
+in name resolution" instead of "Name or service not known". Backport of
+upstream commit 17d76e530de (PHP 7.4.0).
+---
+ ext/ftp/tests/ftp_ssl_connect_error.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/ftp/tests/ftp_ssl_connect_error.phpt b/ext/ftp/tests/ftp_ssl_connect_error.phpt
+index 85fcf76..b0ece5d 100644
+--- a/ext/ftp/tests/ftp_ssl_connect_error.phpt
++++ b/ext/ftp/tests/ftp_ssl_connect_error.phpt
+@@ -29,7 +29,7 @@ echo "===DONE===\n";
+ 
+ -- Testing ftp_ssl_connect() function on failure --
+ 
+-Warning: ftp_ssl_connect(): php_network_getaddresses: getaddrinfo failed: Name or service not known in %s on line %d
++Warning: ftp_ssl_connect(): php_network_getaddresses: getaddrinfo failed: %s in %s on line %d
+ bool(false)
+ 
+ -- Testing ftp_ssl_connect() function invalid argument type --

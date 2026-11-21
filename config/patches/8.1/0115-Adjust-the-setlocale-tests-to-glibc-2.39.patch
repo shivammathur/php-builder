@@ -1,0 +1,184 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:05:10 +0100
+Subject: Adjust the setlocale tests to glibc 2.39
+
+glibc 2.39 fixed the grouping and mon_grouping formats in its locale data,
+so localeconv() returns one item where the tests expect two.  Accept both
+as upstream does (php-src b6b9eab68e2).
+---
+ .../tests/strings/setlocale_variation3.phpt        | 26 ++++++++--------------
+ .../tests/strings/setlocale_variation4.phpt        | 26 ++++++++--------------
+ .../tests/strings/setlocale_variation5.phpt        | 26 ++++++++--------------
+ 3 files changed, 27 insertions(+), 51 deletions(-)
+
+diff --git a/ext/standard/tests/strings/setlocale_variation3.phpt b/ext/standard/tests/strings/setlocale_variation3.phpt
+index 2875795..d2dca6d 100644
+--- a/ext/standard/tests/strings/setlocale_variation3.phpt
++++ b/ext/standard/tests/strings/setlocale_variation3.phpt
+@@ -46,7 +46,7 @@ if($locale_info_before ==  $locale_info_after){
+ 
+ echo "\nDone\n";
+ ?>
+---EXPECT--
++--EXPECTF--
+ *** Testing setlocale() : usage variations - setting system locale = 0 ***
+ Locale info, before setting the locale
+ array(18) {
+@@ -83,17 +83,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -133,17 +129,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+diff --git a/ext/standard/tests/strings/setlocale_variation4.phpt b/ext/standard/tests/strings/setlocale_variation4.phpt
+index 540d906..187d5ee 100644
+--- a/ext/standard/tests/strings/setlocale_variation4.phpt
++++ b/ext/standard/tests/strings/setlocale_variation4.phpt
+@@ -44,7 +44,7 @@ if($locale_info_before != $locale_info_after){
+ 
+ echo "\nDone\n";
+ ?>
+---EXPECT--
++--EXPECTF--
+ *** Testing setlocale() : usage variations - Setting system locale = null ***
+ Locale info, before setting the locale
+ array(18) {
+@@ -81,17 +81,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -131,17 +127,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+diff --git a/ext/standard/tests/strings/setlocale_variation5.phpt b/ext/standard/tests/strings/setlocale_variation5.phpt
+index 6e624e6..f2cd8c9 100644
+--- a/ext/standard/tests/strings/setlocale_variation5.phpt
++++ b/ext/standard/tests/strings/setlocale_variation5.phpt
+@@ -48,7 +48,7 @@ if($locale_info_before != $locale_info_after){
+ 
+ echo "\nDone\n";
+ ?>
+---EXPECT--
++--EXPECTF--
+ *** Testing setlocale() : usage variations - setting system locale = "" ***
+ Locale info, before setting the locale
+ array(18) {
+@@ -85,17 +85,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -135,17 +131,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }

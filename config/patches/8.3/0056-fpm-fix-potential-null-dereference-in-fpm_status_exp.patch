@@ -1,0 +1,20 @@
+From: Marcel Hernandez <e6990620@gmail.com>
+Date: Tue, 22 Sep 2026 00:09:01 +0200
+Subject: fpm: fix potential null dereference in fpm_status_export_to_zval()
+---
+ NEWS                      | 6 ++++++
+ sapi/fpm/fpm/fpm_status.c | 3 +++
+ 2 files changed, 9 insertions(+)
+
+--- a/sapi/fpm/fpm/fpm_status.c
++++ b/sapi/fpm/fpm/fpm_status.c
+@@ -82,6 +82,9 @@
+ 	int i;
+ 
+ 	scoreboard_p = fpm_scoreboard_copy(NULL, 1);
++	if (!scoreboard_p) {
++		return -1;
++	}
+ 
+ 	now_epoch = time(NULL);
+ 	fpm_clock_get(&now);

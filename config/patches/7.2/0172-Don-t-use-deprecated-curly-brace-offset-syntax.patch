@@ -1,0 +1,32 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Tue, 7 Jul 2020 13:21:26 +0200
+Subject: Don't use deprecated curly brace offset syntax
+
+(cherry picked from commit 7ec3aa1871074f5de25865af42c984a7668eb85f)
+
+Better safe than sorry in case someone ever builds PHP 7.3 with a
+future version of PHP SDK with bundled PHP 8.
+
+(cherry picked from commit f23bd488926db428f5b4bbef1a020ec3e2864384)
+---
+ win32/build/mkdist.php | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/win32/build/mkdist.php b/win32/build/mkdist.php
+index 7a39bea..627ec9f 100644
+--- a/win32/build/mkdist.php
++++ b/win32/build/mkdist.php
+@@ -191,11 +191,11 @@ function extract_file_from_tarball($pkg, $filename, $dest_dir) /* {{{ */
+ 			break;
+ 		$checksum = 0;
+ 		for ($i = 0; $i < 148; $i++)
+-			$checksum += ord($hdr_data{$i});
++			$checksum += ord($hdr_data[$i]);
+ 		for ($i = 148; $i < 156; $i++)
+ 			$checksum += 32;
+ 		for ($i = 156; $i < 512; $i++)
+-			$checksum += ord($hdr_data{$i});
++			$checksum += ord($hdr_data[$i]);
+ 
+ 		$hdr = unpack("a100filename/a8mode/a8uid/a8gid/a12size/a12mtime/a8checksum/a1typeflag/a100link/a6magic/a2version/a32uname/a32gname/a8devmajor/a8devminor", $hdr_data);
+ 

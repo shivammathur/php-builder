@@ -1,0 +1,30 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Wed, 17 Jun 2020 22:08:54 +0200
+Subject: Use sha256 as digest algorithm in certificate generator
+
+This makes the generated certificates compatible with security
+level 2, which is apparently the default on Ubuntu 20.04.
+
+Unfortunately this does not fix all tests, because some are using
+pre-generated certificates.
+
+(cherry picked from commit 52c2f1126d762385118284cf35b99e02b7ce8afe)
+(cherry picked from commit 81de8314dd4fd4daa7a04409e286d32e0168826b)
+---
+ ext/openssl/tests/CertificateGenerator.inc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ext/openssl/tests/CertificateGenerator.inc b/ext/openssl/tests/CertificateGenerator.inc
+index 325f975..e915e81 100644
+--- a/ext/openssl/tests/CertificateGenerator.inc
++++ b/ext/openssl/tests/CertificateGenerator.inc
+@@ -97,7 +97,8 @@ class CertificateGenerator
+             openssl_csr_new($dn, $this->lastKey, ['req_extensions' => 'v3_req']),
+             $this->ca,
+             $this->caKey,
+-            2
++            /* days */ 2,
++            ['digest_alg' => 'sha256'],
+         );
+ 
+         $certText = '';

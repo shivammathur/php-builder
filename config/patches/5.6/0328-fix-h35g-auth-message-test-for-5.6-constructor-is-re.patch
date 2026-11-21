@@ -1,0 +1,20 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:59:34 +0200
+Subject: fix h35g auth message test for 5.6 (constructor is reported as
+ mysqli::mysqli)
+
+---
+ ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+index 18a64d3..a758bf3 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-auth-message.phpt
+@@ -33,5 +33,5 @@ print "done!";
+ [*] Received: %x
+ [*] Sending - Malicious OK Auth Response [Extract heap through buffer over-read]: 0900000200000002000000fcff
+ 
+-Warning: mysqli::__construct(): OK packet message length is past the packet size in %s on line %d
++Warning: mysqli::%s(): OK packet message length is past the packet size in %s on line %d
+ %A

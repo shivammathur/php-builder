@@ -1,0 +1,81 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Mon, 24 Feb 2020 10:19:58 +0100
+Subject: Don't treat any WS as start of header
+
+Check that the header occurs after \n, not other whitespace
+characters.
+
+(cherry picked from commit 56cdbe63c24b86c2f1d60bf2609fde113d12d235)
+---
+ ext/standard/http_fopen_wrapper.c       |  5 ++---
+ ext/standard/tests/http/bug79265_2.phpt | 38 +++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 3 deletions(-)
+ create mode 100644 ext/standard/tests/http/bug79265_2.phpt
+
+diff --git a/ext/standard/http_fopen_wrapper.c b/ext/standard/http_fopen_wrapper.c
+index 95963e9..a98e3a2 100644
+--- a/ext/standard/http_fopen_wrapper.c
++++ b/ext/standard/http_fopen_wrapper.c
+@@ -110,7 +110,7 @@ static inline void strip_header(char *header_bag, char *lc_header_bag,
+ static zend_bool check_has_header(const char *headers, const char *header) {
+ 	const char *s = headers;
+ 	while ((s = strstr(s, header))) {
+-		if (s == headers || *(s-1) == '\r' || *(s-1) == '\n' || *(s-1) == '\t' || *(s-1) == ' ') {
++		if (s == headers || *(s-1) == '\n') {
+ 			return 1;
+ 		}
+ 		s++;
+@@ -501,8 +501,7 @@ finish:
+ 
+ 			/* remove Proxy-Authorization header */
+ 			if (use_proxy && use_ssl && (s = strstr(t, "proxy-authorization:")) &&
+-			    (s == t || *(s-1) == '\r' || *(s-1) == '\n' ||
+-			                 *(s-1) == '\t' || *(s-1) == ' ')) {
++			    (s == t || *(s-1) == '\n')) {
+ 				char *p = s + sizeof("proxy-authorization:") - 1;
+ 
+ 				while (s > t && (*(s-1) == ' ' || *(s-1) == '\t')) s--;
+diff --git a/ext/standard/tests/http/bug79265_2.phpt b/ext/standard/tests/http/bug79265_2.phpt
+new file mode 100644
+index 0000000..d2f5bc1
+--- /dev/null
++++ b/ext/standard/tests/http/bug79265_2.phpt
+@@ -0,0 +1,38 @@
++--TEST--
++Bug #79265 variation: "host:" not at start of header
++--INI--
++allow_url_fopen=1
++--SKIPIF--
++<?php require 'server.inc'; http_server_skipif('tcp://127.0.0.1:12342'); ?>
++--FILE--
++<?php
++require 'server.inc';
++
++$responses = array(
++    "data://text/plain,HTTP/1.0 200 OK\r\n\r\n",
++);
++
++$pid = http_server("tcp://127.0.0.1:12342", $responses, $output);
++
++$opts = array(
++  'http'=>array(
++    'method'=>"GET",
++    'header'=>"RandomHeader: host:8080\r\n" .
++              "Cookie: foo=bar\r\n"
++  )
++);
++$context = stream_context_create($opts);
++$fd = fopen('http://127.0.0.1:12342/', 'rb', false, $context);
++fseek($output, 0, SEEK_SET);
++echo stream_get_contents($output);
++fclose($fd);
++
++http_server_kill($pid);
++
++?>
++--EXPECT--
++GET / HTTP/1.0
++Host: 127.0.0.1:12342
++Connection: close
++RandomHeader: host:8080
++Cookie: foo=bar

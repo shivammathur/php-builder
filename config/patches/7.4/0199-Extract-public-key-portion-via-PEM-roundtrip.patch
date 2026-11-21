@@ -1,0 +1,87 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Mon, 9 Aug 2021 14:19:33 +0200
+Subject: Extract public key portion via PEM roundtrip
+
+The workaround with cloning the X509_REQ no longer works in
+OpenSSL 3. Instead extract the public key portion by round
+tripping through PEM.
+
+(cherry picked from commit 26a51e8d7a6026f6bd69813d044785d154a296a3)
+---
+ ext/openssl/openssl.c | 43 +++++++++++++++++++++----------------------
+ 1 file changed, 21 insertions(+), 22 deletions(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 3121000..e684e1a 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -3718,6 +3718,21 @@ PHP_FUNCTION(openssl_csr_get_subject)
+ }
+ /* }}} */
+ 
++static EVP_PKEY *php_openssl_extract_public_key(EVP_PKEY *priv_key)
++{
++	/* Extract public key portion by round-tripping through PEM. */
++	EVP_PKEY *pub_key;
++	BIO *bio = BIO_new(BIO_s_mem());
++	if (!bio || !PEM_write_bio_PUBKEY(bio, priv_key)) {
++		BIO_free(bio);
++		return NULL;
++	}
++
++	pub_key = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
++	BIO_free(bio);
++	return pub_key;
++}
++
+ /* {{{ proto mixed openssl_csr_get_public_key(mixed csr)
+ 	Returns the subject of a CERT or FALSE on error */
+ PHP_FUNCTION(openssl_csr_get_public_key)
+@@ -3726,41 +3741,25 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 	zend_bool use_shortnames = 1;
+ 	zend_resource *csr_resource;
+ 
+-	X509_REQ *orig_csr, *csr;
++	X509_REQ *csr;
+ 	EVP_PKEY *tpubkey;
+ 
+ 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "z|b", &zcsr, &use_shortnames) == FAILURE) {
+ 		return;
+ 	}
+ 
+-	orig_csr = php_openssl_csr_from_zval(zcsr, 0, &csr_resource);
++	csr = php_openssl_csr_from_zval(zcsr, 0, &csr_resource);
+ 
+-	if (orig_csr == NULL) {
++	if (csr == NULL) {
+ 		RETURN_FALSE;
+ 	}
+ 
+-#if PHP_OPENSSL_API_VERSION >= 0x10100
+-	/* Due to changes in OpenSSL 1.1 related to locking when decoding CSR,
+-	 * the pub key is not changed after assigning. It means if we pass
+-	 * a private key, it will be returned including the private part.
+-	 * If we duplicate it, then we get just the public part which is
+-	 * the same behavior as for OpenSSL 1.0 */
+-	csr = X509_REQ_dup(orig_csr);
+-#else
+-	csr = orig_csr;
+-#endif
+-
+ 	/* Retrieve the public key from the CSR */
+-	tpubkey = X509_REQ_get_pubkey(csr);
+-
+-	if (csr != orig_csr) {
+-		/* We need to free the duplicated CSR */
+-		X509_REQ_free(csr);
+-	}
++	tpubkey = php_openssl_extract_public_key(X509_REQ_get_pubkey(csr));
+ 
+ 	if (!csr_resource) {
+-		/* We also need to free the original CSR if it was freshly created */
+-		X509_REQ_free(orig_csr);
++		/* We need to free the original CSR if it was freshly created */
++		X509_REQ_free(csr);
+ 	}
+ 
+ 	if (tpubkey == NULL) {

@@ -53,3 +53,5 @@
 0053-Backport-gd-test-expectations-from-PHP-8.6.patch
 0054-Don-t-use-libimagequant-in-imagetruecolortopalette.patch
 0055-Fix-GH-11662-Skip-multicast-test-when-unavailable.patch
+0056-fpm-fix-potential-null-dereference-in-fpm_status_exp.patch
+0057-ext-soap-fix-DTD-node-being-matched-as-an-element.patch

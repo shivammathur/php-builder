@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:46:54 +0200
+Subject: fix fake server termination with proc_open() string command (exec
+ the server)
+
+---
+ ext/mysqli/tests/fake_server.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 92a15f1..228b53b 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -1433,7 +1433,7 @@ function run_fake_server_in_background($test_function, $port = 33305)
+     }
+ 
+     $command = [PHP_BINARY, '-n', __FILE__, 'mysqli_fake_server', $test_function, $port];
+-    $command = implode(' ', $command);
++    $command = 'exec ' . implode(' ', $command);
+ 
+     $descriptorspec = array(
+         0 => array("pipe", "r"),

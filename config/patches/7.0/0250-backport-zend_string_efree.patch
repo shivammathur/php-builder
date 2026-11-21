@@ -1,0 +1,29 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:34:38 +0200
+Subject: backport zend_string_efree
+
+(cherry picked from commit 5dbc7317aa9e50437546fedc0293cadc8dee39a0)
+(cherry picked from commit 597552e0726101f2969df3c56422d230fae2b15c)
+---
+ Zend/zend_string.h | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/Zend/zend_string.h b/Zend/zend_string.h
+index e3286e1..7fba881 100644
+--- a/Zend/zend_string.h
++++ b/Zend/zend_string.h
+@@ -267,6 +267,14 @@ static zend_always_inline void zend_string_free(zend_string *s)
+ 	}
+ }
+ 
++static zend_always_inline void zend_string_efree(zend_string *s)
++{
++	ZEND_ASSERT(!ZSTR_IS_INTERNED(s));
++	ZEND_ASSERT(GC_REFCOUNT(s) <= 1);
++	ZEND_ASSERT(!(GC_FLAGS(s) & IS_STR_PERSISTENT));
++	efree(s);
++}
++
+ static zend_always_inline void zend_string_release(zend_string *s)
+ {
+ 	if (!ZSTR_IS_INTERNED(s)) {

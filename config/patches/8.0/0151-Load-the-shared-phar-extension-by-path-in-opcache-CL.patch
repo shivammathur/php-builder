@@ -1,0 +1,35 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:04 +0100
+Subject: Load the shared phar extension by path in opcache CLI server tests
+
+---
+ ext/opcache/tests/issue0115.phpt | 2 +-
+ ext/opcache/tests/issue0149.phpt | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/opcache/tests/issue0115.phpt b/ext/opcache/tests/issue0115.phpt
+index b8df30a..a69d27f 100644
+--- a/ext/opcache/tests/issue0115.phpt
++++ b/ext/opcache/tests/issue0115.phpt
+@@ -33,7 +33,7 @@ $p->setStub($stub);
+ unset($p);
+ 
+ include "php_cli_server.inc";
+-php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension=phar.'.PHP_SHLIB_SUFFIX);
++php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension='.ini_get('extension_dir').'/phar.'.PHP_SHLIB_SUFFIX);
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0115_1.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0115_2.phar.php');
+ ?>
+diff --git a/ext/opcache/tests/issue0149.phpt b/ext/opcache/tests/issue0149.phpt
+index 0896e39..ff2b971 100644
+--- a/ext/opcache/tests/issue0149.phpt
++++ b/ext/opcache/tests/issue0149.phpt
+@@ -21,7 +21,7 @@ $p->setStub($stub);
+ unset($p);
+ 
+ include "php_cli_server.inc";
+-php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension=phar.'.PHP_SHLIB_SUFFIX);
++php_cli_server_start('-d opcache.enable=1 -d opcache.enable_cli=1 -d extension='.ini_get('extension_dir').'/phar.'.PHP_SHLIB_SUFFIX);
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');
+ echo file_get_contents('http://' . PHP_CLI_SERVER_ADDRESS . '/issue0149.phar.php');

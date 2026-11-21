@@ -1,0 +1,25 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Sun, 25 Oct 2026 06:50:36 +0100
+Subject: Add NEWS entries from 8.2.34
+
+---
+ NEWS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 62c276e..80b7567 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.34
++
++- SOAP:
++  . Fixed GHSA-rgrp-mwpx-f6rm (Unbounded recursion in server-side
++    cleanup_xml_node()). (CVE-2026-91765) (Alexandre Daubois)
++
+ Backported from 8.2.33
+ 
+ - GD:

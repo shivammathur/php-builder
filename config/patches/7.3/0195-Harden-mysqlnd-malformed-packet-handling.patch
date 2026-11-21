@@ -1,0 +1,123 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 3 Nov 2026 11:32:34 +0100
+Subject: Harden mysqlnd malformed packet handling
+
+---
+ ext/mysqli/tests/fake_server.inc                   | 15 +++++++++++++++
+ .../tests/mysqlnd-ok-message-past-packet.phpt      | 22 ++++++++++++++++++++++
+ ext/mysqlnd/mysqlnd_wireprotocol.c                 | 16 ++++++++++++++--
+ 3 files changed, 51 insertions(+), 2 deletions(-)
+ create mode 100644 ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 228b53b..99f761e 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -1311,6 +1311,21 @@ function my_mysqli_test_ok_last_insert_id_over_read(my_mysqli_fake_server_conn $
+     $conn->read();
+ }
+ 
++function my_mysqli_test_ok_message_length_past_packet(my_mysqli_fake_server_conn $conn)
++{
++    $p = $conn->packet_generator->server_ok();
++    $p->packet_number = '01';
++    $p->packet_length = '080000';
++    $p->message_len = '10';
++
++    $conn->send_server_greetings();
++    $conn->read();
++    $conn->send_server_ok();
++    $conn->read();
++    $conn->send($p->to_bytes(), 'OK message length past packet');
++    $conn->read();
++}
++
+ function my_mysqli_test_ok_message_len_over_read(my_mysqli_fake_server_conn $conn): void
+ {
+     $p = $conn->packet_generator->server_ok("01");
+diff --git a/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+new file mode 100644
+index 0000000..b0a0158
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects an OK message whose length exceeds the packet body
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('ok_message_length_past_packet', $port);
++$process->wait();
++try {
++    $conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++    var_dump($conn->select_db('php_test'));
++    $conn->close();
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*Premature end of data.*done
+diff --git a/ext/mysqlnd/mysqlnd_wireprotocol.c b/ext/mysqlnd/mysqlnd_wireprotocol.c
+index 426e989..0b9770c 100644
+--- a/ext/mysqlnd/mysqlnd_wireprotocol.c
++++ b/ext/mysqlnd/mysqlnd_wireprotocol.c
+@@ -943,7 +943,10 @@ php_mysqlnd_ok_read(MYSQLND_CONN_DATA * conn, void * _packet)
+ 		if (UNEXPECTED(net_len == MYSQLND_INVALID_NET_FIELD_LENGTH)) {
+ 			BAIL_PREMATURE_END;
+ 		}
+-		packet->message_len = MIN(net_len, buf_len - (p - begin));
++		if (net_len > packet->header.size - (size_t) (p - buf)) {
++			BAIL_PREMATURE_END;
++		}
++		packet->message_len = net_len;
+ 		packet->message = mnd_pestrndup((char *)p, packet->message_len, FALSE);
+ 	} else {
+ 		packet->message = NULL;
+@@ -1558,10 +1561,16 @@ php_mysqlnd_rowp_read_binary_protocol(MYSQLND_ROW_BUFFER * row_buffer, zval * fi
+ 
+ 	end_field = (start_field = fields) + field_count;
+ 
++	/* Reject a truncated null bitmap before reading any of its bits. */
++	size_t null_bytes = field_count / 8 + 1 + (field_count % 8 > 6);
++	if (rbs == 0 || null_bytes > rbs - 1) {
++		php_error_docref(NULL, E_WARNING, "Malformed server packet. Incomplete null bitmap");
++		DBG_RETURN(FAIL);
++	}
+ 	/* skip the first byte, not EODATA_MARKER -> 0x0, status */
+ 	p++;
+ 	null_ptr= p;
+-	p += (field_count + 9)/8;	/* skip null bits */
++	p += null_bytes;	/* skip null bits */
+ 	bit	= 4;					/* first 2 bits are reserved */
+ 
+ 	for (i = 0, current_field = start_field; current_field < end_field; current_field++, i++) {
+@@ -1582,6 +1591,7 @@ php_mysqlnd_rowp_read_binary_protocol(MYSQLND_ROW_BUFFER * row_buffer, zval * fi
+ 			if (rbs <= row_position) {
+ 				for (j = 0, current_field = start_field; j < i; current_field++, j++) {
+ 					zval_ptr_dtor(current_field);
++					ZVAL_UNDEF(current_field);
+ 				}
+ 				php_error_docref(NULL, E_WARNING, "Malformed server packet. No packet space left for the field");
+ 				DBG_RETURN(FAIL);
+@@ -1590,6 +1600,7 @@ php_mysqlnd_rowp_read_binary_protocol(MYSQLND_ROW_BUFFER * row_buffer, zval * fi
+ 			if (p == NULL) {
+ 				for (j = 0, current_field = start_field; j < i; current_field++, j++) {
+ 					zval_ptr_dtor(current_field);
++					ZVAL_UNDEF(current_field);
+ 				}
+ 				DBG_RETURN(FAIL);
+ 			}
+@@ -1674,6 +1685,7 @@ php_mysqlnd_rowp_read_text_protocol_aux(MYSQLND_ROW_BUFFER * row_buffer, zval *
+ 			php_error_docref(NULL, E_WARNING, "Malformed server packet. Field length pointing after end of packet");
+ 			for (j = 0, current_field = start_field; j < i; current_field++, j++) {
+ 				zval_ptr_dtor(current_field);
++					ZVAL_UNDEF(current_field);
+ 			}
+ 			DBG_RETURN(FAIL);
+ 		} else {

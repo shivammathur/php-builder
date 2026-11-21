@@ -1,0 +1,220 @@
+From: Niels Dossche <7771979+nielsdos@users.noreply.github.com>
+Date: Sat, 6 Sep 2025 21:55:13 +0200
+Subject: Fix GHSA-www2-q4fc-65wf
+
+(cherry picked from commit ed70b1ea43a9b7ffa2f53b3e5d6ba403f37ae81c)
+(cherry picked from commit 52c5762a902e8731b7068ded027fbd780f5a1991)
+(cherry picked from commit 3e9d47f6cc04c9978bb384e2d487cf28d37889f0)
+(cherry picked from commit bd4b67177429d95fbae49fb623694b7c2ee01b3b)
+(cherry picked from commit 6480b95dcf0b0bd7d92d5210a28248a6eeb062d8)
+(cherry picked from commit c75f2940583af011829a00c6ad185ce9387048a2)
+---
+ ext/standard/basic_functions.c                     | 10 +--
+ ext/standard/dns.c                                 |  6 +-
+ ext/standard/dns_win32.c                           |  6 +-
+ .../tests/network/ghsa-www2-q4fc-65wf.phpt         | 71 ++++++++++++++++++++++
+ ext/standard/tests/network/ip_x86_64.phpt          |  2 +-
+ 5 files changed, 83 insertions(+), 12 deletions(-)
+ create mode 100644 ext/standard/tests/network/ghsa-www2-q4fc-65wf.phpt
+
+diff --git a/ext/standard/basic_functions.c b/ext/standard/basic_functions.c
+index 7671cab..888d05e 100644
+--- a/ext/standard/basic_functions.c
++++ b/ext/standard/basic_functions.c
+@@ -3910,7 +3910,7 @@ PHP_NAMED_FUNCTION(php_inet_pton)
+ 	size_t address_len;
+ 	char buffer[17];
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &address, &address_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p", &address, &address_len) == FAILURE) {
+ 		RETURN_FALSE;
+ 	}
+ 
+@@ -3950,7 +3950,7 @@ PHP_FUNCTION(ip2long)
+ 	zend_ulong ip;
+ #endif
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &addr, &addr_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p", &addr, &addr_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -5542,7 +5542,7 @@ PHP_FUNCTION(getservbyname)
+ 	size_t name_len, proto_len;
+ 	struct servent *serv;
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ss", &name, &name_len, &proto, &proto_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "pp", &name, &name_len, &proto, &proto_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -5585,7 +5585,7 @@ PHP_FUNCTION(getservbyport)
+ 	zend_long port;
+ 	struct servent *serv;
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "ls", &port, &proto, &proto_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "lp", &port, &proto, &proto_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -5609,7 +5609,7 @@ PHP_FUNCTION(getprotobyname)
+ 	size_t name_len;
+ 	struct protoent *ent;
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &name, &name_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p", &name, &name_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+diff --git a/ext/standard/dns.c b/ext/standard/dns.c
+index d85fbe1..0d8d913 100644
+--- a/ext/standard/dns.c
++++ b/ext/standard/dns.c
+@@ -372,7 +372,7 @@ PHP_FUNCTION(dns_check_record)
+ 	struct __res_state *handle = &state;
+ #endif
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|s", &hostname, &hostname_len, &rectype, &rectype_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p|s", &hostname, &hostname_len, &rectype, &rectype_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -817,7 +817,7 @@ PHP_FUNCTION(dns_get_record)
+ 	int type, first_query = 1, store_results = 1;
+ 	zend_bool raw = 0;
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|lz/!z/!b",
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p|lz/!z/!b",
+ 			&hostname, &hostname_len, &type_param, &authns, &addtl, &raw) == FAILURE) {
+ 		return;
+ 	}
+@@ -1048,7 +1048,7 @@ PHP_FUNCTION(dns_get_mx)
+ 	struct __res_state *handle = &state;
+ #endif
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sz/|z/", &hostname, &hostname_len, &mx_list, &weight_list) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "pz/|z/", &hostname, &hostname_len, &mx_list, &weight_list) == FAILURE) {
+ 		return;
+ 	}
+ 
+diff --git a/ext/standard/dns_win32.c b/ext/standard/dns_win32.c
+index 1d42457..58101b4 100644
+--- a/ext/standard/dns_win32.c
++++ b/ext/standard/dns_win32.c
+@@ -50,7 +50,7 @@ PHP_FUNCTION(dns_get_mx) /* {{{ */
+ 	DNS_STATUS      status;                 /* Return value of DnsQuery_A() function */
+ 	PDNS_RECORD     pResult, pRec;          /* Pointer to DNS_RECORD structure */
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "sz/|z/", &hostname, &hostname_len, &mx_list, &weight_list) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "pz/|z/", &hostname, &hostname_len, &mx_list, &weight_list) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -99,7 +99,7 @@ PHP_FUNCTION(dns_check_record)
+ 	DNS_STATUS      status;                 /* Return value of DnsQuery_A() function */
+ 	PDNS_RECORD     pResult;          /* Pointer to DNS_RECORD structure */
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|s", &hostname, &hostname_len, &rectype, &rectype_len) == FAILURE) {
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p|s", &hostname, &hostname_len, &rectype, &rectype_len) == FAILURE) {
+ 		return;
+ 	}
+ 
+@@ -352,7 +352,7 @@ PHP_FUNCTION(dns_get_record)
+ 	int type, type_to_fetch, first_query = 1, store_results = 1;
+ 	zend_bool raw = 0;
+ 
+-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s|lz/!z/!b",
++	if (zend_parse_parameters(ZEND_NUM_ARGS(), "p|lz/!z/!b",
+ 			&hostname, &hostname_len, &type_param, &authns, &addtl, &raw) == FAILURE) {
+ 		return;
+ 	}
+diff --git a/ext/standard/tests/network/ghsa-www2-q4fc-65wf.phpt b/ext/standard/tests/network/ghsa-www2-q4fc-65wf.phpt
+new file mode 100644
+index 0000000..b14c8ca
+--- /dev/null
++++ b/ext/standard/tests/network/ghsa-www2-q4fc-65wf.phpt
+@@ -0,0 +1,71 @@
++--TEST--
++GHSA-www2-q4fc-65wf
++--DESCRIPTION--
++This is a ZPP test but *keep* this as it is security-sensitive!
++--FILE--
++<?php
++try {
++    dns_check_record("\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    dns_get_mx("\0", $out);
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    dns_get_record("\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    getprotobyname("\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    getservbyname("\0", "tcp");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    getservbyname("x", "tcp\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    getservbyport(0, "tcp\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    inet_pton("\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++try {
++    ip2long("\0");
++} catch (ValueError $e) {
++    echo $e->getMessage(), "\n";
++}
++?>
++--EXPECTF--
++Warning: dns_check_record() expects parameter 1 to be a valid path, string given in %s
++
++Warning: dns_get_mx() expects parameter 1 to be a valid path, string given in %s
++
++Warning: dns_get_record() expects parameter 1 to be a valid path, string given in %s
++
++Warning: getprotobyname() expects parameter 1 to be a valid path, string given in %s
++
++Warning: getservbyname() expects parameter 1 to be a valid path, string given in %s
++
++Warning: getservbyname() expects parameter 2 to be a valid path, string given in %s
++
++Warning: getservbyport() expects parameter 2 to be a valid path, string given in %s
++
++Warning: inet_pton() expects parameter 1 to be a valid path, string given in %s
++
++Warning: ip2long() expects parameter 1 to be a valid path, string given in %s
++
+diff --git a/ext/standard/tests/network/ip_x86_64.phpt b/ext/standard/tests/network/ip_x86_64.phpt
+index 1fcb8b2..e234dbd 100644
+--- a/ext/standard/tests/network/ip_x86_64.phpt
++++ b/ext/standard/tests/network/ip_x86_64.phpt
+@@ -54,7 +54,7 @@ bool(false)
+ bool(false)
+ int(1869573999)
+ 
+-Warning: ip2long() expects parameter 1 to be string, array given in %s on line %d
++Warning: ip2long() expects parameter 1 to be a valid path, array given in %s on line %d
+ NULL
+ 
+ Warning: long2ip() expects exactly 1 parameter, 0 given in %s on line %d

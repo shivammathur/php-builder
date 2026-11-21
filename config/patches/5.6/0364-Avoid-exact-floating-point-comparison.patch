@@ -1,0 +1,28 @@
+From: Steve Walk <steve.walk@cavium.com>
+Date: Tue, 18 Apr 2017 08:43:03 -0700
+Subject: Avoid exact floating point comparison
+
+(cherry picked from commit 9b7f13cb1b750d2dcac441945ab7cc1600fc080b)
+---
+ ext/date/tests/timezone_location_get.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/date/tests/timezone_location_get.phpt b/ext/date/tests/timezone_location_get.phpt
+index 745fc87..93f7ed6 100644
+--- a/ext/date/tests/timezone_location_get.phpt
++++ b/ext/date/tests/timezone_location_get.phpt
+@@ -10,12 +10,12 @@ date.timezone=UTC
+ $location = timezone_location_get(new DateTimeZone("Europe/Oslo"));
+ var_dump($location);
+ ?>
+---EXPECT--
++--EXPECTF--
+ array(4) {
+   ["country_code"]=>
+   string(2) "NO"
+   ["latitude"]=>
+-  float(59.91666)
++  float(59.9166%d)
+   ["longitude"]=>
+   float(10.75)
+   ["comments"]=>

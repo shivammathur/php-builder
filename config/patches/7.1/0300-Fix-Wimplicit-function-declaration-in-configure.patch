@@ -1,0 +1,376 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Mon, 5 Oct 2020 10:43:58 +0200
+Subject: Fix -Wimplicit-function-declaration in configure
+
+As this is an error with xcode 12, see bug #80171.
+
+PHP 7.1 never got this change (PHP 7.3.24). dpkg 1.22 and newer build
+with -Werror=implicit-function-declaration, so the test programs that
+call memset(), strcmp(), exit() or unlink() without a declaration do not
+compile and configure takes that for the answer "no": PHP is built
+without getaddrinfo() (names are resolved with gethostbyname(), which
+knows neither IPv6 addresses nor IPv6 address literals), without pread()
+and pwrite(), with its own crypt() instead of the one of the system and
+with the workarounds for a broken sprintf() and for stdio that needs a
+flush between reading and writing.
+
+(cherry picked from commit aa405b7da270595d349d0596ad31305a41d4b1c0)
+---
+ Zend/Zend.m4           |  9 +++++----
+ Zend/acinclude.m4      |  5 ++++-
+ acinclude.m4           | 38 ++++++++++++++++++++------------------
+ configure.in           | 11 ++++++-----
+ ext/standard/config.m4 | 38 ++++++++++++++++++++++++++------------
+ 5 files changed, 61 insertions(+), 40 deletions(-)
+
+diff --git a/Zend/Zend.m4 b/Zend/Zend.m4
+index f525919..b3d01cf 100644
+--- a/Zend/Zend.m4
++++ b/Zend/Zend.m4
+@@ -118,16 +118,16 @@ int main()
+ 		double d = (double) LONG_MIN * LONG_MIN + 2e9;
+ 
+ 		if ((long) d == 2e9 && (long) -d == -2e9) {
+-			exit(0);
++			return 0;
+ 		}
+ 	} else if (sizeof(long) == 8) {
+ 		double correct = 18e18 - ((double) LONG_MIN * -2); /* Subtract ULONG_MAX + 1 */
+ 
+ 		if ((long) 18e18 == correct) { /* On 64-bit, only check between LONG_MAX and ULONG_MAX */
+-			exit(0);
++			return 0;
+ 		}
+ 	}
+-	exit(1);
++	return 1;
+ }
+ ], [
+   AC_DEFINE([ZEND_DVAL_TO_LVAL_CAST_OK], 1, [Define if double cast to long preserves least significant bits])
+@@ -252,7 +252,7 @@ int main()
+   fprintf(fp, "%d %d\n", ZEND_MM_ALIGNMENT < 4 ? 4 : ZEND_MM_ALIGNMENT, zeros);
+   fclose(fp);
+ 
+-  exit(0);
++  return 0;
+ }
+ ], [
+   LIBZEND_MM_ALIGN=`cat conftest.zend | cut -d ' ' -f 1`
+@@ -321,6 +321,7 @@ AC_TRY_RUN([
+ #include <sys/mman.h>
+ #include <stdlib.h>
+ #include <stdio.h>
++#include <unistd.h>
+ #ifndef MAP_ANON
+ # ifdef MAP_ANONYMOUS
+ #  define MAP_ANON MAP_ANONYMOUS
+diff --git a/Zend/acinclude.m4 b/Zend/acinclude.m4
+index ae81d2c..6bfe466 100644
+--- a/Zend/acinclude.m4
++++ b/Zend/acinclude.m4
+@@ -67,7 +67,10 @@ dnl Check for broken sprintf()
+ dnl
+ AC_DEFUN([AC_ZEND_BROKEN_SPRINTF],[
+   AC_CACHE_CHECK(whether sprintf is broken, ac_cv_broken_sprintf,[
+-    AC_TRY_RUN([main() {char buf[20];exit(sprintf(buf,"testing 123")!=11); }],[
++    AC_TRY_RUN([
++#include <stdio.h>
++int main() {char buf[20]; return sprintf(buf,"testing 123")!=11; }
++],[
+       ac_cv_broken_sprintf=no
+     ],[
+       ac_cv_broken_sprintf=yes
+diff --git a/acinclude.m4 b/acinclude.m4
+index 34ecbbd..48e9736 100644
+--- a/acinclude.m4
++++ b/acinclude.m4
+@@ -1227,14 +1227,14 @@ AC_DEFUN([PHP_DOES_PWRITE_WORK],[
+ #include <unistd.h>
+ #include <errno.h>
+ $1
+-    main() {
++    int main() {
+     int fd = open("conftest_in", O_WRONLY|O_CREAT, 0600);
+ 
+-    if (fd < 0) exit(1);
+-    if (pwrite(fd, "text", 4, 0) != 4) exit(1);
++    if (fd < 0) return 1;
++    if (pwrite(fd, "text", 4, 0) != 4) return 1;
+     /* Linux glibc breakage until 2.2.5 */
+-    if (pwrite(fd, "text", 4, -1) != -1 || errno != EINVAL) exit(1);
+-    exit(0);
++    if (pwrite(fd, "text", 4, -1) != -1 || errno != EINVAL) return 1;
++    return 0;
+     }
+ 
+   ],[
+@@ -1257,14 +1257,14 @@ AC_DEFUN([PHP_DOES_PREAD_WORK],[
+ #include <unistd.h>
+ #include <errno.h>
+ $1
+-    main() {
++    int main() {
+     char buf[3];
+     int fd = open("conftest_in", O_RDONLY);
+-    if (fd < 0) exit(1);
+-    if (pread(fd, buf, 2, 0) != 2) exit(1);
++    if (fd < 0) return 1;
++    if (pread(fd, buf, 2, 0) != 2) return 1;
+     /* Linux glibc breakage until 2.2.5 */
+-    if (pread(fd, buf, 2, -1) != -1 || errno != EINVAL) exit(1);
+-    exit(0);
++    if (pread(fd, buf, 2, -1) != -1 || errno != EINVAL) return 1;
++    return 0;
+     }
+   ],[
+     ac_cv_pread=yes
+@@ -1365,25 +1365,26 @@ AC_DEFUN([PHP_READDIR_R_TYPE],[
+ #define _REENTRANT
+ #include <sys/types.h>
+ #include <dirent.h>
++#include <unistd.h>
+ 
+ #ifndef PATH_MAX
+ #define PATH_MAX 1024
+ #endif
+ 
+-main() {
++int main() {
+   DIR *dir;
+   char entry[sizeof(struct dirent)+PATH_MAX];
+   struct dirent *pentry = (struct dirent *) &entry;
+ 
+   dir = opendir("/");
+   if (!dir)
+-    exit(1);
++    return 1;
+   if (readdir_r(dir, (struct dirent *) entry, &pentry) == 0) {
+     close(dir);
+-    exit(0);
++    return 0;
+   }
+   close(dir);
+-  exit(1);
++  return 1;
+ }
+     ],[
+       ac_cv_what_readdir_r=POSIX
+@@ -1713,6 +1714,7 @@ AC_DEFUN([PHP_BROKEN_GLIBC_FOPEN_APPEND], [
+   AC_CACHE_VAL(_cv_have_broken_glibc_fopen_append,[
+   AC_TRY_RUN([
+ #include <stdio.h>
++#include <unistd.h>
+ int main(int argc, char *argv[])
+ {
+   FILE *fp;
+@@ -1722,7 +1724,7 @@ int main(int argc, char *argv[])
+   fp = fopen(filename, "w");
+   if (fp == NULL) {
+     perror("fopen");
+-    exit(2);
++    return 2;
+   }
+   fputs("foobar", fp);
+   fclose(fp);
+@@ -1796,13 +1798,13 @@ int seeker(void *cookie, __off64_t *position, int whence)
+ 
+ cookie_io_functions_t funcs = {reader, writer, seeker, closer};
+ 
+-main() {
++int main() {
+   struct cookiedata g = { 0 };
+   FILE *fp = fopencookie(&g, "r", funcs);
+ 
+   if (fp && fseek(fp, 8192, SEEK_SET) == 0 && g.pos == 8192)
+-    exit(0);
+-  exit(1);
++    return 0;
++  return 1;
+ }
+ 
+ ], [
+diff --git a/configure.in b/configure.in
+index 80d83f2..74b4bf6 100644
+--- a/configure.in
++++ b/configure.in
+@@ -717,6 +717,7 @@ AC_CACHE_CHECK([for getaddrinfo], ac_cv_func_getaddrinfo,
+ [AC_TRY_LINK([#include <netdb.h>],
+                 [struct addrinfo *g,h;g=&h;getaddrinfo("","",g,&g);],
+   AC_TRY_RUN([
++#include <string.h>
+ #include <netdb.h>
+ #include <sys/types.h>
+ #ifndef AF_INET
+@@ -729,11 +730,11 @@ int main(void) {
+   hints.ai_flags = AI_NUMERICHOST;
+ 
+   if (getaddrinfo("127.0.0.1", 0, &hints, &ai) < 0) {
+-    exit(1);
++    return 1;
+   }
+ 
+   if (ai == 0) {
+-    exit(1);
++    return 1;
+   }
+ 
+   pai = ai;
+@@ -741,16 +742,16 @@ int main(void) {
+   while (pai) {
+     if (pai->ai_family != AF_INET) {
+       /* 127.0.0.1/NUMERICHOST should only resolve ONE way */
+-      exit(1);
++      return 1;
+     }
+     if (pai->ai_addr->sa_family != AF_INET) {
+       /* 127.0.0.1/NUMERICHOST should only resolve ONE way */
+-      exit(1);
++      return 1;
+     }
+     pai = pai->ai_next;
+   }
+   freeaddrinfo(ai);
+-  exit(0);
++  return 0;
+ }
+   ],ac_cv_func_getaddrinfo=yes, ac_cv_func_getaddrinfo=no, ac_cv_func_getaddrinfo=no),
+ ac_cv_func_getaddrinfo=no)])
+diff --git a/ext/standard/config.m4 b/ext/standard/config.m4
+index b8ba81a..3c40875 100644
+--- a/ext/standard/config.m4
++++ b/ext/standard/config.m4
+@@ -7,6 +7,8 @@ AC_CACHE_CHECK([whether flush should be called explicitly after a buffered io],
+ AC_TRY_RUN( [
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
+ 
+ int main(int argc, char **argv)
+ {
+@@ -61,6 +63,8 @@ fi
+ 
+ AC_CACHE_CHECK(for standard DES crypt, ac_cv_crypt_des,[
+   AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -72,9 +76,9 @@ AC_CACHE_CHECK(for standard DES crypt, ac_cv_crypt_des,[
+ int main() {
+ #if HAVE_CRYPT
+ 	char *encrypted = crypt("rasmuslerdorf","rl");
+-	exit(!encrypted || strcmp(encrypted,"rl.3StKT.4T8M"));
++	return !encrypted || strcmp(encrypted,"rl.3StKT.4T8M");
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_des=yes
+@@ -86,6 +90,8 @@ int main() {
+ 
+ AC_CACHE_CHECK(for extended DES crypt, ac_cv_crypt_ext_des,[
+   AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -97,9 +103,9 @@ AC_CACHE_CHECK(for extended DES crypt, ac_cv_crypt_ext_des,[
+ int main() {
+ #if HAVE_CRYPT
+ 	char *encrypted = crypt("rasmuslerdorf","_J9..rasm");
+-	exit(!encrypted || strcmp(encrypted,"_J9..rasmBYk8r9AiWNc"));
++	return !encrypted || strcmp(encrypted,"_J9..rasmBYk8r9AiWNc");
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_ext_des=yes
+@@ -111,6 +117,8 @@ int main() {
+ 
+ AC_CACHE_CHECK(for MD5 crypt, ac_cv_crypt_md5,[
+ AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -132,9 +140,9 @@ int main() {
+ 	strcpy(answer,salt);
+ 	strcat(answer,"rISCgZzpwk3UhDidwXvin0");
+ 	encrypted = crypt("rasmuslerdorf",salt);
+-	exit(!encrypted || strcmp(encrypted,answer));
++	return !encrypted || strcmp(encrypted,answer);
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_md5=yes
+@@ -146,6 +154,8 @@ int main() {
+ 
+ AC_CACHE_CHECK(for Blowfish crypt, ac_cv_crypt_blowfish,[
+ AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -164,9 +174,9 @@ int main() {
+ 	strcpy(answer,salt);
+ 	strcpy(&answer[29],"nIdrcHdxcUxWomQX9j6kvERCFjTg7Ra");
+ 	encrypted = crypt("rasmuslerdorf",salt);
+-	exit(!encrypted || strcmp(encrypted,answer));
++	return !encrypted || strcmp(encrypted,answer);
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_blowfish=yes
+@@ -178,6 +188,8 @@ int main() {
+ 
+ AC_CACHE_CHECK(for SHA512 crypt, ac_cv_crypt_sha512,[
+ AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -195,9 +207,9 @@ int main() {
+ 	strcpy(answer, salt);
+ 	strcat(answer, "EeHCRjm0bljalWuALHSTs1NB9ipEiLEXLhYeXdOpx22gmlmVejnVXFhd84cEKbYxCo.XuUTrW.RLraeEnsvWs/");
+ 	encrypted = crypt("rasmuslerdorf",salt);
+-	exit(!encrypted || strcmp(encrypted,answer));
++	return !encrypted || strcmp(encrypted,answer);
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_sha512=yes
+@@ -209,6 +221,8 @@ int main() {
+ 
+ AC_CACHE_CHECK(for SHA256 crypt, ac_cv_crypt_sha256,[
+ AC_TRY_RUN([
++#include <string.h>
++
+ #if HAVE_UNISTD_H
+ #include <unistd.h>
+ #endif
+@@ -226,9 +240,9 @@ int main() {
+ 	strcpy(answer, salt);
+ 	strcat(answer, "cFAm2puLCujQ9t.0CxiFIIvFi4JyQx5UncCt/xRIX23");
+ 	encrypted = crypt("rasmuslerdorf",salt);
+-	exit(!encrypted || strcmp(encrypted,answer));
++	return !encrypted || strcmp(encrypted,answer);
+ #else
+-	exit(1);
++	return 1;
+ #endif
+ }],[
+   ac_cv_crypt_sha256=yes

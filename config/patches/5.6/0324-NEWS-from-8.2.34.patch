@@ -1,0 +1,52 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:23:57 +0200
+Subject: NEWS from 8.2.34
+
+---
+ NEWS | 33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index b54efed..bec6571 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,39 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.34
++
++- Filter:
++  . Fixed GHSA-ch8v-r6jh-4vvr (FILTER_SANITIZE_ENCODED does not encode 0xFF).
++    (Ilia Alshanetsky)
++
++- FPM:
++  . Fixed GHSA-62xp-839h-2637 (IPv6 ACL bypass in FastCGI listen.allowed_clients
++    due to partial address comparison). (CVE-2026-91768) (Alexandre Daubois)
++
++- OpenSSL:
++  . Fixed GHSA-vvx9-73fr-5jjx (TLS hostname verification falls back to CN after
++    SAN mismatch). (CVE-2026-91769) (Jakub Zelenka)
++  . Fixed GHSA-xr7j-rvgx-xq5p (Heap buffer overflow in
++    php_openssl_matches_wildcard_name() on crafted server certificate wildcard
++    CN). (CVE-2026-91767) (Jakub Zelenka)
++
++- Phar:
++  . Fixed GHSA-j3wh-g957-2m85 (Integer overflow in phar_tar_number() allowing
++    TAR archive entry injection). (CVE-2026-6103) (Jakub Zelenka)
++
++- SOAP:
++  . Fixed GHSA-rgrp-mwpx-f6rm (Unbounded recursion in server-side
++    cleanup_xml_node()). (CVE-2026-91765) (Alexandre Daubois)
++  . Fixed GHSA-cj93-vc83-wgqv (Integer overflow to buffer overflow in SOAP HTTP
++    parsing). (CVE-2025-14181) (Nora Dossche, Jakub Zelenka)
++
++- Standard:
++  . Fixed GHSA-88hq-2827-7pg6 (Out-of-bounds read in convert.* stream filters
++    when line-break-chars contains NUL). (CVE-2026-92842) (geeknik)
++  . Fixed GHSA-fpwc-w8rq-cr92 (Cross-origin credential leak in HTTP stream
++    wrapper redirects). (CVE-2026-91766) (Alexandre Daubois, Jakub Zelenka)
++
+ Backported from 8.2.33
+ 
+ - PGSQL:

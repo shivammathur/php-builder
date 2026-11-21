@@ -1,0 +1,96 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 17 Nov 2026 09:03:58 +0100
+Subject: add GHSA-3mg3 test for 5.6 (rewritten for the old FPM test helpers)
+
+---
+ sapi/fpm/tests/ghsa-3mg3-cr28-46gc-status-xss.phpt | 81 ++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 sapi/fpm/tests/ghsa-3mg3-cr28-46gc-status-xss.phpt
+
+diff --git a/sapi/fpm/tests/ghsa-3mg3-cr28-46gc-status-xss.phpt b/sapi/fpm/tests/ghsa-3mg3-cr28-46gc-status-xss.phpt
+new file mode 100644
+index 0000000..a4bd9ba
+--- /dev/null
++++ b/sapi/fpm/tests/ghsa-3mg3-cr28-46gc-status-xss.phpt
+@@ -0,0 +1,81 @@
++--TEST--
++FPM: GHSA-3mg3-cr28-46gc - status xss via request method, auth user and script filename
++--SKIPIF--
++<?php include "skipif.inc"; ?>
++--FILE--
++<?php
++
++include "include.inc";
++
++$logfile = dirname(__FILE__).'/php-fpm.log.tmp';
++$port = 9000+PHP_INT_SIZE;
++
++$cfg = <<<EOT
++[global]
++error_log = $logfile
++[unconfined]
++listen = 127.0.0.1:$port
++pm.status_path = /status
++pm = static
++pm.max_children = 3
++EOT;
++
++$scriptFilename = dirname(__FILE__) . '/ghsa-3mg3-cr28-46gc-<svg>.php';
++file_put_contents($scriptFilename, "<?php\nusleep(300000);\n");
++
++$fpm = run_fpm($cfg, $tail);
++if (is_resource($fpm)) {
++    fpm_display_log($tail, 2);
++    try {
++        require_once 'fcgi.inc';
++        /* this request is still running when the status page is fetched */
++        $client = new Adoy\FastCGI\Client('127.0.0.1', $port);
++        $id = $client->async_request(array(
++            'GATEWAY_INTERFACE'  => 'FastCGI/1.0',
++            'REQUEST_METHOD'     => '<svg>',
++            'SCRIPT_FILENAME'    => $scriptFilename,
++            'SCRIPT_NAME'        => '/ghsa-3mg3-cr28-46gc-<svg>.php',
++            'QUERY_STRING'       => '',
++            'REQUEST_URI'        => '/ghsa-3mg3-cr28-46gc-<svg>.php',
++            'DOCUMENT_URI'       => '/ghsa-3mg3-cr28-46gc-<svg>.php',
++            'HTTP_AUTHORIZATION' => 'Basic ' . base64_encode('"<svg onload=x>:x'),
++            'SERVER_SOFTWARE'    => 'php/fcgiclient',
++            'REMOTE_ADDR'        => '127.0.0.1',
++            'REMOTE_PORT'        => '9985',
++            'SERVER_ADDR'        => '127.0.0.1',
++            'SERVER_PORT'        => '80',
++            'SERVER_NAME'        => php_uname('n'),
++            'SERVER_PROTOCOL'    => 'HTTP/1.1',
++            'CONTENT_TYPE'       => '',
++            'CONTENT_LENGTH'     => 0
++        ), false);
++        usleep(100000);
++
++        $html = run_request('127.0.0.1', $port, '/status', 'full&html');
++        var_dump(strpos($html, '<svg'));
++        var_dump(substr_count($html, '&lt;svg'));
++
++        $client->wait_for_response($id);
++        echo "Done\n";
++    } catch (Exception $e) {
++        echo "error: ", $e->getMessage(), "\n";
++    }
++
++    proc_terminate($fpm);
++    stream_get_contents($tail);
++    fclose($tail);
++    proc_close($fpm);
++}
++
++?>
++--EXPECTF--
++[%d-%s-%d %d:%d:%d] NOTICE: fpm is running, pid %d
++[%d-%s-%d %d:%d:%d] NOTICE: ready to handle connections
++bool(false)
++int(4)
++Done
++--CLEAN--
++<?php
++    @unlink(dirname(__FILE__).'/php-fpm.log.tmp');
++    @unlink(dirname(__FILE__).'/ghsa-3mg3-cr28-46gc-<svg>.php');
++?>

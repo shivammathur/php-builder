@@ -1,0 +1,41 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Wed, 19 Jun 2019 14:03:34 +0200
+Subject: Avoid more UB in round()
+
+"precision_places - places" overflows when places is close to INT_MIN.
+GCC 14 then drops the range check of the powers[] lookup in
+php_intpow10(), and round(1.0, -2147483648) reads far outside of the
+table and crashes (ext/standard/tests/math/round_bug71201.phpt).
+
+(cherry picked from commit 8740533ddf5665846cb5f386625efab2f7462cf7)
+---
+ Zend/zend_strtod.c  | 2 +-
+ ext/standard/math.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Zend/zend_strtod.c b/Zend/zend_strtod.c
+index 01c1779..df75a05 100644
+--- a/Zend/zend_strtod.c
++++ b/Zend/zend_strtod.c
+@@ -2705,7 +2705,7 @@ zend_strtod
+ 				L = c - '0';
+ 				s1 = s;
+ 				while((c = *++s) >= '0' && c <= '9')
+-					L = 10*L + c - '0';
++					L = 10*L + (c - '0');
+ 				if (s - s1 > 8 || L > 19999)
+ 					/* Avoid confusion from exponents
+ 					 * so large that e might overflow.
+diff --git a/ext/standard/math.c b/ext/standard/math.c
+index 9b1a6f9..c72fde0 100644
+--- a/ext/standard/math.c
++++ b/ext/standard/math.c
+@@ -143,7 +143,7 @@ PHPAPI double _php_math_round(double value, int places, int mode) {
+ 	/* If the decimal precision guaranteed by FP arithmetic is higher than
+ 	   the requested places BUT is small enough to make sure a non-zero value
+ 	   is returned, pre-round the result to the precision */
+-	if (precision_places > places && precision_places - places < 15) {
++	if (precision_places > places && precision_places - 15 < places) {
+ 		int64_t use_precision = precision_places < INT_MIN+1 ? INT_MIN+1 : precision_places;
+ 
+ 		f2 = php_intpow10(abs((int)use_precision));

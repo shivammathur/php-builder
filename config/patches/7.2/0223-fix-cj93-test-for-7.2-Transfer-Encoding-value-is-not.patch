@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 23:22:42 +0200
+Subject: fix cj93 test for 7.2 (Transfer-Encoding value is not trimmed)
+
+---
+ ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+index dc17ce3..380e60b 100644
+--- a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
++++ b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+@@ -58,7 +58,7 @@ $wsdl = file_get_contents(__DIR__.'/../server030.wsdl');
+ $headers =
+     "HTTP/1.1 200 OK\r\n".
+     "Content-Type: text/xml;charset=utf-8\r\n".
+-    "Transfer-Encoding: \t  chunked\t \r\n".
++    "Transfer-Encoding: chunked\r\n".
+     "Connection: close\r\n".
+     "\r\n";
+ 

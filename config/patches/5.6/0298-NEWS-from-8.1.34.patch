@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:14:14 +0200
+Subject: NEWS from 8.1.34
+
+---
+diff --git a/NEWS b/NEWS
+--- a/NEWS
++++ b/NEWS
+@@ -34,6 +34,14 @@
+ - Standard:
+   . Fixed GHSA-96wq-48vp-hh57 (Signed integer overflow of char array offset).
+     (CVE-2026-7568) (TimWolla)
++Backported from 8.1.34
++
++- Standard:
++  . Fixed GHSA-www2-q4fc-65wf (Null byte termination in dns_get_record()).
++    (ndossche)
++  . Fixed GHSA-3237-qqm7-mfv7 (Information Leak of Memory in getimagesize).
++    (CVE-2025-14177) (ndossche)
++
+ Backported from 8.1.33
+ 
+ - PGSQL:

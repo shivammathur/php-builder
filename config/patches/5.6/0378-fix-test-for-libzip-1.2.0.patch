@@ -1,0 +1,22 @@
+From: Remi Collet <remi@php.net>
+Date: Sun, 19 Feb 2017 17:02:00 +0100
+Subject: fix test for libzip 1.2.0
+
+PHP 5.6 never got this change (PHP 7.0.17).
+
+(cherry picked from commit c836ad1c7eac2a142cc334ea9cf9975bcd0d6f77)
+---
+ ext/zip/tests/bug70322.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/zip/tests/bug70322.phpt b/ext/zip/tests/bug70322.phpt
+index a9b4915..b089e30 100644
+--- a/ext/zip/tests/bug70322.phpt
++++ b/ext/zip/tests/bug70322.phpt
+@@ -25,5 +25,5 @@ var_dump($zip->close());
+ @unlink(__DIR__ . '/bug70322.zip');
+ ?>
+ --EXPECTF--
+-Warning: ZipArchive::close(): Read error: No such file or directory in %s%ebug70322.php on line %d
++Warning: ZipArchive::close(): %s: No such file or directory in %s%ebug70322.php on line %d
+ bool(false)

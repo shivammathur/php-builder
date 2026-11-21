@@ -1,0 +1,39 @@
+From: =?utf-8?q?Ville_Hukkam=C3=A4ki?= <vhu@iki.fi>
+Date: Thu, 11 Aug 2016 12:08:04 +0300
+Subject: Fix #72810. Add check for SKIP_ONLINE_TESTS
+
+PHP 5.6 never got this change (PHP 7.1.0). Only the socket_send and
+socket_shutdown parts are taken: both tests connect to yahoo.com, the
+stream_context_tcp_nodelay tests do not exist in PHP 5.6, and the NEWS
+entry is left out.
+
+(cherry picked from commit 283b0cc8a5eeb69b8d77195549b385d1db4f6955)
+---
+ ext/sockets/tests/socket_send.phpt     | 1 +
+ ext/sockets/tests/socket_shutdown.phpt | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/ext/sockets/tests/socket_send.phpt b/ext/sockets/tests/socket_send.phpt
+index ceeb397..4093ad4 100644
+--- a/ext/sockets/tests/socket_send.phpt
++++ b/ext/sockets/tests/socket_send.phpt
+@@ -4,6 +4,7 @@ int socket_send ( resource $socket , string $buf , int $len , int $flags );
+ marcosptf - <marcosptf@yahoo.com.br> - #phparty7 - @phpsp - novatec/2015 - sao paulo - br
+ --SKIPIF--
+ <?php
++if (getenv("SKIP_ONLINE_TESTS")) die("skip online test");
+ if (!extension_loaded('sockets')) {
+   die('SKIP sockets extension not available.');
+ }
+diff --git a/ext/sockets/tests/socket_shutdown.phpt b/ext/sockets/tests/socket_shutdown.phpt
+index 77cbc8f..747016b 100644
+--- a/ext/sockets/tests/socket_shutdown.phpt
++++ b/ext/sockets/tests/socket_shutdown.phpt
+@@ -4,6 +4,7 @@ bool socket_shutdown ( resource $socket [, int $how = 2 ] ) ;
+ marcosptf - <marcosptf@yahoo.com.br> - #phparty7 - @phpsp - novatec/2015 - sao paulo - br
+ --SKIPIF--
+ <?php
++if (getenv("SKIP_ONLINE_TESTS")) die("skip online test");
+ if (!extension_loaded('sockets')) {
+   die('SKIP sockets extension not available.');
+ }

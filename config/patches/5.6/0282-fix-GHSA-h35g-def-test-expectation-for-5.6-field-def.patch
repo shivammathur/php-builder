@@ -1,0 +1,20 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:06:32 +0200
+Subject: fix GHSA-h35g def test expectation for 5.6 (field defaults are kept
+ for mysql_list_fields())
+
+---
+ ext/mysqli/tests/ghsa-h35g-vwh6-m678-def.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-def.phpt b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-def.phpt
+index 77f2232..5aa85b6 100644
+--- a/ext/mysqli/tests/ghsa-h35g-vwh6-m678-def.phpt
++++ b/ext/mysqli/tests/ghsa-h35g-vwh6-m678-def.phpt
+@@ -43,5 +43,5 @@ print "done!";
+ [*] Received: 140000000353454c454354202a2066726f6d207573657273
+ [*] Sending - Malicious Tabular Response [Extract heap through buffer over-read]: 01000001011e0000020164016401640164016401640c3f000b000000030350000000fd000001aa05000003fe00002200040000040135017405000005fe00002200
+ 
+-Warning: mysqli::query(): Protocol error. Server sent default for unsupported field list (mysqlnd_wireprotocol.c:%d) in %s on line %d
++Warning: mysqli::query(): Protocol error. Field default value length is past the packet size (mysqlnd_wireprotocol.c:%d) in %s on line %d
+ done!

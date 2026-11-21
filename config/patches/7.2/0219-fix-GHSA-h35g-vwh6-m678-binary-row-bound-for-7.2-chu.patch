@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:23:04 +0200
+Subject: fix GHSA-h35g-vwh6-m678 binary row bound for 7.2 (chunk size
+ includes the preallocated bytes, use the data size)
+
+---
+ ext/mysqlnd/mysqlnd_wireprotocol.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/mysqlnd/mysqlnd_wireprotocol.c b/ext/mysqlnd/mysqlnd_wireprotocol.c
+index d3f6108..4754149 100644
+--- a/ext/mysqlnd/mysqlnd_wireprotocol.c
++++ b/ext/mysqlnd/mysqlnd_wireprotocol.c
+@@ -1578,7 +1578,7 @@ php_mysqlnd_rowp_read_binary_protocol(MYSQLND_MEMORY_POOL_CHUNK * row_buffer, zv
+ 									  zend_bool as_int_or_float, MYSQLND_STATS * stats)
+ {
+ 	unsigned int i, j;
+-	size_t rbs = row_buffer->size;
++	size_t rbs = row_buffer->app;
+ 	const zend_uchar * rbp = row_buffer->ptr;
+ 	const zend_uchar * p = rbp;
+ 	const zend_uchar * null_ptr;

@@ -1,0 +1,81 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 3 Nov 2026 13:49:21 +0100
+Subject: Reject mysqlnd OK messages past packet body
+
+---
+ ext/mysqli/tests/fake_server.inc                   | 15 +++++++++++++++
+ .../tests/mysqlnd-ok-message-past-packet.phpt      | 22 ++++++++++++++++++++++
+ ext/mysqlnd/mysqlnd_wireprotocol.c                 |  5 ++++-
+ 3 files changed, 41 insertions(+), 1 deletion(-)
+ create mode 100644 ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index b4e0e41..4d9de97 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -1308,6 +1308,21 @@ function my_mysqli_test_ok_last_insert_id_over_read(my_mysqli_fake_server_conn $
+     $conn->read();
+ }
+ 
++function my_mysqli_test_ok_message_length_past_packet(my_mysqli_fake_server_conn $conn)
++{
++    $p = $conn->packet_generator->server_ok();
++    $p->packet_number = '01';
++    $p->packet_length = '080000';
++    $p->message_len = '10';
++
++    $conn->send_server_greetings();
++    $conn->read();
++    $conn->send_server_ok();
++    $conn->read();
++    $conn->send($p->to_bytes(), 'OK message length past packet');
++    $conn->read();
++}
++
+ function my_mysqli_test_ok_message_len_over_read(my_mysqli_fake_server_conn $conn): void
+ {
+     $p = $conn->packet_generator->server_ok("01");
+diff --git a/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+new file mode 100644
+index 0000000..b0a0158
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-ok-message-past-packet.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects an OK message whose length exceeds the packet body
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('ok_message_length_past_packet', $port);
++$process->wait();
++try {
++    $conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++    var_dump($conn->select_db('php_test'));
++    $conn->close();
++} catch (Exception $e) {
++    echo $e->getMessage(), "\n";
++}
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*Premature end of data.*done
+diff --git a/ext/mysqlnd/mysqlnd_wireprotocol.c b/ext/mysqlnd/mysqlnd_wireprotocol.c
+index 75dbe5e..066f82f 100644
+--- a/ext/mysqlnd/mysqlnd_wireprotocol.c
++++ b/ext/mysqlnd/mysqlnd_wireprotocol.c
+@@ -950,7 +950,10 @@ php_mysqlnd_ok_read(MYSQLND_CONN_DATA * conn, void * _packet)
+ 		if (UNEXPECTED(net_len == MYSQLND_INVALID_NET_FIELD_LENGTH)) {
+ 			BAIL_PREMATURE_END;
+ 		}
+-		packet->message_len = MIN(net_len, buf_len - (p - begin));
++		if (net_len > packet->header.size - (size_t) (p - buf)) {
++			BAIL_PREMATURE_END;
++		}
++		packet->message_len = net_len;
+ 		packet->message = mnd_pestrndup((char *)p, packet->message_len, FALSE);
+ 	} else {
+ 		packet->message = NULL;

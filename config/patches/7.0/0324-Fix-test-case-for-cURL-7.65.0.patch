@@ -1,0 +1,24 @@
+From: "Christoph M. Becker" <cmbecker69@gmx.de>
+Date: Wed, 22 May 2019 12:00:06 +0200
+Subject: Fix test case for cURL 7.65.0
+
+Reported and patch provided by @Jan-E.
+
+PHP 7.0 never got this change (PHP 7.2.20).
+
+(cherry picked from commit 62fe6ba20c229bb6ffd910f1b494a310c950cef6)
+---
+ ext/curl/tests/curl_basic_010.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/curl/tests/curl_basic_010.phpt b/ext/curl/tests/curl_basic_010.phpt
+index 72a591f..08f1194 100644
+--- a/ext/curl/tests/curl_basic_010.phpt
++++ b/ext/curl/tests/curl_basic_010.phpt
+@@ -26,5 +26,5 @@ curl_close($ch);
+ 
+ ?>
+ --EXPECTF--
+-%unicode|string%(%d) "%r(Couldn't resolve proxy|Could not resolve proxy:|Could not resolve host:|Could not resolve:)%r %s"
++%unicode|string%(%d) "%r(Couldn't resolve proxy|Could not resolve proxy:|Could not resolve host:|Could not resolve:|Unsupported proxy syntax in)%r %s"
+ int(5)

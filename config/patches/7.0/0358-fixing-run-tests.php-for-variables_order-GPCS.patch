@@ -1,0 +1,40 @@
+From: Matt Ficken <mattficken@php.net>
+Date: Mon, 15 May 2017 02:21:55 -0700
+Subject: fixing run-tests.php for variables_order="GPCS"
+
+PHP 7.0 never got this change (PHP 7.2.0). Its run-tests.php takes the
+environment of the tests from $_ENV, which is empty when the PHP that runs
+it reads a php.ini with variables_order = "GPCS" (php.ini-production in
+/etc/php/7.0/cli on a machine with php7.0-cli installed): the tests then
+run without SKIP_ONLINE_TESTS, SKIP_IO_CAPTURE_TESTS and HOME. Only the
+fallback is taken, and it is adapted: getenv() without arguments returns
+the environment only as of PHP 7.1, so the variables are taken from
+$_SERVER, where the CLI registers them as well, and checked with getenv().
+
+(cherry picked from commit c1d57186976e75a2a54f7bd167a77e2872cadc6a)
+---
+ run-tests.php | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/run-tests.php b/run-tests.php
+index 333b517..34e64b7 100755
+--- a/run-tests.php
++++ b/run-tests.php
+@@ -131,6 +131,17 @@ SAFE_MODE_WARNING;
+ }
+ 
+ $environment = isset($_ENV) ? $_ENV : array();
++// Note: php.ini-development sets variables_order="GPCS" not "EGPCS", in which case $_ENV is NOT populated.
++//       detect and handle this case, or die or warn
++if (empty($environment)) {
++	// getenv() returns all environment variables only as of PHP 7.1,
++	// so take them from $_SERVER, where the CLI registers them too
++	foreach ($_SERVER as $name => $value) {
++		if (is_string($value) && getenv($name) === $value) {
++			$environment[$name] = $value;
++		}
++	}
++}
+ if ((substr(PHP_OS, 0, 3) == "WIN") && empty($environment["SystemRoot"])) {
+   $environment["SystemRoot"] = getenv("SystemRoot");
+ }

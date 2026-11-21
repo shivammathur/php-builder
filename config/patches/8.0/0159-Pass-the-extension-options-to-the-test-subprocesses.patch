@@ -1,0 +1,115 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:07:06 +0100
+Subject: Pass the extension options to the test subprocesses
+
+The readline and soap extensions are built as shared modules, so the PHP
+processes started by these tests have to be given the same extension
+options as the test itself. PHP 8.0 also prints "Interactive mode enabled"
+instead of "Interactive shell" when readline is a shared module. The soap
+change is taken from upstream commit 6ba0b068199 (PHP 8.1.20).
+---
+ ext/readline/tests/bug77812-libedit.phpt |  2 +-
+ ext/soap/tests/bug73037.phpt             |  8 ++++++--
+ sapi/cli/tests/017.phpt                  | 15 ++++++++-------
+ 3 files changed, 15 insertions(+), 10 deletions(-)
+
+diff --git a/ext/readline/tests/bug77812-libedit.phpt b/ext/readline/tests/bug77812-libedit.phpt
+index a5e39f0..6125dab 100644
+--- a/ext/readline/tests/bug77812-libedit.phpt
++++ b/ext/readline/tests/bug77812-libedit.phpt
+@@ -23,7 +23,7 @@ proc_close($proc);
+ ?>
+ --EXPECTF--
+ resource(%d) of type (process)
+-Interactive shell
++Interactive %s
+ 
+ bar
+ xx
+diff --git a/ext/soap/tests/bug73037.phpt b/ext/soap/tests/bug73037.phpt
+index 4e72932..c03ab85 100644
+--- a/ext/soap/tests/bug73037.phpt
++++ b/ext/soap/tests/bug73037.phpt
+@@ -63,8 +63,12 @@ function get_data($max)
+ }
+ 
+ $router = "bug73037_server.php";
+-$args = substr(PHP_OS, 0, 3) == 'WIN'
+-    ? ["-d", "extension_dir=" . ini_get("extension_dir"), "-d", "extension=php_soap.dll"] : [];
++$args = ["-d", "extension_dir=" . ini_get("extension_dir"), "-d", "extension=" . (substr(PHP_OS, 0, 3) == "WIN" ? "php_" : "") . "soap." . PHP_SHLIB_SUFFIX];
++if (php_ini_loaded_file()) {
++    // Necessary such that it works from a development directory in which case extension_dir might not be the real extension dir
++    $args[] = "-c";
++    $args[] = php_ini_loaded_file();
++}
+ $code = <<<'PHP'
+ $s = new SoapServer(NULL, array('uri' => 'http://here'));
+ $s->setObject(new stdclass());
+diff --git a/sapi/cli/tests/017.phpt b/sapi/cli/tests/017.phpt
+index 344daa7..7a84137 100644
+--- a/sapi/cli/tests/017.phpt
++++ b/sapi/cli/tests/017.phpt
+@@ -13,6 +13,7 @@ if(substr(PHP_OS, 0, 3) == 'WIN' ) {
+ --FILE--
+ <?php
+ $php = getenv('TEST_PHP_EXECUTABLE');
++$ini = getenv('TEST_PHP_EXTRA_ARGS');
+ 
+ $codes = array();
+ 
+@@ -54,16 +55,16 @@ EOT;
+ foreach ($codes as $key => $code) {
+     echo "\n--------------\nSnippet no. $key:\n--------------\n";
+     $code = escapeshellarg($code);
+-    echo `echo $code | "$php" -a`, "\n";
++    echo `echo $code | "$php" $ini -a`, "\n";
+ }
+ 
+ echo "\nDone\n";
+ ?>
+---EXPECT--
++--EXPECTF--
+ --------------
+ Snippet no. 1:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Hello world
+ 
+@@ -71,7 +72,7 @@ Hello world
+ --------------
+ Snippet no. 2:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ multine
+ single
+@@ -81,7 +82,7 @@ quote
+ --------------
+ Snippet no. 3:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Here
+ comes
+@@ -92,7 +93,7 @@ doc
+ --------------
+ Snippet no. 4:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Done
+ 
+@@ -100,7 +101,7 @@ Done
+ --------------
+ Snippet no. 5:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ 
+ Parse error: Unmatched ')' in php shell code on line 1

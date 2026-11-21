@@ -1,0 +1,114 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:21:28 +0100
+Subject: Skip the session upload progress tests
+
+0164-Avoid-state-corruption-via-bailout.patch disables the session upload
+progress, so the tests that expect the progress data in the session cannot
+pass.
+---
+ ext/session/tests/rfc1867.phpt                 | 1 +
+ ext/session/tests/rfc1867_inter.phpt           | 1 +
+ ext/session/tests/rfc1867_sid_cookie.phpt      | 1 +
+ ext/session/tests/rfc1867_sid_get.phpt         | 1 +
+ ext/session/tests/rfc1867_sid_get_2.phpt       | 1 +
+ ext/session/tests/rfc1867_sid_invalid.phpt     | 1 +
+ ext/session/tests/rfc1867_sid_only_cookie.phpt | 1 +
+ ext/session/tests/rfc1867_sid_post.phpt        | 1 +
+ 8 files changed, 8 insertions(+)
+
+diff --git a/ext/session/tests/rfc1867.phpt b/ext/session/tests/rfc1867.phpt
+index 21a70c8..2563621 100644
+--- a/ext/session/tests/rfc1867.phpt
++++ b/ext/session/tests/rfc1867.phpt
+@@ -19,6 +19,7 @@ session.upload_progress.min_freq=0.000000001
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=rfc1867-tests
+ --GET--
+diff --git a/ext/session/tests/rfc1867_inter.phpt b/ext/session/tests/rfc1867_inter.phpt
+index 577591f..aac9006 100644
+--- a/ext/session/tests/rfc1867_inter.phpt
++++ b/ext/session/tests/rfc1867_inter.phpt
+@@ -19,6 +19,7 @@ session.upload_progress.min_freq=0.000000001
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=rfc1867-tests
+ --GET--
+diff --git a/ext/session/tests/rfc1867_sid_cookie.phpt b/ext/session/tests/rfc1867_sid_cookie.phpt
+index 6a58172..7b24282 100644
+--- a/ext/session/tests/rfc1867_sid_cookie.phpt
++++ b/ext/session/tests/rfc1867_sid_cookie.phpt
+@@ -18,6 +18,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=rfc1867-tests
+ --GET--
+diff --git a/ext/session/tests/rfc1867_sid_get.phpt b/ext/session/tests/rfc1867_sid_get.phpt
+index 089eefe..63080d4 100644
+--- a/ext/session/tests/rfc1867_sid_get.phpt
++++ b/ext/session/tests/rfc1867_sid_get.phpt
+@@ -18,6 +18,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --GET--
+ PHPSESSID=rfc1867-tests
+ --POST_RAW--
+diff --git a/ext/session/tests/rfc1867_sid_get_2.phpt b/ext/session/tests/rfc1867_sid_get_2.phpt
+index 7cb2ffb..7776f85 100644
+--- a/ext/session/tests/rfc1867_sid_get_2.phpt
++++ b/ext/session/tests/rfc1867_sid_get_2.phpt
+@@ -18,6 +18,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=rfc1867-tests-cookie
+ --GET--
+diff --git a/ext/session/tests/rfc1867_sid_invalid.phpt b/ext/session/tests/rfc1867_sid_invalid.phpt
+index 881b1d5..cf407e3 100644
+--- a/ext/session/tests/rfc1867_sid_invalid.phpt
++++ b/ext/session/tests/rfc1867_sid_invalid.phpt
+@@ -19,6 +19,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=_
+ --POST_RAW--
+diff --git a/ext/session/tests/rfc1867_sid_only_cookie.phpt b/ext/session/tests/rfc1867_sid_only_cookie.phpt
+index f8f20fc..ce2a0596 100644
+--- a/ext/session/tests/rfc1867_sid_only_cookie.phpt
++++ b/ext/session/tests/rfc1867_sid_only_cookie.phpt
+@@ -18,6 +18,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --COOKIE--
+ PHPSESSID=rfc1867-tests
+ --GET--
+diff --git a/ext/session/tests/rfc1867_sid_post.phpt b/ext/session/tests/rfc1867_sid_post.phpt
+index 51a97b9..f6f0ed5 100644
+--- a/ext/session/tests/rfc1867_sid_post.phpt
++++ b/ext/session/tests/rfc1867_sid_post.phpt
+@@ -18,6 +18,7 @@ session.upload_progress.freq=0
+ session.save_handler=files
+ --SKIPIF--
+ <?php include('skipif.inc'); ?>
++<?php die('skip session upload progress is disabled by 0164-Avoid-state-corruption-via-bailout.patch'); ?>
+ --POST_RAW--
+ Content-Type: multipart/form-data; boundary=---------------------------20896060251896012921717172737
+ -----------------------------20896060251896012921717172737

@@ -1,0 +1,120 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:01:04 +0200
+Subject: fix new tests for PHP 7.0 (no void/nullable return types,
+ no short list syntax)
+
+---
+ ext/mysqli/tests/fake_server.inc                 |  4 ++--
+ ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt     |  4 +++-
+ ext/soap/tests/soap_qname_crash.phpt             |  2 +-
+ ext/standard/tests/http/ServerClientTestCase.inc | 14 +++++++-------
+ 4 files changed, 13 insertions(+), 11 deletions(-)
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 8a9a045..36e998d 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -495,7 +495,7 @@ class my_mysqli_fake_packet_generator
+ 
+     public function server_stmt_execute_data_response(string $field_name)
+     {
+-        [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
++        list($field, $pr1, $pr2, $pr3, $pr4) = $this->server_execute_data_response_start($field_name);
+ 
+         $pr5 = new my_mysqli_fake_packet();
+         $pr5->packet_length = $field['stmt_data_packet_length'];
+@@ -511,7 +511,7 @@ class my_mysqli_fake_packet_generator
+ 
+     public function server_query_execute_data_response(string $field_name)
+     {
+-        [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
++        list($field, $pr1, $pr2, $pr3, $pr4) = $this->server_execute_data_response_start($field_name);
+ 
+         $pr5 = new my_mysqli_fake_packet();
+         $pr5->packet_length = $field['query_data_packet_length'];
+diff --git a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+index dc17ce3..9ba2f04 100644
+--- a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
++++ b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+@@ -134,7 +134,9 @@ function heavy_soap_server($wsdl, $headers)
+     exit(0);
+ }
+ 
+-['pid' => $pid, 'uri' => $uri] = heavy_soap_server($wsdl, $headers);
++$server = heavy_soap_server($wsdl, $headers);
++$pid = $server['pid'];
++$uri = $server['uri'];
+ 
+ $options = [
+     'trace' => false,
+diff --git a/ext/soap/tests/soap_qname_crash.phpt b/ext/soap/tests/soap_qname_crash.phpt
+index 7a1bf02..0028cc4 100644
+--- a/ext/soap/tests/soap_qname_crash.phpt
++++ b/ext/soap/tests/soap_qname_crash.phpt
+@@ -18,7 +18,7 @@ class TestSoapClient extends SoapClient {
+         $action,
+         $version,
+         $one_way = false
+-    ): ?string {
++    ) {
+         die($request);
+     }
+ }
+diff --git a/ext/standard/tests/http/ServerClientTestCase.inc b/ext/standard/tests/http/ServerClientTestCase.inc
+index c74da44..ea456b4 100644
+--- a/ext/standard/tests/http/ServerClientTestCase.inc
++++ b/ext/standard/tests/http/ServerClientTestCase.inc
+@@ -4,17 +4,17 @@ const WORKER_ARGV_VALUE = 'RUN_WORKER';
+ 
+ const WORKER_DEFAULT_NAME = 'server';
+ 
+-function phpt_notify(string $worker = WORKER_DEFAULT_NAME, string $message = ""): void
++function phpt_notify(string $worker = WORKER_DEFAULT_NAME, string $message = "")
+ {
+     ServerClientTestCase::getInstance()->notify($worker, $message);
+ }
+ 
+-function phpt_wait($worker = WORKER_DEFAULT_NAME, $timeout = null): ?string
++function phpt_wait($worker = WORKER_DEFAULT_NAME, $timeout = null)
+ {
+     return ServerClientTestCase::getInstance()->wait($worker, $timeout);
+ }
+ 
+-function phpt_notify_server_start($server): void
++function phpt_notify_server_start($server)
+ {
+     ServerClientTestCase::getInstance()->notify_server_start($server);
+ }
+@@ -133,7 +133,7 @@ class ServerClientTestCase
+      * @return void
+      * @throws Exception
+      */
+-    public function run(string $clientCode, $workerCode, bool $ephemeral = true): void
++    public function run(string $clientCode, $workerCode, bool $ephemeral = true)
+     {
+         if (!is_array($workerCode)) {
+             $workerCode = [WORKER_DEFAULT_NAME => $workerCode];
+@@ -164,7 +164,7 @@ class ServerClientTestCase
+         }
+     }
+ 
+-    public function wait($worker, $timeout = null): ?string
++    public function wait($worker, $timeout = null)
+     {
+         $handle = $this->isWorker ? STDIN : $this->workerStdOut[$worker];
+         if ($timeout === null) {
+@@ -183,12 +183,12 @@ class ServerClientTestCase
+         return $result;
+     }
+ 
+-    public function notify(string $worker, string $message = ""): void
++    public function notify(string $worker, string $message = "")
+     {
+         fwrite($this->isWorker ? STDOUT : $this->workerStdIn[$worker], "$message\n");
+     }
+ 
+-    public function notify_server_start($server): void
++    public function notify_server_start($server)
+     {
+         echo stream_socket_get_name($server, false) . "\n";
+     }

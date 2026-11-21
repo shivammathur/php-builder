@@ -1,0 +1,71 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:46:54 +0200
+Subject: fix new tests expectations for 7.3 - additional warnings
+
+---
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt           | 4 ++++
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-query-row-field-len.phpt         | 2 ++
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-date.phpt  | 2 ++
+ .../tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-datetime.phpt     | 2 ++
+ ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-time.phpt  | 2 ++
+ 5 files changed, 12 insertions(+)
+
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
+index 4932646..f226f66 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-eof-warning-count.phpt
+@@ -40,4 +40,8 @@ Warning: mysqli::multi_query(): EOF packet shorter than expected in %s on line %
+ 
+ Warning: mysqli::multi_query(): Error while reading SET_OPTION's response packet. PID=%d in %s on line %d
+ [*] Received: 140000000353454c45435420313b2053454c45435420323b
++
++Warning: mysqli::multi_query(): MySQL server has gone away in %s on line %d
++
++Warning: mysqli::multi_query(): Error reading result set's header in %s on line %d
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-query-row-field-len.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-query-row-field-len.phpt
+index 59d54e0..c543638 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-query-row-field-len.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-query-row-field-len.phpt
+@@ -42,6 +42,8 @@ print "done!";
+ [*] Sending - Malicious Query Response for data strval field [field length over-read]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd011000000005000004fe00002200060000050474657374fc05000006fe00002200
+ 
+ Warning: mysqli_result::fetch_assoc(): Malformed server packet. Field length pointing after end of packet in %s on line %d
++
++Warning: mysqli_result::fetch_assoc(): Error while reading a row in %s on line %d
+ [*] Received: 0100000001
+ [*] Server finished
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-date.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-date.phpt
+index fd1d80c..cbb9617 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-date.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-date.phpt
+@@ -42,4 +42,6 @@ print "done!";
+ [*] Sending - Malicious Stmt Response for data datval [length too short]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610664617476616c0664617476616c0c3f000a0000000a811000000005000004fe00002200090000050000047465737401de05000006fe00002200
+ 
+ Warning: mysqli_result::fetch_row(): Malformed server packet. Field length is too short for the field type in %s on line %d
++
++Warning: mysqli_result::fetch_row(): Error while reading a row in %s on line %d
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-datetime.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-datetime.phpt
+index 0e403b2..a029432 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-datetime.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-datetime.phpt
+@@ -42,4 +42,6 @@ print "done!";
+ [*] Sending - Malicious Stmt Response for data dtival [length too short]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610664746976616c0664746976616c0c3f00130000000c811000000005000004fe00002200090000050000047465737401de05000006fe00002200
+ 
+ Warning: mysqli_result::fetch_row(): Malformed server packet. Field length is too short for the field type in %s on line %d
++
++Warning: mysqli_result::fetch_row(): Error while reading a row in %s on line %d
+ done!
+diff --git a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-time.phpt b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-time.phpt
+index 3c76892..4f22336 100644
+--- a/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-time.phpt
++++ b/ext/mysqli/tests/ghsa-r6x9-5r99-36j7-stmt-row-short-length-time.phpt
+@@ -42,4 +42,6 @@ print "done!";
+ [*] Sending - Malicious Stmt Response for data timval [length too short]: 01000001023200000203646566087068705f74657374046461746104646174610673747276616c0673747276616c0ce000c8000000fd01100000003200000303646566087068705f74657374046461746104646174610674696d76616c0674696d76616c0c3f000a0000000b811000000005000004fe00002200090000050000047465737401de05000006fe00002200
+ 
+ Warning: mysqli_result::fetch_row(): Malformed server packet. Field length is too short for the field type in %s on line %d
++
++Warning: mysqli_result::fetch_row(): Error while reading a row in %s on line %d
+ done!

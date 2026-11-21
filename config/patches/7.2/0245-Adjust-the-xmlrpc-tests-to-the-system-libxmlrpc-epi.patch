@@ -1,0 +1,95 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 17:13:38 +0100
+Subject: Adjust the xmlrpc tests to the system libxmlrpc-epi
+
+The xmlrpc extension is built with the system libxmlrpc-epi, which
+reports XML parse errors and its own warnings on stderr, takes the parse
+error messages from expat and formats doubles with six decimal places.
+bug40576_64bit, which tests the precision of the doubles, is not changed.
+---
+ ext/xmlrpc/tests/002.phpt      | 2 +-
+ ext/xmlrpc/tests/005.phpt      | 6 +++---
+ ext/xmlrpc/tests/bug45555.phpt | 2 +-
+ ext/xmlrpc/tests/bug45556.phpt | 6 +++---
+ ext/xmlrpc/tests/bug77242.phpt | 4 ++--
+ 5 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/ext/xmlrpc/tests/002.phpt b/ext/xmlrpc/tests/002.phpt
+index cb4b4aa..0e0c3b6 100644
+--- a/ext/xmlrpc/tests/002.phpt
++++ b/ext/xmlrpc/tests/002.phpt
+@@ -48,6 +48,6 @@ array(1) {
+ string(2) "-1"
+ 
+ Warning: xmlrpc_encode_request() expects parameter 1 to be string, array given in %s on line %d
+-NULL
++%ANULL
+ string(2) "-1"
+ Done
+diff --git a/ext/xmlrpc/tests/005.phpt b/ext/xmlrpc/tests/005.phpt
+index a3ba6dd..afd38a2 100644
+--- a/ext/xmlrpc/tests/005.phpt
++++ b/ext/xmlrpc/tests/005.phpt
+@@ -16,12 +16,12 @@ echo $response;
+ 
+ $response = xmlrpc_encode('Is string');
+ echo $response;
+---EXPECT--
++--EXPECTF--
+ <?xml version="1.0" encoding="utf-8"?>
+ <params>
+ <param>
+  <value>
+-  <double>3.24234</double>
++  <double>3.24234%r0*%r</double>
+  </value>
+ </param>
+ </params>
+@@ -29,7 +29,7 @@ echo $response;
+ <params>
+ <param>
+  <value>
+-  <double>-3.24234</double>
++  <double>-3.24234%r0*%r</double>
+  </value>
+ </param>
+ </params>
+diff --git a/ext/xmlrpc/tests/bug45555.phpt b/ext/xmlrpc/tests/bug45555.phpt
+index 6b3da24..fbed35f 100644
+--- a/ext/xmlrpc/tests/bug45555.phpt
++++ b/ext/xmlrpc/tests/bug45555.phpt
+@@ -19,4 +19,4 @@ xmlrpc_server_call_method ($server, $request, NULL, $options);
+ --EXPECTF--
+ Warning: xmlrpc_server_call_method(): Invalid callback '1' passed in %s on line %d
+ 
+-Warning: xmlrpc_server_call_method(): Invalid callback 'foo::bar' passed in %s on line %d
++Warning: xmlrpc_server_call_method(): Invalid callback 'foo::bar' passed in %s on line %d%A
+diff --git a/ext/xmlrpc/tests/bug45556.phpt b/ext/xmlrpc/tests/bug45556.phpt
+index 34897d8..764c3b2 100644
+--- a/ext/xmlrpc/tests/bug45556.phpt
++++ b/ext/xmlrpc/tests/bug45556.phpt
+@@ -28,7 +28,7 @@ xmlrpc_server_call_method ($server, $request, NULL, $options);
+ ?>
+ --EXPECTF--
+ Warning: xmlrpc_server_call_method(): Invalid callback 'foobar' passed in %s on line %d
++%A
++Warning: xmlrpc_server_call_method(): xml parse error: [line %d, column %d, message: %s] Unable to add introspection data returned from bar::test() in %s on line %d
+ 
+-Warning: xmlrpc_server_call_method(): xml parse error: [line 1, column 1, message: Invalid document end] Unable to add introspection data returned from bar::test() in %s on line %d
+-
+-Warning: xmlrpc_server_call_method(): Invalid callback 'foo::bar' passed in %s on line %d
++Warning: xmlrpc_server_call_method(): Invalid callback 'foo::bar' passed in %s on line %d%A
+diff --git a/ext/xmlrpc/tests/bug77242.phpt b/ext/xmlrpc/tests/bug77242.phpt
+index 542c063..cdefe85 100644
+--- a/ext/xmlrpc/tests/bug77242.phpt
++++ b/ext/xmlrpc/tests/bug77242.phpt
+@@ -6,5 +6,5 @@ Bug #77242 (heap out of bounds read in xmlrpc_decode())
+ <?php
+ var_dump(xmlrpc_decode(base64_decode("PD94bWwgdmVyc2lvbmVuY29kaW5nPSJJU084ODU5NyKkpKSkpKSkpKSkpKSkpKSkpKSkpKSk")));
+ ?>
+---EXPECT--
+-NULL
+\ No newline at end of file
++--EXPECTF--
++%ANULL
+\ No newline at end of file

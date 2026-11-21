@@ -1,0 +1,38 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:36:24 +0200
+Subject: NEWS from 8.1.32
+
+---
+ NEWS | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index bf4d674..3f1b3c2 100644
+--- a/NEWS
++++ b/NEWS
+@@ -56,6 +56,25 @@ Backported from 8.1.34
+   . Fixed GHSA-h96m-rvf9-jgm2 (Heap buffer overflow in array_merge()).
+     (CVE-2025-14178) (ndossche)
+ 
++Backported from 8.1.32
++
++- LibXML:
++  . Fixed GHSA-wg4p-4hqh-c3g9 (Reocurrence of #72714). (nielsdos)
++
++- Streams:
++  . Fixed GHSA-hgf54-96fm-v528 (Stream HTTP wrapper header check might omit
++    basic auth header). (CVE-2025-1736) (Jakub Zelenka)
++  . Fixed GHSA-52jp-hrpf-2jff (Stream HTTP wrapper truncate redirect location
++    to 1024 bytes). (CVE-2025-1861) (Jakub Zelenka)
++  . Fixed GHSA-pcmh-g36c-qc44 (Streams HTTP wrapper does not fail for headers
++    without colon). (CVE-2025-1734) (Jakub Zelenka)
++  . Fixed GHSA-v8xr-gpvj-cx9g (Header parser of `http` stream wrapper does not
++    handle folded headers). (CVE-2025-1217) (Jakub Zelenka)
++  . Fixed bug #78719 (http wrapper silently ignores long Location headers).
++    (cmb)
++  . Fixed bug #79265 (Improper injection of Host header when using fopen for
++    http requests). (Miguel Xavier Penha Neto)
++
+ Backported from 8.1.31
+ 
+ - CLI:
