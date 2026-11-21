@@ -249,8 +249,10 @@ cache_input_identity() {
   # fields too, so changing this policy does not itself rebuild every extension.
   # Script hashes are provenance: compare effective build flags and extension
   # inputs instead of rejecting normal builds for ASAN-only script changes.
+  # PHP patch hashes are also provenance. Force an extension rebuild when a patch
+  # intentionally changes its ABI or extension-facing inline/header behavior.
   # Keep configured library overlays in the identity: they may be linked statically.
-  jq -S 'del(.context.development_commit, .context.development_headers, .context.libraries, .context.scripts)' "${1:--}"
+  jq -S -f "$cache_repo/scripts/extensions-cache-identity.jq" "${1:--}"
 }
 
 cache_miss() {
