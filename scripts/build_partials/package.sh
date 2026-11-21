@@ -23,7 +23,7 @@ package_php() {
     echo "::group::package_php"
     cd "$INSTALL_ROOT" || exit
     echo "Creating Package using XZ"
-    XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
+    XZ_OPT='-e9 -T0 --memlimit-compress=75% --no-adjust' tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
 
     echo "Creating Package using ZSTD"
@@ -47,7 +47,7 @@ package_php() {
     fi
 
     echo "Creating Debug Package using XZ"
-    XZ_OPT=-e9 tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
+    XZ_OPT='-e9 -T0 --memlimit-compress=75% --no-adjust' tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
 
     echo "Creating Debug Package using ZSTD"
