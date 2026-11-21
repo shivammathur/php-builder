@@ -114,7 +114,7 @@ index 7ad95eb..77fe263 100644
 +				pefree(entry.filename, myphar->is_persistent);
 +			}
 +			php_stream_close(fp);
-+			phar_destroy_phar_data(myphar);
++			phar_destroy_phar_data(myphar TSRMLS_CC);
 +			return FAILURE;
 +		}
 +		entry.uncompressed_filesize = entry.compressed_filesize = size;
@@ -129,7 +129,7 @@ index 7ad95eb..77fe263 100644
 +				pefree(entry.filename, myphar->is_persistent);
 +			}
 +			php_stream_close(fp);
-+			phar_destroy_phar_data(myphar);
++			phar_destroy_phar_data(myphar TSRMLS_CC);
 +			return FAILURE;
 +		}
  
