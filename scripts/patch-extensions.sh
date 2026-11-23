@@ -110,8 +110,16 @@ patch_pdo_sqlsrv() {
   patch_sqlsrv_stream_error
 }
 
+# PHP 8.7 snapshots moved flock_compat.h from ext/standard to main.
+patch_flock_compat_header() {
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    sed -i 's#ext/standard/flock_compat\.h#main/flock_compat.h#' "$1"
+  fi
+}
+
 # Function to patch xdebug source.
 patch_xdebug() {
+  patch_flock_compat_header src/lib/usefulstuff.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && sed -i 's/80600/80700/g' config.m4
   [[ "$PHP_VERSION" = "8.7" ]] && sed -i 's/80700/80800/g' config.m4
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/develop/stack.c src/lib/var.c
@@ -623,6 +631,7 @@ patch_mongodb() {
 
 # Function to patch apcu source.
 patch_apcu() {
+  patch_flock_compat_header php_apc.c
   if [[ "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]]; then
     sed -i 's/php_verror(NULL, "", verbosity, format, args);/php_verror(NULL, verbosity, format, args);/' apc.c
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c
