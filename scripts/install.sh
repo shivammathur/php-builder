@@ -197,6 +197,14 @@ extract_build() {
   fi
 }
 
+cleanup_apache_asan() {
+  if [ -L /etc/apache2/php-asan-envvars ] &&
+     { [ "$(readlink /etc/apache2/php-asan-envvars 2>/dev/null)" = "/etc/php/$version/apache2/asan-envvars" ] || [ ! -e /etc/apache2/php-asan-envvars ]; }; then
+    sudo rm -f /etc/apache2/php-asan-envvars
+    command -v a2disconf >/dev/null 2>&1 && sudo a2disconf php-asan-env >/dev/null 2>&1 || true
+  fi
+}
+
 install() {
   to_wait=()
   DIST_ID="$ID"
@@ -219,6 +227,7 @@ install() {
   fi
   update_brotli_security || return 1
   sudo rm -rf /etc/php/"$version" /etc/default/php-fpm"$version" /tmp/php"$version"
+  [ "${asan:-}" = "asan" ] || cleanup_apache_asan
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version" || return 1
   . /etc/os-release
@@ -280,11 +289,7 @@ remove() {
       sudo rm -f /usr/bin/"$tool$version"
     fi
   done
-  if [ -L /etc/apache2/php-asan-envvars ] &&
-     { [ "$(readlink /etc/apache2/php-asan-envvars 2>/dev/null)" = "/etc/php/$version/apache2/asan-envvars" ] || [ ! -e /etc/apache2/php-asan-envvars ]; }; then
-    sudo rm -f /etc/apache2/php-asan-envvars
-    command -v a2disconf >/dev/null 2>&1 && sudo a2disconf php-asan-env >/dev/null 2>&1 || true
-  fi
+  cleanup_apache_asan
   sudo find /etc /usr/share/man -name "php$version*" -delete
   sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
               /usr/lib/systemd/system/php"$version"-fpm.service \
