@@ -78,6 +78,8 @@ The `php-version` is required, and `release` and `nts` are the defaults.
 
 ```bash
 php -v
+# or for ASAN builds:
+ASAN_OPTIONS=detect_leaks=0 php -v
 ```
 
 **Notes:**
@@ -168,6 +170,15 @@ You can combine ASAN with Thread Safe (`zts`):
 - Some bundled extensions may report leaks at shutdown; pass `ASAN_OPTIONS=detect_leaks=0` if you only want memory-error checks, or run with `php -n` / a suppression file when using `detect_leaks=1`:
 ```bash
 USE_ZEND_ALLOC=0 ZEND_DONT_UNLOAD_MODULES=1 ASAN_OPTIONS=detect_leaks=0 php your_script.php
+```
+- When building your own extension with `phpize` against an ASAN build, pass sanitizer flags explicitly (`-fno-sanitize=object-size` avoids false positives on Zend's `zend_function` union):
+```bash
+phpize
+CFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+CXXFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+LDFLAGS="-fsanitize=address,undefined" \
+./configure
+make -j"$(nproc)"
 ```
 
 ## SAPI support
