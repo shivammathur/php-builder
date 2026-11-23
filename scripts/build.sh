@@ -86,10 +86,14 @@ configure_build_flags() {
 
   # Add ASAN/UBSan flags
   if [ "${ASAN:-}" = "asan" ]; then
+    # Use -O1 with frame pointers and no sibling-call optimization as recommended
+    # for ASAN (cleaner stack traces, fewer optimized-away checks, lower compile RAM).
     # Disable object-size UBSan check (incompatible with Zend's zend_function union;
     # PHP 8.2+ adds this in configure.ac, but 8.0/8.1 and separately built extensions do not).
-    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer"
-    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer"
+    CFLAGS=$(echo "$CFLAGS" | sed -E 's/(^|[[:space:]])-O([0-3sgz]|fast)?([[:space:]]|$)/\1\3/g')
+    CXXFLAGS=$(echo "$CXXFLAGS" | sed -E 's/(^|[[:space:]])-O([0-3sgz]|fast)?([[:space:]]|$)/\1\3/g')
+    CFLAGS="$CFLAGS -O1 -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    CXXFLAGS="$CXXFLAGS -O1 -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls"
     LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
     if [ "$PHP_VERSION" = "8.0" ]; then
       CFLAGS="$CFLAGS -DZEND_TRACK_ARENA_ALLOC"
