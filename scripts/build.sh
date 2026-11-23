@@ -369,7 +369,13 @@ elif [ "$action" = "merge" ]; then
 elif [ "$action" = "build_extensions" ]; then
   . scripts/build_partials/extensions.sh
   . scripts/build_partials/package.sh
-  install_staged_php
+  if [ "${EXTENSIONS_CACHE_ONLY:-false}" = true ]; then
+    # The published PHP package is already installed by the cache staging step.
+    # Copying its library overlays again can overwrite libraries loaded by cp.
+    switch_version
+  else
+    install_staged_php
+  fi
   configure_build_flags extensions
   PHP_INSTALL_ROOT="$INSTALL_ROOT"
   ext_dir="$(php-config"$PHP_VERSION" --extension-dir)"

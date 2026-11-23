@@ -356,12 +356,13 @@ cache_build_extension() {
   candidate="$cache_work/restored/extensions/$name"
   target="$cache_work/fresh/extensions/$name"
   echo "::group::$name"
-  if cache_reuse "$name" "$candidate" "$cache_work/inputs.json" "$pecl_version"; then
+  rm -rf "$target"
+  if [ -z "${cache_refresh[$name]+set}" ] && cache_reuse "$name" "$candidate" "$cache_work/inputs.json" "$pecl_version"; then
     mkdir -p "$(dirname "$target")"
     cp -a "$candidate" "$target"
     echo "Reusing $name $version"
   else
-    echo "Building $name $version (missing, changed or failed cache candidate)"
+    echo "Building $name $version (requested, missing, changed or failed cache candidate)"
     mkdir -p "$target/root"
     bash "$cache_repo/scripts/retry.sh" 5 5 bash "$cache_repo/scripts/install-extension.sh" \
       "$name" "$repo" "$ref" "$target/root" "${cache_args[@]}"
@@ -378,6 +379,8 @@ cache_build_extension() {
 
 cache_main() (
   local name suffix='' arch_suffix='' asset output=/tmp
+  local -a requested=()
+  declare -A cache_refresh=()
   cache_root='' cache_php_root='' cache_php='' cache_php_config='' cache_platform=''
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -398,7 +401,17 @@ cache_main() (
   mkdir -p "$cache_work/restored" "$cache_work/fresh" "$output"
   cache_read_config "config/extensions/$PHP_VERSION"
   cache_order=()
-  for name in "${cache_names[@]}"; do cache_visit "$name"; done
+  requested=("${cache_names[@]}")
+  if [ -n "${EXTENSIONS_TO_REFRESH:-}" ]; then
+    read -r -a requested <<<"${EXTENSIONS_TO_REFRESH//,/ }"
+    [ "${#requested[@]}" -gt 0 ] || { echo 'No extensions specified' >&2; exit 1; }
+    for name in "${requested[@]}"; do
+      [[ "$name" =~ ^[a-zA-Z0-9_]+$ ]] && [ -n "${cache_configs[$name]+set}" ] \
+        || { echo "Unknown extension: $name" >&2; exit 1; }
+      cache_refresh[$name]=1
+    done
+  fi
+  for name in "${requested[@]}"; do cache_visit "$name"; done
   cache_arch=$(dpkg --print-architecture)
   case "$cache_arch" in amd64) ;; arm64) arch_suffix=_arm64 ;; *) echo 'Unsupported architecture' >&2; exit 1 ;; esac
   [ "$BUILD" != zts ] || suffix=-zts
@@ -410,7 +423,7 @@ cache_main() (
   # example, logs the creation of its runtime directories on the first startup.
   # PHP 5/7 return status 254 for an empty -r program, so exit explicitly.
   timeout -k 5 30 "$cache_php" -n "${cache_core_args[@]}" -r 'exit(0);'
-  if [ "${EXTENSIONS_CACHE_REFRESH:-false}" != true ]; then
+  if [ "${#cache_refresh[@]}" -gt 0 ] || [ "${EXTENSIONS_CACHE_REFRESH:-false}" != true ]; then
     if ! timeout -k 5 180 gh release download "$PHP_VERSION" --repo "${GITHUB_REPOSITORY:?}" \
         --pattern "$asset" --dir "$cache_work" || ! cache_extract "$cache_work/$asset" "$cache_work/restored"; then
       echo 'Extension cache unavailable; building as needed'
@@ -418,8 +431,23 @@ cache_main() (
       mkdir -p "$cache_work/restored"
     fi
   fi
+  if [ "${#cache_refresh[@]}" -gt 0 ]; then
+    [ -d "$cache_work/restored/extensions" ] \
+      || { echo 'Targeted refresh requires an existing extension cache' >&2; exit 1; }
+    # Preserve the rest of the cache, including metadata used by dependent modules.
+    cp -a "$cache_work/restored/extensions" "$cache_work/fresh/"
+  fi
   for name in "${cache_order[@]}"; do cache_build_extension "$name"; done
   cache_archive "$cache_work/fresh" "$output/$asset"
+  if [ "${#cache_refresh[@]}" -gt 0 ]; then
+    # Verify that a later build can restore and reuse the archived binaries.
+    cache_extract "$output/$asset" "$cache_work/check"
+    for name in "${cache_order[@]}"; do
+      jq .inputs "$cache_work/fresh/extensions/$name/metadata.json" > "$cache_work/inputs.json"
+      cache_reuse "$name" "$cache_work/check/extensions/$name" "$cache_work/inputs.json" ''
+      echo "Verified archived cache reuse: $name"
+    done
+  fi
   echo "Saved complete extension cache: $output/$asset"
 )
 
