@@ -150,19 +150,17 @@ To install an ASAN build:
 ./install.sh 8.4 asan
 ```
 
-You can combine ASAN with other options:
+You can combine ASAN with Thread Safe (`zts`):
 
 ```bash
 # ASAN + Thread Safe
 ./install.sh 8.4 zts asan
-
-# ASAN + Debug symbols
-./install.sh 8.4 debug asan
 ```
 
 **Notes:**
 
 - ASAN builds are only available for PHP 8.0 and above.
+- ASAN builds are unstripped and include debug symbols by default for readable stack traces (no separate `debug` option is needed).
 - Running PHP with ASAN will be slower than regular builds due to the instrumentation overhead.
 - Disable Zend's allocator with `USE_ZEND_ALLOC=0` so ASAN can detect errors within PHP allocations.
 - Set `ZEND_DONT_UNLOAD_MODULES=1` so extension stack frames stay symbolized in shutdown and leak reports.

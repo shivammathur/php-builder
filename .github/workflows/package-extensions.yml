@@ -106,12 +106,18 @@ jobs:
           arch_suffix=
           [[ "$(arch)" = aarch64 || "$(arch)" = arm64 ]] && arch_suffix=_arm64
           package="php_${PHP_VERSION}${suffix}+${ID}${VERSION_ID}${arch_suffix}.tar.zst"
-          debug_package="php_${PHP_VERSION}${suffix}-dbgsym+${ID}${VERSION_ID}${arch_suffix}.tar.zst"
           mkdir -p /tmp/source-artifact
-          gh release download "$PHP_VERSION" --repo "$GITHUB_REPOSITORY" \
-            --pattern "$package" --pattern "$debug_package" --dir /tmp/source-artifact
-          test -s "/tmp/source-artifact/$package"
-          test -s "/tmp/source-artifact/$debug_package"
+          if [ "${ASAN:-}" = asan ]; then
+            gh release download "$PHP_VERSION" --repo "$GITHUB_REPOSITORY" \
+              --pattern "$package" --dir /tmp/source-artifact
+            test -s "/tmp/source-artifact/$package"
+          else
+            debug_package="php_${PHP_VERSION}${suffix}-dbgsym+${ID}${VERSION_ID}${arch_suffix}.tar.zst"
+            gh release download "$PHP_VERSION" --repo "$GITHUB_REPOSITORY" \
+              --pattern "$package" --pattern "$debug_package" --dir /tmp/source-artifact
+            test -s "/tmp/source-artifact/$package"
+            test -s "/tmp/source-artifact/$debug_package"
+          fi
 
       - name: Stage and install source package
         run: bash scripts/stage-package-extensions.sh
@@ -155,7 +161,6 @@ jobs:
           mapfile -t packages < <(find /tmp -maxdepth 1 -type f -name "php_${PHP_VERSION}${suffix}+*.tar.zst")
           mapfile -t debug_packages < <(find /tmp -maxdepth 1 -type f -name "php_${PHP_VERSION}${suffix}-dbgsym+*.tar.zst")
           test "${#packages[@]}" -eq 1
-          test "${#debug_packages[@]}" -eq 1
           tar -I zstd -tf "${packages[0]}" > /tmp/package-contents.txt
           extension_dir="$(php-config --extension-dir)"
           for extension in ${EXTENSIONS_TO_BUILD//,/ }; do
@@ -165,8 +170,13 @@ jobs:
             echo 'Release package unexpectedly contains debug symbols'
             exit 1
           fi
-          tar -I zstd -tf "${debug_packages[0]}" > /tmp/debug-package-contents.txt
-          grep -Fq './usr/lib/debug/.build-id/' /tmp/debug-package-contents.txt
+          if [ "${ASAN:-}" = asan ]; then
+            test "${#debug_packages[@]}" -eq 0
+          else
+            test "${#debug_packages[@]}" -eq 1
+            tar -I zstd -tf "${debug_packages[0]}" > /tmp/debug-package-contents.txt
+            grep -Fq './usr/lib/debug/.build-id/' /tmp/debug-package-contents.txt
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7

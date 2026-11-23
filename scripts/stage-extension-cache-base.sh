@@ -21,8 +21,10 @@ if [ "${EXTENSIONS_CACHE_ONLY:-false}" = true ]; then
   tar -I zstd -xf "$SOURCE_ARTIFACT_DIR/$package" -C "/tmp/debian/php$PHP_VERSION"
   tar -I zstd -xf "$SOURCE_ARTIFACT_DIR/$package" -C / --no-same-owner
 else
-  gh release download "$PHP_VERSION" --repo "$GITHUB_REPOSITORY" --dir "$SOURCE_ARTIFACT_DIR" \
-    --pattern "php_$PHP_VERSION$suffix-dbgsym+$ID$VERSION_ID$arch_suffix.tar.zst"
+  if [ "${ASAN:-}" != asan ]; then
+    gh release download "$PHP_VERSION" --repo "$GITHUB_REPOSITORY" --dir "$SOURCE_ARTIFACT_DIR" \
+      --pattern "php_$PHP_VERSION$suffix-dbgsym+$ID$VERSION_ID$arch_suffix.tar.zst"
+  fi
   # Preserve core debug symbols, discarding the old custom-extension symbols.
   bash scripts/stage-package-extensions.sh
 fi

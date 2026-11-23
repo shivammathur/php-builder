@@ -84,6 +84,8 @@ for os in "${container_os_array[@]}"; do
       for asan in "" "asan"; do
         [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for debug in debug release; do
+          # ASAN builds ship unstripped as a single package.
+          [ "$asan" = "asan" ] && [ "$debug" = "debug" ] && continue
           dist="$(get_dist "$os")"
           dist_version="$(get_dist_version "$os")"
           os_base="$(get_container_base "$os")"
@@ -101,6 +103,8 @@ for os in "${runner_os_array[@]}"; do
       for asan in "" "asan"; do
         [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for debug in debug release; do
+          # ASAN builds ship unstripped as a single package.
+          [ "$asan" = "asan" ] && [ "$debug" = "debug" ] && continue
           test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
         done
       done

@@ -352,7 +352,7 @@ fi
 if [ "${asan:-}" = "asan" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-asan"
 fi
-if [ "$debug" = "debug" ]; then
+if [ "$debug" = "debug" ] && [ "${asan:-}" != "asan" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
 fi
 . /etc/os-release
