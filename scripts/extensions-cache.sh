@@ -244,13 +244,11 @@ cache_context() {
 }
 
 cache_input_identity() {
-  # PHP compatibility is its version series and PHP/Zend APIs, including the
-  # thread/debug build IDs. Accept existing archives with development provenance
-  # fields too, so changing this policy does not itself rebuild every extension.
-  # Script hashes are provenance: compare effective build flags and extension
-  # inputs instead of rejecting normal builds for ASAN-only script changes.
-  # Keep configured library overlays in the identity: they may be linked statically.
-  jq -S 'del(.context.development_commit, .context.development_headers, .context.libraries, .context.scripts)' "${1:--}"
+  # Compare extension source, configure options and dependencies. Library overlays
+  # may be linked statically; PHP build metadata is only provenance. Loading and
+  # smoke tests check compatibility with the new PHP build. Force a rebuild for
+  # compiler/header changes that must be incorporated into the extension itself.
+  jq -S '{source, args, dependencies, overlays: .context.overlays}' "${1:--}"
 }
 
 cache_miss() {
