@@ -1,0 +1,806 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:06:55 +0100
+Subject: Make the openssl tests work with OpenSSL security level 2
+
+OpenSSL runs at security level 2 in Debian, which refuses the
+pre-generated test certificates with 1024-bit keys and the TLS versions
+older than 1.2. Backport of upstream commits 6b702eea15e, dd7d161ccf1,
+58ca47aff64, 72b3987c2d5, 8ba0624a09f (PHP 7.4.8) and 703bbf52105
+(PHP 7.4.18), which generate the certificates in the tests and lower the
+security level where TLS 1.0 and 1.1 are tested.
+---
+ ext/openssl/tests/bug65729.pem                     | 32 ---------------------
+ ext/openssl/tests/bug65729.phpt                    | 21 ++++++++++++--
+ ext/openssl/tests/bug68920.phpt                    | 13 ++++++++-
+ ext/openssl/tests/bug69215-ca.pem                  | 16 -----------
+ ext/openssl/tests/bug69215-client.pem              | 32 ---------------------
+ ext/openssl/tests/bug69215-server.pem              | 32 ---------------------
+ ext/openssl/tests/bug69215.phpt                    | 28 ++++++++++++++----
+ ext/openssl/tests/session_meta_capture.phpt        |  4 ++-
+ ext/openssl/tests/stream_crypto_flags_001.phpt     |  4 ++-
+ ext/openssl/tests/stream_crypto_flags_002.phpt     |  4 ++-
+ ext/openssl/tests/stream_crypto_flags_003.phpt     |  4 ++-
+ ext/openssl/tests/stream_crypto_flags_004.phpt     |  2 ++
+ ext/openssl/tests/stream_security_level.phpt       |  5 +++-
+ ext/openssl/tests/streams_crypto_method.pem        | 33 ----------------------
+ ext/openssl/tests/streams_crypto_method.phpt       | 13 ++++++++-
+ .../tests/tls_min_v1.0_max_v1.1_wrapper.phpt       | 15 +++++++++-
+ ext/openssl/tests/tls_wrapper.phpt                 | 15 +++++++++-
+ ext/openssl/tests/tlsv1.0_wrapper.phpt             | 15 +++++++++-
+ ext/openssl/tests/tlsv1.1_wrapper.phpt             | 15 +++++++++-
+ ext/openssl/tests/tlsv1.2_wrapper.phpt             | 13 ++++++++-
+ 20 files changed, 150 insertions(+), 166 deletions(-)
+ delete mode 100644 ext/openssl/tests/bug65729.pem
+ delete mode 100644 ext/openssl/tests/bug69215-ca.pem
+ delete mode 100644 ext/openssl/tests/bug69215-client.pem
+ delete mode 100644 ext/openssl/tests/bug69215-server.pem
+ delete mode 100644 ext/openssl/tests/streams_crypto_method.pem
+
+diff --git a/ext/openssl/tests/bug65729.pem b/ext/openssl/tests/bug65729.pem
+deleted file mode 100644
+index 9184457..0000000
+--- a/ext/openssl/tests/bug65729.pem
++++ /dev/null
+@@ -1,32 +0,0 @@
+------BEGIN RSA PRIVATE KEY-----
+-MIICXgIBAAKBgQDU8RgB8O2uR3ApjlxEX5rpCI+gIaZ3h0RBAF9rNA/s0pPTtX/e
+-NGJgDyuT/TF6mcv0I/0/s2WSmIE50NW6tgWZ7RoBdVw/MiByPt6vK1aDrggbycN/
+-C6RrxrEsdZe3E9CDZCFM1br8/8tnV19Ju80g8zY2MgDjAjSkeXN5yp3kgQIDAQAB
+-AoGBANFKKRt3TlRVmHLvndYB1YKmzGtJx5CBXV85247FO8W67lpNcGDYQbxCDMXG
+-PARQ9vl9CeK7EuDzjUdi7z40uujUOJtsLbMP6ikwKFi/tA2cW1yoLionZ3JkfyEr
+-4Uu8kkkIut0VLX8uuVz/Y03lt8Uzc+GvD2DPhkSQn80f10SFAkEA94EcjwFcwuVi
+-QofgOPbf7qfOoWDsXYhlMU9g1CaPJiMcMcvgoLK3V514oMDxlkvuLujlYeG9NvRS
+-tREluGsbywJBANxARX5MSzAkFRNZNZKDUvifdC0BA2Dqzd2iOJRcTdcebGENd7+e
+-oub/9lVLGrX7T4U2en8IXwJV4UHxwoQLz2MCQQCI1Bj8ui0VFgj/bOy5sUnVP3IN
+-Z27kuo3u98o5HuQOmmRw5xxU2thfGJBilqg4hdu0lU6SkWCwq9u5fDRVQumHAkAM
+-mJBg3LQgGLAr3xo1OtVv6o6WVEyBKmyDlFdwBKde+hpwoniKuOPQGitYTWdFqQ2v
+-LKJsyWnFlGvBfbYGHzbJAkEA17SgCf7Wx7NxuLCSMj/rd25ul0jlIrjx6+/HfyLb
+-+T2SXXU4g2DBiPngrfJ9jX8QGoLpZiBGcwX3QxssX5FgJQ==
+------END RSA PRIVATE KEY-----
+------BEGIN CERTIFICATE-----
+-MIICvDCCAiWgAwIBAgIJANOyJnvPEioVMA0GCSqGSIb3DQEBBQUAMEkxCzAJBgNV
+-BAYTAlNHMRIwEAYDVQQIEwlUZXN0dmlsbGUxETAPBgNVBAoTCGRhdGliYmF3MRMw
+-EQYDVQQDFAoqLnRlc3QuY29tMB4XDTE0MTAxNTEzMDg1OFoXDTM0MTAxMDEzMDg1
+-OFowSTELMAkGA1UEBhMCU0cxEjAQBgNVBAgTCVRlc3R2aWxsZTERMA8GA1UEChMI
+-ZGF0aWJiYXcxEzARBgNVBAMUCioudGVzdC5jb20wgZ8wDQYJKoZIhvcNAQEBBQAD
+-gY0AMIGJAoGBANTxGAHw7a5HcCmOXERfmukIj6AhpneHREEAX2s0D+zSk9O1f940
+-YmAPK5P9MXqZy/Qj/T+zZZKYgTnQ1bq2BZntGgF1XD8yIHI+3q8rVoOuCBvJw38L
+-pGvGsSx1l7cT0INkIUzVuvz/y2dXX0m7zSDzNjYyAOMCNKR5c3nKneSBAgMBAAGj
+-gaswgagwHQYDVR0OBBYEFErHO0eHLp9YvBWVvvhty/jGie5wMHkGA1UdIwRyMHCA
+-FErHO0eHLp9YvBWVvvhty/jGie5woU2kSzBJMQswCQYDVQQGEwJTRzESMBAGA1UE
+-CBMJVGVzdHZpbGxlMREwDwYDVQQKEwhkYXRpYmJhdzETMBEGA1UEAxQKKi50ZXN0
+-LmNvbYIJANOyJnvPEioVMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEFBQADgYEA
+-gMv2HUUp0FMTYQ6tL9YgNUNARukxJzGDWweo4/YuNSgI+Ljpye4Nf1MpyDWfhZGc
+-QbUhfm5CdEvcBzZBtI0lLXs61yGdLnDH/6QHViXP2rlH0yeAABw8+wSdxuiZN1yR
+-ed4pNXU+tczgW2Ri2+T0ScOZd0XommKHrQnu2T9mMBY=
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug65729.phpt b/ext/openssl/tests/bug65729.phpt
+index cffba43..2ce332a 100644
+--- a/ext/openssl/tests/bug65729.phpt
++++ b/ext/openssl/tests/bug65729.phpt
+@@ -7,11 +7,14 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug65729.pem.tmp';
++$cacertFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug65729-ca.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/bug65729.pem'
++        'local_cert' => '%s'
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -22,6 +25,7 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 1);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+@@ -32,18 +36,29 @@ $clientCode = <<<'CODE'
+     $expected_names = ['foo.test.com.sg', 'foo.test.com', 'FOO.TEST.COM', 'foo.bar.test.com'];
+     foreach ($expected_names as $expected_name) {
+         $clientCtx = stream_context_create(['ssl' => [
+-            'verify_peer'       => true,
+-            'allow_self_signed'    => true,
++            'verify_peer'        => true,
+             'peer_name'          => $expected_name,
++            'cafile'             => '%s',
+         ]]);
+ 
+         var_dump(stream_socket_client($serverUri, $errno, $errstr, 2, $clientFlags, $clientCtx));
+     }
+ CODE;
++$clientCode = sprintf($clientCode, $cacertFile);
++
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveCaCert($cacertFile);
++$certificateGenerator->saveNewCertAsFileWithKey('*.test.com', $certFile);
+ 
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug65729.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug65729-ca.pem.tmp');
++?>
+ --EXPECTF--
+ Warning: stream_socket_client(): Peer certificate CN=`*.test.com' did not match expected CN=`foo.test.com.sg' in %s on line %d
+ 
+diff --git a/ext/openssl/tests/bug68920.phpt b/ext/openssl/tests/bug68920.phpt
+index 34e07a4..c9b90be 100644
+--- a/ext/openssl/tests/bug68920.phpt
++++ b/ext/openssl/tests/bug68920.phpt
+@@ -7,11 +7,13 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug68920.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/san-cert.pem',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -22,6 +24,7 @@ $serverCode = <<<'CODE'
+     stream_socket_accept($server, 30);
+     stream_socket_accept($server, 30);
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+@@ -46,9 +49,17 @@ $clientCode = <<<'CODE'
+     var_dump($sock);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('bug68920', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug68920.pem.tmp');
++?>
+ --EXPECTF--
+ Warning: stream_socket_client(): Expected peer fingerprint must be a string or an array in %s on line %d
+ 
+diff --git a/ext/openssl/tests/bug69215-ca.pem b/ext/openssl/tests/bug69215-ca.pem
+deleted file mode 100644
+index bf1be07..0000000
+--- a/ext/openssl/tests/bug69215-ca.pem
++++ /dev/null
+@@ -1,16 +0,0 @@
+------BEGIN CERTIFICATE-----
+-MIICfjCCAeegAwIBAgIJAMO7Amv3ZHJBMA0GCSqGSIb3DQEBCwUAMFgxCzAJBgNV
+-BAYTAlhYMRUwEwYDVQQHDAxEZWZhdWx0IENpdHkxHDAaBgNVBAoME0RlZmF1bHQg
+-Q29tcGFueSBMdGQxFDASBgNVBAMMC3BocCB0ZXN0IGNhMB4XDTE1MDMwMzE3NTQz
+-OVoXDTI1MDIyODE3NTQzOVowWDELMAkGA1UEBhMCWFgxFTATBgNVBAcMDERlZmF1
+-bHQgQ2l0eTEcMBoGA1UECgwTRGVmYXVsdCBDb21wYW55IEx0ZDEUMBIGA1UEAwwL
+-cGhwIHRlc3QgY2EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAKac+r8AzEEk
+-Cdnue7nx3gxmsXTYzwnywjjGJSknoWCdNEE+LqtT8RU0J+V76w4ehWRnhLVtu//v
+-3InsrpcniGfTcov60NelHQOfn5XCCV5zqVi628WddwwdVw4AI58K3YrNk450VCBu
+-dMy6m2Tm+dQwgVbtR+nIwzfm47CMWW2DAgMBAAGjUDBOMB0GA1UdDgQWBBTtMxRr
+-plep4RW3PjhosYsIdIoMojAfBgNVHSMEGDAWgBTtMxRrplep4RW3PjhosYsIdIoM
+-ojAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA4GBADMF2pL8jCF6PFPhMuFN
+-zxoLSuy6uLAkjkujo5e33kSUW5MI4jT/aoL2hnBPA4uJPC/TZXoBHKBpnPES2GkJ
+-r7tOR51Jsk7HRTdvOMkcdD9Fe+M+Q5rOMUlCtyX/SRhc1uFnC2//Y/rx4Tc8djGl
+-RqrH/Oi38u1083krmNRQNw/Z
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug69215-client.pem b/ext/openssl/tests/bug69215-client.pem
+deleted file mode 100644
+index 271732f..0000000
+--- a/ext/openssl/tests/bug69215-client.pem
++++ /dev/null
+@@ -1,32 +0,0 @@
+------BEGIN RSA PRIVATE KEY-----
+-Proc-Type: 4,ENCRYPTED
+-DEK-Info: DES-EDE3-CBC,CE3DEB59F7DF7AF4
+-
+-9REujZuwDkwoN949Gw77c3aJiQvwoPiUXJ+cDirn4ii56OsHBSCWfCe4Mqn976GK
+-9IAPwHJ5yRewPpFvb+xRqtMtnm8S7HIfVtZqW4FkG+g/paEg6rwqVpW78Jco/gww
+-6XFGrmU1bwKWrB05YV1BWnbB4L7Q+/U0ZcNvdNISOBW//2HuHeKVWe1DKoaRtoVz
+-v4BFQxr7F3A9tm3vz9Jn2JreVrihdWQVlVTVOsfiQk/yPVA7twxiT2Hfimp/gFSX
+-l28rA+jB7xd6IhpA/EXAYnCbxSp9kSXYtba26dO3rQHlgRv1a38AwvCD/3igQzF/
+-XjetX2a75ITi5c7bUT4ZpVX8ZPU8oVBqSo6MXisFWBT0Svx+KhWyyn2V0z66APdR
+-X1V6dZiAcqN7giRg3Yj/lMDo0nV4Ph+Ce7p3Mv/p4qU0mxf7O8sPhp7DloHQFEF0
+-HyooNp26YT4V47NDxwIlkoj9YZ5nkO/svQ1qxiTKWNUdfWw5r3lFiAw5xTyDDiBs
+-Sz776DaFo3Ss3JSUr5RLe4rEEc02iVqYB9OPXoUaUwS+//1KKgzF3xq/yxsJM5dR
+-ljphraCViZzJPw4z69Lmao9CPRfDxKChVOSLkKgmFIOeronLdTypieanc3/o002c
+-2ecb/x9f7G2XAn0iwcfylMkSZHirxqaos8LodsPxg8GdNJT89C66n+EJerrFwi6i
+-qT0EvNfkbxYd3zj82+j1weNFLsQuB0O1UJBWEdyj74gIX+4HkZpSYLQ2O8MTz3yE
+-52JcRRyl9ECdNJw15jkDQIusUreYMHb7YW+u+3+ci21H94Iay5XSYw==
+------END RSA PRIVATE KEY-----
+------BEGIN CERTIFICATE-----
+-MIICKDCCAZECCQD2yFUU99QJdzANBgkqhkiG9w0BAQsFADBYMQswCQYDVQQGEwJY
+-WDEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBh
+-bnkgTHRkMRQwEgYDVQQDDAtwaHAgdGVzdCBjYTAeFw0xNTAzMTAyMzM0MDNaFw0y
+-NTAzMDcyMzM0MDNaMFkxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UE
+-BwwMTXlydGxlIEJlYWNoMQwwCgYDVQQLDANQSFAxGDAWBgNVBAMMD2J1ZzY5MjE1
+-LWNsaWVudDCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAyLTbIGryqx0wGDD+
+-xdrJsrcwXFyTYpCOHUaxl1wt/6j6u7yW5m4TJFEDUtIGnqBGYiPE9iynkLkOwUF/
+-IpheONJENIjXkdSJPUEy/Ggz9WOa0qO6dQZU44NpGO7LFW97HglBIsbhioOsdcf/
+-INAgidoMJNizkuTBNRGW7iKp0lsCAwEAATANBgkqhkiG9w0BAQsFAAOBgQBKkZLQ
+-aU12/cPvW5e9AXArnE9jxMhnzuCKy81eHj30CC/nHpId9i5YZytHcZEZyEOWE6DQ
+-IsqmsP5ZheXq26mUtHOcEdEgcqcXTRotKXFwIxTZxP5jkCRn0xGbeHh7H9pg6TP0
+-QekWTkWCh5qcf3NXvJtk4TCfLC6FSjehHkq9yQ==
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug69215-server.pem b/ext/openssl/tests/bug69215-server.pem
+deleted file mode 100644
+index 677afeb..0000000
+--- a/ext/openssl/tests/bug69215-server.pem
++++ /dev/null
+@@ -1,32 +0,0 @@
+------BEGIN RSA PRIVATE KEY-----
+-Proc-Type: 4,ENCRYPTED
+-DEK-Info: DES-EDE3-CBC,4C7155D678EDABFA
+-
+-NdOGB8UpC5xrnCFIOzxV6s4y4PZlxgX8s+iL/JeGVmS7a8pDSTzbb6wjauYy3n/2
+-KCywHsFdAjifi8SGHJOJBVep3GS7dWw979vWdiKjQEAlJpoouv6P58Xpn4jDf1uX
+-ZrpmSTXI0iH7HYE2pzrkxPbg0Cz5GV2d2VlL7U5d4+UxXh8fSBndgHligmoc8mCU
+-1AG7ZmvPhMDTewhR333qKBYi9TBZuw75Crpy5CjPO30vBMfZpseOvtEnmI0JYGwe
+-75Q3e6sgY0o9b7Q42+g9v+FpGBTHhmldwYD7k1TtOC/PT4eO68E3mDawR2v+X9r8
+-4jL22d3tB4Q4qAfBwbR37umTaQHLIxtjzc2OjXb/Ju35LW9d0hEuaAQK3oY8yeEi
+-gctYWrCN4K+cxZQwq1+ulpkHXULGs9QxXT9KJYfV1+HWkauWUSycFhA74jWW0mL5
+-InlGaFf6oiRrP4lgRVXD3rtTLCwkCD2JcvTbF+re9+vCpui7zPW2peGwcE/W7TiK
+-wHFJhQQyYGcAWsal7ekXshTLoz4jeaPgak7dg50ZjjwcWr0bJuJ3RRaocMhYZ6Bd
+-DiF30nCijVSJfrLhugN2RJmSysT4WNXn5qaDGEOhVgkXZscZ3ClFGsMnxAz9sqbJ
+-J+ZMbqxkwSIf/+dPfhnjOWm3HPpP3T9wioYZT7KuI98pfGnHMZmX5CaJ6d/uBO5G
+-8jMvQLWOx+1WoDfWDkn7SfNDyTg4/dEo5IJFXv2S9zSPynCnQcBkYUevIfJ7vDo/
+-7pXCkcY+C1zssW8R1J+WNbHI1syzVbvSg6hlgyEPXuDbErCRqiFm1g==
+------END RSA PRIVATE KEY-----
+------BEGIN CERTIFICATE-----
+-MIICKDCCAZECCQD2yFUU99QJeDANBgkqhkiG9w0BAQsFADBYMQswCQYDVQQGEwJY
+-WDEVMBMGA1UEBwwMRGVmYXVsdCBDaXR5MRwwGgYDVQQKDBNEZWZhdWx0IENvbXBh
+-bnkgTHRkMRQwEgYDVQQDDAtwaHAgdGVzdCBjYTAeFw0xNTAzMTAyMzM1MjFaFw0y
+-NTAzMDcyMzM1MjFaMFkxCzAJBgNVBAYTAlVTMQswCQYDVQQIDAJTQzEVMBMGA1UE
+-BwwMTXlydGxlIEJlYWNoMQwwCgYDVQQLDANQSFAxGDAWBgNVBAMMD2J1ZzY5MjE1
+-LXNlcnZlcjCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEAup0kaIwQufxQWXmE
+-QWbd7yxMQ69UHRhbb2stAo7qxmYMeH3bWCaR/oAPOswjtkXZQgyj0slLAWJDXKDg
+-zCnEKsU2yWLnvQy/h1rq/kBIybMoLKMIkRZQtrGcApKJtyrq8OtTz6odKQ7k9hym
+-DtPF+2lcVhSAd+qjngF3txrVKjsCAwEAATANBgkqhkiG9w0BAQsFAAOBgQCfXuL4
+-TODLV54uKKVdVGwr8U3EQ3JdYOqN3Hr9kpmxe6StIcLxQ1e+mSDgKcixzw6CXN3P
+-f++8NugAt4Ja2SDqqw1gzrX+9u6KZpnMKpEDIK0Z3Ss51ZwqilAXmFVybNTyYeVo
+-HweM1IY/zrBpSTQv/aKs1R2Pyb0Heindnp0PUQ==
+------END CERTIFICATE-----
+diff --git a/ext/openssl/tests/bug69215.phpt b/ext/openssl/tests/bug69215.phpt
+index 7cd1df1..edd355d 100644
+--- a/ext/openssl/tests/bug69215.phpt
++++ b/ext/openssl/tests/bug69215.phpt
+@@ -7,13 +7,16 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$caCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug69215-ca.pem.tmp';
++$clientCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug69215-client.pem.tmp';
++$serverCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'bug69215-server.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/bug69215-server.pem',
+-        'passphrase' => 'elephpant',
+-        'cafile' => __DIR__ . '/bug69215-ca.pem',
++        'local_cert' => '%s',
++        'cafile' => '%s',
+         'verify_peer' => true,
+         'verify_peer_name' => true,
+         'peer_name' => 'bug69215-client',
+@@ -24,14 +27,14 @@ $serverCode = <<<'CODE'
+ 
+     stream_socket_accept($server, 30);
+ CODE;
++$serverCode = sprintf($serverCode, $serverCertFile, $caCertFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $clientFlags = STREAM_CLIENT_CONNECT;
+     $clientCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/bug69215-client.pem',
+-        'passphrase' => 'elephpant',
+-        'cafile' => __DIR__ . '/bug69215-ca.pem',
++        'local_cert' => '%s',
++        'cafile' => '%s',
+         'verify_peer' => true,
+         'verify_peer_name' => true,
+         'peer_name' => 'bug69215-server',
+@@ -41,9 +44,22 @@ $clientCode = <<<'CODE'
+ 
+     var_dump(stream_socket_client($serverUri, $errno, $errstr, 1, $clientFlags, $clientCtx));
+ CODE;
++$clientCode = sprintf($clientCode, $clientCertFile, $caCertFile);
++
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveCaCert($caCertFile);
++$certificateGenerator->saveNewCertAsFileWithKey('bug69215-client', $clientCertFile);
++$certificateGenerator->saveNewCertAsFileWithKey('bug69215-server', $serverCertFile);
+ 
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug69215-ca.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug69215-client.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'bug69215-server.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+diff --git a/ext/openssl/tests/session_meta_capture.phpt b/ext/openssl/tests/session_meta_capture.phpt
+index c584005..d7169fe 100644
+--- a/ext/openssl/tests/session_meta_capture.phpt
++++ b/ext/openssl/tests/session_meta_capture.phpt
+@@ -14,7 +14,8 @@ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => '%s'
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -36,6 +37,7 @@ $clientCode = <<<'CODE'
+         'cafile' => '%s',
+         'peer_name' => '%s',
+         'capture_session_meta' => true,
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+diff --git a/ext/openssl/tests/stream_crypto_flags_001.phpt b/ext/openssl/tests/stream_crypto_flags_001.phpt
+index 85ef556..acd9711 100644
+--- a/ext/openssl/tests/stream_crypto_flags_001.phpt
++++ b/ext/openssl/tests/stream_crypto_flags_001.phpt
+@@ -14,7 +14,8 @@ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => '%s'
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -34,6 +35,7 @@ $clientCode = <<<'CODE'
+         'verify_peer' => true,
+         'cafile' => '%s',
+         'peer_name' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+diff --git a/ext/openssl/tests/stream_crypto_flags_002.phpt b/ext/openssl/tests/stream_crypto_flags_002.phpt
+index daccdcd..15b1ec2 100644
+--- a/ext/openssl/tests/stream_crypto_flags_002.phpt
++++ b/ext/openssl/tests/stream_crypto_flags_002.phpt
+@@ -14,7 +14,8 @@ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => '%s'
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -35,6 +36,7 @@ $clientCode = <<<'CODE'
+         'verify_peer' => true,
+         'cafile' => '%s',
+         'peer_name' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+diff --git a/ext/openssl/tests/stream_crypto_flags_003.phpt b/ext/openssl/tests/stream_crypto_flags_003.phpt
+index 4289dcc..35f83f2 100644
+--- a/ext/openssl/tests/stream_crypto_flags_003.phpt
++++ b/ext/openssl/tests/stream_crypto_flags_003.phpt
+@@ -17,8 +17,9 @@ $serverCode = <<<'CODE'
+     $serverCtx = stream_context_create(['ssl' => [
+         'local_cert' => '%s',
+ 
+-        // Only accept TLSv1.2 connections
++        // Only accept TLSv1.0 and TLSv1.2 connections
+         'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_0_SERVER  | STREAM_CRYPTO_METHOD_TLSv1_2_SERVER,
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -39,6 +40,7 @@ $clientCode = <<<'CODE'
+         'verify_peer' => true,
+         'cafile' => '%s',
+         'peer_name' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+diff --git a/ext/openssl/tests/stream_crypto_flags_004.phpt b/ext/openssl/tests/stream_crypto_flags_004.phpt
+index c9bf156..d9bfcfe 100644
+--- a/ext/openssl/tests/stream_crypto_flags_004.phpt
++++ b/ext/openssl/tests/stream_crypto_flags_004.phpt
+@@ -16,6 +16,7 @@ $serverCode = <<<'CODE'
+     $serverCtx = stream_context_create(['ssl' => [
+         'local_cert' => '%s',
+         'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_0_SERVER,
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -36,6 +37,7 @@ $clientCode = <<<'CODE'
+         'verify_peer' => true,
+         'cafile' => '%s',
+         'peer_name' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+diff --git a/ext/openssl/tests/stream_security_level.phpt b/ext/openssl/tests/stream_security_level.phpt
+index 8a81315..a377101 100644
+--- a/ext/openssl/tests/stream_security_level.phpt
++++ b/ext/openssl/tests/stream_security_level.phpt
+@@ -21,7 +21,10 @@ $serverCode = <<<'CODE'
+ 	$serverUri = "ssl://127.0.0.1:64322";
+ 	$serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+ 	$serverCtx = stream_context_create(['ssl' => [
+-		'local_cert' => '%s'
++		'local_cert' => '%s',
++		// Make sure the server side starts up successfully if the default security level is
++		// higher. We want to test the error at the client side.
++		'security_level' => 1,
+ 	]]);
+ 
+ 	$server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+diff --git a/ext/openssl/tests/streams_crypto_method.pem b/ext/openssl/tests/streams_crypto_method.pem
+deleted file mode 100644
+index 9d754d4..0000000
+--- a/ext/openssl/tests/streams_crypto_method.pem
++++ /dev/null
+@@ -1,33 +0,0 @@
+------BEGIN CERTIFICATE-----
+-MIIC5jCCAk+gAwIBAgIBADANBgkqhkiG9w0BAQQFADBcMQswCQYDVQQGEwJBVTET
+-MBEGA1UECBMKUXVlZW5zbGFuZDEaMBgGA1UEChMRQ3J5cHRTb2Z0IFB0eSBMdGQx
+-HDAaBgNVBAMTE1Rlc3QgUENBICgxMDI0IGJpdCkwHhcNOTkxMjAyMjEzNTQ4WhcN
+-MDUwNzExMjEzNTQ4WjBcMQswCQYDVQQGEwJBVTETMBEGA1UECBMKUXVlZW5zbGFu
+-ZDEaMBgGA1UEChMRQ3J5cHRTb2Z0IFB0eSBMdGQxHDAaBgNVBAMTE1Rlc3QgUENB
+-ICgxMDI0IGJpdCkwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAJ2haT/f5Zwy
+-V+MiuSDjSR62adBoSiBB7Usty44lXqsp9RICw+DCCxpsn/CfxPEDXLLd4olsWXc6
+-JRcxGynbYmnzk+Z6aIPPJQhK3CTvaqGnWKZsA1m+WaUIUqJCuNTK4N+7hMAGaf6S
+-S3e9HVgEQ4a34gXJ7VQFVIBNV1EnZRWHAgMBAAGjgbcwgbQwHQYDVR0OBBYEFE0R
+-aEcrj18q1dw+G6nJbsTWR213MIGEBgNVHSMEfTB7gBRNEWhHK49fKtXcPhupyW7E
+-1kdtd6FgpF4wXDELMAkGA1UEBhMCQVUxEzARBgNVBAgTClF1ZWVuc2xhbmQxGjAY
+-BgNVBAoTEUNyeXB0U29mdCBQdHkgTHRkMRwwGgYDVQQDExNUZXN0IFBDQSAoMTAy
+-NCBiaXQpggEAMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQEEBQADgYEAUa8B3pho
+-+Mvxeq9HsEzJxHIFQla05S5J/e/V+DQTYoKiRFchKPrDAdrzYSEvP3h4QJEtsNqQ
+-JfOxg5M42uLFq7aPGWkF6ZZqZsYS+zA9IVT14g7gNA6Ne+5QtJqQtH9HA24st0T0
+-Tga/lZ9M2ovImovaxSL/kRHbpCWcqWVxpOw=
+------END CERTIFICATE-----
+------BEGIN RSA PRIVATE KEY-----
+-MIICXAIBAAKBgQCdoWk/3+WcMlfjIrkg40ketmnQaEogQe1LLcuOJV6rKfUSAsPg
+-wgsabJ/wn8TxA1yy3eKJbFl3OiUXMRsp22Jp85PmemiDzyUIStwk72qhp1imbANZ
+-vlmlCFKiQrjUyuDfu4TABmn+kkt3vR1YBEOGt+IFye1UBVSATVdRJ2UVhwIDAQAB
+-AoGAba4fTtuap5l7/8ZsbE7Z1O32KJY4ZcOZukLOLUUhXxXduT+FTgGWujc0/rgc
+-z9qYCLlNZHOouMYTgtSfYvuMuLZ11VIt0GYH+nRioLShE59Yy+zCRyC+gPigS1kz
+-xvo14AsOIPYV14Tk/SsHyq6E0eTk7VzaIE197giiINUERPECQQDSKmtPTh/lRKw7
+-HSZSM0I1mFWn/1zqrAbontRQY5w98QWIOe5qmzYyFbPXYT3d9BzlsMyhgiRNoBbD
+-yvohSHXJAkEAwAHx6ezAZeWWzD5yXD36nyjpkVCw7Tk7TSmOceLJMWt1QcrCfqlS
+-xA5jjpQ6Z8suU5DdtWAryM2sAir1WisYzwJAd6Zcx56jvAQ3xcPXsE6scBTVFzrj
+-7FqZ6E+cclPzfLQ+QQsyOBE7bpI6e/FJppY26XGZXo3YGzV8IGXrt40oOQJALETG
+-h86EFXo3qGOFbmsDy4pdP5nBERCu8X1xUCSfintiD4c2DInxgS5oGclnJeMcjTvL
+-QjQoJCX3UJCi/OUO1QJBAKgcDHWjMvt+l1pjJBsSEZ0HX9AAIIVx0RQmbFGS+F2Q
+-hhu5l77WnnZOQ9vvhV5u7NPCUF9nhU3jh60qWWO8mkc=
+------END RSA PRIVATE KEY-----
+diff --git a/ext/openssl/tests/streams_crypto_method.phpt b/ext/openssl/tests/streams_crypto_method.phpt
+index 3816aa1..15ac171 100644
+--- a/ext/openssl/tests/streams_crypto_method.phpt
++++ b/ext/openssl/tests/streams_crypto_method.phpt
+@@ -7,11 +7,13 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'streams_crypto_method.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $serverUri = "ssl://127.0.0.1:64321";
+     $serverFlags = STREAM_SERVER_BIND | STREAM_SERVER_LISTEN;
+     $serverCtx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server($serverUri, $errno, $errstr, $serverFlags, $serverCtx);
+@@ -33,6 +35,7 @@ $serverCode = <<<'CODE'
+         fclose($client);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $serverUri = "https://127.0.0.1:64321/";
+@@ -47,8 +50,16 @@ $clientCode = <<<'CODE'
+     echo file_get_contents($serverUri, false, $clientCtx);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('streams_crypto_method', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'streams_crypto_method.pem.tmp');
++?>
+ --EXPECT--
+ Hello World!
+diff --git a/ext/openssl/tests/tls_min_v1.0_max_v1.1_wrapper.phpt b/ext/openssl/tests/tls_min_v1.0_max_v1.1_wrapper.phpt
+index 143c4a8..ac31192 100644
+--- a/ext/openssl/tests/tls_min_v1.0_max_v1.1_wrapper.phpt
++++ b/ext/openssl/tests/tls_min_v1.0_max_v1.1_wrapper.phpt
+@@ -7,12 +7,15 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'tls_min_v1.0_max_v1.1_wrapper.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
+         'min_proto_version' => STREAM_CRYPTO_PROTO_TLSv1_0,
+         'max_proto_version' => STREAM_CRYPTO_PROTO_TLSv1_1,
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server('tls://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+@@ -22,12 +25,14 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctx = stream_context_create(['ssl' => [
+         'verify_peer' => false,
+         'verify_peer_name' => false,
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+@@ -51,9 +56,17 @@ $clientCode = <<<'CODE'
+     var_dump($client);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('tls_min_v1.0_max_v1.1_wrapper', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'tls_min_v1.0_max_v1.1_wrapper.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ bool(false)
+diff --git a/ext/openssl/tests/tls_wrapper.phpt b/ext/openssl/tests/tls_wrapper.phpt
+index 1a0ac3a..2ce96b0 100644
+--- a/ext/openssl/tests/tls_wrapper.phpt
++++ b/ext/openssl/tests/tls_wrapper.phpt
+@@ -7,10 +7,13 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'tls_wrapper.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server('tls://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+@@ -20,12 +23,14 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctx = stream_context_create(['ssl' => [
+         'verify_peer' => false,
+         'verify_peer_name' => false,
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+@@ -49,9 +54,17 @@ $clientCode = <<<'CODE'
+     var_dump($client);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('tls_wrapper', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'tls_wrapper.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ bool(false)
+diff --git a/ext/openssl/tests/tlsv1.0_wrapper.phpt b/ext/openssl/tests/tlsv1.0_wrapper.phpt
+index 58ba816..adbe7b6 100644
+--- a/ext/openssl/tests/tlsv1.0_wrapper.phpt
++++ b/ext/openssl/tests/tlsv1.0_wrapper.phpt
+@@ -7,10 +7,13 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.0_wrapper.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server('tlsv1.0://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+@@ -20,12 +23,14 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctx = stream_context_create(['ssl' => [
+         'verify_peer' => false,
+         'verify_peer_name' => false,
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+@@ -40,9 +45,17 @@ $clientCode = <<<'CODE'
+     var_dump($client);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('tlsv1.0_wrapper', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.0_wrapper.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ bool(false)
+diff --git a/ext/openssl/tests/tlsv1.1_wrapper.phpt b/ext/openssl/tests/tlsv1.1_wrapper.phpt
+index a493a24..2f8c2f7 100644
+--- a/ext/openssl/tests/tlsv1.1_wrapper.phpt
++++ b/ext/openssl/tests/tlsv1.1_wrapper.phpt
+@@ -7,10 +7,13 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.1_wrapper.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
++        'security_level' => 1,
+     ]]);
+ 
+     $server = stream_socket_server('tlsv1.1://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+@@ -20,12 +23,14 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctx = stream_context_create(['ssl' => [
+         'verify_peer' => false,
+         'verify_peer_name' => false,
++        'security_level' => 1,
+     ]]);
+ 
+     phpt_wait();
+@@ -40,9 +45,17 @@ $clientCode = <<<'CODE'
+     var_dump($client);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('tlsv1.1_wrapper', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.1_wrapper.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ bool(false)
+diff --git a/ext/openssl/tests/tlsv1.2_wrapper.phpt b/ext/openssl/tests/tlsv1.2_wrapper.phpt
+index dd23086..12cdfa0 100644
+--- a/ext/openssl/tests/tlsv1.2_wrapper.phpt
++++ b/ext/openssl/tests/tlsv1.2_wrapper.phpt
+@@ -7,10 +7,12 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$certFile = __DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.2_wrapper.pem.tmp';
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+-        'local_cert' => __DIR__ . '/streams_crypto_method.pem',
++        'local_cert' => '%s',
+     ]]);
+ 
+     $server = stream_socket_server('tlsv1.2://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+@@ -20,6 +22,7 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $certFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+@@ -40,9 +43,17 @@ $clientCode = <<<'CODE'
+     var_dump($client);
+ CODE;
+ 
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveNewCertAsFileWithKey('tlsv1.2_wrapper', $certFile);
++
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'tlsv1.2_wrapper.pem.tmp');
++?>
+ --EXPECTF--
+ resource(%d) of type (stream)
+ bool(false)

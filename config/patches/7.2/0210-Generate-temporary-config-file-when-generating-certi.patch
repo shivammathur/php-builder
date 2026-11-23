@@ -1,0 +1,128 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Fri, 19 Jun 2020 09:43:56 +0200
+Subject: Generate temporary config file when generating certificates
+
+The putenv trick doesn't work on ZTS Windows, so generate a new
+openssl config every time.
+
+(cherry picked from commit 21a2da23498509fa671a69ae42d4c2cd841ee94d)
+(cherry picked from commit b9d7238b55ae86eb71c36618d9004e13db81e706)
+---
+ ext/openssl/tests/CertificateGenerator.inc | 75 +++++++++++++++++++-----------
+ ext/openssl/tests/san.cnf                  | 13 ------
+ 2 files changed, 49 insertions(+), 39 deletions(-)
+ delete mode 100644 ext/openssl/tests/san.cnf
+
+diff --git a/ext/openssl/tests/CertificateGenerator.inc b/ext/openssl/tests/CertificateGenerator.inc
+index 4cd8540..b409376 100644
+--- a/ext/openssl/tests/CertificateGenerator.inc
++++ b/ext/openssl/tests/CertificateGenerator.inc
+@@ -3,7 +3,6 @@
+ class CertificateGenerator
+ {
+     const CONFIG = __DIR__. DIRECTORY_SEPARATOR . 'openssl.cnf';
+-    const SAN_CONFIG = __DIR__ . DIRECTORY_SEPARATOR . 'san.cnf';
+ 
+     /** @var resource */
+     private $ca;
+@@ -96,32 +95,56 @@ class CertificateGenerator
+             $dn['commonName'] = $commonNameForCert;
+         }
+ 
+-        $config = [
+-            'digest_alg' => 'sha256',
+-            'req_extensions' => 'v3_req',
+-            'x509_extensions' => 'usr_cert',
+-        ];
+-        if ($subjectAltName !== null) {
+-            putenv("PHP_SUBJECTALTNAME=$subjectAltName");
+-            $config['config'] = self::SAN_CONFIG;
++        $subjectAltNameConfig =
++            $subjectAltName ? "subjectAltName = $subjectAltName" : "";
++        $configCode = <<<CONFIG
++[ req ]
++distinguished_name = req_distinguished_name
++default_md = sha256
++
++[ req_distinguished_name ]
++
++[ v3_req ]
++basicConstraints = CA:FALSE
++keyUsage = nonRepudiation, digitalSignature, keyEncipherment
++$subjectAltNameConfig
++
++[ usr_cert ]
++basicConstraints = CA:FALSE
++$subjectAltNameConfig
++CONFIG;
++        $configFile = $file . '.cnf';
++        file_put_contents($configFile, $configCode);
++
++        try {
++            $config = [
++                'config' => $configFile,
++                'req_extensions' => 'v3_req',
++                'x509_extensions' => 'usr_cert',
++            ];
++
++            $this->lastKey = self::generateKey($keyLength);
++            $this->lastCert = openssl_csr_sign(
++                openssl_csr_new($dn, $this->lastKey, $config),
++                $this->ca,
++                $this->caKey,
++                /* days */ 2,
++                $config,
++            );
++            if (!$this->lastCert) {
++                throw new Exception('Failed to create certificate');
++            }
++
++            $certText = '';
++            openssl_x509_export($this->lastCert, $certText);
++
++            $keyText = '';
++            openssl_pkey_export($this->lastKey, $keyText);
++
++            file_put_contents($file, $certText . PHP_EOL . $keyText);
++        } finally {
++            unlink($configFile);
+         }
+-
+-        $this->lastKey = self::generateKey($keyLength);
+-        $this->lastCert = openssl_csr_sign(
+-            openssl_csr_new($dn, $this->lastKey, $config),
+-            $this->ca,
+-            $this->caKey,
+-            /* days */ 2,
+-            $config,
+-        );
+-
+-        $certText = '';
+-        openssl_x509_export($this->lastCert, $certText);
+-
+-        $keyText = '';
+-        openssl_pkey_export($this->lastKey, $keyText);
+-
+-        file_put_contents($file, $certText . PHP_EOL . $keyText);
+     }
+ 
+     public function getCertDigest($algo)
+diff --git a/ext/openssl/tests/san.cnf b/ext/openssl/tests/san.cnf
+deleted file mode 100644
+index fd34733..0000000
+--- a/ext/openssl/tests/san.cnf
++++ /dev/null
+@@ -1,13 +0,0 @@
+-[ req ]
+-distinguished_name = req_distinguished_name
+-
+-[ req_distinguished_name ]
+-
+-[ v3_req ]
+-basicConstraints = CA:FALSE
+-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+-subjectAltName = ${ENV::PHP_SUBJECTALTNAME}
+-
+-[ usr_cert ]
+-basicConstraints = CA:FALSE
+-subjectAltName = ${ENV::PHP_SUBJECTALTNAME}

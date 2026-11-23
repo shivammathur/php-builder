@@ -1,0 +1,25 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:44 +0100
+Subject: Skip enchant bug13181 test without the en dictionary
+
+---
+ ext/enchant/tests/bug13181.phpt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ext/enchant/tests/bug13181.phpt b/ext/enchant/tests/bug13181.phpt
+index 742e0c7..e111562 100644
+--- a/ext/enchant/tests/bug13181.phpt
++++ b/ext/enchant/tests/bug13181.phpt
+@@ -14,10 +14,10 @@ if (!$broker) {
+ 	exit;
+ }
+ 
+-if (!enchant_broker_list_dicts($broker)) {
++if (!enchant_broker_dict_exists($broker, "en")) {
+ 	enchant_broker_free($broker);
+ 
+-	echo "skip: No broker dicts installed\n";
++	echo "skip: No en dictionary installed\n";
+ }
+ 
+ enchant_broker_free($broker);

@@ -1,0 +1,37 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:31:29 +0100
+Subject: Skip the enchant tests that need libenchant 1
+
+The enchant extension is built with libenchant 2, which has no dictionary
+path to set or get. Backport of the SKIPIF changes of upstream commit
+66d42e98844 (PHP 8.0), whose changes of the extension are in
+0054-remove-deprecated-call-and-deprecate-function-to-be-.patch.
+---
+ ext/enchant/tests/bug53070.phpt                     | 1 +
+ ext/enchant/tests/enchant_broker_set_dict_path.phpt | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/ext/enchant/tests/bug53070.phpt b/ext/enchant/tests/bug53070.phpt
+index b35f19c..e4088be 100644
+--- a/ext/enchant/tests/bug53070.phpt
++++ b/ext/enchant/tests/bug53070.phpt
+@@ -4,6 +4,7 @@ Bug #53070 (enchant_broker_get_path crashes if no path is set)
+ <?php
+ if(!extension_loaded('enchant')) die('skip, enchant not loader');
+ if (!is_resource(enchant_broker_init())) {die("skip, resource dont load\n");}
++if (defined("LIBENCHANT_VERSION") && version_compare(LIBENCHANT_VERSION, "2", ">")) die('skip libenchant v1 only');
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/enchant/tests/enchant_broker_set_dict_path.phpt b/ext/enchant/tests/enchant_broker_set_dict_path.phpt
+index db35288..cf56441 100644
+--- a/ext/enchant/tests/enchant_broker_set_dict_path.phpt
++++ b/ext/enchant/tests/enchant_broker_set_dict_path.phpt
+@@ -8,6 +8,7 @@ marcosptf - <marcosptf@yahoo.com.br>
+ if(!extension_loaded('enchant')) die('skip, enchant not loader');
+ if (!is_resource(enchant_broker_init())) {die("skip, resource dont load\n");}
+ if (!is_array(enchant_broker_list_dicts(enchant_broker_init()))) {die("skip, dont has dictionary install in this machine! \n");}
++if (defined("LIBENCHANT_VERSION") && version_compare(LIBENCHANT_VERSION, "2", ">")) die('skip libenchant v1 only');
+ ?>
+ --FILE--
+ <?php

@@ -1,0 +1,274 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Thu, 19 Nov 2026 18:32:40 +0100
+Subject: ext/soap: fix DTD node being matched as an element
+
+The DTD node kept by the GHSA-4646-p932-gw34 fix is named after the
+DOCTYPE, so lookups for definitions, schema or Envelope could return it.
+---
+ ext/soap/php_xml.c                                 |  4 +++
+ ext/soap/tests/dtd_named_like_root_request.phpt    | 27 +++++++++++++++++
+ .../tests/dtd_named_like_root_request_input.phpt   | 25 ++++++++++++++++
+ ext/soap/tests/dtd_named_like_root_schema.phpt     | 22 ++++++++++++++
+ ext/soap/tests/dtd_named_like_root_schema.wsdl     | 35 ++++++++++++++++++++++
+ .../tests/dtd_named_like_root_schema_import.xsd    | 20 +++++++++++++
+ .../tests/dtd_named_like_root_schema_include.xsd   | 10 +++++++
+ ext/soap/tests/dtd_named_like_root_wsdl.phpt       | 16 ++++++++++
+ ext/soap/tests/dtd_named_like_root_wsdl.wsdl       | 30 +++++++++++++++++++
+ 9 files changed, 189 insertions(+)
+ create mode 100644 ext/soap/tests/dtd_named_like_root_request.phpt
+ create mode 100644 ext/soap/tests/dtd_named_like_root_request_input.phpt
+ create mode 100644 ext/soap/tests/dtd_named_like_root_schema.phpt
+ create mode 100644 ext/soap/tests/dtd_named_like_root_schema.wsdl
+ create mode 100644 ext/soap/tests/dtd_named_like_root_schema_import.xsd
+ create mode 100644 ext/soap/tests/dtd_named_like_root_schema_include.xsd
+ create mode 100644 ext/soap/tests/dtd_named_like_root_wsdl.phpt
+ create mode 100644 ext/soap/tests/dtd_named_like_root_wsdl.wsdl
+
+diff --git a/ext/soap/php_xml.c b/ext/soap/php_xml.c
+index a692ba8..a4a45d9 100644
+--- a/ext/soap/php_xml.c
++++ b/ext/soap/php_xml.c
+@@ -276,6 +276,10 @@ int attr_is_equal_ex(xmlAttrPtr node, char *name, char *ns)
+ 
+ int node_is_equal_ex(xmlNodePtr node, char *name, char *ns)
+ {
++	/* A DTD node can carry the same name but is not an xmlNode. */
++	if (node->type != XML_ELEMENT_NODE) {
++		return FALSE;
++	}
+ 	if (name == NULL || ((node->name) && strcmp((char*)node->name, name) == 0)) {
+ 		if (ns) {
+ 			xmlNsPtr nsPtr = node_find_ns(node);
+diff --git a/ext/soap/tests/dtd_named_like_root_request.phpt b/ext/soap/tests/dtd_named_like_root_request.phpt
+new file mode 100644
+index 0000000..9078c02
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_request.phpt
+@@ -0,0 +1,27 @@
++--TEST--
++SOAP: DOCTYPE named like the envelope is not taken for it when rejecting a request
++--EXTENSIONS--
++soap
++--FILE--
++<?php
++function test($x) {
++    return $x;
++}
++
++$request = <<<XML
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE Envelope [<!NOTATION n SYSTEM "x">]>
++<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope" xmlns:ns1="urn:test">
++  <env:Body>
++    <ns1:test><param0>x</param0></ns1:test>
++  </env:Body>
++</env:Envelope>
++XML;
++
++$server = new SoapServer(null, ['uri' => 'urn:test']);
++$server->addFunction('test');
++$server->handle($request);
++?>
++--EXPECT--
++<?xml version="1.0" encoding="UTF-8"?>
++<env:Envelope xmlns:env="http://www.w3.org/2003/05/soap-envelope"><env:Body><env:Fault><env:Code><env:Value>env:Receiver</env:Value></env:Code><env:Reason><env:Text>DTD are not supported by SOAP</env:Text></env:Reason></env:Fault></env:Body></env:Envelope>
+diff --git a/ext/soap/tests/dtd_named_like_root_request_input.phpt b/ext/soap/tests/dtd_named_like_root_request_input.phpt
+new file mode 100644
+index 0000000..579f5cf
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_request_input.phpt
+@@ -0,0 +1,25 @@
++--TEST--
++SOAP: DOCTYPE named like the envelope is not taken for it when rejecting a posted request
++--POST--
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE Envelope [<!NOTATION n SYSTEM "x">]>
++<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ns1="urn:test">
++  <SOAP-ENV:Body>
++    <ns1:test><param0>x</param0></ns1:test>
++  </SOAP-ENV:Body>
++</SOAP-ENV:Envelope>
++--EXTENSIONS--
++soap
++--FILE--
++<?php
++function test($x) {
++    return $x;
++}
++
++$server = new SoapServer(null, ['uri' => 'urn:test']);
++$server->addFunction('test');
++$server->handle();
++?>
++--EXPECT--
++<?xml version="1.0" encoding="UTF-8"?>
++<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"><SOAP-ENV:Body><SOAP-ENV:Fault><faultcode>SOAP-ENV:Server</faultcode><faultstring>DTD are not supported by SOAP</faultstring></SOAP-ENV:Fault></SOAP-ENV:Body></SOAP-ENV:Envelope>
+diff --git a/ext/soap/tests/dtd_named_like_root_schema.phpt b/ext/soap/tests/dtd_named_like_root_schema.phpt
+new file mode 100644
+index 0000000..930f3aa
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_schema.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++SOAP: DOCTYPE named like the schema root element is not taken for it
++--EXTENSIONS--
++soap
++--INI--
++soap.wsdl_cache_enabled=0
++--FILE--
++<?php
++$client = new SoapClient(__DIR__ . '/dtd_named_like_root_schema.wsdl');
++var_dump($client->__getTypes());
++?>
++--EXPECT--
++array(2) {
++  [0]=>
++  string(30) "struct Imported {
++ string a;
++}"
++  [1]=>
++  string(30) "struct Included {
++ string b;
++}"
++}
+diff --git a/ext/soap/tests/dtd_named_like_root_schema.wsdl b/ext/soap/tests/dtd_named_like_root_schema.wsdl
+new file mode 100644
+index 0000000..be8c462
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_schema.wsdl
+@@ -0,0 +1,35 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
++             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
++             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
++             xmlns:tns="urn:test"
++             targetNamespace="urn:test"
++             name="Test">
++  <types>
++    <xsd:schema targetNamespace="urn:test">
++      <xsd:import namespace="urn:imported" schemaLocation="dtd_named_like_root_schema_import.xsd"/>
++      <xsd:include schemaLocation="dtd_named_like_root_schema_include.xsd"/>
++    </xsd:schema>
++  </types>
++  <message name="echoRequest"><part name="p" type="tns:Included"/></message>
++  <message name="echoResponse"><part name="r" type="tns:Included"/></message>
++  <portType name="TestPort">
++    <operation name="echo">
++      <input message="tns:echoRequest"/>
++      <output message="tns:echoResponse"/>
++    </operation>
++  </portType>
++  <binding name="TestBinding" type="tns:TestPort">
++    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
++    <operation name="echo">
++      <soap:operation soapAction="urn:test#echo"/>
++      <input><soap:body use="encoded" namespace="urn:test" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></input>
++      <output><soap:body use="encoded" namespace="urn:test" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></output>
++    </operation>
++  </binding>
++  <service name="TestService">
++    <port name="TestPort" binding="tns:TestBinding">
++      <soap:address location="http://localhost/test"/>
++    </port>
++  </service>
++</definitions>
+diff --git a/ext/soap/tests/dtd_named_like_root_schema_import.xsd b/ext/soap/tests/dtd_named_like_root_schema_import.xsd
+new file mode 100644
+index 0000000..23291a1
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_schema_import.xsd
+@@ -0,0 +1,20 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!-- Same DOCTYPE shape as the W3C xmldsig-core-schema.xsd -->
++<!DOCTYPE schema
++  PUBLIC "-//W3C//DTD XMLSchema 200102//EN" "http://www.w3.org/2001/XMLSchema.dtd"
++ [
++   <!ATTLIST schema
++     xmlns:im CDATA #FIXED "urn:imported">
++   <!ENTITY im 'urn:imported'>
++   <!ENTITY % p ''>
++   <!ENTITY % s ''>
++  ]>
++<schema xmlns="http://www.w3.org/2001/XMLSchema"
++        xmlns:im="urn:imported"
++        targetNamespace="urn:imported">
++  <complexType name="Imported">
++    <sequence>
++      <element name="a" type="string"/>
++    </sequence>
++  </complexType>
++</schema>
+diff --git a/ext/soap/tests/dtd_named_like_root_schema_include.xsd b/ext/soap/tests/dtd_named_like_root_schema_include.xsd
+new file mode 100644
+index 0000000..faefc88
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_schema_include.xsd
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE schema PUBLIC "-//W3C//DTD XMLSchema 200102//EN" "http://www.w3.org/2001/XMLSchema.dtd">
++<schema xmlns="http://www.w3.org/2001/XMLSchema"
++        targetNamespace="urn:test">
++  <complexType name="Included">
++    <sequence>
++      <element name="b" type="string"/>
++    </sequence>
++  </complexType>
++</schema>
+diff --git a/ext/soap/tests/dtd_named_like_root_wsdl.phpt b/ext/soap/tests/dtd_named_like_root_wsdl.phpt
+new file mode 100644
+index 0000000..61a57a6
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_wsdl.phpt
+@@ -0,0 +1,16 @@
++--TEST--
++SOAP: DOCTYPE named like the WSDL root element is not taken for it
++--EXTENSIONS--
++soap
++--INI--
++soap.wsdl_cache_enabled=0
++--FILE--
++<?php
++$client = new SoapClient(__DIR__ . '/dtd_named_like_root_wsdl.wsdl');
++var_dump($client->__getFunctions());
++?>
++--EXPECT--
++array(1) {
++  [0]=>
++  string(22) "string echo(string $p)"
++}
+diff --git a/ext/soap/tests/dtd_named_like_root_wsdl.wsdl b/ext/soap/tests/dtd_named_like_root_wsdl.wsdl
+new file mode 100644
+index 0000000..16430f4
+--- /dev/null
++++ b/ext/soap/tests/dtd_named_like_root_wsdl.wsdl
+@@ -0,0 +1,30 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE definitions [<!NOTATION n SYSTEM "x">]>
++<definitions xmlns="http://schemas.xmlsoap.org/wsdl/"
++             xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
++             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
++             xmlns:tns="urn:test"
++             targetNamespace="urn:test"
++             name="Test">
++  <message name="echoRequest"><part name="p" type="xsd:string"/></message>
++  <message name="echoResponse"><part name="r" type="xsd:string"/></message>
++  <portType name="TestPort">
++    <operation name="echo">
++      <input message="tns:echoRequest"/>
++      <output message="tns:echoResponse"/>
++    </operation>
++  </portType>
++  <binding name="TestBinding" type="tns:TestPort">
++    <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
++    <operation name="echo">
++      <soap:operation soapAction="urn:test#echo"/>
++      <input><soap:body use="encoded" namespace="urn:test" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></input>
++      <output><soap:body use="encoded" namespace="urn:test" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/"/></output>
++    </operation>
++  </binding>
++  <service name="TestService">
++    <port name="TestPort" binding="tns:TestBinding">
++      <soap:address location="http://localhost/test"/>
++    </port>
++  </service>
++</definitions>

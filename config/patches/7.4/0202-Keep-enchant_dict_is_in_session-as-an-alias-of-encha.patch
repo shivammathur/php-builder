@@ -1,0 +1,25 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:37:58 +0100
+Subject: Keep enchant_dict_is_in_session() as an alias of
+ enchant_dict_is_added()
+
+0038-remove-deprecated-call-and-deprecate-function-to-be-.patch renamed
+enchant_dict_is_in_session() to enchant_dict_is_added() and kept an alias
+only for enchant_dict_add_to_personal(). Upstream commit 66d42e98844
+(PHP 8.0) keeps both old names as aliases.
+---
+ ext/enchant/enchant.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/enchant/enchant.c b/ext/enchant/enchant.c
+index 900d605..6853de6 100644
+--- a/ext/enchant/enchant.c
++++ b/ext/enchant/enchant.c
+@@ -139,6 +139,7 @@ static const zend_function_entry enchant_functions[] = {
+ 	PHP_FALIAS(enchant_dict_add_to_personal, 	enchant_dict_add, 	arginfo_enchant_dict_check)
+ 	PHP_FE(enchant_dict_add_to_session, 	arginfo_enchant_dict_check)
+ 	PHP_FE(enchant_dict_is_added, 		arginfo_enchant_dict_check)
++	PHP_FALIAS(enchant_dict_is_in_session, 	enchant_dict_is_added, 	arginfo_enchant_dict_check)
+ 	PHP_FE(enchant_dict_store_replacement, 	arginfo_enchant_dict_store_replacement)
+ 	PHP_FE(enchant_dict_get_error, 			arginfo_enchant_broker_free_dict)
+ 	PHP_FE(enchant_dict_describe, 			arginfo_enchant_broker_free_dict)

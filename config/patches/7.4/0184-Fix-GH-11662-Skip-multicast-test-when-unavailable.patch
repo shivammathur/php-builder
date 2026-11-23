@@ -1,0 +1,40 @@
+From: Pratik Bhujel <prateekbhujelpb@gmail.com>
+Date: Tue, 22 Sep 2026 12:59:17 +0545
+Subject: Fix GH-11662: Skip multicast test when unavailable
+
+The test assumes that IPv4 multicast is available. In an isolated Linux
+network namespace, joining the group fails before the test starts.
+
+Probe that capability in SKIPIF and skip the test when it is unavailable.
+
+Close GH-23838
+---
+ ext/sockets/tests/bug63000.phpt | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/ext/sockets/tests/bug63000.phpt b/ext/sockets/tests/bug63000.phpt
+index 024f784..5817dd6 100644
+--- a/ext/sockets/tests/bug63000.phpt
++++ b/ext/sockets/tests/bug63000.phpt
+@@ -5,6 +5,21 @@ Bug #63000: Multicast on OSX
+ if (!extension_loaded('sockets')) {
+     die('skip sockets extension not available.');
+ }
++$socket = @socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
++if ($socket === false) {
++    die('skip unable to create IPv4 UDP socket');
++}
++$so = @socket_set_option($socket, IPPROTO_IP, MCAST_JOIN_GROUP, [
++    'group' => '224.0.0.251',
++    'interface' => 0,
++]);
++if ($so === false) {
++    $errno = socket_last_error($socket);
++    if (in_array($errno, [SOCKET_ENODEV, SOCKET_ENXIO, SOCKET_EADDRNOTAVAIL], true)) {
++        die('skip no multicast-capable interface: ' . socket_strerror($errno));
++    }
++}
++?>
+ --FILE--
+ <?php
+ $socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);

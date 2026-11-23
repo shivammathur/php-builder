@@ -1,0 +1,40 @@
+From: Marcel Hernandez <e6990620@gmail.com>
+Date: Tue, 22 Sep 2026 00:09:01 +0200
+Subject: fpm: fix potential null dereference in fpm_status_export_to_zval()
+
+---
+ NEWS                      | 6 ++++++
+ sapi/fpm/fpm/fpm_status.c | 3 +++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index aa43edc..a03f5f6 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,12 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.4.28
++
++- FPM:
++  . Fixed null pointer dereference in fpm_get_status() when the scoreboard
++    copy fails. (Marcel Hernandez)
++
+ Backported from 8.3.28
+ 
+ - FPM:
+diff --git a/sapi/fpm/fpm/fpm_status.c b/sapi/fpm/fpm/fpm_status.c
+index 7a482a3..08abb0a 100644
+--- a/sapi/fpm/fpm/fpm_status.c
++++ b/sapi/fpm/fpm/fpm_status.c
+@@ -56,6 +56,9 @@ int fpm_status_export_to_zval(zval *status)
+ 	int i;
+ 
+ 	scoreboard_p = fpm_scoreboard_copy(NULL, 1);
++	if (!scoreboard_p) {
++		return -1;
++	}
+ 
+ 	now_epoch = time(NULL);
+ 	fpm_clock_get(&now);

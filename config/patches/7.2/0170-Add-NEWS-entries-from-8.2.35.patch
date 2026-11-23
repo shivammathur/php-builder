@@ -1,0 +1,29 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Sun, 25 Oct 2026 06:03:09 +0100
+Subject: Add NEWS entries from 8.2.35
+
+(cherry picked from commit ed316bc682381472fa0c530a799905a6ec4f7e71)
+(cherry picked from commit 239d8122851d31a5e7350f77b32810e58d56c1f4)
+(cherry picked from commit e85d3c007bcb7282ddb0d375de5461cd41dd3f1e)
+---
+ NEWS | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 80b7567..a4a3b97 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,13 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.35
++
++- Core:
++  . Mitigated GHSA-w8hw-w9fx-j79w, GHSA-6wmf-4rv5-p3rp (Avoid state corruption via
++    bailout). (CVE-2026-109618, CVE-2026-109619) (Arnaud, ilutov, Jakub Zelenka,
++    ndossche, Nicolas Grekas)
++
+ Backported from 8.2.34
+ 
+ - SOAP:

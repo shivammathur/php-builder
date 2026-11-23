@@ -1,0 +1,69 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:54:54 +0100
+Subject: Don't expect the build date in the version and phpinfo tests
+
+0041-Add-patch-to-remove-build-timestamps-from-generated-.patch removes
+the build date from the output of "php -v" and of phpinfo(), which these
+three tests expect.
+---
+ ext/standard/tests/general_functions/phpinfo.phpt | 1 -
+ sapi/cli/tests/001.phpt                           | 2 +-
+ sapi/cli/tests/015.phpt                           | 8 ++++----
+ 3 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/ext/standard/tests/general_functions/phpinfo.phpt b/ext/standard/tests/general_functions/phpinfo.phpt
+index 699d604..5c9c8f4 100644
+--- a/ext/standard/tests/general_functions/phpinfo.phpt
++++ b/ext/standard/tests/general_functions/phpinfo.phpt
+@@ -19,7 +19,6 @@ phpinfo()
+ PHP Version => %s
+ 
+ System => %s
+-Build Date => %s%a
+ Server API => Command Line Interface
+ Virtual Directory Support => %s
+ Configuration File (php.ini) Path => %s
+diff --git a/sapi/cli/tests/001.phpt b/sapi/cli/tests/001.phpt
+index 6fbd608..5dd5880 100644
+--- a/sapi/cli/tests/001.phpt
++++ b/sapi/cli/tests/001.phpt
+@@ -12,7 +12,7 @@ var_dump(`$php -n -v`);
+ echo "Done\n";
+ ?>
+ --EXPECTF--	
+-string(%d) "PHP %s (cli) (built: %s)%s
++string(%d) "PHP %s (cli)%S
+ Copyright (c) 1997-20%d The PHP Group
+ Zend Engine v%s, Copyright (c) 1998-20%d Zend Technologies
+ "
+diff --git a/sapi/cli/tests/015.phpt b/sapi/cli/tests/015.phpt
+index ab5918b..669da60 100644
+--- a/sapi/cli/tests/015.phpt
++++ b/sapi/cli/tests/015.phpt
+@@ -13,15 +13,15 @@ if (substr(PHP_OS, 0, 3) == 'WIN') {
+ $php = getenv('TEST_PHP_EXECUTABLE');
+ 
+ 
+-echo `"$php" -n --version | grep built:`;
++echo `"$php" -n --version | grep "(cli)"`;
+ echo `echo "<?php print_r(\\\$argv);" | "$php" -n -- foo bar baz`, "\n";
+-echo `"$php" -n --version foo bar baz | grep built:`;
++echo `"$php" -n --version foo bar baz | grep "(cli)"`;
+ echo `"$php" -n --notexisting foo bar baz | grep Usage:`;
+ 
+ echo "Done\n";
+ ?>
+ --EXPECTF--     
+-PHP %d.%d.%d%s(cli) (built: %s)%s
++PHP %d.%d.%d%s(cli)%S
+ Array
+ (
+     [0] => -
+@@ -30,6 +30,6 @@ Array
+     [3] => baz
+ )
+ 
+-PHP %d.%d.%d%s(cli) (built: %s)%s
++PHP %d.%d.%d%s(cli)%S
+ Usage: %s [options] [-f] <file> [--] [args...]
+ Done

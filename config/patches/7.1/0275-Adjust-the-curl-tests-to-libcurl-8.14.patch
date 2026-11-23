@@ -1,0 +1,57 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:20:58 +0100
+Subject: Adjust the curl tests to libcurl 8.14
+
+Newer libcurl words the "No URL set" and "protocol not supported" errors
+differently, rejects a URL scheme that starts with a digit and limits the
+lifetime of cookies. Backport of upstream commits 722e9b9fa57 (PHP
+8.0.20), 3af76b2302c and 36d46a47321 (PHP 8.1).
+---
+ ext/curl/tests/curl_basic_007.phpt | 2 +-
+ ext/curl/tests/curl_basic_009.phpt | 3 ++-
+ ext/curl/tests/curl_basic_022.phpt | 6 +++---
+ 3 files changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/ext/curl/tests/curl_basic_007.phpt b/ext/curl/tests/curl_basic_007.phpt
+index b7eba4b..d4c9ac4 100644
+--- a/ext/curl/tests/curl_basic_007.phpt
++++ b/ext/curl/tests/curl_basic_007.phpt
+@@ -20,5 +20,5 @@ curl_close($ch);
+ 
+ ?>
+ --EXPECTF--
+-%string|unicode%(%d) "No URL set!%w"
++%string|unicode%(%d) "No URL set%A"
+ int(3)
+diff --git a/ext/curl/tests/curl_basic_009.phpt b/ext/curl/tests/curl_basic_009.phpt
+index 529e590..3a39d19 100644
+--- a/ext/curl/tests/curl_basic_009.phpt
++++ b/ext/curl/tests/curl_basic_009.phpt
+@@ -7,7 +7,8 @@ TestFest 2009 - AFUP - Perrick Penet <perrick@noparking.net>
+ --FILE--
+ <?php
+ 
+-$url = uniqid()."://www.".uniqid().".".uniqid();
++// Make sure the scheme always starts with an alphabetic character.
++$url = 'a' . substr(uniqid(),0,6)."://www.example.com";
+ $ch = curl_init();
+ curl_setopt($ch, CURLOPT_URL, $url);
+ 
+diff --git a/ext/curl/tests/curl_basic_022.phpt b/ext/curl/tests/curl_basic_022.phpt
+index a01ca4f..231d4e3 100644
+--- a/ext/curl/tests/curl_basic_022.phpt
++++ b/ext/curl/tests/curl_basic_022.phpt
+@@ -16,10 +16,10 @@ curl_setopt($ch, CURLOPT_COOKIELIST, 'Set-Cookie: C2=v2; expires=Thu, 31-Dec-203
+ var_dump(curl_getinfo($ch, CURLINFO_COOKIELIST));
+ 
+ ?>
+---EXPECT--
++--EXPECTF--
+ array(2) {
+   [0]=>
+-  string(38) ".php.net	TRUE	/	FALSE	2145916799	C1	v1"
++  string(38) ".php.net	TRUE	/	FALSE	%d	C1	v1"
+   [1]=>
+-  string(38) ".php.net	TRUE	/	FALSE	2145916799	C2	v2"
++  string(38) ".php.net	TRUE	/	FALSE	%d	C2	v2"
+ }

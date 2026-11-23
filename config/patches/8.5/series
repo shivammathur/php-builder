@@ -39,3 +39,14 @@
 0039-Disable-avx-detection-with-gcc-6.patch
 0040-Disable-garbage-collection-routine.patch
 0041-Add-missing-header-includes.patch
+0042-Quote-the-MAIL-sendmail_path-in-run-tests.php.patch
+0043-Load-the-shared-phar-extension-by-path-in-opcache-CL.patch
+0044-Load-the-shared-readline-extension-in-CLI-option-tes.patch
+0045-Load-the-shared-mbstring-extension-in-rfc1867-OOM-te.patch
+0046-Skip-gd-tests-that-need-the-bundled-libgd.patch
+0047-Skip-enchant-bug13181-test-without-the-en-dictionary.patch
+0048-Accept-the-system-tzdata-version-in-timezone_version.patch
+0049-Backport-gd-test-expectations-from-PHP-8.6.patch
+0050-Don-t-use-libimagequant-in-imagetruecolortopalette.patch
+0051-ext-soap-fix-DTD-node-being-matched-as-an-element.patch
+0052-fix-dtd_named_like_root_request-test-for-8.5-and-new.patch

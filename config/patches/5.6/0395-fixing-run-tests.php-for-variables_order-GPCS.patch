@@ -1,0 +1,38 @@
+From: Matt Ficken <mattficken@php.net>
+Date: Mon, 15 May 2017 02:21:55 -0700
+Subject: fixing run-tests.php for variables_order="GPCS"
+
+PHP 5.6 never got this change (PHP 7.2.0). Its run-tests.php takes the
+environment of the tests from $_ENV, which is empty when the PHP that runs
+it reads a php.ini with variables_order = "GPCS" (php.ini-production in
+/etc/php/5.6/cli on a machine with php5.6-cli installed): the tests then
+run without SKIP_ONLINE_TESTS, SKIP_IO_CAPTURE_TESTS and HOME. Only the
+fallback is taken, and as getenv() without a name needs PHP 7.1, it takes
+the environment variables that the CLI put into $_SERVER.
+
+(cherry picked from commit c1d57186976e75a2a54f7bd167a77e2872cadc6a)
+---
+ run-tests.php | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/run-tests.php b/run-tests.php
+index 7dab5ab..219e431 100755
+--- a/run-tests.php
++++ b/run-tests.php
+@@ -132,6 +132,16 @@ SAFE_MODE_WARNING;
+ }
+ 
+ $environment = isset($_ENV) ? $_ENV : array();
++// Note: php.ini-development sets variables_order="GPCS" not "EGPCS", in which case $_ENV is NOT populated.
++//       detect and handle this case, or die or warn
++if (empty($environment)) {
++	// getenv() without a name needs PHP 7.1: take the environment variables that the CLI put into $_SERVER
++	foreach ($_SERVER as $name => $value) {
++		if (is_string($value) && getenv($name) === $value) {
++			$environment[$name] = $value;
++		}
++	}
++}
+ if ((substr(PHP_OS, 0, 3) == "WIN") && empty($environment["SystemRoot"])) {
+   $environment["SystemRoot"] = getenv("SystemRoot");
+ }

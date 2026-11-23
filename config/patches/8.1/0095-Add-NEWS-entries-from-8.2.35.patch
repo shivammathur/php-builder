@@ -1,0 +1,26 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Sun, 25 Oct 2026 06:03:09 +0100
+Subject: Add NEWS entries from 8.2.35
+
+---
+ NEWS | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index 56d073e..9571717 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,13 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.35
++
++- Core:
++  . Mitigated GHSA-w8hw-w9fx-j79w, GHSA-6wmf-4rv5-p3rp (Avoid state corruption via
++    bailout). (CVE-2026-109618, CVE-2026-109619) (Arnaud, ilutov, Jakub Zelenka,
++    ndossche, Nicolas Grekas)
++
+ Backported from 8.2.34
+ 
+ - Filter:

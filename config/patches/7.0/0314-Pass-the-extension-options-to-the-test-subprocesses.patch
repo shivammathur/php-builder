@@ -1,0 +1,103 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:07:06 +0100
+Subject: Pass the extension options to the test subprocesses
+
+The readline and soap extensions are built as shared modules, so the PHP
+processes started by these tests have to be given the same extension
+options as the test itself. run-tests.php of PHP 7.0 does not set
+TEST_PHP_EXTRA_ARGS, so the readline test builds the options itself in
+that case. PHP 7.0 also prints "Interactive mode enabled" instead of
+"Interactive shell" when readline is a shared module. The soap change is
+taken from upstream commit 6ba0b068199 (PHP 8.1.20).
+---
+ ext/soap/tests/bug73037.phpt |  6 +++++-
+ sapi/cli/tests/017.phpt      | 17 +++++++++++------
+ 2 files changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/ext/soap/tests/bug73037.phpt b/ext/soap/tests/bug73037.phpt
+index e68f621..4bdc31b 100644
+--- a/ext/soap/tests/bug73037.phpt
++++ b/ext/soap/tests/bug73037.phpt
+@@ -61,7 +61,11 @@ function get_data($max)
+ }
+ 
+ $router = "bug73037_server.php";
+-$args = substr(PHP_OS, 0, 3) == 'WIN' ? "-d extension_dir=" . ini_get("extension_dir") . " -d extension=php_soap.dll" : "";
++$args = "-d extension_dir=" . ini_get("extension_dir") . " -d extension=" . (substr(PHP_OS, 0, 3) == "WIN" ? "php_" : "") . "soap." . PHP_SHLIB_SUFFIX;
++if (php_ini_loaded_file()) {
++    // Necessary such that it works from a development directory in which case extension_dir might not be the real extension dir
++    $args .= " -c " . php_ini_loaded_file();
++}
+ $code = <<<'PHP'
+ $s = new SoapServer(NULL, array('uri' => 'http://here'));
+ $s->setObject(new stdclass());
+diff --git a/sapi/cli/tests/017.phpt b/sapi/cli/tests/017.phpt
+index efaf977..1053f74 100644
+--- a/sapi/cli/tests/017.phpt
++++ b/sapi/cli/tests/017.phpt
+@@ -10,6 +10,11 @@ if (!extension_loaded('readline') || readline_info('done') !== NULL) {
+ --FILE--
+ <?php
+ $php = getenv('TEST_PHP_EXECUTABLE');
++$ini = getenv('TEST_PHP_EXTRA_ARGS');
++if ($ini === false && !php_ini_loaded_file() && file_exists(ini_get('extension_dir') . '/readline.' . PHP_SHLIB_SUFFIX)) {
++	// run-tests.php of PHP 7.0 does not set TEST_PHP_EXTRA_ARGS
++	$ini = '-n -d extension_dir=' . ini_get('extension_dir') . ' -d extension=readline.' . PHP_SHLIB_SUFFIX;
++}
+ 
+ $codes = array();
+ 
+@@ -51,7 +56,7 @@ EOT;
+ foreach ($codes as $key => $code) {
+ 	echo "\n--------------\nSnippet no. $key:\n--------------\n";
+ 	$code = escapeshellarg($code);
+-	echo `echo $code | "$php" -a`, "\n";
++	echo `echo $code | "$php" $ini -a`, "\n";
+ }
+ 
+ echo "\nDone\n";
+@@ -60,7 +65,7 @@ echo "\nDone\n";
+ --------------
+ Snippet no. 1:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Hello world
+ 
+@@ -68,7 +73,7 @@ Hello world
+ --------------
+ Snippet no. 2:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ multine
+ single
+@@ -78,7 +83,7 @@ quote
+ --------------
+ Snippet no. 3:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Here
+ comes
+@@ -89,7 +94,7 @@ doc
+ --------------
+ Snippet no. 4:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ Done
+ 
+@@ -97,7 +102,7 @@ Done
+ --------------
+ Snippet no. 5:
+ --------------
+-Interactive shell
++Interactive %s
+ 
+ 
+ Parse error: syntax error, unexpected ')' in php shell code on line 1

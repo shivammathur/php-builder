@@ -1,0 +1,66 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Mon, 9 Aug 2021 14:19:33 +0200
+Subject: Extract public key portion via PEM roundtrip
+
+The workaround with cloning the X509_REQ no longer works in
+OpenSSL 3. Instead extract the public key portion by round
+tripping through PEM.
+
+PHP 7.1 does not have "Fix CSR leaks in openssl" (e0bafc6da44, PHP 7.2.21),
+so there is no original CSR to free here: a CSR parsed from a string is
+not freed, as before.
+
+(cherry picked from commit 26a51e8d7a6026f6bd69813d044785d154a296a3)
+---
+ ext/openssl/openssl.c | 30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index fb3eb0b..33f81f1 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -3605,6 +3605,21 @@ PHP_FUNCTION(openssl_csr_get_subject)
+ }
+ /* }}} */
+ 
++static EVP_PKEY *php_openssl_extract_public_key(EVP_PKEY *priv_key)
++{
++	/* Extract public key portion by round-tripping through PEM. */
++	EVP_PKEY *pub_key;
++	BIO *bio = BIO_new(BIO_s_mem());
++	if (!bio || !PEM_write_bio_PUBKEY(bio, priv_key)) {
++		BIO_free(bio);
++		return NULL;
++	}
++
++	pub_key = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
++	BIO_free(bio);
++	return pub_key;
++}
++
+ /* {{{ proto mixed openssl_csr_get_public_key(mixed csr)
+ 	Returns the subject of a CERT or FALSE on error */
+ PHP_FUNCTION(openssl_csr_get_public_key)
+@@ -3626,21 +3641,8 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 		RETURN_FALSE;
+ 	}
+ 
+-#if PHP_OPENSSL_API_VERSION >= 0x10100
+-	/* Due to changes in OpenSSL 1.1 related to locking when decoding CSR,
+-	 * the pub key is not changed after assigning. It means if we pass
+-	 * a private key, it will be returned including the private part.
+-	 * If we duplicate it, then we get just the public part which is
+-	 * the same behavior as for OpenSSL 1.0 */
+-	csr = X509_REQ_dup(csr);
+-#endif
+ 	/* Retrieve the public key from the CSR */
+-	tpubkey = X509_REQ_get_pubkey(csr);
+-
+-#if PHP_OPENSSL_API_VERSION >= 0x10100
+-	/* We need to free the CSR as it was duplicated */
+-	X509_REQ_free(csr);
+-#endif
++	tpubkey = php_openssl_extract_public_key(X509_REQ_get_pubkey(csr));
+ 
+ 	if (tpubkey == NULL) {
+ 		php_openssl_store_errors();

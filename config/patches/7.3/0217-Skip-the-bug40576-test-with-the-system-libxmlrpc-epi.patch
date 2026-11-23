@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 17:30:00 +0100
+Subject: Skip the bug40576 test with the system libxmlrpc-epi
+
+The system libxmlrpc-epi formats doubles with "%f", so xmlrpc_encode()
+keeps only six decimal places. The bundled library got the fix for PHP
+bug #40576 (upstream commit 8b9bf1e2c3e), the system one did not.
+---
+ ext/xmlrpc/tests/bug40576_64bit.phpt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/xmlrpc/tests/bug40576_64bit.phpt b/ext/xmlrpc/tests/bug40576_64bit.phpt
+index 926980d..c7c04b0 100644
+--- a/ext/xmlrpc/tests/bug40576_64bit.phpt
++++ b/ext/xmlrpc/tests/bug40576_64bit.phpt
+@@ -4,6 +4,7 @@ Bug #40576 (double values are truncated to 6 decimal digits when encoding)
+ <?php
+ if (!extension_loaded("xmlrpc")) print "skip";
+ if (PHP_INT_SIZE != 8) die("skip this test is for 64bit platform only");
++if (strpos(xmlrpc_encode(1.123456789), "1.123456789") === false) die("skip the system libxmlrpc-epi formats doubles with six decimal places");
+ ?>
+ --INI--
+ precision=12

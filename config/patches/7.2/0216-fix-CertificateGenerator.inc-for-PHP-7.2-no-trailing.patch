@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:40:55 +0200
+Subject: fix CertificateGenerator.inc for PHP 7.2 (no trailing comma in
+ calls)
+
+---
+ ext/openssl/tests/CertificateGenerator.inc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/openssl/tests/CertificateGenerator.inc b/ext/openssl/tests/CertificateGenerator.inc
+index b409376..10d743e 100644
+--- a/ext/openssl/tests/CertificateGenerator.inc
++++ b/ext/openssl/tests/CertificateGenerator.inc
+@@ -129,7 +129,7 @@ CONFIG;
+                 $this->ca,
+                 $this->caKey,
+                 /* days */ 2,
+-                $config,
++                $config
+             );
+             if (!$this->lastCert) {
+                 throw new Exception('Failed to create certificate');

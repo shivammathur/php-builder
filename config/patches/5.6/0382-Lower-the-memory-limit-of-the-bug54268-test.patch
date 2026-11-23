@@ -1,0 +1,25 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:54:55 +0100
+Subject: Lower the memory limit of the bug54268 test
+
+The package is built with DTrace support, which makes every PHP function
+call recurse on the C stack, so the endless recursion of this test
+overflows the 8 MB stack before it reaches a memory limit of 8M (it does
+up to 5M). Lower the limit to get to the error the test is about.
+---
+ Zend/tests/bug54268.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Zend/tests/bug54268.phpt b/Zend/tests/bug54268.phpt
+index b544cd8..a06112d 100644
+--- a/Zend/tests/bug54268.phpt
++++ b/Zend/tests/bug54268.phpt
+@@ -1,7 +1,7 @@
+ --TEST--
+ Bug #54268 (Double free when destroy_zend_class fails)
+ --INI--
+-memory_limit=8M
++memory_limit=2M
+ --SKIPIF--
+ <?php
+ $zend_mm_enabled = getenv("USE_ZEND_ALLOC");

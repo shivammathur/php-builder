@@ -1,0 +1,106 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:24:55 +0200
+Subject: use the http ServerClientTestCase.inc in the new tests
+
+(cherry picked from commit 39de6fa3895ff0ee777c4a6a4d0f2623c45b8f7f)
+---
+ ext/standard/tests/http/ghsa-52jp-hrpf-2jff-001.phpt | 2 +-
+ ext/standard/tests/http/ghsa-52jp-hrpf-2jff-002.phpt | 2 +-
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt | 2 +-
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt | 2 +-
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt | 2 +-
+ ext/standard/tests/http/ghsa-pcmh-g36c-qc44-001.phpt | 2 +-
+ ext/standard/tests/http/ghsa-pcmh-g36c-qc44-002.phpt | 2 +-
+ 7 files changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-001.phpt b/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-001.phpt
+index 46d77ec..3475a03 100644
+--- a/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-001.phpt
++++ b/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-001.phpt
+@@ -39,7 +39,7 @@ $clientCode = <<<'CODE'
+  var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-002.phpt b/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-002.phpt
+index d25c89d..706a85f 100644
+--- a/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-002.phpt
++++ b/ext/standard/tests/http/ghsa-52jp-hrpf-2jff-002.phpt
+@@ -39,7 +39,7 @@ $clientCode = <<<'CODE'
+  var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
+index c8dcd47..121f077 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
+@@ -36,7 +36,7 @@ $clientCode = <<<'CODE'
+     var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
+index ca8f75f0..0d141f9 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
+@@ -36,7 +36,7 @@ $clientCode = <<<'CODE'
+     var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
+index 4cfbc7e..8041487 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
+@@ -36,7 +36,7 @@ $clientCode = <<<'CODE'
+     var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-001.phpt b/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-001.phpt
+index 53baa1c..f491acf 100644
+--- a/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-001.phpt
++++ b/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-001.phpt
+@@ -35,7 +35,7 @@ $clientCode = <<<'CODE'
+     var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--
+diff --git a/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-002.phpt b/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-002.phpt
+index 5aa0ee0..4320b17 100644
+--- a/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-002.phpt
++++ b/ext/standard/tests/http/ghsa-pcmh-g36c-qc44-002.phpt
+@@ -35,7 +35,7 @@ $clientCode = <<<'CODE'
+     var_dump($http_response_header);
+ CODE;
+ 
+-include sprintf("%s/../../../openssl/tests/ServerClientTestCase.inc", __DIR__);
++include sprintf("%s/ServerClientTestCase.inc", __DIR__);
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
+ --EXPECTF--

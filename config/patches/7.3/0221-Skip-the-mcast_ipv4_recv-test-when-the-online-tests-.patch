@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 20:31:29 +0100
+Subject: Skip the mcast_ipv4_recv test when the online tests are skipped
+
+The test sends to a multicast group through the default route, which a
+build machine without network access does not have. Backport of the
+mcast_ipv4_recv part of upstream commit d570b7382d0 (PHP 7.4.0).
+---
+ ext/sockets/tests/mcast_ipv4_recv.phpt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/ext/sockets/tests/mcast_ipv4_recv.phpt b/ext/sockets/tests/mcast_ipv4_recv.phpt
+index fc92563..f56b21a 100644
+--- a/ext/sockets/tests/mcast_ipv4_recv.phpt
++++ b/ext/sockets/tests/mcast_ipv4_recv.phpt
+@@ -5,6 +5,7 @@ Multicast support: IPv4 receive options
+ if (!extension_loaded('sockets')) {
+     die('skip sockets extension not available.');
+ }
++if (getenv('SKIP_ONLINE_TESTS')) die('skip online test');
+ $s = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+ $br = socket_bind($s, '0.0.0.0', 3000);
+ $so = socket_set_option($s, IPPROTO_IP, MCAST_JOIN_GROUP, array(

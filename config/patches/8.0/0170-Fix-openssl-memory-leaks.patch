@@ -1,0 +1,31 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Wed, 11 Aug 2021 10:11:12 +0200
+Subject: Fix openssl memory leaks
+
+Some leaks that snuck in during refactorings.
+
+Only the openssl_csr_get_public_key() part is needed here: the key
+returned by X509_REQ_get_pubkey() has to be freed after "Extract public
+key portion via PEM roundtrip". The other part is for code that PHP 8.0
+does not have.
+
+(cherry picked from commit 7d2a2c7dc0447c81316d14f3a43a4b6a8ce0b982)
+---
+ ext/openssl/openssl.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 2a5f7dc..af3297c 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -3568,7 +3568,9 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 	}
+ 
+ 	/* Retrieve the public key from the CSR */
+-	EVP_PKEY *tpubkey = php_openssl_extract_public_key(X509_REQ_get_pubkey(csr));
++	EVP_PKEY *orig_key = X509_REQ_get_pubkey(csr);
++	EVP_PKEY *tpubkey = php_openssl_extract_public_key(orig_key);
++	EVP_PKEY_free(orig_key);
+ 
+ 	if (csr_str) {
+ 		/* We need to free the original CSR if it was freshly created */

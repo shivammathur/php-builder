@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:03:44 +0100
+Subject: Accept the PCRE2 10.46 message in the bug75457 test
+
+PCRE2 10.45 and newer report "atomic assertion expected" where older
+versions reported "assertion expected".  Accept both as upstream does
+(php-src 69480be12af).
+---
+ ext/pcre/tests/bug75457.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pcre/tests/bug75457.phpt b/ext/pcre/tests/bug75457.phpt
+index ee5ab16..1401b25 100644
+--- a/ext/pcre/tests/bug75457.phpt
++++ b/ext/pcre/tests/bug75457.phpt
+@@ -6,5 +6,5 @@ $pattern = "/(((?(?C)0?=))(?!()0|.(?0)0)())/";
+ var_dump(preg_match($pattern, "hello"));
+ ?>
+ --EXPECTF--
+-Warning: preg_match(): Compilation failed: assertion expected after (?( or (?(?C) at offset 8 in %sbug75457.php on line %d
++Warning: preg_match(): Compilation failed:%r( atomic|)%r assertion expected after (?( or (?(?C) at offset 8 in %sbug75457.php on line %d
+ bool(false)

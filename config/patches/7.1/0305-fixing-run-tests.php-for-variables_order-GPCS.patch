@@ -1,0 +1,33 @@
+From: Matt Ficken <mattficken@php.net>
+Date: Mon, 15 May 2017 02:21:55 -0700
+Subject: fixing run-tests.php for variables_order="GPCS"
+
+PHP 7.1 never got this change (PHP 7.2.0). Its run-tests.php takes the
+environment of the tests from $_ENV, which is empty when the PHP that runs
+it reads a php.ini with variables_order = "GPCS" (php.ini-production in
+/etc/php/7.1/cli on a machine with php7.1-cli installed): the tests then
+run without SKIP_ONLINE_TESTS, SKIP_IO_CAPTURE_TESTS and HOME. Only the
+getenv() fallback is taken.
+
+(cherry picked from commit c1d57186976e75a2a54f7bd167a77e2872cadc6a)
+---
+ run-tests.php | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/run-tests.php b/run-tests.php
+index cff12fd..3d3bdb9 100755
+--- a/run-tests.php
++++ b/run-tests.php
+@@ -94,6 +94,12 @@ if (ob_get_level()) echo "Not all buffers were deleted.\n";
+ error_reporting(E_ALL);
+ 
+ $environment = isset($_ENV) ? $_ENV : array();
++// Note: php.ini-development sets variables_order="GPCS" not "EGPCS", in which case $_ENV is NOT populated.
++//       detect and handle this case, or die or warn
++if (empty($environment)) {
++	// not documented, but returns array of all environment variables
++	$environment = getenv();
++}
+ if ((substr(PHP_OS, 0, 3) == "WIN") && empty($environment["SystemRoot"])) {
+   $environment["SystemRoot"] = getenv("SystemRoot");
+ }

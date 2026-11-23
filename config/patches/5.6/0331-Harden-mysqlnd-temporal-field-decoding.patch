@@ -1,0 +1,260 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 3 Nov 2026 11:32:31 +0100
+Subject: Harden mysqlnd temporal field decoding
+
+---
+ NEWS                                               |  4 +++
+ ext/mysqli/tests/fake_server.inc                   | 33 ++++++++++++++++++++++
+ ext/mysqli/tests/mysqlnd-short-date-length.phpt    | 22 +++++++++++++++
+ .../tests/mysqlnd-short-datetime-length.phpt       | 22 +++++++++++++++
+ ext/mysqli/tests/mysqlnd-short-time-length.phpt    | 22 +++++++++++++++
+ ext/mysqlnd/mysqlnd_ps_codec.c                     | 26 +++++++++++++++--
+ ext/mysqlnd/mysqlnd_wireprotocol.c                 |  8 +++++-
+ 7 files changed, 133 insertions(+), 4 deletions(-)
+ create mode 100644 ext/mysqli/tests/mysqlnd-short-date-length.phpt
+ create mode 100644 ext/mysqli/tests/mysqlnd-short-datetime-length.phpt
+ create mode 100644 ext/mysqli/tests/mysqlnd-short-time-length.phpt
+
+diff --git a/NEWS b/NEWS
+index bec6571..13e54f6 100644
+--- a/NEWS
++++ b/NEWS
+@@ -11,6 +11,10 @@ Backported from 8.2.34
+   . Fixed GHSA-62xp-839h-2637 (IPv6 ACL bypass in FastCGI listen.allowed_clients
+     due to partial address comparison). (CVE-2026-91768) (Alexandre Daubois)
+ 
++- MySQLnd:
++  . Hardened binary temporal field decoding against short lengths
++    (GHSA-r6x9-5r99-36j7, CVE-2025-1218).
++
+ - OpenSSL:
+   . Fixed GHSA-vvx9-73fr-5jjx (TLS hostname verification falls back to CN after
+     SAN mismatch). (CVE-2026-91769) (Jakub Zelenka)
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 1be0ddc..3f5ee34 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -711,6 +711,39 @@ function my_mysqli_test_stmt_response_row_over_read_string(my_mysqli_fake_server
+     $conn->read(65536);
+ }
+ 
++function my_mysqli_test_stmt_response_row_short_length(my_mysqli_fake_server_conn $conn, $field_name)
++{
++    $rh = $conn->packet_generator->server_stmt_execute_data_response($field_name);
++    /* The declared length cannot cover the fixed offsets of this field type. */
++    $rh[4]->packet_length = '090000';
++    $rh[4]->row_field2 = '01de';
++
++    $conn->send_server_greetings();
++    $conn->read();
++    $conn->send_server_ok();
++    $conn->read();
++    $conn->send_server_stmt_prepare_data_response($field_name);
++    $conn->read();
++    $conn->send($conn->packets_to_bytes($rh),
++        "Malicious Stmt Response for data $field_name [length too short]");
++    $conn->read(65536);
++}
++
++function my_mysqli_test_stmt_response_row_short_length_date(my_mysqli_fake_server_conn $conn)
++{
++    my_mysqli_test_stmt_response_row_short_length($conn, 'datval');
++}
++
++function my_mysqli_test_stmt_response_row_short_length_time(my_mysqli_fake_server_conn $conn)
++{
++    my_mysqli_test_stmt_response_row_short_length($conn, 'timval');
++}
++
++function my_mysqli_test_stmt_response_row_short_length_datetime(my_mysqli_fake_server_conn $conn)
++{
++    my_mysqli_test_stmt_response_row_short_length($conn, 'dtival');
++}
++
+ function my_mysqli_test_stmt_response_row_over_read_two_fields(
+     my_mysqli_fake_server_conn $conn,
+     $field_name,
+diff --git a/ext/mysqli/tests/mysqlnd-short-date-length.phpt b/ext/mysqli/tests/mysqlnd-short-date-length.phpt
+new file mode 100644
+index 0000000..94b48a8
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-short-date-length.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects a binary DATE field whose declared length is too short
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('stmt_response_row_short_length_date', $port);
++$process->wait();
++$conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++$stmt = $conn->prepare('SELECT strval, datval FROM data');
++$stmt->execute();
++$stmt->bind_result($str, $value);
++var_dump($stmt->fetch());
++$stmt->close();
++$conn->close();
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*Malformed server packet\. Field length is too short for the field type.*bool\(false\).*done
+diff --git a/ext/mysqli/tests/mysqlnd-short-datetime-length.phpt b/ext/mysqli/tests/mysqlnd-short-datetime-length.phpt
+new file mode 100644
+index 0000000..e36fff1
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-short-datetime-length.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects a binary DATETIME field whose declared length is too short
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('stmt_response_row_short_length_datetime', $port);
++$process->wait();
++$conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++$stmt = $conn->prepare('SELECT strval, dtival FROM data');
++$stmt->execute();
++$stmt->bind_result($str, $value);
++var_dump($stmt->fetch());
++$stmt->close();
++$conn->close();
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*Malformed server packet\. Field length is too short for the field type.*bool\(false\).*done
+diff --git a/ext/mysqli/tests/mysqlnd-short-time-length.phpt b/ext/mysqli/tests/mysqlnd-short-time-length.phpt
+new file mode 100644
+index 0000000..f18ae3d
+--- /dev/null
++++ b/ext/mysqli/tests/mysqlnd-short-time-length.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++mysqlnd rejects a binary TIME field whose declared length is too short
++--EXTENSIONS--
++mysqli
++--FILE--
++<?php
++require_once 'fake_server.inc';
++$port = 33305;
++$process = run_fake_server_in_background('stmt_response_row_short_length_time', $port);
++$process->wait();
++$conn = new mysqli('127.0.0.1', 'root', '', '', $port);
++$stmt = $conn->prepare('SELECT strval, timval FROM data');
++$stmt->execute();
++$stmt->bind_result($str, $value);
++var_dump($stmt->fetch());
++$stmt->close();
++$conn->close();
++$process->terminate(true);
++echo "done\n";
++?>
++--EXPECTREGEX--
++(?s).*Malformed server packet\. Field length is too short for the field type.*bool\(false\).*done
+diff --git a/ext/mysqlnd/mysqlnd_ps_codec.c b/ext/mysqlnd/mysqlnd_ps_codec.c
+index 307096d..24b391c 100644
+--- a/ext/mysqlnd/mysqlnd_ps_codec.c
++++ b/ext/mysqlnd/mysqlnd_ps_codec.c
+@@ -83,6 +83,17 @@ static inline zend_bool ps_fetch_is_packet_over_read_with_static_length(const un
+ 	return 0;
+ }
+ 
++static inline zend_bool ps_fetch_is_length_too_short(zend_uchar ** row, unsigned long length,
++		unsigned int min_length TSRMLS_DC)
++{
++	if (UNEXPECTED(length < min_length)) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Malformed server packet. Field length is too short for the field type");
++		*row = NULL;
++		return 1;
++	}
++	return 0;
++}
++
+ 
+ /* {{{ ps_fetch_from_1_to_8_bytes */
+ void
+@@ -269,6 +280,9 @@ ps_fetch_time(zval * zv, const MYSQLND_FIELD * const field, unsigned int pack_le
+ 		if (UNEXPECTED(ps_fetch_is_packet_over_read_with_variable_length(pack_len, row, p, length TSRMLS_CC))) {
+ 			return;
+ 		}
++		if (UNEXPECTED(ps_fetch_is_length_too_short(row, length, 8 TSRMLS_CC))) {
++			return;
++		}
+ 
+ 		zend_uchar * to= *row;
+ 
+@@ -279,7 +293,7 @@ ps_fetch_time(zval * zv, const MYSQLND_FIELD * const field, unsigned int pack_le
+ 		t.hour			= (unsigned int) to[5];
+ 		t.minute		= (unsigned int) to[6];
+ 		t.second		= (unsigned int) to[7];
+-		t.second_part	= (length > 8) ? (unsigned long) sint4korr(to+8) : 0;
++		t.second_part	= (length >= 12) ? (unsigned long) sint4korr(to+8) : 0;
+ 		t.year			= t.month= 0;
+ 		if (t.day) {
+ 			/* Convert days to hours at once */
+@@ -317,6 +331,9 @@ ps_fetch_date(zval * zv, const MYSQLND_FIELD * const field, unsigned int pack_le
+ 		if (UNEXPECTED(ps_fetch_is_packet_over_read_with_variable_length(pack_len, row, p, length TSRMLS_CC))) {
+ 			return;
+ 		}
++		if (UNEXPECTED(ps_fetch_is_length_too_short(row, length, 4 TSRMLS_CC))) {
++			return;
++		}
+ 
+ 		zend_uchar *to= *row;
+ 
+@@ -359,6 +376,9 @@ ps_fetch_datetime(zval * zv, const MYSQLND_FIELD * const field, unsigned int pac
+ 		if (UNEXPECTED(ps_fetch_is_packet_over_read_with_variable_length(pack_len, row, p, length TSRMLS_CC))) {
+ 			return;
+ 		}
++		if (UNEXPECTED(ps_fetch_is_length_too_short(row, length, 4 TSRMLS_CC))) {
++			return;
++		}
+ 
+ 		zend_uchar * to = *row;
+ 
+@@ -369,14 +389,14 @@ ps_fetch_datetime(zval * zv, const MYSQLND_FIELD * const field, unsigned int pac
+ 		t.month = (unsigned int) to[2];
+ 		t.day	 = (unsigned int) to[3];
+ 
+-		if (length > 4) {
++		if (length >= 7) {
+ 			t.hour	 = (unsigned int) to[4];
+ 			t.minute = (unsigned int) to[5];
+ 			t.second = (unsigned int) to[6];
+ 		} else {
+ 			t.hour = t.minute = t.second= 0;
+ 		}
+-		t.second_part = (length > 7) ? (unsigned long) sint4korr(to+7) : 0;
++		t.second_part = (length >= 11) ? (unsigned long) sint4korr(to+7) : 0;
+ 
+ 		(*row)+= length;
+ 	} else {
+diff --git a/ext/mysqlnd/mysqlnd_wireprotocol.c b/ext/mysqlnd/mysqlnd_wireprotocol.c
+index c16e3ba..161db86 100644
+--- a/ext/mysqlnd/mysqlnd_wireprotocol.c
++++ b/ext/mysqlnd/mysqlnd_wireprotocol.c
+@@ -1546,10 +1546,16 @@ php_mysqlnd_rowp_read_binary_protocol(MYSQLND_MEMORY_POOL_CHUNK * row_buffer, zv
+ 
+ 	end_field = (start_field = fields) + field_count;
+ 
++	/* The status byte and the complete null bitmap must fit the row. */
++	size_t null_bytes = field_count / 8 + 1 + (field_count % 8 > 6);
++	if (rbs == 0 || null_bytes > rbs - 1) {
++		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Malformed server packet. Incomplete null bitmap");
++		DBG_RETURN(FAIL);
++	}
+ 	/* skip the first byte, not EODATA_MARKER -> 0x0, status */
+ 	p++;
+ 	null_ptr= p;
+-	p += (field_count + 9)/8;	/* skip null bits */
++	p += null_bytes;	/* skip null bits */
+ 	bit	= 4;					/* first 2 bits are reserved */
+ 
+ 	for (i = 0, current_field = start_field; current_field < end_field; current_field++, i++) {

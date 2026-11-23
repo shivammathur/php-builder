@@ -1,0 +1,100 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:03:44 +0100
+Subject: Pass the extension options to the test subprocesses
+
+The interactive shell started by sapi/cli/tests/017.phpt and the workers
+started by ServerClientTestCase.inc run without the options run-tests.php
+was given, so the shared readline and sockets extensions are not loaded
+there.  Pass TEST_PHP_EXTRA_ARGS to them as upstream does since PHP 8.3
+(php-src aff99f5c1f5 and 5a4083181b9).
+---
+ ext/openssl/tests/ServerClientTestCase.inc |  3 ++-
+ sapi/cli/tests/017.phpt                    | 16 ++++++----------
+ 2 files changed, 8 insertions(+), 11 deletions(-)
+
+diff --git a/ext/openssl/tests/ServerClientTestCase.inc b/ext/openssl/tests/ServerClientTestCase.inc
+index 61d4538..3c8c7f7 100644
+--- a/ext/openssl/tests/ServerClientTestCase.inc
++++ b/ext/openssl/tests/ServerClientTestCase.inc
+@@ -77,8 +77,9 @@ class ServerClientTestCase
+             );
+         } else {
+             $cmd = sprintf(
+-                '%s "%s" %s %s',
++                '%s %s "%s" %s %s',
+                 PHP_BINARY,
++                getenv('TEST_PHP_EXTRA_ARGS'),
+                 __FILE__,
+                 WORKER_ARGV_VALUE,
+                 $worker
+diff --git a/sapi/cli/tests/017.phpt b/sapi/cli/tests/017.phpt
+index 8338f26..d2d37b1 100644
+--- a/sapi/cli/tests/017.phpt
++++ b/sapi/cli/tests/017.phpt
+@@ -8,13 +8,12 @@ include "skipif.inc";
+ if (readline_info('done') !== NULL) {
+     die ("skip need readline support using libedit");
+ }
+-if(substr(PHP_OS, 0, 3) == 'WIN' ) {
+-    die('skip not for Windows');
+-}
+ ?>
+ --FILE--
+ <?php
+ $php = getenv('TEST_PHP_EXECUTABLE');
++$ini = getenv('TEST_PHP_EXTRA_ARGS');
++$descriptorspec = [['pipe', 'r'], STDOUT, STDERR];
+ 
+ $codes = array();
+ 
+@@ -55,8 +54,10 @@ EOT;
+ 
+ foreach ($codes as $key => $code) {
+     echo "\n--------------\nSnippet no. $key:\n--------------\n";
+-    $code = escapeshellarg($code);
+-    echo `echo $code | "$php" -a`, "\n";
++    $proc = proc_open("$php $ini -a", $descriptorspec, $pipes);
++    fwrite($pipes[0], $code);
++    fclose($pipes[0]);
++    proc_close($proc);
+ }
+ 
+ echo "\nDone\n";
+@@ -69,7 +70,6 @@ Interactive shell
+ 
+ Hello world
+ 
+-
+ --------------
+ Snippet no. 2:
+ --------------
+@@ -79,7 +79,6 @@ multine
+ single
+ quote
+ 
+-
+ --------------
+ Snippet no. 3:
+ --------------
+@@ -90,7 +89,6 @@ comes
+ the
+ doc
+ 
+-
+ --------------
+ Snippet no. 4:
+ --------------
+@@ -98,7 +96,6 @@ Interactive shell
+ 
+ Done
+ 
+-
+ --------------
+ Snippet no. 5:
+ --------------
+@@ -107,5 +104,4 @@ Interactive shell
+ 
+ Parse error: Unmatched ')' in php shell code on line 1
+ 
+-
+ Done

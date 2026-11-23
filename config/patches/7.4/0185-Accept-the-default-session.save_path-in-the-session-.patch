@@ -1,0 +1,53 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:06:39 +0100
+Subject: Accept the default session.save_path in the session tests
+
+Debian's default session.save_path is /var/lib/php/sessions and the test
+suite runs with its own session.save_path, so the two tests cannot expect
+an empty one. Backport of the two hunks of upstream commit 092e090cf00
+(PHP 8.3).
+---
+ ext/session/tests/bug74514.phpt | 14 +++++++-------
+ ext/session/tests/bug74936.phpt |  8 ++++----
+ 2 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/ext/session/tests/bug74514.phpt b/ext/session/tests/bug74514.phpt
+index f7c8d46..94b6893 100644
+--- a/ext/session/tests/bug74514.phpt
++++ b/ext/session/tests/bug74514.phpt
+@@ -24,11 +24,11 @@ var_dump(session_cache_limiter());
+ var_dump(session_cache_expire());
+ ?>
+ ===DONE===
+---EXPECT--
+-string(9) "PHPSESSID"
+-string(3) "foo"
+-string(5) "files"
+-string(0) ""
+-string(7) "nocache"
+-int(180)
++--EXPECTF--
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++int(%d)
+ ===DONE===
+diff --git a/ext/session/tests/bug74936.phpt b/ext/session/tests/bug74936.phpt
+index aee7493..7244dde 100644
+--- a/ext/session/tests/bug74936.phpt
++++ b/ext/session/tests/bug74936.phpt
+@@ -13,8 +13,8 @@ var_dump(session_cache_limiter());
+ var_dump(session_save_path());
+ ?>
+ ===DONE===
+---EXPECT--
+-int(180)
+-string(7) "nocache"
+-string(0) ""
++--EXPECTF--
++int(%d)
++string(%d) "%S"
++string(%d) "%S"
+ ===DONE===

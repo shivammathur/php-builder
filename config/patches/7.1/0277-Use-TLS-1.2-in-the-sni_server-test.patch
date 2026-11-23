@@ -1,0 +1,48 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:39:55 +0100
+Subject: Use TLS 1.2 in the sni_server test
+
+The tls:// wrapper is TLS 1.0 only before PHP 7.2, and OpenSSL 3 allows
+TLS 1.0 only at security level 0. The level can be lowered for the server
+and the clients of a test, but not for the contexts that the server
+creates for its SNI certificates, so the test uses tlsv1.2:// instead.
+---
+ ext/openssl/tests/sni_server.phpt | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/ext/openssl/tests/sni_server.phpt b/ext/openssl/tests/sni_server.phpt
+index 66ff631..bafe8ac 100644
+--- a/ext/openssl/tests/sni_server.phpt
++++ b/ext/openssl/tests/sni_server.phpt
+@@ -30,7 +30,7 @@ $serverCode = <<<'CODE'
+         ]
+     ]]);
+ 
+-    $server = stream_socket_server('tls://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
++    $server = stream_socket_server('tlsv1.2://127.0.0.1:64321', $errno, $errstr, $flags, $ctx);
+     phpt_notify();
+ 
+     for ($i=0; $i < 3; $i++) {
+@@ -50,19 +50,19 @@ $clientCode = <<<'CODE'
+ 
+     $ctxArr['peer_name'] = 'cs.php.net';
+     $ctx = stream_context_create(['ssl' => $ctxArr]);
+-    $client = stream_socket_client("tls://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
++    $client = stream_socket_client("tlsv1.2://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
+     $cert = stream_context_get_options($ctx)['ssl']['peer_certificate'];
+     var_dump(openssl_x509_parse($cert)['subject']['CN']);
+ 
+     $ctxArr['peer_name'] = 'uk.php.net';
+     $ctx = stream_context_create(['ssl' => $ctxArr]);
+-    $client = @stream_socket_client("tls://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
++    $client = @stream_socket_client("tlsv1.2://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
+     $cert = stream_context_get_options($ctx)['ssl']['peer_certificate'];
+     var_dump(openssl_x509_parse($cert)['subject']['CN']);
+ 
+     $ctxArr['peer_name'] = 'us.php.net';
+     $ctx = stream_context_create(['ssl' => $ctxArr]);
+-    $client = @stream_socket_client("tls://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
++    $client = @stream_socket_client("tlsv1.2://127.0.0.1:64321", $errno, $errstr, 1, $flags, $ctx);
+     $cert = stream_context_get_options($ctx)['ssl']['peer_certificate'];
+     var_dump(openssl_x509_parse($cert)['subject']['CN']);
+ CODE;

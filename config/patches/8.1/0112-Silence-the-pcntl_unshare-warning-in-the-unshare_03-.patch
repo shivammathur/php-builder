@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:03:44 +0100
+Subject: Silence the pcntl_unshare() warning in the unshare_03 SKIPIF
+
+Without the privilege to create a user namespace the SKIPIF section prints
+a warning before the skip message and run-tests.php reports the test as
+borked.  Suppress the warning as upstream does (php-src a6911cbd4d3).
+---
+ ext/pcntl/tests/pcntl_unshare_03.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/pcntl/tests/pcntl_unshare_03.phpt b/ext/pcntl/tests/pcntl_unshare_03.phpt
+index 56433c0..567ff6b 100644
+--- a/ext/pcntl/tests/pcntl_unshare_03.phpt
++++ b/ext/pcntl/tests/pcntl_unshare_03.phpt
+@@ -9,7 +9,7 @@ if (!function_exists("pcntl_unshare")) die("skip pcntl_unshare is not available"
+ if (!defined("CLONE_NEWNET")) die("skip flag unavailable");
+ if (posix_getuid() !== 0 &&
+     (!defined("CLONE_NEWUSER") ||
+-    (pcntl_unshare(CLONE_NEWUSER) == false && pcntl_get_last_error() == PCNTL_EPERM))) {
++    (@pcntl_unshare(CLONE_NEWUSER) == false && pcntl_get_last_error() == PCNTL_EPERM))) {
+     die("skip Insufficient privileges for CLONE_NEWUSER");
+ }
+ if (@pcntl_unshare(CLONE_NEWNET) == false && pcntl_get_last_error() == PCNTL_EPERM) {

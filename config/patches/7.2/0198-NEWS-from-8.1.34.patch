@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:27:12 +0200
+Subject: NEWS from 8.1.34
+
+(cherry picked from commit 48a95f3ca2e1aa2d353c744e69334ddfbcd8b03b)
+---
+ NEWS | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index b84a28b..c9c0cfe 100644
+--- a/NEWS
++++ b/NEWS
+@@ -56,6 +56,10 @@ Backported from 8.1.34
+   . Fixed GHSA-h96m-rvf9-jgm2 (Heap buffer overflow in array_merge()).
+     (CVE-2025-14178) (ndossche)
+ 
++- Standard:
++  . Fixed GHSA-www2-q4fc-65wf (Null byte termination in dns_get_record()).
++    (ndossche)
++
+ Backported from 8.1.33
+ 
+ - PGSQL:

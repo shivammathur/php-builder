@@ -1,0 +1,37 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:44:42 +0100
+Subject: Don't use OPENSSL_DONT_ZERO_PAD_KEY in the gh22186 test
+
+The test came with
+0260-ext-openssl-openssl_encrypt-zend-mm-heap-overflow-on.patch and uses
+the OPENSSL_DONT_ZERO_PAD_KEY flag, which PHP 5.6 does not have (it was
+added in PHP 7.1.8). The key of the test has the full length of an
+AES-128 key, so the flag makes no difference here.
+---
+ ext/openssl/tests/gh22186.phpt | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/openssl/tests/gh22186.phpt b/ext/openssl/tests/gh22186.phpt
+index 8f28e6c..b7e3984 100644
+--- a/ext/openssl/tests/gh22186.phpt
++++ b/ext/openssl/tests/gh22186.phpt
+@@ -8,7 +8,7 @@ openssl
+  * resolves names via the legacy EVP_get_cipherbyname(), so on some builds the
+  * cipher is listed yet not usable. Probe the actual call path instead. */
+ if (!@openssl_encrypt("test", "aes-128-wrap-pad", str_repeat("k", 16),
+-        OPENSSL_RAW_DATA | OPENSSL_DONT_ZERO_PAD_KEY, str_repeat("\0", 4))) {
++        OPENSSL_RAW_DATA, str_repeat("\0", 4))) {
+     die('skip aes-128-wrap-pad not usable on this OpenSSL build');
+ }
+ ?>
+@@ -19,8 +19,8 @@ $iv = str_repeat("\0", 4);
+ 
+ for ($i = 1; $i < 258; $i++) {
+     $data = str_repeat("a", $i);
+-    $enc = openssl_encrypt($data, 'aes-128-wrap-pad', $pass, OPENSSL_RAW_DATA | OPENSSL_DONT_ZERO_PAD_KEY, $iv);
+-    $dec = openssl_decrypt($enc, 'aes-128-wrap-pad', $pass, OPENSSL_RAW_DATA | OPENSSL_DONT_ZERO_PAD_KEY, $iv);
++    $enc = openssl_encrypt($data, 'aes-128-wrap-pad', $pass, OPENSSL_RAW_DATA, $iv);
++    $dec = openssl_decrypt($enc, 'aes-128-wrap-pad', $pass, OPENSSL_RAW_DATA, $iv);
+     if ($dec !== $data) {
+         die("mismatch at $i\n");
+     }

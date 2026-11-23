@@ -1,0 +1,22 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:29:16 +0200
+Subject: NEWS from 8.2.31
+
+(cherry picked from commit 97b1035630b4a52b8098228e0f515f03f6914664)
+---
+ NEWS | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/NEWS b/NEWS
+index c9c0cfe..096c03e 100644
+--- a/NEWS
++++ b/NEWS
+@@ -50,6 +50,8 @@ Backported from 8.2.31
+ - Standard:
+   . Fixed GHSA-96wq-48vp-hh57 (Signed integer overflow of char array offset).
+     (CVE-2026-7568) (TimWolla)
++  . Fixed GHSA-m8rr-4c36-8gq4 (Consistently pass unsigned char to ctype.h
++    functions). (CVE-2026-7258) (ilutov)
+ 
+ Backported from 8.1.34
+ 

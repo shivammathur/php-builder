@@ -1,0 +1,57 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Fri, 12 Apr 2019 12:47:39 +0200
+Subject: Fix SOAP bailout handling
+
+This code was reusing the _bailout variable from
+SOAP_CLIENT_BEGIN/END_CODE(). As _bailout is not volatile, modifying
+it after the setjmp call and then reading it back on return is
+illegal. Use a separate local bailout variable instead.
+
+This fixes the miscompile introduced by marking zend_bailout() as
+noreturn.
+
+PHP 7.2 does not mark zend_bailout() as noreturn, but built with GCC 14
+it reads the stale _bailout all the same: a SoapFault raised for an error
+in SoapClient::__call() cannot be caught and ends the script with
+"Uncaught SoapFault exception" (ext/soap/tests/bugs/bug66112.phpt).
+
+(cherry picked from commit 4f28bbda51e1a74a69da61ac875e17656f710f4f)
+---
+ ext/soap/soap.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/ext/soap/soap.c b/ext/soap/soap.c
+index 7b188f3..7822128 100644
+--- a/ext/soap/soap.c
++++ b/ext/soap/soap.c
+@@ -2624,6 +2624,7 @@ static void do_soap_call(zend_execute_data *execute_data,
+ 	int old_features;
+ 	HashTable *old_typemap, *typemap = NULL;
+ 	smart_str action = {0};
++	int bailout = 0;
+ 
+ 	SOAP_CLIENT_BEGIN_CODE();
+ 
+@@ -2790,7 +2791,7 @@ static void do_soap_call(zend_execute_data *execute_data,
+ 		}
+ 
+ 	} zend_catch {
+-		_bailout = 1;
++		bailout = 1;
+ 	} zend_end_try();
+ 
+ 	if (SOAP_GLOBAL(encoding) != NULL) {
+@@ -2802,12 +2803,11 @@ static void do_soap_call(zend_execute_data *execute_data,
+ 	SOAP_GLOBAL(class_map) = old_class_map;
+ 	SOAP_GLOBAL(encoding) = old_encoding;
+ 	SOAP_GLOBAL(sdl) = old_sdl;
+-	if (_bailout) {
++	if (bailout) {
+ 		smart_str_free(&action);
+ 		if (request) {
+ 			xmlFreeDoc(request);
+ 		}
+-		_bailout = 0;
+ 		zend_bailout();
+ 	}
+ 	SOAP_CLIENT_END_CODE();

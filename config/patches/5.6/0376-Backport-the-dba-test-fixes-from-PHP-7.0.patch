@@ -1,0 +1,120 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:24:33 +0100
+Subject: Backport the dba test fixes from PHP 7.0
+
+Four test fixes of December 2013 only went into the branch that became
+PHP 7.0, so these tests fail in PHP 5.6: db4 no longer reports an
+"unexpected file type or format" notice for an existing file, the inifile
+handler accepts a second value for a key, and magic_quotes_runtime was
+removed in PHP 5.4. Backport of upstream commits f0c85fab45b (the two db4
+tests), b0415856fdd, a7f0465c0b2 and f4912e3a96b.
+---
+ ext/dba/tests/dba_db4_003.phpt |  2 --
+ ext/dba/tests/dba_db4_007.phpt |  2 --
+ ext/dba/tests/dba_db4_010.phpt | 38 --------------------------------------
+ ext/dba/tests/dba_inifile.phpt |  8 ++++++--
+ 4 files changed, 6 insertions(+), 44 deletions(-)
+ delete mode 100644 ext/dba/tests/dba_db4_010.phpt
+
+diff --git a/ext/dba/tests/dba_db4_003.phpt b/ext/dba/tests/dba_db4_003.phpt
+index 7e8568c..8708170 100644
+--- a/ext/dba/tests/dba_db4_003.phpt
++++ b/ext/dba/tests/dba_db4_003.phpt
+@@ -39,8 +39,6 @@ require(dirname(__FILE__) .'/clean.inc');
+ database handler: db4
+ int(14)
+ 
+-Notice: dba_open(): %stest0.dbm: unexpected file type or format in %sdba_db4_003.php on line %d
+-
+ Warning: dba_open(%stest0.dbm,c): Driver initialization failed for handler: db4: Invalid argument in %sdba_db4_003.php on line %d
+ Error creating %stest0.dbm
+ Dummy contents
+diff --git a/ext/dba/tests/dba_db4_007.phpt b/ext/dba/tests/dba_db4_007.phpt
+index bd95e0b..027d0af 100644
+--- a/ext/dba/tests/dba_db4_007.phpt
++++ b/ext/dba/tests/dba_db4_007.phpt
+@@ -35,7 +35,5 @@ require(dirname(__FILE__) .'/clean.inc');
+ database handler: db4
+ int(14)
+ 
+-Notice: dba_popen(): %stest0.dbm: unexpected file type or format in %sdba_db4_007.php on line %d
+-
+ Warning: dba_popen(%stest0.dbm,c): Driver initialization failed for handler: db4: Invalid argument in %sdba_db4_007.php on line %d
+ Error creating %stest0.dbm
+diff --git a/ext/dba/tests/dba_db4_010.phpt b/ext/dba/tests/dba_db4_010.phpt
+deleted file mode 100644
+index fb31f05..0000000
+--- a/ext/dba/tests/dba_db4_010.phpt
++++ /dev/null
+@@ -1,38 +0,0 @@
+---TEST--
+-DBA DB4 magic_quotes_runtime Test
+---SKIPIF--
+-<?php 
+-$handler = "db4";
+-require_once(dirname(__FILE__) .'/skipif.inc');
+-die("info $HND handler used");
+-?>
+---FILE--
+-<?php
+-$handler = "db4";
+-require_once(dirname(__FILE__) .'/test.inc');
+-echo "database handler: $handler\n";
+-if (($db_file=dba_open($db_file, "n", $handler))!==FALSE) {
+-    ini_set('magic_quotes_runtime', 0);
+-    dba_insert("key1", '"', $db_file);
+-    var_dump(dba_fetch("key1", $db_file));
+-    ini_set('magic_quotes_runtime', 1);
+-    var_dump(dba_fetch("key1", $db_file));
+-    dba_replace("key1", '\"', $db_file);
+-    var_dump(dba_fetch("key1", $db_file));
+-    ini_set('magic_quotes_runtime', 0);
+-    var_dump(dba_fetch("key1", $db_file));
+-    dba_close($db_file);
+-} else {
+-    echo "Error creating database\n";
+-}
+-?>
+---CLEAN--
+-<?php 
+-require(dirname(__FILE__) .'/clean.inc'); 
+-?>
+---EXPECTF--
+-database handler: db4
+-string(1) """
+-string(2) "\""
+-string(2) "\""
+-string(1) """
+diff --git a/ext/dba/tests/dba_inifile.phpt b/ext/dba/tests/dba_inifile.phpt
+index 5975d25..ae06aee 100644
+--- a/ext/dba/tests/dba_inifile.phpt
++++ b/ext/dba/tests/dba_inifile.phpt
+@@ -12,6 +12,10 @@ DBA INIFILE handler test
+ 	require_once dirname(__FILE__) .'/dba_handler.inc';
+ ?>
+ ===DONE===
++--CLEAN--
++<?php 
++	require(dirname(__FILE__) .'/clean.inc'); 
++?>
+ --EXPECT--
+ database handler: inifile
+ 3NYNYY
+@@ -19,7 +23,7 @@ Content String 2
+ Content 2 replaced
+ Read during write: not allowed
+ "key number 6" written
+-Failed to write "key number 6" 2nd time
++"key number 6" written 2nd time
+ Content 2 replaced 2nd time
+ The 6th value
+ array(3) {
+@@ -36,7 +40,7 @@ Content String 2
+ Content 2 replaced
+ Read during write: not allowed
+ "key number 6" written
+-Failed to write "key number 6" 2nd time
++"key number 6" written 2nd time
+ Content 2 replaced 2nd time
+ The 6th value
+ array(3) {

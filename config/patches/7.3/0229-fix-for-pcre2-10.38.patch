@@ -1,0 +1,31 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 21 Oct 2021 10:38:16 +0200
+Subject: fix for pcre2 10.38
+
+PCRE2 10.38 and newer refuse \K in lookarounds unless
+PCRE2_EXTRA_ALLOW_LOOKAROUND_BSK is set, which PHP 7.4.26 to 8.4 do
+(ext/pcre/tests/bug70345.phpt).
+
+(cherry picked from commit 56495ac031005f8b64e75c94e86ec942dd15aa74)
+---
+ ext/pcre/php_pcre.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/ext/pcre/php_pcre.c b/ext/pcre/php_pcre.c
+index 09e8b25..5e95844 100644
+--- a/ext/pcre/php_pcre.c
++++ b/ext/pcre/php_pcre.c
+@@ -163,7 +163,13 @@ static void php_pcre_free(void *block, void *data)
+ 	pefree(block, 1);
+ }/*}}}*/
+ 
++#ifdef PCRE2_EXTRA_ALLOW_LOOKAROUND_BSK
++	/* pcre 10.38 needs PCRE2_EXTRA_ALLOW_LOOKAROUND_BSK, disabled by default */
++#define PHP_PCRE_DEFAULT_EXTRA_COPTIONS (PCRE2_EXTRA_BAD_ESCAPE_IS_LITERAL|PCRE2_EXTRA_ALLOW_LOOKAROUND_BSK)
++#else
+ #define PHP_PCRE_DEFAULT_EXTRA_COPTIONS PCRE2_EXTRA_BAD_ESCAPE_IS_LITERAL
++#endif
++
+ #define PHP_PCRE_PREALLOC_MDATA_SIZE 32
+ 
+ static void php_pcre_init_pcre2(uint8_t jit)

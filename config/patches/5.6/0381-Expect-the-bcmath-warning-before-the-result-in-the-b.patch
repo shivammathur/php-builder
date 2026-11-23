@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:54:55 +0100
+Subject: Expect the bcmath warning before the result in the bug78878 test
+
+0111-Fix-tests.patch changed the expected output to the one seen on
+Windows. The warning of libbcmath goes to stderr while bcpowmod() runs, so
+it comes before the result here, as the test added by
+0106-Fix-78878-Buffer-underflow-in-bc_shift_addsub.patch expected.
+---
+ ext/bcmath/tests/bug78878.phpt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ext/bcmath/tests/bug78878.phpt b/ext/bcmath/tests/bug78878.phpt
+index 3337270..2c9d72b 100644
+--- a/ext/bcmath/tests/bug78878.phpt
++++ b/ext/bcmath/tests/bug78878.phpt
+@@ -9,4 +9,5 @@ if (!extension_loaded('bcmath')) die('skip bcmath extension not available');
+ print @bcmul("\xB26483605105519922841849335928742092", bcpowmod(2, 65535, -4e-4));
+ ?>
+ --EXPECT--
+-0bc math warning: non-zero scale in modulus
++bc math warning: non-zero scale in modulus
++0

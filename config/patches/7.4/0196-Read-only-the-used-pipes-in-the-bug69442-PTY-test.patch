@@ -1,0 +1,57 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 17:10:06 +0100
+Subject: Read only the used pipes in the bug69442 PTY test
+
+0005-proc_open.patch enables the PTY support of proc_open() and the test
+expects an empty string when it reads from a PTY whose other end has been
+closed, but that read fails with EIO, which fread() reports since PHP 7.4.
+Backport of the test change of upstream commit a84cd96e865 (PHP 8.0).
+---
+ ext/standard/tests/file/bug69442.phpt | 32 +++++++++++++++++++++++---------
+ 1 file changed, 23 insertions(+), 9 deletions(-)
+
+diff --git a/ext/standard/tests/file/bug69442.phpt b/ext/standard/tests/file/bug69442.phpt
+index d7063f4..d9f7373 100644
+--- a/ext/standard/tests/file/bug69442.phpt
++++ b/ext/standard/tests/file/bug69442.phpt
+@@ -28,17 +28,31 @@ $pipes = array();
+ 
+ $process = proc_open($cmd, $descriptors, $pipes);
+ 
+-foreach ($pipes as $type => $pipe) {
+-    $data = fread($pipe, 999);
+-    echo 'type ' . $type . ' ';
+-    var_dump($data);
+-    fclose($pipe);
++function read_from_pipe($pipe) {
++    $result = fread($pipe, 1000);
++    /* We can't guarantee that everything written to the pipe will be returned by a single call
++     *   to fread(), even if it was written with a single syscall and the number of bytes written
++     *   was small */
++    $again  = @fread($pipe, 1000);
++    if ($again) {
++        $result .= $again;
++    }
++    return $result;
+ }
++
++$data0 = read_from_pipe($pipes[0]);
++echo 'read from pipe 0: ';
++var_dump($data0);
++fclose($pipes[0]);
++
++$data3 = read_from_pipe($pipes[3]);
++echo 'read from pipe 3: ';
++var_dump($data3);
++fclose($pipes[3]);
++
+ proc_close($process);
+ --EXPECT--
+-type 0 string(5) "foo
++read from pipe 0: string(5) "foo
+ "
+-type 1 string(0) ""
+-type 2 string(0) ""
+-type 3 string(3) "42
++read from pipe 3: string(3) "42
+ "

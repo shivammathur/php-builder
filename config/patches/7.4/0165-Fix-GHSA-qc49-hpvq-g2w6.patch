@@ -1,0 +1,56 @@
+From c56f512195bbf08edaea5e449477f24db916a096 Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Thu, 29 Oct 2026 11:19:04 +0100
+Subject: [PATCH] Fix GHSA-qc49-hpvq-g2w6: Drain unread request bodies
+
+Opening php://input can create a request body stream without
+consuming the input from the SAPI. Request shutdown treated the
+stream as proof that the body was read and skipped the drain.
+
+Drain whenever post_read is false, independently of whether the
+stream exists. This keeps unread FastCGI STDIN bytes from being
+parsed as another request when FCGI_KEEP_CONN is set.
+
+As a final safeguard, reject a new FastCGI request if the
+previous STDIN record was only partially consumed.
+
+(cherry picked from commit 28014fd092c7acdafb9c074e735f099893a5ef66)
+
+diff --git a/main/SAPI.c b/main/SAPI.c
+index a3755033d34301e8287dac3c7f827a3896777945..3bc958222363ec42cc654aec4d6574cc0e4e14fb 100644
+--- a/main/SAPI.c
++++ b/main/SAPI.c
+@@ -496,7 +496,8 @@ SAPI_API void sapi_deactivate(void)
+ 	zend_llist_destroy(&SG(sapi_headers).headers);
+ 	if (SG(request_info).request_body) {
+ 		SG(request_info).request_body = NULL;
+-	} else if (SG(server_context)) {
++	}
++	if (SG(server_context)) {
+ 		if (!SG(post_read)) {
+ 			/* make sure we've consumed all request input data */
+ 			char dummy[SAPI_POST_BLOCK_SIZE];
+diff --git a/main/fastcgi.c b/main/fastcgi.c
+index 03c4aaf05776911fc747e5a582982e2400301500..23235bf461fb529b37ac235a54c50337dd53685b 100644
+--- a/main/fastcgi.c
++++ b/main/fastcgi.c
+@@ -1049,6 +1049,10 @@ static int fcgi_read_request(fcgi_request *req)
+ 	int len, padding;
+ 	unsigned char buf[FCGI_MAX_LENGTH+8];
+ 
++	if (UNEXPECTED(req->in_len != 0)) {
++		return 0;
++	}
++
+ 	req->keep = 0;
+ 	req->ended = 0;
+ 	req->in_len = 0;
+@@ -1312,6 +1316,8 @@ void fcgi_close(fcgi_request *req, int force, int destroy)
+ 		req->nodelay = 0;
+ #endif
+ 		req->fd = -1;
++		/* a partially read STDIN record does not outlive its connection */
++		req->in_len = 0;
+ 
+ 		req->hook.on_close();
+ 	}

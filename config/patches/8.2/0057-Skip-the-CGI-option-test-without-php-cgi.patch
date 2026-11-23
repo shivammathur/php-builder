@@ -1,0 +1,24 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:04:00 +0100
+Subject: Skip the CGI option test without php-cgi
+
+Unlike the other sapi/cgi tests, 005.phpt had no SKIPIF section and
+failed when php-cgi is not found next to the CLI binary, as in the Debian
+build with one build directory per SAPI.  Backport of the 005.phpt part
+of upstream commit 9c6dd46f27b7 (PHP 8.3).
+---
+ sapi/cgi/tests/005.phpt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/sapi/cgi/tests/005.phpt b/sapi/cgi/tests/005.phpt
+index 5524758..4bb2727 100644
+--- a/sapi/cgi/tests/005.phpt
++++ b/sapi/cgi/tests/005.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ using invalid combinations of cmdline options
++--SKIPIF--
++<?php include "skipif.inc"; ?>
+ --FILE--
+ <?php
+ 

@@ -117,8 +117,16 @@ patch_pdo_sqlsrv() {
   patch_sqlsrv_stream_error
 }
 
+# PHP 8.7 snapshots moved flock_compat.h from ext/standard to main.
+patch_flock_compat_header() {
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    sed -i 's#ext/standard/flock_compat\.h#main/flock_compat.h#' "$1"
+  fi
+}
+
 # Function to patch xdebug source.
 patch_xdebug() {
+  patch_flock_compat_header src/lib/usefulstuff.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && sed -i 's/80600/80700/g' config.m4
   [[ "$PHP_VERSION" = "8.7" ]] && sed -i 's/80700/80800/g' config.m4
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && sed -i 's#ext/standard/php_smart_string.h#Zend/zend_smart_string.h#' src/develop/stack.c src/lib/var.c
@@ -253,6 +261,9 @@ patch_grpc() {
 
 # Function to patch ssh2 source.
 patch_ssh2() {
+  # libssh2 1.9/1.10 lack channel signals, which ssh2 already guards with
+  # PHP_SSH2_CHANNEL_SIGNAL. ssh2 1.6.0 incorrectly made this probe fatal.
+  sed -i '/AC_MSG_ERROR(\[libssh2_channel_signal_ex not found;/d' config.m4
   if [[ "$PHP_VERSION" =~ 7.[0-2] ]]; then
     sed -i 's/ZSTR_VAL(resource->path)/SSH2_URL_STR(resource->path)/g' ssh2_fopen_wrappers.c
     sed -i 's/zend_string_release(resource->path);/efree(resource->path);/g' ssh2_fopen_wrappers.c
@@ -627,6 +638,7 @@ patch_mongodb() {
 
 # Function to patch apcu source.
 patch_apcu() {
+  patch_flock_compat_header php_apc.c
   if [[ "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]]; then
     sed -i 's/php_verror(NULL, "", verbosity, format, args);/php_verror(NULL, verbosity, format, args);/' apc.c
     sed -i 's/zval_dtor/zval_ptr_dtor_nogc/' apc_cache.c

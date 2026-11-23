@@ -1,0 +1,35 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:56:11 +0200
+Subject: fix soap tests for 5.6 (ref_map now holds a reference,
+ no 2GB strings)
+
+---
+ ext/soap/tests/interop/Round3/GroupE/r3_groupE_list_006w.phpt | 2 +-
+ ext/soap/tests/soap_qname_crash.phpt                          | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/ext/soap/tests/interop/Round3/GroupE/r3_groupE_list_006w.phpt b/ext/soap/tests/interop/Round3/GroupE/r3_groupE_list_006w.phpt
+index 3549f45..9726f84 100644
+--- a/ext/soap/tests/interop/Round3/GroupE/r3_groupE_list_006w.phpt
++++ b/ext/soap/tests/interop/Round3/GroupE/r3_groupE_list_006w.phpt
+@@ -33,7 +33,7 @@ object(stdClass)#%d (3) {
+   ["varString"]=>
+   string(4) "arg1"
+   ["child"]=>
+-  &object(stdClass)#%d (3) {
++  object(stdClass)#%d (3) {
+     ["varInt"]=>
+     int(2)
+     ["varString"]=>
+diff --git a/ext/soap/tests/soap_qname_crash.phpt b/ext/soap/tests/soap_qname_crash.phpt
+index 0028cc4..a61c1c2 100644
+--- a/ext/soap/tests/soap_qname_crash.phpt
++++ b/ext/soap/tests/soap_qname_crash.phpt
+@@ -5,6 +5,7 @@ soap
+ --SKIPIF--
+ <?php
+ if (PHP_INT_SIZE != 8) die("skip: 64-bit only");
++if (PHP_MAJOR_VERSION < 7) die("skip: strings longer than 2GB are not supported");
+ ?>
+ --INI--
+ memory_limit=8G

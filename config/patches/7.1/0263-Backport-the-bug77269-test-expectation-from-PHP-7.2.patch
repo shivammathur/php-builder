@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 08:43:40 +0100
+Subject: Backport the bug77269 test expectation from PHP 7.2
+
+With the system libgd imagecreate() succeeds and it is imagescale() that
+refuses the allocation, which is what the test expects since it was merged
+into PHP 7.2 (upstream merge commit fe820fcba61).
+---
+ ext/gd/tests/bug77269.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/gd/tests/bug77269.phpt b/ext/gd/tests/bug77269.phpt
+index 3bdc23e..c89f674 100644
+--- a/ext/gd/tests/bug77269.phpt
++++ b/ext/gd/tests/bug77269.phpt
+@@ -16,6 +16,6 @@ if(is_resource($im)) {
+ ?>
+ ===DONE===
+ --EXPECTF--
+-Warning: imagecreate():%S product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
++Warning: imagescale():%S product of memory allocation multiplication would exceed INT_MAX, failing operation gracefully
+  in %s on line %d
+ ===DONE===

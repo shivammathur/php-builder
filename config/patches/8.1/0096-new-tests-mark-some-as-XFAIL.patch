@@ -1,0 +1,1678 @@
+From: Remi Collet <remi@remirepo.net>
+Date: Thu, 29 Oct 2026 15:16:06 +0100
+Subject: new tests + mark some as XFAIL
+
+---
+ Zend/tests/fibers/get-return-after-bailout.phpt    |  2 ++
+ Zend/tests/gh11189.phpt                            |  2 ++
+ Zend/tests/gh11189_1.phpt                          |  2 ++
+ Zend/tests/oom_SplFixedArray___wakeup.phpt         | 19 +++++++++++
+ Zend/tests/oom_SplFixedArray_copy_ctor.phpt        | 16 +++++++++
+ Zend/tests/oom_SplFixedArray_fromArray_001.phpt    | 12 +++++++
+ Zend/tests/oom_SplFixedArray_fromArray_002.phpt    | 14 ++++++++
+ Zend/tests/oom_array_fill_001.phpt                 | 18 ++++++++++
+ Zend/tests/oom_array_fill_002.phpt                 | 18 ++++++++++
+ Zend/tests/oom_array_fill_003.phpt                 | 18 ++++++++++
+ Zend/tests/oom_array_fill_004.phpt                 | 18 ++++++++++
+ Zend/tests/oom_array_pad_001.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_002.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_003.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_004.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_005.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_006.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_007.phpt                  | 12 +++++++
+ Zend/tests/oom_array_pad_008.phpt                  | 12 +++++++
+ Zend/tests/oom_call_function.phpt                  | 18 ++++++++++
+ Zend/tests/oom_call_function_002.phpt              | 27 +++++++++++++++
+ Zend/tests/oom_debug_backtrace.phpt                | 21 ++++++++++++
+ Zend/tests/oom_debug_backtrace_args.phpt           | 22 +++++++++++++
+ Zend/tests/oom_debug_backtrace_named_args.phpt     | 29 +++++++++++++++++
+ Zend/tests/oom_exception_trace.phpt                | 25 ++++++++++++++
+ Zend/tests/oom_hard_limit_exceeded.phpt            | 26 +++++++++++++++
+ Zend/tests/oom_interrupt.phpt                      | 38 ++++++++++++++++++++++
+ .../tests/oom_interrupt_unfinished_call_frame.phpt | 21 ++++++++++++
+ .../oom_interrupt_unfinished_call_frame_fiber.phpt | 18 ++++++++++
+ Zend/tests/oom_json_decode_001.phpt                | 14 ++++++++
+ Zend/tests/oom_json_decode_002.phpt                | 15 +++++++++
+ Zend/tests/oom_json_decode_003.phpt                | 22 +++++++++++++
+ Zend/tests/oom_json_decode_004.phpt                | 19 +++++++++++
+ Zend/tests/oom_json_decode_005.phpt                | 22 +++++++++++++
+ Zend/tests/oom_json_decode_006.phpt                | 19 +++++++++++
+ Zend/tests/oom_json_decode_007.phpt                | 14 ++++++++
+ Zend/tests/oom_pending_at_shutdown.phpt            | 16 +++++++++
+ Zend/tests/oom_range_001.phpt                      | 18 ++++++++++
+ Zend/tests/oom_range_002.phpt                      | 18 ++++++++++
+ Zend/tests/oom_range_003.phpt                      | 18 ++++++++++
+ Zend/tests/oom_range_004.phpt                      | 18 ++++++++++
+ Zend/tests/oom_soft_limit_exceeded.phpt            | 19 +++++++++++
+ Zend/tests/oom_soft_limit_exceeded_fcall.phpt      | 19 +++++++++++
+ Zend/tests/oom_soft_limit_in_callback.phpt         | 27 +++++++++++++++
+ Zend/tests/oom_str_repeat.phpt                     | 12 +++++++
+ Zend/tests/oom_unserialize_001.phpt                | 21 ++++++++++++
+ Zend/tests/oom_unserialize_002.phpt                | 22 +++++++++++++
+ Zend/tests/oom_unserialize_003.phpt                | 22 +++++++++++++
+ Zend/tests/oom_unserialize_004.phpt                | 23 +++++++++++++
+ Zend/tests/oom_unserialize_005.phpt                | 23 +++++++++++++
+ Zend/tests/oom_unserialize_006.phpt                | 22 +++++++++++++
+ Zend/tests/oom_unserialize_007.phpt                | 17 ++++++++++
+ Zend/tests/oom_unserialize_008.phpt                | 19 +++++++++++
+ Zend/tests/oom_unserialize_009.phpt                | 26 +++++++++++++++
+ Zend/tests/oom_unserialize_011.phpt                | 22 +++++++++++++
+ Zend/tests/oom_unserialize_012.phpt                | 23 +++++++++++++
+ Zend/tests/oom_unserialize_013.phpt                | 28 ++++++++++++++++
+ Zend/tests/oom_unserialize_014.phpt                | 28 ++++++++++++++++
+ Zend/tests/oom_unserialize_015.phpt                | 20 ++++++++++++
+ ext/session/tests/rfc1867.phpt                     |  2 ++
+ ext/session/tests/rfc1867_inter.phpt               |  2 ++
+ ext/session/tests/rfc1867_sid_cookie.phpt          |  2 ++
+ ext/session/tests/rfc1867_sid_get.phpt             |  2 ++
+ ext/session/tests/rfc1867_sid_get_2.phpt           |  2 ++
+ ext/session/tests/rfc1867_sid_invalid.phpt         |  2 ++
+ ext/session/tests/rfc1867_sid_only_cookie.phpt     |  2 ++
+ ext/session/tests/rfc1867_sid_post.phpt            |  2 ++
+ 67 files changed, 1102 insertions(+)
+ create mode 100644 Zend/tests/oom_SplFixedArray___wakeup.phpt
+ create mode 100644 Zend/tests/oom_SplFixedArray_copy_ctor.phpt
+ create mode 100644 Zend/tests/oom_SplFixedArray_fromArray_001.phpt
+ create mode 100644 Zend/tests/oom_SplFixedArray_fromArray_002.phpt
+ create mode 100644 Zend/tests/oom_array_fill_001.phpt
+ create mode 100644 Zend/tests/oom_array_fill_002.phpt
+ create mode 100644 Zend/tests/oom_array_fill_003.phpt
+ create mode 100644 Zend/tests/oom_array_fill_004.phpt
+ create mode 100644 Zend/tests/oom_array_pad_001.phpt
+ create mode 100644 Zend/tests/oom_array_pad_002.phpt
+ create mode 100644 Zend/tests/oom_array_pad_003.phpt
+ create mode 100644 Zend/tests/oom_array_pad_004.phpt
+ create mode 100644 Zend/tests/oom_array_pad_005.phpt
+ create mode 100644 Zend/tests/oom_array_pad_006.phpt
+ create mode 100644 Zend/tests/oom_array_pad_007.phpt
+ create mode 100644 Zend/tests/oom_array_pad_008.phpt
+ create mode 100644 Zend/tests/oom_call_function.phpt
+ create mode 100644 Zend/tests/oom_call_function_002.phpt
+ create mode 100644 Zend/tests/oom_debug_backtrace.phpt
+ create mode 100644 Zend/tests/oom_debug_backtrace_args.phpt
+ create mode 100644 Zend/tests/oom_debug_backtrace_named_args.phpt
+ create mode 100644 Zend/tests/oom_exception_trace.phpt
+ create mode 100644 Zend/tests/oom_hard_limit_exceeded.phpt
+ create mode 100644 Zend/tests/oom_interrupt.phpt
+ create mode 100644 Zend/tests/oom_interrupt_unfinished_call_frame.phpt
+ create mode 100644 Zend/tests/oom_interrupt_unfinished_call_frame_fiber.phpt
+ create mode 100644 Zend/tests/oom_json_decode_001.phpt
+ create mode 100644 Zend/tests/oom_json_decode_002.phpt
+ create mode 100644 Zend/tests/oom_json_decode_003.phpt
+ create mode 100644 Zend/tests/oom_json_decode_004.phpt
+ create mode 100644 Zend/tests/oom_json_decode_005.phpt
+ create mode 100644 Zend/tests/oom_json_decode_006.phpt
+ create mode 100644 Zend/tests/oom_json_decode_007.phpt
+ create mode 100644 Zend/tests/oom_pending_at_shutdown.phpt
+ create mode 100644 Zend/tests/oom_range_001.phpt
+ create mode 100644 Zend/tests/oom_range_002.phpt
+ create mode 100644 Zend/tests/oom_range_003.phpt
+ create mode 100644 Zend/tests/oom_range_004.phpt
+ create mode 100644 Zend/tests/oom_soft_limit_exceeded.phpt
+ create mode 100644 Zend/tests/oom_soft_limit_exceeded_fcall.phpt
+ create mode 100644 Zend/tests/oom_soft_limit_in_callback.phpt
+ create mode 100644 Zend/tests/oom_str_repeat.phpt
+ create mode 100644 Zend/tests/oom_unserialize_001.phpt
+ create mode 100644 Zend/tests/oom_unserialize_002.phpt
+ create mode 100644 Zend/tests/oom_unserialize_003.phpt
+ create mode 100644 Zend/tests/oom_unserialize_004.phpt
+ create mode 100644 Zend/tests/oom_unserialize_005.phpt
+ create mode 100644 Zend/tests/oom_unserialize_006.phpt
+ create mode 100644 Zend/tests/oom_unserialize_007.phpt
+ create mode 100644 Zend/tests/oom_unserialize_008.phpt
+ create mode 100644 Zend/tests/oom_unserialize_009.phpt
+ create mode 100644 Zend/tests/oom_unserialize_011.phpt
+ create mode 100644 Zend/tests/oom_unserialize_012.phpt
+ create mode 100644 Zend/tests/oom_unserialize_013.phpt
+ create mode 100644 Zend/tests/oom_unserialize_014.phpt
+ create mode 100644 Zend/tests/oom_unserialize_015.phpt
+
+diff --git a/Zend/tests/fibers/get-return-after-bailout.phpt b/Zend/tests/fibers/get-return-after-bailout.phpt
+index 04bd464..c14867b 100644
+--- a/Zend/tests/fibers/get-return-after-bailout.phpt
++++ b/Zend/tests/fibers/get-return-after-bailout.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ Fiber::getReturn() after bailout
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --SKIPIF--
+ <?php
+ $zend_mm_enabled = getenv("USE_ZEND_ALLOC");
+diff --git a/Zend/tests/gh11189.phpt b/Zend/tests/gh11189.phpt
+index adbc3ce..981a1a6 100644
+--- a/Zend/tests/gh11189.phpt
++++ b/Zend/tests/gh11189.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ GH-11189: Exceeding memory limit in zend_hash_do_resize leaves the array in an invalid state (packed array)
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --SKIPIF--
+ <?php
+ if (PHP_OS_FAMILY === 'Windows') {
+diff --git a/Zend/tests/gh11189_1.phpt b/Zend/tests/gh11189_1.phpt
+index 17b9967..5260e9a 100644
+--- a/Zend/tests/gh11189_1.phpt
++++ b/Zend/tests/gh11189_1.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ GH-11189: Exceeding memory limit in zend_hash_do_resize leaves the array in an invalid state (not packed array)
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --SKIPIF--
+ <?php
+ if (PHP_OS_FAMILY === 'Windows') {
+diff --git a/Zend/tests/oom_SplFixedArray___wakeup.phpt b/Zend/tests/oom_SplFixedArray___wakeup.phpt
+new file mode 100644
+index 0000000..d644acc
+--- /dev/null
++++ b/Zend/tests/oom_SplFixedArray___wakeup.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM SplFixedArray::fromArray() 003
++--INI--
++memory_limit=16M
++--FILE--
++<?php
++
++$a = new SplFixedArray();
++for ($i = 0; $i < 128*1024; $i++) {
++    @$a->{$i} = 0;
++}
++
++$pad = str_repeat('a', max(16*1024*1024 - memory_get_usage(true) - 512*1024, 1));
++
++$a->__wakeup();
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 16777216 bytes exhausted %S(tried to allocate %d bytes) in %s on line 10
+diff --git a/Zend/tests/oom_SplFixedArray_copy_ctor.phpt b/Zend/tests/oom_SplFixedArray_copy_ctor.phpt
+new file mode 100644
+index 0000000..b218339
+--- /dev/null
++++ b/Zend/tests/oom_SplFixedArray_copy_ctor.phpt
+@@ -0,0 +1,16 @@
++--TEST--
++OOM SplFixedArray copy ctor
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$a = new SplFixedArray(64*1024);
++
++$pad = str_repeat('a', max(10*1024*1024 - memory_get_usage(true) - 1*1024*1024, 1));
++
++clone $a;
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 7
+diff --git a/Zend/tests/oom_SplFixedArray_fromArray_001.phpt b/Zend/tests/oom_SplFixedArray_fromArray_001.phpt
+new file mode 100644
+index 0000000..4aa7352
+--- /dev/null
++++ b/Zend/tests/oom_SplFixedArray_fromArray_001.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM SplFixedArray::fromArray()
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++SplFixedArray::fromArray([10*1024*1024 => 0], true);
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_SplFixedArray_fromArray_002.phpt b/Zend/tests/oom_SplFixedArray_fromArray_002.phpt
+new file mode 100644
+index 0000000..aca5ac1
+--- /dev/null
++++ b/Zend/tests/oom_SplFixedArray_fromArray_002.phpt
+@@ -0,0 +1,14 @@
++--TEST--
++OOM SplFixedArray::fromArray() 002
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$array = array_fill(0, 128*1024, 0);
++$pad = str_repeat('a', max(10*1024*1024 - memory_get_usage(true) - 512*1024, 1));
++SplFixedArray::fromArray($array, false);
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
+diff --git a/Zend/tests/oom_array_fill_001.phpt b/Zend/tests/oom_array_fill_001.phpt
+new file mode 100644
+index 0000000..515572e
+--- /dev/null
++++ b/Zend/tests/oom_array_fill_001.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM array_fill() packed
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(array_fill(0, 1024*1024*1024-1, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_fill_002.phpt b/Zend/tests/oom_array_fill_002.phpt
+new file mode 100644
+index 0000000..1da2f62
+--- /dev/null
++++ b/Zend/tests/oom_array_fill_002.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM array_fill() mixed
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(array_fill(-1, 1024*1024*1024-1, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_fill_003.phpt b/Zend/tests/oom_array_fill_003.phpt
+new file mode 100644
+index 0000000..cdf90d3
+--- /dev/null
++++ b/Zend/tests/oom_array_fill_003.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM array_fill() packed > HT_MAX_SIZE
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(array_fill(0, 1024*1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Possible integer overflow in memory allocation (1073741824 * 32 + 32) in %s on line 3
+diff --git a/Zend/tests/oom_array_fill_004.phpt b/Zend/tests/oom_array_fill_004.phpt
+new file mode 100644
+index 0000000..0bbb100
+--- /dev/null
++++ b/Zend/tests/oom_array_fill_004.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM array_fill() mixed > HT_MAX_SIZE
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(array_fill(-1, 1024*1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Possible integer overflow in memory allocation (1073741824 * 32 + 32) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_001.phpt b/Zend/tests/oom_array_pad_001.phpt
+new file mode 100644
+index 0000000..fbdfdd8
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_001.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad left packed
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad([1,2,3], -1*1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_002.phpt b/Zend/tests/oom_array_pad_002.phpt
+new file mode 100644
+index 0000000..23fba26
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_002.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad right packed
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad([1,2,3], 1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_003.phpt b/Zend/tests/oom_array_pad_003.phpt
+new file mode 100644
+index 0000000..14fe2b8
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_003.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad left mixed
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad(['foo' => 'bar'], -1*1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_004.phpt b/Zend/tests/oom_array_pad_004.phpt
+new file mode 100644
+index 0000000..eecd3af
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_004.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad right mixed
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad(['foo' => 'bar'], 1024*1024, (string)time()));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_005.phpt b/Zend/tests/oom_array_pad_005.phpt
+new file mode 100644
+index 0000000..b9e2726
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_005.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad left packed, non-refcounted pad value
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad([1,2,3], -1*1024*1024, 0x4141414141));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_006.phpt b/Zend/tests/oom_array_pad_006.phpt
+new file mode 100644
+index 0000000..655f5eb
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_006.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad right packed, non-refcounted pad value
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad([1,2,3], 1024*1024, 0x4141414141));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_007.phpt b/Zend/tests/oom_array_pad_007.phpt
+new file mode 100644
+index 0000000..c6df268
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_007.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad left mixed, non-refcounted pad value
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad(['foo' => 'bar'], -1*1024*1024, 0x4141414141));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_array_pad_008.phpt b/Zend/tests/oom_array_pad_008.phpt
+new file mode 100644
+index 0000000..1f1779f
+--- /dev/null
++++ b/Zend/tests/oom_array_pad_008.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM array_pad right mixed, non-refcounted pad value
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++var_dump(array_pad(['foo' => 'bar'], 1024*1024, 0x4141414141));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_call_function.phpt b/Zend/tests/oom_call_function.phpt
+new file mode 100644
+index 0000000..c76dc40
+--- /dev/null
++++ b/Zend/tests/oom_call_function.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM OOM in zend_call_function()
++--INI--
++memory_limit=10M
++--ENV--
++call_user_func=call_user_func
++--FILE--
++<?php
++
++$a = [];
++for ($i = 0; $i < 10; $i++) {
++    /* Check that call_user_func() doesn't reset vm_interrupt without checking for OOMs */
++    $a[] = getenv('call_user_func')('str_repeat', 'a', 10*1024*1024);
++}
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 6
+diff --git a/Zend/tests/oom_call_function_002.phpt b/Zend/tests/oom_call_function_002.phpt
+new file mode 100644
+index 0000000..4471af8
+--- /dev/null
++++ b/Zend/tests/oom_call_function_002.phpt
+@@ -0,0 +1,27 @@
++--TEST--
++OOM zend_call_function() after OOM: destructor called by an internal function
++--INI--
++memory_limit=8M
++--FILE--
++<?php
++
++class A {
++    public function __destruct() {
++        echo "not reached\n";
++    }
++}
++
++/* array_splice() allocates the new table first, which crosses the soft limit,
++ * then destroys the removed element. The destructor call goes through
++ * zend_call_known_function(), which used to bailout with "Couldn't execute method"
++ * instead of the OOM. */
++$n = 200000;
++$arr = range(1, $n);
++$arr[$n - 1] = new A;
++array_splice($arr, $n - 1, 1);
++
++echo "not reached\n";
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of %d bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_debug_backtrace.phpt b/Zend/tests/oom_debug_backtrace.phpt
+new file mode 100644
+index 0000000..dde8792
+--- /dev/null
++++ b/Zend/tests/oom_debug_backtrace.phpt
+@@ -0,0 +1,21 @@
++--TEST--
++OOM: debug_backtrace() doesn't reach hard limit
++--INI--
++memory_limit=8M
++--FILE--
++<?php
++
++function f(int $n) {
++    if ($n > 0) {
++        f($n - 1);
++        return;
++    }
++    debug_backtrace();
++}
++
++f(30000);
++
++echo "not reached\n";
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 8388608 bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_debug_backtrace_args.phpt b/Zend/tests/oom_debug_backtrace_args.phpt
+new file mode 100644
+index 0000000..5664402
+--- /dev/null
++++ b/Zend/tests/oom_debug_backtrace_args.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM: debug_backtrace() doesn't reach hard limit - args
++--INI--
++memory_limit=8M
++--FILE--
++<?php
++
++function f(int $n) {
++    if ($n > 0) {
++        f($n - 1, ...$GLOBALS['args']);
++        return;
++    }
++    debug_backtrace();
++}
++
++$args = array_fill(0, 512, 1);
++f(680, ...$args);
++
++echo "not reached\n";
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 8388608 bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_debug_backtrace_named_args.phpt b/Zend/tests/oom_debug_backtrace_named_args.phpt
+new file mode 100644
+index 0000000..bb13c1f
+--- /dev/null
++++ b/Zend/tests/oom_debug_backtrace_named_args.phpt
+@@ -0,0 +1,29 @@
++--TEST--
++OOM: debug_backtrace() doesn't reach hard limit - named args
++--INI--
++memory_limit=8M
++--FILE--
++<?php
++
++/* A variadic is required: extra named args are only accepted by a function
++ * that collects them. */
++function f(int $n, ...$rest) {
++    if ($n > 0) {
++        f($n - 1, ...$GLOBALS['named']);
++        return;
++    }
++    debug_backtrace();
++}
++
++$named = [];
++for ($i = 0; $i < 512; $i++) {
++    $named["a$i"] = 1;
++}
++$GLOBALS['named'] = $named;
++
++f(450, ...$named);
++
++echo "not reached\n";
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 8388608 bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_exception_trace.phpt b/Zend/tests/oom_exception_trace.phpt
+new file mode 100644
+index 0000000..6ad4cb2
+--- /dev/null
++++ b/Zend/tests/oom_exception_trace.phpt
+@@ -0,0 +1,25 @@
++--TEST--
++OOM: Exception constructor doesn't reach hard limit while fetching backtrace
++--INI--
++memory_limit=8M
++zend.exception_ignore_args=0
++--FILE--
++<?php
++
++function f(int $n) {
++    if ($n > 0) {
++        f($n - 1);
++        return;
++    }
++    throw new Exception();
++}
++
++try {
++    f(30000);
++} catch (Exception $e) {
++}
++
++echo "not reached\n";
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 8388608 bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_hard_limit_exceeded.phpt b/Zend/tests/oom_hard_limit_exceeded.phpt
+new file mode 100644
+index 0000000..9878ebc
+--- /dev/null
++++ b/Zend/tests/oom_hard_limit_exceeded.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++OOM: Hard limit exceeded
++--EXTENSIONS--
++zend_test
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++
++function f() {
++    zend_test_emalloc(1024*1024*1024);
++}
++
++function shutdown_function() {
++    echo "Not executed\n";
++}
++
++register_shutdown_function('shutdown_function');
++f();
++
++?>
++--EXPECTF--
++Hard memory limit of 20971520 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
++
++Termsig=9
+diff --git a/Zend/tests/oom_interrupt.phpt b/Zend/tests/oom_interrupt.phpt
+new file mode 100644
+index 0000000..ed408fc
+--- /dev/null
++++ b/Zend/tests/oom_interrupt.phpt
+@@ -0,0 +1,38 @@
++--TEST--
++OOM: zend_interrupt_function
++--EXTENSIONS--
++pcntl
++posix
++--FILE--
++<?php
++
++// Handle signals from a zend_interrupt_function
++pcntl_async_signals(true);
++
++$handled = 0;
++
++pcntl_signal(SIGTERM, function () use (&$handled) {
++    echo "Handled SIGTERM\n";
++    if (++$handled >= 10) {
++        exit;
++    }
++});
++
++$a = [];
++for ($i = 0; ; $i++) {
++    $a[0] = $i;
++    posix_kill(posix_getpid(), SIGTERM);
++}
++
++?>
++--EXPECT--
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
++Handled SIGTERM
+diff --git a/Zend/tests/oom_interrupt_unfinished_call_frame.phpt b/Zend/tests/oom_interrupt_unfinished_call_frame.phpt
+new file mode 100644
+index 0000000..78fa400
+--- /dev/null
++++ b/Zend/tests/oom_interrupt_unfinished_call_frame.phpt
+@@ -0,0 +1,21 @@
++--TEST--
++Delayed OOM while a call frame is only partially built
++--DESCRIPTION--
++A delayed OOM throws from the VM interrupt handler, which runs between two
++oplines. Argument unpacking grows test()'s frame past a VM stack page, so it is
++ZEND_CALL_ALLOCATED and owns the page; the interrupt is then delivered after the
++explode() call, while that frame is still pending.
++--FILE--
++<?php
++
++function test(...$args) {}
++
++$args = array_fill(0, 20000, 1);
++$str = str_repeat('abcdefgh,', 300);
++
++test(...$args, ...[explode(',', $str)]);
++
++?>
++===DONE===
++--EXPECT--
++===DONE===
+diff --git a/Zend/tests/oom_interrupt_unfinished_call_frame_fiber.phpt b/Zend/tests/oom_interrupt_unfinished_call_frame_fiber.phpt
+new file mode 100644
+index 0000000..d4b5fee
+--- /dev/null
++++ b/Zend/tests/oom_interrupt_unfinished_call_frame_fiber.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++Delayed OOM while a call frame is only partially built (fiber VM stack)
++--FILE--
++<?php
++
++function test(...$args) {}
++
++$fiber = new Fiber(function () {
++    $args = array_fill(0, 2000, 1);
++    $str = str_repeat('abcdefgh,', 100);
++    test(...$args, ...[explode(',', $str)]);
++});
++$fiber->start();
++
++?>
++===DONE===
++--EXPECT--
++===DONE===
+diff --git a/Zend/tests/oom_json_decode_001.phpt b/Zend/tests/oom_json_decode_001.phpt
+new file mode 100644
+index 0000000..4104487
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_001.phpt
+@@ -0,0 +1,14 @@
++--TEST--
++OOM json_decode() array
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$elems = '0'.str_repeat(',0', 1024*1024);
++$json = '[' . $elems . ']';
++var_dump(json_decode($json));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
+diff --git a/Zend/tests/oom_json_decode_002.phpt b/Zend/tests/oom_json_decode_002.phpt
+new file mode 100644
+index 0000000..75fcf79
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_002.phpt
+@@ -0,0 +1,15 @@
++--TEST--
++OOM json_decode() nested arrays
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$depth = 1024;
++$nested = str_repeat('[', $depth) . str_repeat(']', $depth);
++$json = '[' . $nested . str_repeat(','.$nested, 1024) . ']';
++var_dump(json_decode($json, depth: $depth+2));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 6
+diff --git a/Zend/tests/oom_json_decode_003.phpt b/Zend/tests/oom_json_decode_003.phpt
+new file mode 100644
+index 0000000..aefd032
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_003.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM json_decode() object
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 64;
++for ($i = 1; $i < 128*1024; $i++) {
++    if (isset($chunks[$i % $chunksize])) {
++        $chunks[$i % $chunksize] .= ',"k'.$i.'":0';
++    } else {
++        $chunks[$i % $chunksize] = '"k'.$i.'":0';
++    }
++}
++$json = '{' . implode(',', $chunks) . '}';
++var_dump(json_decode($json));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_json_decode_004.phpt b/Zend/tests/oom_json_decode_004.phpt
+new file mode 100644
+index 0000000..d1541a3
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_004.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM json_decode() nested objects
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$depth = 1024;
++$nested = str_repeat('{"o":', $depth) . '{"o":null}' . str_repeat('}', $depth);
++$elems = '"o0":'.$nested;
++for ($i = 0; $i < 256; $i++) {
++    $elems .= ',"o'.$i.'":'.$nested;
++}
++$json = '{' . $elems . '}';
++var_dump(json_decode($json, depth: $depth+3));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 10
+diff --git a/Zend/tests/oom_json_decode_005.phpt b/Zend/tests/oom_json_decode_005.phpt
+new file mode 100644
+index 0000000..42c1b45
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_005.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM json_decode() object as arrays
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 64;
++for ($i = 1; $i < 128*1024; $i++) {
++    if (isset($chunks[$i % $chunksize])) {
++        $chunks[$i % $chunksize] .= ',"k'.$i.'":0';
++    } else {
++        $chunks[$i % $chunksize] = '"k'.$i.'":0';
++    }
++}
++$json = '{' . implode(',', $chunks) . '}';
++var_dump(json_decode($json, associative: true));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_json_decode_006.phpt b/Zend/tests/oom_json_decode_006.phpt
+new file mode 100644
+index 0000000..b3bb9c3
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_006.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM json_decode() nested objects as arrays
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$depth = 1024;
++$nested = str_repeat('{"o":', $depth) . '{"o":null}' . str_repeat('}', $depth);
++$elems = '"o0":'.$nested;
++for ($i = 0; $i < 256; $i++) {
++    $elems .= ',"o'.$i.'":'.$nested;
++}
++$json = '{' . $elems . '}';
++var_dump(json_decode($json, associative: true, depth: $depth+3));
++var_dump(json_last_error_msg());
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 10
+diff --git a/Zend/tests/oom_json_decode_007.phpt b/Zend/tests/oom_json_decode_007.phpt
+new file mode 100644
+index 0000000..fd86339
+--- /dev/null
++++ b/Zend/tests/oom_json_decode_007.phpt
+@@ -0,0 +1,14 @@
++--TEST--
++OOM json_decode() empty objects
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++$elems = '{}'.str_repeat(',{}', 1024*1024);
++$json = '[' . $elems . ']';
++var_dump(json_decode($json));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
+diff --git a/Zend/tests/oom_pending_at_shutdown.phpt b/Zend/tests/oom_pending_at_shutdown.phpt
+new file mode 100644
+index 0000000..11f3780
+--- /dev/null
++++ b/Zend/tests/oom_pending_at_shutdown.phpt
+@@ -0,0 +1,16 @@
++--TEST--
++An OOM left pending by a shutdown function is reported
++--INI--
++memory_limit=16M
++--FILE--
++<?php
++register_shutdown_function(function () {
++    echo "Shutdown function called\n";
++    $a = str_repeat('a', 6 * 1024 * 1024);
++    $GLOBALS['b'] = $a . $a;
++});
++?>
++--EXPECTF--
++Shutdown function called
++
++Fatal error: Allowed memory size of 16777216 bytes exhausted %S(tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_range_001.phpt b/Zend/tests/oom_range_001.phpt
+new file mode 100644
+index 0000000..97fa507
+--- /dev/null
++++ b/Zend/tests/oom_range_001.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM range() decreasing float
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(range(100*1024*1024+0.5, 0.5));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_range_002.phpt b/Zend/tests/oom_range_002.phpt
+new file mode 100644
+index 0000000..3a0edeb
+--- /dev/null
++++ b/Zend/tests/oom_range_002.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM range() increasing float
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(range(0.5, 100*1024*1024+0.5));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_range_003.phpt b/Zend/tests/oom_range_003.phpt
+new file mode 100644
+index 0000000..d83aec3
+--- /dev/null
++++ b/Zend/tests/oom_range_003.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM range() decreasing int
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(range(100*1024*1024, 0));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_range_004.phpt b/Zend/tests/oom_range_004.phpt
+new file mode 100644
+index 0000000..7d36c9a
+--- /dev/null
++++ b/Zend/tests/oom_range_004.phpt
+@@ -0,0 +1,18 @@
++--TEST--
++OOM range() increasing int
++--INI--
++memory_limit=100M
++--SKIPIF--
++<?php
++if (PHP_INT_SIZE !== 8) {
++    die('skip 64-bit only');
++}
++?>
++--FILE--
++<?php
++
++var_dump(range(0, 100*1024*1024));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_soft_limit_exceeded.phpt b/Zend/tests/oom_soft_limit_exceeded.phpt
+new file mode 100644
+index 0000000..ce99a34
+--- /dev/null
++++ b/Zend/tests/oom_soft_limit_exceeded.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM: Soft limit exceeded
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++function f() {
++    $a = [];
++    while (true) {
++        $a[] = str_repeat('a', 1024*1024);
++    }
++}
++
++f();
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes %s (tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_soft_limit_exceeded_fcall.phpt b/Zend/tests/oom_soft_limit_exceeded_fcall.phpt
+new file mode 100644
+index 0000000..8d6d1fd
+--- /dev/null
++++ b/Zend/tests/oom_soft_limit_exceeded_fcall.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM: Soft limit exceeded in FCALL
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++function f() {
++    $a = [];
++    while (true) {
++        array_push($a, str_repeat('a', 1024*1024));
++    }
++}
++
++f();
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes %s (tried to allocate %d bytes) in %s on line %d
+diff --git a/Zend/tests/oom_soft_limit_in_callback.phpt b/Zend/tests/oom_soft_limit_in_callback.phpt
+new file mode 100644
+index 0000000..ccc4a9c
+--- /dev/null
++++ b/Zend/tests/oom_soft_limit_in_callback.phpt
+@@ -0,0 +1,27 @@
++--TEST--
++OOM: Soft limit exceeded in library callback
++--EXTENSIONS--
++zend_test
++--INI--
++memory_limit=10M
++--FILE--
++<?php
++
++function f() {
++    zend_test_emalloc(10*1024*1024);
++}
++
++function shutdown_function() {
++    echo "Executed\n";
++}
++
++register_shutdown_function('shutdown_function');
++
++zend_test_callback(function () {
++    f();
++});
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 10485760 bytes exhausted %S(tried to allocate %d bytes) in %s on line 4
++Executed
+diff --git a/Zend/tests/oom_str_repeat.phpt b/Zend/tests/oom_str_repeat.phpt
+new file mode 100644
+index 0000000..d329e13
+--- /dev/null
++++ b/Zend/tests/oom_str_repeat.phpt
+@@ -0,0 +1,12 @@
++--TEST--
++OOM str_repeat()
++--INI--
++memory_limit=100M
++--FILE--
++<?php
++
++var_dump(str_repeat('a', 300<<20));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 3
+diff --git a/Zend/tests/oom_unserialize_001.phpt b/Zend/tests/oom_unserialize_001.phpt
+new file mode 100644
+index 0000000..877dbce
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_001.phpt
+@@ -0,0 +1,21 @@
++--TEST--
++OOM unserialize() array
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 2*1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('i:%d;i:%d;', $i, $i);
++}
++$payload = 'a:'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 12
+diff --git a/Zend/tests/oom_unserialize_002.phpt b/Zend/tests/oom_unserialize_002.phpt
+new file mode 100644
+index 0000000..559ec73
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_002.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM unserialize() array of strings
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $str = base_convert($i, 10, 36);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('i:%d;s:%d:"%s";', $i, strlen($str), $str);
++}
++$payload = 'a:'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_unserialize_003.phpt b/Zend/tests/oom_unserialize_003.phpt
+new file mode 100644
+index 0000000..af627b1
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_003.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM unserialize() array of string=>int
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $str = base_convert($i, 10, 36);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('s:%d:"%s";i:%d;', strlen($str), $str, $i);
++}
++$payload = 'a:'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_unserialize_004.phpt b/Zend/tests/oom_unserialize_004.phpt
+new file mode 100644
+index 0000000..aff1d2a
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_004.phpt
+@@ -0,0 +1,23 @@
++--TEST--
++OOM unserialize() array of old strings
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $str = base_convert($i, 10, 36);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('i:%d;S:%d:"%s";', $i, strlen($str), $str);
++}
++$payload = 'a:'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_unserialize_005.phpt b/Zend/tests/oom_unserialize_005.phpt
+new file mode 100644
+index 0000000..3e821f0
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_005.phpt
+@@ -0,0 +1,23 @@
++--TEST--
++OOM unserialize() object
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $prop = sprintf('p%d', $i);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('s:%d:"%s";i:%d;', strlen($prop), $prop, $i);
++}
++$payload = 'O:8:"stdClass":'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_unserialize_006.phpt b/Zend/tests/oom_unserialize_006.phpt
+new file mode 100644
+index 0000000..41d0e6e
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_006.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM unserialize() object of int=>int
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('i:%d;i:%d;', $i, $i);
++}
++$payload = 'O:8:"stdClass":'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '64m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 67108864 bytes exhausted %S(tried to allocate %d bytes) in %s on line 12
+diff --git a/Zend/tests/oom_unserialize_007.phpt b/Zend/tests/oom_unserialize_007.phpt
+new file mode 100644
+index 0000000..68db3da
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_007.phpt
+@@ -0,0 +1,17 @@
++--TEST--
++OOM unserialize() classname
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++$classname = str_repeat('a', 32*1024*1024);
++$payload = 'O:'.strlen($classname).':"'.$classname.'":0:{}';
++
++ini_set('memory_limit', memory_get_usage() + 20*1024*1024);
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of %d bytes exhausted %S(tried to allocate %d bytes) in %s on line 7
+diff --git a/Zend/tests/oom_unserialize_008.phpt b/Zend/tests/oom_unserialize_008.phpt
+new file mode 100644
+index 0000000..946223b
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_008.phpt
+@@ -0,0 +1,19 @@
++--TEST--
++OOM unserialize() classname (2)
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++// Use a classname with uppercase chars, so a lowercase copy is needed. We OOM
++// while creating the copy.
++$classname = str_repeat('A', 32*1024*1024);
++$payload = 'O:'.strlen($classname).':"'.$classname.'":0:{}';
++
++ini_set('memory_limit', memory_get_usage() + 40*1024*1024);
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of %d bytes exhausted %S(tried to allocate %d bytes) in %s on line 9
+diff --git a/Zend/tests/oom_unserialize_009.phpt b/Zend/tests/oom_unserialize_009.phpt
+new file mode 100644
+index 0000000..8600117
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_009.phpt
+@@ -0,0 +1,26 @@
++--TEST--
++OOM unserialize() Serializable
++--INI--
++memory_limit=200M
++error_reporting=E_ALL&~E_DEPRECATED
++--FILE--
++<?php
++
++class C implements Serializable
++{
++    public $data;
++    public function serialize(): ?string {
++        return 'hello';
++    }
++    public function unserialize(string $data): void {
++        str_repeat('a', 200<<20);
++    }
++}
++
++$payload = 'C:1:"C":5:{hello}';
++
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of %d bytes exhausted %S(tried to allocate %d bytes) in %s on line 10
+diff --git a/Zend/tests/oom_unserialize_011.phpt b/Zend/tests/oom_unserialize_011.phpt
+new file mode 100644
+index 0000000..2710bab
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_011.phpt
+@@ -0,0 +1,22 @@
++--TEST--
++OOM unserialize() array of objects
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 512*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $str = base_convert($i, 10, 36);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('i:%d;O:8:"stdClass":0:{}', $i);
++}
++$payload = 'a:'.$i.':{'.implode('', $chunks).'}';
++
++ini_set('memory_limit', '64m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 67108864 bytes exhausted %S(tried to allocate %d bytes) in %s on line 13
+diff --git a/Zend/tests/oom_unserialize_012.phpt b/Zend/tests/oom_unserialize_012.phpt
+new file mode 100644
+index 0000000..8f4495c
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_012.phpt
+@@ -0,0 +1,23 @@
++--TEST--
++OOM unserialize() object fextend
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 2*1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $prop = sprintf('p%d', $i);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('s:%d:"%s";i:%d;', strlen($prop), $prop, $i);
++}
++$payload = 'O:8:"stdClass":'.$i.':{'.implode('', $chunks).'}';
++$chunks = null;
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 14
+diff --git a/Zend/tests/oom_unserialize_013.phpt b/Zend/tests/oom_unserialize_013.phpt
+new file mode 100644
+index 0000000..de73ba4
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_013.phpt
+@@ -0,0 +1,28 @@
++--TEST--
++OOM unserialize() object __wakeup
++--INI--
++memory_limit=100M
++--FILE--
++<?php
++
++class C {
++    public function __wakeup() {
++        str_repeat('a', 200*1024*1024);
++    }
++}
++
++class D {
++    public function __wakeup() {
++        echo "Not executed";
++        // Would hit hard limit
++        zend_test_emalloc(200*1024*1024);
++    }
++}
++
++$payload = 'a:2:{i:0;O:1:"C":0:{}i:1;O:1:"D":0:{}}';
++
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
+diff --git a/Zend/tests/oom_unserialize_014.phpt b/Zend/tests/oom_unserialize_014.phpt
+new file mode 100644
+index 0000000..fea8774
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_014.phpt
+@@ -0,0 +1,28 @@
++--TEST--
++OOM unserialize() object __unserialize (2)
++--INI--
++memory_limit=200M
++--FILE--
++<?php
++
++class C {
++    public function __unserialize($data) {
++    }
++}
++
++$chunks = [];
++$chunksize = 128;
++for ($i = 0; $i < 1024*1024; $i++) {
++    $chunkIdx = (int)($i / $chunksize);
++    $prop = sprintf('p%d', $i);
++    $chunks[$chunkIdx] = ($chunks[$chunkIdx] ?? '') . sprintf('s:%d:"%s";i:%d;', strlen($prop), $prop, $i);
++}
++$payload = 'O:1:"C":'.$i.':{'.implode('', $chunks).'}';
++$chunks = null;
++
++ini_set('memory_limit', '100m');
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 19
+diff --git a/Zend/tests/oom_unserialize_015.phpt b/Zend/tests/oom_unserialize_015.phpt
+new file mode 100644
+index 0000000..b70445e
+--- /dev/null
++++ b/Zend/tests/oom_unserialize_015.phpt
+@@ -0,0 +1,20 @@
++--TEST--
++OOM unserialize() object __unserialize (2)
++--INI--
++memory_limit=100M
++--FILE--
++<?php
++
++class C {
++    public function __unserialize($data) {
++        str_repeat('a', 200<<20);
++    }
++}
++
++$payload = 'O:1:"C":0:{}';
++
++var_dump(gettype(unserialize($payload)));
++
++?>
++--EXPECTF--
++Fatal error: Allowed memory size of 104857600 bytes exhausted %S(tried to allocate %d bytes) in %s on line 5
+diff --git a/ext/session/tests/rfc1867.phpt b/ext/session/tests/rfc1867.phpt
+index 0962a91..0fb9754 100644
+--- a/ext/session/tests/rfc1867.phpt
++++ b/ext/session/tests/rfc1867.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_inter.phpt b/ext/session/tests/rfc1867_inter.phpt
+index a7ddff1..189d271 100644
+--- a/ext/session/tests/rfc1867_inter.phpt
++++ b/ext/session/tests/rfc1867_inter.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_cookie.phpt b/ext/session/tests/rfc1867_sid_cookie.phpt
+index e090ebe..cb0dc03 100644
+--- a/ext/session/tests/rfc1867_sid_cookie.phpt
++++ b/ext/session/tests/rfc1867_sid_cookie.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid cookie
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_get.phpt b/ext/session/tests/rfc1867_sid_get.phpt
+index f227dd7..b612d7c 100644
+--- a/ext/session/tests/rfc1867_sid_get.phpt
++++ b/ext/session/tests/rfc1867_sid_get.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid get
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_get_2.phpt b/ext/session/tests/rfc1867_sid_get_2.phpt
+index 8362f3b..0f8b373 100644
+--- a/ext/session/tests/rfc1867_sid_get_2.phpt
++++ b/ext/session/tests/rfc1867_sid_get_2.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid get 2
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_invalid.phpt b/ext/session/tests/rfc1867_sid_invalid.phpt
+index 265883c..b1c3528 100644
+--- a/ext/session/tests/rfc1867_sid_invalid.phpt
++++ b/ext/session/tests/rfc1867_sid_invalid.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid cookie
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_only_cookie.phpt b/ext/session/tests/rfc1867_sid_only_cookie.phpt
+index c133d3c..72c4ccc 100644
+--- a/ext/session/tests/rfc1867_sid_only_cookie.phpt
++++ b/ext/session/tests/rfc1867_sid_only_cookie.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid only cookie
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024
+diff --git a/ext/session/tests/rfc1867_sid_post.phpt b/ext/session/tests/rfc1867_sid_post.phpt
+index e1f2123..7981554 100644
+--- a/ext/session/tests/rfc1867_sid_post.phpt
++++ b/ext/session/tests/rfc1867_sid_post.phpt
+@@ -1,5 +1,7 @@
+ --TEST--
+ session rfc1867 sid post
++--XFAIL--
++Because mitigation for CVE-2026-109618, CVE-2026-109619
+ --INI--
+ file_uploads=1
+ upload_max_filesize=1024

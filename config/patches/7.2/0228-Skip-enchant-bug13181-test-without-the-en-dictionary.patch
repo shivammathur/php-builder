@@ -1,0 +1,41 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:29:44 +0100
+Subject: Skip enchant bug13181 test without the en dictionary
+
+---
+ ext/enchant/tests/bug13181.phpt | 21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
+
+diff --git a/ext/enchant/tests/bug13181.phpt b/ext/enchant/tests/bug13181.phpt
+index a8b2501..e111562 100644
+--- a/ext/enchant/tests/bug13181.phpt
++++ b/ext/enchant/tests/bug13181.phpt
+@@ -2,9 +2,26 @@
+ bug #13181, leaving a context frees the broker resources
+ --SKIPIF--
+ <?php
+-if(!extension_loaded('enchant')) die('skip, enchant not loader');
++if (!extension_loaded('enchant')) {
++	echo "skip: Enchant extension not enabled\n";
++	exit;
++}
+ 
+- ?>
++$broker = enchant_broker_init();
++
++if (!$broker) {
++	echo "skip: Unable to init broker\n";
++	exit;
++}
++
++if (!enchant_broker_dict_exists($broker, "en")) {
++	enchant_broker_free($broker);
++
++	echo "skip: No en dictionary installed\n";
++}
++
++enchant_broker_free($broker);
++?>
+ --FILE--
+ <?php
+ function get_dictionnary() {

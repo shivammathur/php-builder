@@ -1,0 +1,70 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:04:00 +0100
+Subject: Accept the default session.save_path in the session tests
+
+These tests hard-code an empty session.save_path, but the Debian
+packages default to /var/lib/php/sessions and the test suite is run with
+its own save path.  Backport of upstream commit 092e090cf004 (PHP 8.3).
+---
+ ext/session/tests/bug74514.phpt | 14 +++++++-------
+ ext/session/tests/bug74936.phpt |  8 ++++----
+ ext/session/tests/gh7787.phpt   |  8 ++++----
+ 3 files changed, 15 insertions(+), 15 deletions(-)
+
+diff --git a/ext/session/tests/bug74514.phpt b/ext/session/tests/bug74514.phpt
+index d2301e9..59d441e 100644
+--- a/ext/session/tests/bug74514.phpt
++++ b/ext/session/tests/bug74514.phpt
+@@ -25,10 +25,10 @@
+ var_dump(session_cache_limiter());
+ var_dump(session_cache_expire());
+ ?>
+---EXPECT--
+-string(9) "PHPSESSID"
+-string(3) "foo"
+-string(5) "files"
+-string(0) ""
+-string(7) "nocache"
+-int(180)
++--EXPECTF--
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++string(%d) "%S"
++int(%d)
+diff --git a/ext/session/tests/bug74936.phpt b/ext/session/tests/bug74936.phpt
+index 9b1550e..ed98145 100644
+--- a/ext/session/tests/bug74936.phpt
++++ b/ext/session/tests/bug74936.phpt
+@@ -14,7 +14,7 @@
+ var_dump(session_cache_limiter());
+ var_dump(session_save_path());
+ ?>
+---EXPECT--
+-int(180)
+-string(7) "nocache"
+-string(0) ""
++--EXPECTF--
++int(%d)
++string(%d) "%S"
++string(%d) "%S"
+diff --git a/ext/session/tests/gh7787.phpt b/ext/session/tests/gh7787.phpt
+index b383988..4a3407f 100644
+--- a/ext/session/tests/gh7787.phpt
++++ b/ext/session/tests/gh7787.phpt
+@@ -81,10 +81,10 @@ public function updateTimestamp($sessid, $sessdata): bool {
+ 
+ ?>
+ --EXPECTF--
+-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::write) in %s on line %d
++Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: %S, handler: MySessionHandler::write) in %s on line %d
+ 
+-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: MySessionHandler::updateTimestamp) in %s on line %d
++Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: %S, handler: MySessionHandler::updateTimestamp) in %s on line %d
+ 
+-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: write) in %s on line %d
++Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: %S, handler: write) in %s on line %d
+ 
+-Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: , handler: update_timestamp) in %s on line %d
++Warning: session_write_close(): Failed to write session data using user defined save handler. (session.save_path: %S, handler: update_timestamp) in %s on line %d

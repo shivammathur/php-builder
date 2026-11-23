@@ -1,0 +1,58 @@
+From: txuna <b7712983@naver.com>
+Date: Mon, 26 May 2025 13:25:21 +0000
+Subject: Fix GH-18595: fpm_get_status segfault
+
+This fixes null dereference error when calling fpm_get_status() and one
+of the children is just being created.
+
+Closes GH-18662
+
+Co-authored-by: Jakub Zelenka <bukka@php.net>
+---
+ NEWS                       | 5 +++++
+ sapi/fpm/fpm/fpm_request.c | 1 +
+ sapi/fpm/fpm/fpm_request.h | 3 ++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/NEWS b/NEWS
+index 9530410..5bf918a 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,11 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.3.23
++
++- FPM:
++  . Fixed GH-18662 (fpm_get_status segfault). (txuna)
++
+ Backported from 8.2.27
+ 
+ - FPM:
+diff --git a/sapi/fpm/fpm/fpm_request.c b/sapi/fpm/fpm/fpm_request.c
+index 0a6f6a7..d70e409 100644
+--- a/sapi/fpm/fpm/fpm_request.c
++++ b/sapi/fpm/fpm/fpm_request.c
+@@ -22,6 +22,7 @@
+ #include "zlog.h"
+ 
+ static const char *requests_stages[] = {
++	[FPM_REQUEST_CREATING]        = "Creating",
+ 	[FPM_REQUEST_ACCEPTING]       = "Idle",
+ 	[FPM_REQUEST_READING_HEADERS] = "Reading headers",
+ 	[FPM_REQUEST_INFO]            = "Getting request information",
+diff --git a/sapi/fpm/fpm/fpm_request.h b/sapi/fpm/fpm/fpm_request.h
+index 15bce58..a6798cd 100644
+--- a/sapi/fpm/fpm/fpm_request.h
++++ b/sapi/fpm/fpm/fpm_request.h
+@@ -19,7 +19,8 @@ const char *fpm_request_get_stage_name(int stage);
+ int fpm_request_last_activity(struct fpm_child_s *child, struct timeval *tv);
+ 
+ enum fpm_request_stage_e {
+-	FPM_REQUEST_ACCEPTING = 1,
++	FPM_REQUEST_CREATING,
++	FPM_REQUEST_ACCEPTING,
+ 	FPM_REQUEST_READING_HEADERS,
+ 	FPM_REQUEST_INFO,
+ 	FPM_REQUEST_EXECUTING,

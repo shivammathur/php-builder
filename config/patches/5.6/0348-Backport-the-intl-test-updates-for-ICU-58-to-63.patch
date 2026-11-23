@@ -1,0 +1,741 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:51:07 +0100
+Subject: Backport the intl test updates for ICU 58 to 63
+
+PHP 5.6 never got the test updates for ICU 58 and newer: the tests whose
+results changed are limited to the older ICU versions and get a variant
+for the newer ones, and three expectations are relaxed. Backport of
+upstream commits 877e0b04bc4, 7240d998381 and 9071ff5c872 (PHP 7.0.26),
+398f56dbc85 (PHP 7.1.17), 5af0db88faf (PHP 7.1.20) and 4461fb9c264
+(PHP 7.1.24); of the new variants only the ones for the current ICU are
+taken. spoofchecker_001 has no variant for ICU 58 and newer that works
+with PHP 5.6.
+---
+ .../tests/breakiter_getPartsIterator_basic.phpt    |   1 +
+ .../tests/breakiter_getPartsIterator_basic2.phpt   |  39 +++++++
+ ext/intl/tests/breakiter_preceding_basic.phpt      |   1 +
+ ext/intl/tests/breakiter_preceding_basic2.phpt     |  25 ++++
+ ext/intl/tests/bug62070_2.phpt                     |   1 +
+ ext/intl/tests/collator_get_sort_key_variant6.phpt |   1 +
+ .../tests/dateformat_create_cal_arg_variant4.phpt  |   1 +
+ .../tests/dateformat_create_cal_arg_variant5.phpt  |  53 +++++++++
+ .../dateformat_get_set_calendar_variant4.phpt      |   1 +
+ ext/intl/tests/formatter_format6.phpt              |   1 +
+ ext/intl/tests/formatter_format8.phpt              | 130 +++++++++++++++++++++
+ ext/intl/tests/formatter_format_currency2.phpt     |   4 +-
+ ext/intl/tests/formatter_get_locale_variant2.phpt  |   1 +
+ ext/intl/tests/formatter_get_locale_variant4.phpt  |  50 ++++++++
+ ext/intl/tests/formatter_get_set_pattern.phpt      |   1 +
+ ext/intl/tests/formatter_get_set_pattern2.phpt     |  53 +++++++++
+ ext/intl/tests/formatter_get_set_symbol2.phpt      |   4 +-
+ ext/intl/tests/msgfmt_bug70484.phpt                |  18 +--
+ ext/intl/tests/rbbiter_getBinaryRules_basic.phpt   |   1 +
+ ext/intl/tests/rbbiter_getRules_basic.phpt         |   1 +
+ ext/intl/tests/spoofchecker_001.phpt               |   1 +
+ ext/intl/tests/uconverter_oop_callback.phpt        |   1 +
+ ext/intl/tests/uconverter_oop_callback2.phpt       |  57 +++++++++
+ 23 files changed, 433 insertions(+), 13 deletions(-)
+ create mode 100644 ext/intl/tests/breakiter_getPartsIterator_basic2.phpt
+ create mode 100644 ext/intl/tests/breakiter_preceding_basic2.phpt
+ create mode 100644 ext/intl/tests/dateformat_create_cal_arg_variant5.phpt
+ create mode 100644 ext/intl/tests/formatter_format8.phpt
+ create mode 100644 ext/intl/tests/formatter_get_locale_variant4.phpt
+ create mode 100644 ext/intl/tests/formatter_get_set_pattern2.phpt
+ create mode 100644 ext/intl/tests/uconverter_oop_callback2.phpt
+
+diff --git a/ext/intl/tests/breakiter_getPartsIterator_basic.phpt b/ext/intl/tests/breakiter_getPartsIterator_basic.phpt
+index 36ad80d..a599ae1 100644
+--- a/ext/intl/tests/breakiter_getPartsIterator_basic.phpt
++++ b/ext/intl/tests/breakiter_getPartsIterator_basic.phpt
+@@ -4,6 +4,7 @@ IntlBreakIterator::getPartsIterator(): basic test
+ <?php
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '57.1') > 0) die('skip for ICU <= 57.1');
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/breakiter_getPartsIterator_basic2.phpt b/ext/intl/tests/breakiter_getPartsIterator_basic2.phpt
+new file mode 100644
+index 0000000..2f96fa9
+--- /dev/null
++++ b/ext/intl/tests/breakiter_getPartsIterator_basic2.phpt
+@@ -0,0 +1,39 @@
++--TEST--
++IntlBreakIterator::getPartsIterator(): basic test, ICU >= 58.1
++--SKIPIF--
++<?php
++if (!extension_loaded('intl'))
++	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '57.1') <= 0) die('skip for ICU >= 58.1');
++?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++
++$bi = IntlBreakIterator::createWordInstance('pt');
++$pi = $bi->getPartsIterator();
++var_dump(get_class($pi));
++print_r(iterator_to_array($pi));
++
++$bi->setText("foo bar");
++$pi = $bi->getPartsIterator();
++var_dump(get_class($pi->getBreakIterator()));
++print_r(iterator_to_array($pi));
++var_dump($pi->getRuleStatus());
++?>
++==DONE==
++--EXPECTF--
++string(17) "IntlPartsIterator"
++Array
++(
++)
++string(26) "IntlRuleBasedBreakIterator"
++Array
++(
++    [0] => foo
++    [1] =>  
++    [2] => bar
++)
++int(%d)
++==DONE==
+diff --git a/ext/intl/tests/breakiter_preceding_basic.phpt b/ext/intl/tests/breakiter_preceding_basic.phpt
+index 6fa8dd7..76d46df 100644
+--- a/ext/intl/tests/breakiter_preceding_basic.phpt
++++ b/ext/intl/tests/breakiter_preceding_basic.phpt
+@@ -4,6 +4,7 @@ IntlBreakIterator::preceding(): basic test
+ <?php
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '57.1') > 0) die('skip for ICU <= 57.1');
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/breakiter_preceding_basic2.phpt b/ext/intl/tests/breakiter_preceding_basic2.phpt
+new file mode 100644
+index 0000000..e6f4f70
+--- /dev/null
++++ b/ext/intl/tests/breakiter_preceding_basic2.phpt
+@@ -0,0 +1,25 @@
++--TEST--
++IntlBreakIterator::preceding(): basic test, ICU >= 58.1
++--SKIPIF--
++<?php
++if (!extension_loaded('intl'))
++	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '57.1') <= 0) die('skip for ICU >= 58.1');
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++
++$bi = IntlBreakIterator::createWordInstance('pt');
++$bi->setText('foo bar trans zoo bee');
++
++var_dump($bi->preceding(5));
++var_dump($bi->preceding(50));
++var_dump($bi->preceding(-1));
++?>
++==DONE==
++--EXPECTF--
++int(4)
++int(21)
++int(%i)
++==DONE==
+diff --git a/ext/intl/tests/bug62070_2.phpt b/ext/intl/tests/bug62070_2.phpt
+index 63f5107..c632b56 100644
+--- a/ext/intl/tests/bug62070_2.phpt
++++ b/ext/intl/tests/bug62070_2.phpt
+@@ -3,6 +3,7 @@ Bug #62070: Collator::getSortKey() returns garbage
+ --SKIPIF--
+ <?php if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '53.1') < 0) die('skip for ICU >= 53.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') >=  0) die('skip for ICU < 62.1'); ?>
+ --FILE--
+ <?php
+ $s1 = 'Hello';
+diff --git a/ext/intl/tests/collator_get_sort_key_variant6.phpt b/ext/intl/tests/collator_get_sort_key_variant6.phpt
+index d8105d7..78c74f5 100644
+--- a/ext/intl/tests/collator_get_sort_key_variant6.phpt
++++ b/ext/intl/tests/collator_get_sort_key_variant6.phpt
+@@ -3,6 +3,7 @@ collator_get_sort_key() icu >= 56.1
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '56.1') < 0) die('skip for ICU >= 56.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') >=  0) die('skip for ICU < 62.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/dateformat_create_cal_arg_variant4.phpt b/ext/intl/tests/dateformat_create_cal_arg_variant4.phpt
+index 4086e45..861ee51 100644
+--- a/ext/intl/tests/dateformat_create_cal_arg_variant4.phpt
++++ b/ext/intl/tests/dateformat_create_cal_arg_variant4.phpt
+@@ -4,6 +4,7 @@ IntlDateFormatter: several forms of the calendar arg
+ <?php
+ if (!extension_loaded('intl'))	die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '54.1') < 0) die('skip for ICU >= 54.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '58.1') >= 0) die('skip for ICU <= 57.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/dateformat_create_cal_arg_variant5.phpt b/ext/intl/tests/dateformat_create_cal_arg_variant5.phpt
+new file mode 100644
+index 0000000..8e94d42
+--- /dev/null
++++ b/ext/intl/tests/dateformat_create_cal_arg_variant5.phpt
+@@ -0,0 +1,53 @@
++--TEST--
++IntlDateFormatter: several forms of the calendar arg
++--SKIPIF--
++<?php
++if (!extension_loaded('intl'))	die('skip intl extension not enabled'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '58.1') < 0) die('skip for ICU >= 58.1'); ?>
++--FILE--
++<?php
++ini_set("intl.error_level", E_WARNING);
++ini_set("intl.default_locale", "pt_PT");
++ini_set("date.timezone", 'Atlantic/Azores');
++
++$ts = strtotime('2012-01-01 00:00:00 UTC');
++
++$cal = new IntlGregorianCalendar('UTC', NULL);
++$df = new IntlDateFormatter('es_ES', 0, 0, NULL, $cal);
++echo $df->format($ts), "\n";
++
++$cal = IntlCalendar::createInstance('UTC', 'en@calendar=islamic');
++$df = new IntlDateFormatter('es_ES', 0, 0, NULL, $cal);
++echo $df->format($ts), "\n";
++
++//override calendar's timezone
++$cal = new IntlGregorianCalendar('UTC', NULL);
++$df = new IntlDateFormatter('es_ES', 0, 0, 'Europe/Madrid', $cal);
++echo $df->format($ts), "\n";
++
++//default calendar is gregorian
++$df = new IntlDateFormatter('es_ES@calendar=islamic', 0, 0);
++echo $df->format($ts), "\n";
++
++//try now with traditional
++$df = new IntlDateFormatter('es_ES@calendar=islamic', 0, 0, NULL, IntlDateFormatter::TRADITIONAL);
++echo $df->format($ts), "\n";
++
++//the timezone can be overridden when not specifying a calendar
++$df = new IntlDateFormatter('es_ES@calendar=islamic', 0, 0, 'UTC', IntlDateFormatter::TRADITIONAL);
++echo $df->format($ts), "\n";
++
++$df = new IntlDateFormatter('es_ES', 0, 0, 'UTC', 0);
++echo $df->format($ts), "\n";
++
++?>
++==DONE==
++--EXPECTF--
++domingo%S 1 de enero de 2012, 0:00:00 (%siempo %sniversal %sordinado)
++domingo%S 8 de %safar de 1433, 0:00:00 (%siempo %sniversal %sordinado)
++domingo, 1 de enero de 2012, 1:00:00 (hora estándar de Europa central)
++sábado, 31 de diciembre de 2011 d. C., 23:00:00 (hora estándar de las Azores)
++sábado, 7 de %safar de 1433 AH, 23:00:00 (hora estándar de las Azores)
++domingo%S 8 de %safar de 1433 AH, 0:00:00 (%siempo %sniversal %sordinado)
++domingo%S 1 de enero de 2012, 0:00:00 (%siempo %sniversal %sordinado)
++==DONE==
+diff --git a/ext/intl/tests/dateformat_get_set_calendar_variant4.phpt b/ext/intl/tests/dateformat_get_set_calendar_variant4.phpt
+index dc9db09..1d9ab7e 100644
+--- a/ext/intl/tests/dateformat_get_set_calendar_variant4.phpt
++++ b/ext/intl/tests/dateformat_get_set_calendar_variant4.phpt
+@@ -4,6 +4,7 @@ IntlDateFormatter: setCalendar()/getCalendar()/getCalendarObject()
+ <?php
+ if (!extension_loaded('intl')) die('skip intl extension not enabled'); ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '54.1') < 0) die('skip for ICU >= 54.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '58.1') >= 0) die('skip for ICU <= 57.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/formatter_format6.phpt b/ext/intl/tests/formatter_format6.phpt
+index 80894c3..eea52a9 100644
+--- a/ext/intl/tests/formatter_format6.phpt
++++ b/ext/intl/tests/formatter_format6.phpt
+@@ -3,6 +3,7 @@ numfmt_format() icu >= 56.1
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '56.1') < 0) die('skip for ICU >= 56.1'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') >= 0) die('skip for ICU < 61.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/formatter_format8.phpt b/ext/intl/tests/formatter_format8.phpt
+new file mode 100644
+index 0000000..3aad6bc
+--- /dev/null
++++ b/ext/intl/tests/formatter_format8.phpt
+@@ -0,0 +1,130 @@
++--TEST--
++numfmt_format() icu >= 62.1
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') < 0) die('skip for ICU >= 62.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Format a number using misc locales/patterns.
++ */
++
++/*
++ * TODO: doesn't pass on ICU 3.6 because 'ru' and 'de' locales changed
++ * currency and percent formatting.
++ */
++
++function ut_main()
++{
++    $styles = array(
++        NumberFormatter::PATTERN_DECIMAL => '##.#####################',
++        NumberFormatter::DECIMAL => '',
++        NumberFormatter::CURRENCY => '',
++        NumberFormatter::PERCENT => '',
++        NumberFormatter::SCIENTIFIC => '',
++        NumberFormatter::SPELLOUT => '@@@@@@@',
++        NumberFormatter::ORDINAL => '',
++        NumberFormatter::DURATION => '',
++        NumberFormatter::PATTERN_RULEBASED => '#####.###',
++        1234999, // bad one
++    );
++
++   $integer = array(
++        NumberFormatter::ORDINAL => '',
++        NumberFormatter::DURATION => '',
++   );
++    $locales = array(
++        'en_US',
++        'ru_UA',
++        'de',
++        'fr',
++        'en_UK'
++    );
++
++    $str_res = '';
++    $number = 1234567.891234567890000;
++
++    foreach( $locales as $locale )
++    {
++        $str_res .= "\nLocale is: $locale\n";
++        foreach( $styles as $style => $pattern )
++        {
++            $fmt = ut_nfmt_create( $locale, $style, $pattern );
++
++			if(!$fmt) {
++				$str_res .= "Bad formatter!\n";
++				continue;
++			}
++            $str_res .= dump( isset($integer[$style])?ut_nfmt_format( $fmt, $number, NumberFormatter::TYPE_INT32):ut_nfmt_format( $fmt, $number ) ) . "\n";
++        }
++    }
++    return $str_res;
++}
++
++include_once( 'ut_common.inc' );
++
++// Run the test
++ut_run();
++
++?>
++--EXPECTREGEX--
++Locale is: en_US
++'1234567.8912345\d+'
++'1,234,567.891'
++'\$1,234,567.89'
++'123,456,789%'
++'1.2345678912345\d+E6'
++'one million,? two hundred (and )?thirty-four thousand,? five hundred (and )?sixty-seven point eight nine one two three four five( six)? seven( nine)?'
++'1,234,567(th|ᵗʰ)'
++'342:56:07'
++'#####.###'
++'USD 1,234,567.89'
++
++Locale is: ru_UA
++'1234567.8912345\d+'
++'1 234 567,891'
++'1 234 567,89 ?(грн\.|₴)'
++'123 456 789 ?%'
++'1.2345678912345\d+E6'
++'один миллион двести тридцать четыре тысячи пятьсот шестьдесят семь целых восемьдесят девять миллионов сто двадцать три тысячи четыреста пятьдесят семь стомиллионных'
++'1 234 567.?'
++'1 234 567'
++'#####.###'
++'1 234 567,89 UAH'
++
++Locale is: de
++'1234567.8912345\d+'
++'1.234.567,891'
++'1.234.567,89 XXX'
++'123\.456\.789 %'
++'1.2345678912345\d+E6'
++'eine Million zwei­hundert­vier­und­dreißig­tausend­fünf­hundert­sieben­und­sechzig Komma acht neun eins zwei drei vier fünf( sechs)? sieben( neun)?'
++'1.234.567.?'
++'1.234.567'
++'#####.###'
++'1.234.567,89 XXX'
++
++Locale is: fr
++'1234567.8912345\d+'
++'1.+234.+567,891'
++'1.+234.+567,89.+(XXX|¤)'
++'123.+456.+789(.+)?%'
++'1.2345678912345\d+E6'
++'un million deux cent trente-quatre mille cinq cent soixante-sept virgule huit neuf un deux trois quatre cinq( six)? sept( neuf)?'
++'1.+234.+567e'
++'1.+234.+567'
++'#####.###'
++'1.+234.+567,89.+XXX'
++
++Locale is: en_UK
++'1234567.8912345\d+'
++'1,234,567.891'
++'(¤|XXX )1,234,567.89'
++'123,456,789%'
++'1.2345678912345\d+E6'
++'one million,? two hundred (and )?thirty-four thousand,? five hundred (and )?sixty-seven point eight nine one two three four five( six)? seven( nine)?'
++'1,234,567(th|ᵗʰ)'
++'342:56:07'
++'#####.###'
++'XXX 1,234,567.89'
+diff --git a/ext/intl/tests/formatter_format_currency2.phpt b/ext/intl/tests/formatter_format_currency2.phpt
+index d9277f3..16a4210 100644
+--- a/ext/intl/tests/formatter_format_currency2.phpt
++++ b/ext/intl/tests/formatter_format_currency2.phpt
+@@ -42,9 +42,9 @@ include_once( 'ut_common.inc' );
+ ut_run();
+ 
+ ?>
+---EXPECT--
++--EXPECTF--
+ en_UK: '£1,234,567.89'
+ en_US: '$1,234,567.89'
+ ru: '1 234 567,89 р.'
+ uk: '1 234 567,89 ₴'
+-en: 'UAH1,234,567.89'
++en: 'UAH%A1,234,567.89'
+diff --git a/ext/intl/tests/formatter_get_locale_variant2.phpt b/ext/intl/tests/formatter_get_locale_variant2.phpt
+index 9d25d1c..a6cd636 100644
+--- a/ext/intl/tests/formatter_get_locale_variant2.phpt
++++ b/ext/intl/tests/formatter_get_locale_variant2.phpt
+@@ -3,6 +3,7 @@ numfmt_get_locale()
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if (version_compare(INTL_ICU_VERSION, '51.2') < 0) die('skip for ICU >= 51.2'); ?>
++<?php if (version_compare(INTL_ICU_VERSION, '58.1') >=  0) die('skip for ICU < 58.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/formatter_get_locale_variant4.phpt b/ext/intl/tests/formatter_get_locale_variant4.phpt
+new file mode 100644
+index 0000000..a37c271
+--- /dev/null
++++ b/ext/intl/tests/formatter_get_locale_variant4.phpt
+@@ -0,0 +1,50 @@
++--TEST--
++numfmt_get_locale()
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') < 0) die('skip for ICU >= 62.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Get locale.
++ */
++
++function ut_main()
++{
++    $locales = array(
++        'en_UK',
++        'en_US',
++        'fr_CA',
++    );
++
++    $loc_types = array(
++        Locale::ACTUAL_LOCALE    => 'actual',
++        Locale::VALID_LOCALE     => 'valid',
++    );
++
++    $res_str = '';
++
++    foreach( $locales as $locale )
++    {
++        $fmt = ut_nfmt_create( $locale, NumberFormatter::DECIMAL );
++        $res_str .= "$locale: ";
++        foreach( $loc_types as $loc_type => $loc_type_name )
++            $res_str .= sprintf( " %s=%s",
++            $loc_type_name,
++            dump( ut_nfmt_get_locale( $fmt, $loc_type ) ) );
++        $res_str .= "\n";
++    }
++
++    return $res_str;
++}
++
++include_once( 'ut_common.inc' );
++
++// Run the test
++ut_run();
++?>
++--EXPECT--
++en_UK:  actual='en' valid='en'
++en_US:  actual='en_US' valid='en_US'
++fr_CA:  actual='fr_CA' valid='fr_CA'
+diff --git a/ext/intl/tests/formatter_get_set_pattern.phpt b/ext/intl/tests/formatter_get_set_pattern.phpt
+index 0ae5b30..7f33254 100644
+--- a/ext/intl/tests/formatter_get_set_pattern.phpt
++++ b/ext/intl/tests/formatter_get_set_pattern.phpt
+@@ -2,6 +2,7 @@
+ numfmt_get/set_pattern()
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') >=  0) die('skip for ICU < 62.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/formatter_get_set_pattern2.phpt b/ext/intl/tests/formatter_get_set_pattern2.phpt
+new file mode 100644
+index 0000000..b1d1ad0
+--- /dev/null
++++ b/ext/intl/tests/formatter_get_set_pattern2.phpt
+@@ -0,0 +1,53 @@
++--TEST--
++numfmt_get/set_pattern()
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '62.1') < 0) die('skip for ICU >= 62.1'); ?>
++--FILE--
++<?php
++
++/*
++ * Get/set pattern.
++ */
++
++
++function ut_main()
++{
++    $res_str = '';
++    $test_value = 12345.123456;
++    $fmt = ut_nfmt_create( "en_US", NumberFormatter::PATTERN_DECIMAL );
++
++    // Get default patten.
++    $res_str .= "Default pattern: '" . ut_nfmt_get_pattern( $fmt ) . "'\n";
++    $res_str .= "Formatting result: " . ut_nfmt_format( $fmt, $test_value ) . "\n";
++
++    // Set a new pattern.
++    $res = ut_nfmt_set_pattern( $fmt, "0.0" );
++    if( $res === false )
++        $res_str .= ut_nfmt_get_error_message( $fmt ) . " (" . ut_nfmt_get_error_code( $fmt ) . ")\n";
++
++    // Check if the pattern has been changed.
++    $res = ut_nfmt_get_pattern( $fmt );
++    if( $res === false )
++        $res_str .= ut_nfmt_get_error_message( $fmt ) . " (" . ut_nfmt_get_error_code( $fmt ) . ")\n";
++    $res_str .= "New pattern: '" . ut_nfmt_get_pattern( $fmt ) . "'\n";
++    $res_str .= "Formatted number: " . ut_nfmt_format( $fmt, $test_value ) . "\n";
++
++	ut_nfmt_set_pattern($fmt, str_repeat('@', 200));
++	$res_str .= "New pattern: '" . ut_nfmt_get_pattern( $fmt ) . "'\n";
++    $res_str .= "Formatted number: " . ut_nfmt_format( $fmt, $test_value ) . "\n";
++
++    return $res_str;
++}
++
++include_once( 'ut_common.inc' );
++ut_run();
++
++?>
++--EXPECT--
++Default pattern: '#'
++Formatting result: 12345.123456
++New pattern: '0.0'
++Formatted number: 12345.1
++New pattern: '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
++Formatted number: 12345.123456000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+diff --git a/ext/intl/tests/formatter_get_set_symbol2.phpt b/ext/intl/tests/formatter_get_set_symbol2.phpt
+index 769713b..89a6e81 100644
+--- a/ext/intl/tests/formatter_get_set_symbol2.phpt
++++ b/ext/intl/tests/formatter_get_set_symbol2.phpt
+@@ -87,7 +87,7 @@ include_once( 'ut_common.inc' );
+ ut_run();
+ 
+ ?>
+---EXPECT--
++--EXPECTF--
+ Symbol 'DECIMAL_SEPARATOR_SYMBOL'
+ Default symbol: [.]
+ New symbol: [_._]
+@@ -131,7 +131,7 @@ A number formatted with the new symbol: 1.2345123456E4
+ Symbol 'CURRENCY_SYMBOL'
+ Default symbol: [$]
+ New symbol: [_$_]
+-A number formatted with the new symbol: _$_12,345.12
++A number formatted with the new symbol: _$_%A12,345.12
+ 
+ Symbol 'INTL_CURRENCY_SYMBOL'
+ Default symbol: [USD]
+diff --git a/ext/intl/tests/msgfmt_bug70484.phpt b/ext/intl/tests/msgfmt_bug70484.phpt
+index 9d0bdc4..7913d1b 100644
+--- a/ext/intl/tests/msgfmt_bug70484.phpt
++++ b/ext/intl/tests/msgfmt_bug70484.phpt
+@@ -37,7 +37,7 @@ foreach ($locale as $lc) {
+ 
+ ?>
+ ==DONE==
+---EXPECT--
++--EXPECTF--
+ de string key
+ string(8) "42-other"
+ string(11) "42,42-other"
+@@ -55,15 +55,15 @@ string(4) "five"
+ fr string key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ fr numeric key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ en string key
+@@ -83,15 +83,15 @@ string(4) "five"
+ ru string key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ ru numeric key
+ string(8) "42-other"
+ string(11) "42,42-other"
+-string(22) "2 147 483 643-other"
+-string(26) "2 147 483 643,123-other"
++string(%d) "2%s147%s483%s643-other"
++string(%d) "2%s147%s483%s643,123-other"
+ string(4) "five"
+ 
+ ==DONE==
+diff --git a/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt b/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
+index dce0714..002ce41 100644
+--- a/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
++++ b/ext/intl/tests/rbbiter_getBinaryRules_basic.phpt
+@@ -3,6 +3,7 @@ IntlRuleBasedBreakIterator::getBinaryRules(): basic test
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
+ <?php if(version_compare(INTL_ICU_VERSION, '4.8') < 0) print 'skip ICU >= 4.8 only'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '61.1') >=  0) die('skip for ICU < 61.1'); ?>
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/rbbiter_getRules_basic.phpt b/ext/intl/tests/rbbiter_getRules_basic.phpt
+index 2f7a40e..f9cb157 100644
+--- a/ext/intl/tests/rbbiter_getRules_basic.phpt
++++ b/ext/intl/tests/rbbiter_getRules_basic.phpt
+@@ -4,6 +4,7 @@ IntlRuleBasedBreakIterator::getRules(): basic test
+ <?php
+ if (!extension_loaded('intl'))
+ 	die('skip intl extension not enabled');
++if (version_compare(INTL_ICU_VERSION, '61.1') >=  0) die('skip for ICU < 61.1');
+ --FILE--
+ <?php
+ ini_set("intl.error_level", E_WARNING);
+diff --git a/ext/intl/tests/spoofchecker_001.phpt b/ext/intl/tests/spoofchecker_001.phpt
+index 7904b3a..71cb665 100644
+--- a/ext/intl/tests/spoofchecker_001.phpt
++++ b/ext/intl/tests/spoofchecker_001.phpt
+@@ -2,6 +2,7 @@
+ spoofchecker suspicious character checker
+ --SKIPIF--
+ <?php if(!extension_loaded('intl') || !class_exists("Spoofchecker")) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '57.1') >= 0)die('skip for ICU <= 57.1'); ?>
+ --FILE--
+ <?php
+ 
+diff --git a/ext/intl/tests/uconverter_oop_callback.phpt b/ext/intl/tests/uconverter_oop_callback.phpt
+index 47daf43..4c31bab 100644
+--- a/ext/intl/tests/uconverter_oop_callback.phpt
++++ b/ext/intl/tests/uconverter_oop_callback.phpt
+@@ -2,6 +2,7 @@
+ UConverter::convert() w/ Callback Reasons
+ --SKIPIF--
+ <?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '58.1') >= 0) die('skip for ICU <= 57.1'); ?>
+ --FILE--
+ <?php
+ class MyConverter extends UConverter {
+diff --git a/ext/intl/tests/uconverter_oop_callback2.phpt b/ext/intl/tests/uconverter_oop_callback2.phpt
+new file mode 100644
+index 0000000..960e4ed
+--- /dev/null
++++ b/ext/intl/tests/uconverter_oop_callback2.phpt
+@@ -0,0 +1,57 @@
++--TEST--
++UConverter::convert() w/ Callback Reasons
++--SKIPIF--
++<?php if( !extension_loaded( 'intl' ) ) print 'skip'; ?>
++<?php if (version_compare(INTL_ICU_VERSION, '60.1') < 0) die('skip for ICU >= 60.1'); ?>
++--FILE--
++<?php
++class MyConverter extends UConverter {
++  /**
++   * Called during conversion from source encoding to internal UChar representation
++   */
++  public function toUCallback($reason, $source, $codeUnits, &$error) {
++    echo "toUCallback(", UConverter::reasonText($reason), ", ...)\n";
++    return parent::toUCallback($reason, $source, $codeUnits, $error);
++  }
++
++  /**
++   * Called during conversion from internal UChar to destination encoding
++   */
++  public function fromUCallback($reason, $source, $codePoint, &$error) {
++    echo "fromUCallback(", UConverter::reasonText($reason), ", ...)\n";
++    return parent::fromUCallback($reason, $source, $codePoint, $error);
++  }
++
++}
++
++$c = new MyConverter('ascii', 'utf-8');
++foreach(array("regular", "irregul\xC1\xA1r", "\xC2\xA1unsupported!") as $word) {
++  $c->convert($word);
++}
++--EXPECT--
++toUCallback(REASON_RESET, ...)
++toUCallback(REASON_RESET, ...)
++fromUCallback(REASON_RESET, ...)
++fromUCallback(REASON_RESET, ...)
++toUCallback(REASON_RESET, ...)
++toUCallback(REASON_ILLEGAL, ...)
++toUCallback(REASON_ILLEGAL, ...)
++toUCallback(REASON_RESET, ...)
++toUCallback(REASON_ILLEGAL, ...)
++toUCallback(REASON_ILLEGAL, ...)
++fromUCallback(REASON_RESET, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++fromUCallback(REASON_RESET, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++toUCallback(REASON_RESET, ...)
++toUCallback(REASON_RESET, ...)
++fromUCallback(REASON_RESET, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++fromUCallback(REASON_RESET, ...)
++fromUCallback(REASON_UNASSIGNED, ...)
++toUCallback(REASON_CLOSE, ...)
++fromUCallback(REASON_CLOSE, ...)
++toUCallback(REASON_CLOSE, ...)
++fromUCallback(REASON_CLOSE, ...)

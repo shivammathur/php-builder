@@ -1,0 +1,156 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:22:15 +0100
+Subject: Adjust the setlocale tests to glibc 2.41
+
+glibc 2.39 and newer describe the en_US digit grouping with a single
+element. Backport of upstream commit b6b9eab68e2 (PHP 8.2.20).
+---
+ .../tests/strings/setlocale_variation3.phpt        | 24 ++++++++--------------
+ .../tests/strings/setlocale_variation4.phpt        | 24 ++++++++--------------
+ .../tests/strings/setlocale_variation5.phpt        | 24 ++++++++--------------
+ 3 files changed, 24 insertions(+), 48 deletions(-)
+
+diff --git a/ext/standard/tests/strings/setlocale_variation3.phpt b/ext/standard/tests/strings/setlocale_variation3.phpt
+index d1e06a0..173b87dba 100644
+--- a/ext/standard/tests/strings/setlocale_variation3.phpt
++++ b/ext/standard/tests/strings/setlocale_variation3.phpt
+@@ -90,17 +90,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -140,17 +136,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+diff --git a/ext/standard/tests/strings/setlocale_variation4.phpt b/ext/standard/tests/strings/setlocale_variation4.phpt
+index 8ee8db6..b748d1b 100644
+--- a/ext/standard/tests/strings/setlocale_variation4.phpt
++++ b/ext/standard/tests/strings/setlocale_variation4.phpt
+@@ -88,17 +88,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -138,17 +134,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+diff --git a/ext/standard/tests/strings/setlocale_variation5.phpt b/ext/standard/tests/strings/setlocale_variation5.phpt
+index 123e86e..17c769e 100644
+--- a/ext/standard/tests/strings/setlocale_variation5.phpt
++++ b/ext/standard/tests/strings/setlocale_variation5.phpt
+@@ -92,17 +92,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }
+@@ -142,17 +138,13 @@ array(18) {
+   ["n_sign_posn"]=>
+   int(1)
+   ["grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+   ["mon_grouping"]=>
+-  array(2) {
+-    [0]=>
+-    int(3)
+-    [1]=>
++  array(%d) {%A
++    [%d]=>
+     int(3)
+   }
+ }

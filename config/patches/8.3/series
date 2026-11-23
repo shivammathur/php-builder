@@ -43,3 +43,15 @@
 0043-Disable-garbage-collection-routine.patch
 0044-Add-missing-header-includes.patch
 0045-Work-around-the-problem-in-ext-ffi-ffic.-when-strncm.patch
+0046-Quote-the-MAIL-sendmail_path-in-run-tests.php.patch
+0047-Load-the-shared-phar-extension-by-path-in-opcache-CL.patch
+0048-Load-the-shared-readline-extension-in-CLI-option-tes.patch
+0049-Load-the-shared-mbstring-extension-in-rfc1867-OOM-te.patch
+0050-Skip-gd-tests-that-need-the-bundled-libgd.patch
+0051-Skip-enchant-bug13181-test-without-the-en-dictionary.patch
+0052-Accept-the-system-tzdata-version-in-timezone_version.patch
+0053-Backport-gd-test-expectations-from-PHP-8.6.patch
+0054-Don-t-use-libimagequant-in-imagetruecolortopalette.patch
+0055-Fix-GH-11662-Skip-multicast-test-when-unavailable.patch
+0056-fpm-fix-potential-null-dereference-in-fpm_status_exp.patch
+0057-ext-soap-fix-DTD-node-being-matched-as-an-element.patch

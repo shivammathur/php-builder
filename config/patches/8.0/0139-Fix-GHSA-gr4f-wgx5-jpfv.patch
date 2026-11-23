@@ -1,0 +1,28 @@
+From b0c29be91766924e699e713194bd564c193d5513 Mon Sep 17 00:00:00 2001
+From: Ilija Tovilo <ilija.tovilo@me.com>
+Date: Sun, 15 Nov 2026 15:25:20 +0100
+Subject: [PATCH] Fix GHSA-gr4f-wgx5-jpfv: DATEG(tzcache) use-after-free
+
+(cherry picked from commit bec24bd8d748fac37c99d5b1ce4107570cd265d9)
+
+diff --git a/main/main.c b/main/main.c
+index 48feda4bc7e3fcdfe25a23a583080e6f32b512ad..0ba65b580dd99b59f38ad565e8b4f8a6ab7d8eef 100644
+--- a/main/main.c
++++ b/main/main.c
+@@ -827,15 +827,7 @@ PHPAPI ZEND_COLD void php_log_err_with_severity(const char *log_message, int sys
+ 			zend_string *error_time_str;
+ 
+ 			time(&error_time);
+-#ifdef ZTS
+-			if (!php_during_module_startup()) {
+-				error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 1);
+-			} else {
+-				error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 0);
+-			}
+-#else
+-			error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, 1);
+-#endif
++			error_time_str = php_format_date("d-M-Y H:i:s e", 13, error_time, PG(modules_activated) && EG(active));
+ 			len = spprintf(&tmp, 0, "[%s] %s%s", ZSTR_VAL(error_time_str), log_message, PHP_EOL);
+ #ifdef PHP_WIN32
+ 			php_flock(fd, LOCK_EX);

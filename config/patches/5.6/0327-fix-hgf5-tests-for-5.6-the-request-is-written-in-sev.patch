@@ -1,0 +1,58 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:59:20 +0200
+Subject: fix hgf5 tests for 5.6 (the request is written in several parts)
+
+---
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt | 5 ++++-
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt | 5 ++++-
+ ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt | 5 ++++-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
+index 121f077..0ec338a 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-001.phpt
+@@ -17,7 +17,10 @@ $serverCode = <<<'CODE'
+ 
+     phpt_notify(WORKER_DEFAULT_NAME, "server-accepted");
+ 
+-    $result = fread($conn, 1024);
++    $result = '';
++    while (strpos($result, "\r\n\r\n") === false && !feof($conn)) {
++        $result .= fread($conn, 1024);
++    }
+     $encoded_result = base64_encode($result);
+ 
+     fwrite($conn, "HTTP/1.0 200 Ok\r\nContent-Type: text/html; charset=utf-8\r\n\r\n$encoded_result\r\n");
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
+index 0d141f9..45bb0b1 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-002.phpt
+@@ -17,7 +17,10 @@ $serverCode = <<<'CODE'
+ 
+     phpt_notify(WORKER_DEFAULT_NAME, "server-accepted");
+ 
+-    $result = fread($conn, 1024);
++    $result = '';
++    while (strpos($result, "\r\n\r\n") === false && !feof($conn)) {
++        $result .= fread($conn, 1024);
++    }
+     $encoded_result = base64_encode($result);
+ 
+     fwrite($conn, "HTTP/1.0 200 Ok\r\nContent-Type: text/html; charset=utf-8\r\n\r\n$encoded_result\r\n");
+diff --git a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
+index 8041487..5ab91b2 100644
+--- a/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
++++ b/ext/standard/tests/http/ghsa-hgf5-96fm-v528-003.phpt
+@@ -17,7 +17,10 @@ $serverCode = <<<'CODE'
+ 
+     phpt_notify(WORKER_DEFAULT_NAME, "server-accepted");
+ 
+-    $result = fread($conn, 1024);
++    $result = '';
++    while (strpos($result, "\r\n\r\n") === false && !feof($conn)) {
++        $result .= fread($conn, 1024);
++    }
+     $encoded_result = base64_encode($result);
+ 
+     fwrite($conn, "HTTP/1.0 200 Ok\r\nContent-Type: text/html; charset=utf-8\r\n\r\n$encoded_result\r\n");

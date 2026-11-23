@@ -1,0 +1,125 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:23:05 +0200
+Subject: fix getservbyname/ip2long tests expectations for path arguments
+
+---
+ .../tests/general_functions/getservbyname_variation1.phpt    |  8 ++++----
+ .../tests/general_functions/getservbyname_variation13.phpt   |  2 +-
+ .../tests/general_functions/getservbyname_variation6.phpt    |  2 +-
+ .../tests/general_functions/getservbyname_variation8.phpt    |  8 ++++----
+ ext/standard/tests/network/ip2long_variation1.phpt           | 12 ++++++------
+ 5 files changed, 16 insertions(+), 16 deletions(-)
+
+diff --git a/ext/standard/tests/general_functions/getservbyname_variation1.phpt b/ext/standard/tests/general_functions/getservbyname_variation1.phpt
+index 7dd01aa..ac7d9fe 100644
+--- a/ext/standard/tests/general_functions/getservbyname_variation1.phpt
++++ b/ext/standard/tests/general_functions/getservbyname_variation1.phpt
+@@ -27,14 +27,14 @@ foreach ( $variation_array as $var ) {
+ --EXPECTF--
+ *** Test substituting argument 1 with array values ***
+ 
+-Warning: getservbyname() expects parameter 1 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 1 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 1 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 1 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 1 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 1 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 1 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 1 to be a valid path, array given in %s on line %d
+ NULL
+diff --git a/ext/standard/tests/general_functions/getservbyname_variation13.phpt b/ext/standard/tests/general_functions/getservbyname_variation13.phpt
+index 8dad8cd..b556d46 100644
+--- a/ext/standard/tests/general_functions/getservbyname_variation13.phpt
++++ b/ext/standard/tests/general_functions/getservbyname_variation13.phpt
+@@ -34,5 +34,5 @@ foreach ( $variation_array as $var ) {
+ *** Test substituting argument 2 with object values ***
+ bool(false)
+ 
+-Warning: getservbyname() expects parameter 2 to be string, object given in %s.php on line %d
++Warning: getservbyname() expects parameter 2 to be a valid path, object given in %s.php on line %d
+ NULL
+diff --git a/ext/standard/tests/general_functions/getservbyname_variation6.phpt b/ext/standard/tests/general_functions/getservbyname_variation6.phpt
+index 0dfafa6..e184c1a 100644
+--- a/ext/standard/tests/general_functions/getservbyname_variation6.phpt
++++ b/ext/standard/tests/general_functions/getservbyname_variation6.phpt
+@@ -34,5 +34,5 @@ foreach ( $variation_array as $var ) {
+ *** Test substituting argument 1 with object values ***
+ bool(false)
+ 
+-Warning: getservbyname() expects parameter 1 to be string, object given in %s.php on line %d
++Warning: getservbyname() expects parameter 1 to be a valid path, object given in %s.php on line %d
+ NULL
+diff --git a/ext/standard/tests/general_functions/getservbyname_variation8.phpt b/ext/standard/tests/general_functions/getservbyname_variation8.phpt
+index 69d1d77..78d7d0b 100644
+--- a/ext/standard/tests/general_functions/getservbyname_variation8.phpt
++++ b/ext/standard/tests/general_functions/getservbyname_variation8.phpt
+@@ -27,14 +27,14 @@ foreach ( $variation_array as $var ) {
+ --EXPECTF--
+ *** Test substituting argument 2 with array values ***
+ 
+-Warning: getservbyname() expects parameter 2 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 2 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 2 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 2 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 2 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 2 to be a valid path, array given in %s on line %d
+ NULL
+ 
+-Warning: getservbyname() expects parameter 2 to be string, array given in %s on line %d
++Warning: getservbyname() expects parameter 2 to be a valid path, array given in %s on line %d
+ NULL
+diff --git a/ext/standard/tests/network/ip2long_variation1.phpt b/ext/standard/tests/network/ip2long_variation1.phpt
+index fa74109..b305ae4 100644
+--- a/ext/standard/tests/network/ip2long_variation1.phpt
++++ b/ext/standard/tests/network/ip2long_variation1.phpt
+@@ -141,19 +141,19 @@ bool(false)
+ bool(false)
+ 
+ --empty array--
+-Error: 2 - ip2long() expects parameter 1 to be string, array given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, array given, %s(%d)
+ NULL
+ 
+ --int indexed array--
+-Error: 2 - ip2long() expects parameter 1 to be string, array given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, array given, %s(%d)
+ NULL
+ 
+ --associative array--
+-Error: 2 - ip2long() expects parameter 1 to be string, array given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, array given, %s(%d)
+ NULL
+ 
+ --nested arrays--
+-Error: 2 - ip2long() expects parameter 1 to be string, array given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, array given, %s(%d)
+ NULL
+ 
+ --uppercase NULL--
+@@ -184,7 +184,7 @@ bool(false)
+ bool(false)
+ 
+ --instance of classWithoutToString--
+-Error: 2 - ip2long() expects parameter 1 to be string, object given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, object given, %s(%d)
+ NULL
+ 
+ --undefined var--
+@@ -194,6 +194,6 @@ bool(false)
+ bool(false)
+ 
+ --resource--
+-Error: 2 - ip2long() expects parameter 1 to be string, resource given, %s(%d)
++Error: 2 - ip2long() expects parameter 1 to be a valid path, resource given, %s(%d)
+ NULL
+ ===DONE===

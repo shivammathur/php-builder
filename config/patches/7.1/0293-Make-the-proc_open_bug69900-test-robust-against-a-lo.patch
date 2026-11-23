@@ -1,0 +1,87 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 10:18:29 +0100
+Subject: Make the proc_open_bug69900 test robust against a loaded machine
+
+The test expects every fgets() but the first one to return within 1 ms,
+which a build machine under load does not always manage. Backport of
+upstream commits 0513d59ed33, a0ce1df024c (PHP 7.4.0), d5c55f81ec0
+(PHP 7.4.2) and 86ed93c2308 (PHP 8.0.0): the limit is 20 ms and up to
+three slow reads are accepted.
+---
+ ext/standard/tests/streams/proc_open_bug69900.phpt | 27 +++++++++++-----------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
+
+diff --git a/ext/standard/tests/streams/proc_open_bug69900.phpt b/ext/standard/tests/streams/proc_open_bug69900.phpt
+index 4bb912a..3e2c233 100644
+--- a/ext/standard/tests/streams/proc_open_bug69900.phpt
++++ b/ext/standard/tests/streams/proc_open_bug69900.phpt
+@@ -6,7 +6,7 @@ Bug #69900 Commandline input/output weird behaviour with STDIO
+ error_reporting(E_ALL);
+ 
+ $fl = dirname(__FILE__) . DIRECTORY_SEPARATOR . "test69900.php";
+-$max_ms = ((bool)getenv('TRAVIS')) ? 5 : 1;
++$max_ms = 20;
+ 
+ $test_content = '<?php
+ 
+@@ -25,6 +25,7 @@ $pipes = array();
+ 
+ $process = proc_open(PHP_BINARY.' -n -f ' . $fl, $descriptorspec, $pipes, NULL, NULL, array("blocking_pipes" => true));
+ 
++$moreThanLimit = 0;
+ for($i = 0; $i < 10; $i++){
+ 	fwrite($pipes[0], "hello$i\r\n");
+ 	fflush($pipes[0]);
+@@ -34,7 +35,11 @@ for($i = 0; $i < 10; $i++){
+ 	$t1 = microtime(1);
+ 
+ 	echo $s;
+-	echo "fgets() took ", (($t1 - $t0)*1000 > $max_ms ? 'more' : 'less'), " than $max_ms ms\n";
++
++	$dt_ms = ($t1 - $t0)*1000;
++	if ($dt_ms > $max_ms) {
++		$moreThanLimit++;
++	}
+ }
+ 
+ fclose($pipes[0]);
+@@ -42,6 +47,12 @@ fclose($pipes[1]);
+ 
+ proc_close($process);
+ 
++/* It is expected that the first call takes more than the limit.
++ * Allow two more to account for possible process switch, etc. */
++if ($moreThanLimit > 3) {
++	echo "fgets() took more than $max_ms ms $moreThanLimit times\n";
++}
++
+ ?>
+ ===DONE===
+ --CLEAN--
+@@ -49,25 +60,15 @@ proc_close($process);
+ $fl = dirname(__FILE__) . DIRECTORY_SEPARATOR . "test69900.php";
+ @unlink($fl);
+ ?>
+---EXPECTF--
++--EXPECT--
+ hello0
+-fgets() took more than %d ms
+ hello1
+-fgets() took less than %d ms
+ hello2
+-fgets() took less than %d ms
+ hello3
+-fgets() took less than %d ms
+ hello4
+-fgets() took less than %d ms
+ hello5
+-fgets() took less than %d ms
+ hello6
+-fgets() took less than %d ms
+ hello7
+-fgets() took less than %d ms
+ hello8
+-fgets() took less than %d ms
+ hello9
+-fgets() took less than %d ms
+ ===DONE===

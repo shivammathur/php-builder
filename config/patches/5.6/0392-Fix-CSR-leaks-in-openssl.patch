@@ -1,0 +1,43 @@
+From: Nikita Popov <nikita.ppv@gmail.com>
+Date: Fri, 21 Jun 2019 14:17:05 +0200
+Subject: Fix CSR leaks in openssl
+
+PHP 5.6 never got this change (PHP 7.2.21): openssl_csr_get_subject() and
+openssl_csr_get_public_key() do not free a CSR that they parsed from a
+string. In openssl_csr_get_public_key() the change is made on top of
+"Extract public key portion via PEM roundtrip", which removed the
+duplicated CSR.
+
+(cherry picked from commit e0bafc6da440f5b028453ca19d012d6a02234fc8)
+---
+ ext/openssl/openssl.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/ext/openssl/openssl.c b/ext/openssl/openssl.c
+index 4429926..3d23874 100644
+--- a/ext/openssl/openssl.c
++++ b/ext/openssl/openssl.c
+@@ -3349,7 +3349,10 @@ PHP_FUNCTION(openssl_csr_get_subject)
+ 
+ 	array_init(return_value);
+ 	add_assoc_name_entry(return_value, NULL, subject, use_shortnames TSRMLS_CC);
+-	return;
++
++	if (csr_resource == -1) {
++		X509_REQ_free(csr);
++	}
+ }
+ /* }}} */
+ 
+@@ -3394,6 +3397,11 @@ PHP_FUNCTION(openssl_csr_get_public_key)
+ 	tpubkey = php_openssl_extract_public_key(orig_key);
+ 	EVP_PKEY_free(orig_key);
+ 
++	if (csr_resource == -1) {
++		/* We need to free the original CSR if it was freshly created */
++		X509_REQ_free(csr);
++	}
++
+ 	RETVAL_RESOURCE(zend_list_insert(tpubkey, le_key TSRMLS_CC));
+ 	return;
+ }

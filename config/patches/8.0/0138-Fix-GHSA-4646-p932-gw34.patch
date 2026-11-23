@@ -1,0 +1,21 @@
+From 663eb5538bc2a66c319581ed14b74bb33f8bee84 Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Sun, 1 Nov 2026 15:18:09 +0100
+Subject: [PATCH] Fix GHSA-4646-p932-gw34: keep SOAP DTD alive during cleanup
+
+(cherry picked from commit 72f587fb97b6da29cd6bec0d0fd9e02e23084408)
+
+diff --git a/ext/soap/php_xml.c b/ext/soap/php_xml.c
+index 9543f1aa6ca4df9ebfe01dc9800be73f284d5fbc..286f416f9123e84749ce27ec04a844175db13494 100644
+--- a/ext/soap/php_xml.c
++++ b/ext/soap/php_xml.c
+@@ -50,6 +50,9 @@ static void cleanup_xml_node(xmlNodePtr node)
+ 				xmlUnlinkNode(trav);
+ 				xmlFreeNode(trav);
+ 			}
++		} else if (trav->type == XML_DTD_NODE) {
++			/* Attribute-value entity references can share content with the DTD.
++			 * Keep it alive until the document itself is freed. */
+ 		} else if ((trav->type != XML_ELEMENT_NODE) &&
+ 		           (trav->type != XML_CDATA_SECTION_NODE)) {
+ 			xmlUnlinkNode(trav);

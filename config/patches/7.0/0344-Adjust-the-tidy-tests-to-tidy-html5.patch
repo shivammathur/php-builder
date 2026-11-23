@@ -1,0 +1,299 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:46:11 +0100
+Subject: Adjust the tidy tests to tidy-html5
+
+The tidy extension is built with the system libtidy, which is tidy-html5:
+it writes the HTML5 doctype, words its report differently, has other ids
+for the tags and no "language" option. Backport of the upstream commits
+that PHP 7.0 never got: 0e3e132a8af, 08b10f17f17, 846c72a3b8f,
+a467a42dd17, 6319a358496 (PHP 7.1.0) and 83a77383b92 (PHP 7.1.14).
+---
+ ext/tidy/tests/003.phpt |  4 ++--
+ ext/tidy/tests/004.phpt |  6 +++---
+ ext/tidy/tests/010.phpt |  8 ++++----
+ ext/tidy/tests/012.phpt | 12 ++++++------
+ ext/tidy/tests/016.phpt | 21 +++++----------------
+ ext/tidy/tests/017.phpt |  4 ++--
+ ext/tidy/tests/020.phpt |  5 ++---
+ ext/tidy/tests/024.phpt | 13 ++++++-------
+ ext/tidy/tests/026.phpt |  4 ++--
+ ext/tidy/tests/030.phpt |  5 +----
+ 10 files changed, 33 insertions(+), 49 deletions(-)
+
+diff --git a/ext/tidy/tests/003.phpt b/ext/tidy/tests/003.phpt
+index 7201d6a..1a63d44 100644
+--- a/ext/tidy/tests/003.phpt
++++ b/ext/tidy/tests/003.phpt
+@@ -10,8 +10,8 @@ tidy_clean_repair()
+ 	echo tidy_get_output($a);
+ 
+ ?>
+---EXPECT--
+-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
++--EXPECTF--
++<!DOCTYPE html%S>
+ <html>
+ <head>
+ <title></title>
+diff --git a/ext/tidy/tests/004.phpt b/ext/tidy/tests/004.phpt
+index d13c37d..9d3cd2e 100644
+--- a/ext/tidy/tests/004.phpt
++++ b/ext/tidy/tests/004.phpt
+@@ -19,13 +19,13 @@ $a = tidy_parse_string($html);
+ var_dump(tidy_diagnose($a));
+ echo tidy_get_error_buffer($a);
+ ?>
+---EXPECT--
++--EXPECTF--
+ bool(true)
+ line 1 column 1 - Warning: missing <!DOCTYPE> declaration
+ line 1 column 7 - Warning: discarding unexpected </html>
+ line 1 column 14 - Warning: inserting missing 'title' element
+-Info: Document content looks like HTML 3.2
+-3 warnings, 0 errors were found!
++Info: Document content looks like HTML%w%d%S
++%S3 warnings%S0 errors%S
+ bool(true)
+ Info: Document content looks like HTML 3.2
+ No warnings or errors were found.
+diff --git a/ext/tidy/tests/010.phpt b/ext/tidy/tests/010.phpt
+index 85d9df5..695e1c9 100644
+--- a/ext/tidy/tests/010.phpt
++++ b/ext/tidy/tests/010.phpt
+@@ -11,7 +11,7 @@ var_dump($a->html());
+ var_dump($a->head());
+ 
+ ?>
+---EXPECT--
++--EXPECTF--
+ object(tidyNode)#2 (8) {
+   ["value"]=>
+   string(94) "<html>
+@@ -100,7 +100,7 @@ object(tidyNode)#2 (8) {
+               ["proprietary"]=>
+               bool(false)
+               ["id"]=>
+-              int(111)
++              int(%i)
+               ["attribute"]=>
+               NULL
+               ["child"]=>
+@@ -231,7 +231,7 @@ object(tidyNode)#2 (9) {
+           ["proprietary"]=>
+           bool(false)
+           ["id"]=>
+-          int(111)
++          int(%i)
+           ["attribute"]=>
+           NULL
+           ["child"]=>
+@@ -307,7 +307,7 @@ object(tidyNode)#2 (9) {
+       ["proprietary"]=>
+       bool(false)
+       ["id"]=>
+-      int(111)
++      int(%i)
+       ["attribute"]=>
+       NULL
+       ["child"]=>
+diff --git a/ext/tidy/tests/012.phpt b/ext/tidy/tests/012.phpt
+index 39ce22b..e86aa6c 100644
+--- a/ext/tidy/tests/012.phpt
++++ b/ext/tidy/tests/012.phpt
+@@ -30,7 +30,7 @@ Accessing children nodes
+         dump_nodes($html);
+             
+ ?>
+---EXPECT--
++--EXPECTF--
+ bool(true)
+ object(tidyNode)#3 (9) {
+   ["value"]=>
+@@ -70,7 +70,7 @@ object(tidyNode)#3 (9) {
+       ["proprietary"]=>
+       bool(false)
+       ["id"]=>
+-      int(111)
++      int(%i)
+       ["attribute"]=>
+       NULL
+       ["child"]=>
+@@ -94,7 +94,7 @@ object(tidyNode)#4 (9) {
+   ["proprietary"]=>
+   bool(false)
+   ["id"]=>
+-  int(111)
++  int(%i)
+   ["attribute"]=>
+   NULL
+   ["child"]=>
+@@ -222,7 +222,7 @@ object(tidyNode)#5 (9) {
+           ["proprietary"]=>
+           bool(false)
+           ["id"]=>
+-          int(114)
++          int(%i)
+           ["attribute"]=>
+           NULL
+           ["child"]=>
+@@ -365,7 +365,7 @@ object(tidyNode)#8 (9) {
+       ["proprietary"]=>
+       bool(false)
+       ["id"]=>
+-      int(114)
++      int(%i)
+       ["attribute"]=>
+       NULL
+       ["child"]=>
+@@ -426,7 +426,7 @@ object(tidyNode)#10 (9) {
+   ["proprietary"]=>
+   bool(false)
+   ["id"]=>
+-  int(114)
++  int(%i)
+   ["attribute"]=>
+   NULL
+   ["child"]=>
+diff --git a/ext/tidy/tests/016.phpt b/ext/tidy/tests/016.phpt
+index 001371a..05b7cc1 100644
+--- a/ext/tidy/tests/016.phpt
++++ b/ext/tidy/tests/016.phpt
+@@ -4,21 +4,10 @@ Passing configuration file through tidy_parse_file() (may fail with buggy libtid
+ <?php if (!extension_loaded("tidy")) print "skip"; ?>
+ --FILE--
+ <?php
+-        $tidy = tidy_parse_file(dirname(__FILE__)."/016.html", dirname(__FILE__)."/016.tcfg");
+-    	tidy_clean_repair($tidy);
+-        echo tidy_get_output($tidy);
++        $tidy = tidy_parse_file(dirname(__FILE__)."/016.html",
++                                dirname(__FILE__)."/016.tcfg");
++        $cfg = $tidy->getConfig();
++        echo $cfg["clean"];
+ ?>
+ --EXPECT--
+-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+-<html>
+-<head>
+-<title></title>
+-
+-<style type="text/css">
+- p.c1 {font-weight: bold}
+-</style>
+-</head>
+-<body>
+-<p class="c1">testing</p>
+-</body>
+-</html>
++1
+diff --git a/ext/tidy/tests/017.phpt b/ext/tidy/tests/017.phpt
+index ba620a3..24597e1 100644
+--- a/ext/tidy/tests/017.phpt
++++ b/ext/tidy/tests/017.phpt
+@@ -5,8 +5,8 @@ The Tidy Output Buffer Filter
+ --FILE--
+ <?php ob_start("ob_tidyhandler"); ?>
+ <B>testing</I>
+---EXPECT--
+-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
++--EXPECTF--
++<!DOCTYPE html%S>
+ <html>
+ <head>
+ <title></title>
+diff --git a/ext/tidy/tests/020.phpt b/ext/tidy/tests/020.phpt
+index dbfda96..8ff1efb 100644
+--- a/ext/tidy/tests/020.phpt
++++ b/ext/tidy/tests/020.phpt
+@@ -19,12 +19,11 @@ var_dump(strlen($tidy->errorBuffer) > 50);
+ 
+ echo $tidy;
+ ?>
+---EXPECT--
++--EXPECTF--
+ bool(true)
+ bool(true)
+ <?xml version="1.0" encoding="iso-8859-1"?>
+-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
++<!DOCTYPE html%A>
+ <html xmlns="http://www.w3.org/1999/xhtml">
+ <head>
+ <title></title>
+diff --git a/ext/tidy/tests/024.phpt b/ext/tidy/tests/024.phpt
+index b09f5b4..6a258b3 100644
+--- a/ext/tidy/tests/024.phpt
++++ b/ext/tidy/tests/024.phpt
+@@ -13,28 +13,27 @@ if (strtotime(tidy_get_release()) < strtotime('20 january 2007')) die ('skip old
+ $contents = '
+ <wps:block>
+ <wps:var>
+-<wps:value/>
++<wps:value></wps:value>
+ </wps:var>
+ </wps:block>';
+ 
+ $config = array(
++'doctype' => 'omit',
+ 'new-blocklevel-tags' => 'wps:block,wps:var,wps:value',
+ 'newline' => 'LF'
+ );
+ 
+ $tidy = tidy_parse_string($contents, $config, 'utf8');
+ $tidy->cleanRepair();
+-
+-var_dump($tidy->value);
++echo $tidy;
+ 
+ ?>
+ --EXPECTF--
+-string(11%d) "<html>
++<html>
+ <head>
+ <title></title>
+ </head>
+ <body>
+-<wps:block>%w<wps:var>
+-<wps:value></wps:var>%w</wps:block>
++<wps:block>%w<wps:var>%w<wps:value></wps:value>%w</wps:var>%w</wps:block>
+ </body>
+-</html>"
++</html>
+diff --git a/ext/tidy/tests/026.phpt b/ext/tidy/tests/026.phpt
+index 24a1e6f..b46cd54 100644
+--- a/ext/tidy/tests/026.phpt
++++ b/ext/tidy/tests/026.phpt
+@@ -12,8 +12,8 @@ echo '<p>xpto</p>';
+ 
+ ?>
+ </html>
+---EXPECT--
+-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
++--EXPECTF--
++<!DOCTYPE html%S>
+ <html>
+ <head>
+ <title></title>
+diff --git a/ext/tidy/tests/030.phpt b/ext/tidy/tests/030.phpt
+index c351f9a..46809a9 100644
+--- a/ext/tidy/tests/030.phpt
++++ b/ext/tidy/tests/030.phpt
+@@ -12,18 +12,15 @@ $buffer = '<html></html>';
+ $config = array(
+   'indent' => true, // AutoBool
+   'indent-attributes' => true, // Boolean
+-  'indent-spaces' => 3, // Integer
+-  'language' => 'de'); // String
++  'indent-spaces' => 3); // Integer
+ $tidy = new tidy();
+ $tidy->parseString($buffer, $config);
+ $c = $tidy->getConfig();
+ var_dump($c['indent']);
+ var_dump($c['indent-attributes']);
+ var_dump($c['indent-spaces']);
+-var_dump($c['language']);
+ ?>
+ --EXPECTF--
+ int(1)
+ bool(true)
+ int(3)
+-%s(2) "de"

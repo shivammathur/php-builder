@@ -40,3 +40,12 @@
 0040-Add-missing-header-includes.patch
 0041-Fix-conflicting-tsrm-declaration-with-C-linkage.patch
 0042-Fix-tokenizer-parser-header-build-dependency.patch
+0043-Quote-the-MAIL-sendmail_path-in-run-tests.php.patch
+0044-Load-the-shared-phar-extension-by-path-in-opcache-CL.patch
+0045-Load-the-shared-readline-extension-in-CLI-option-tes.patch
+0046-Load-the-shared-mbstring-extension-in-rfc1867-OOM-te.patch
+0047-Skip-gd-tests-that-need-the-bundled-libgd.patch
+0048-Skip-enchant-bug13181-test-without-the-en-dictionary.patch
+0049-Accept-the-system-tzdata-version-in-timezone_version.patch
+0050-ext-soap-fix-DTD-node-being-matched-as-an-element.patch
+0051-fix-dtd_named_like_root_request-test-for-8.5-and-new.patch

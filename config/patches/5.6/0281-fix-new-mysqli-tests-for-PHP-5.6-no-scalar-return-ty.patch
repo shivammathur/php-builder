@@ -1,0 +1,177 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 22:06:32 +0200
+Subject: fix new mysqli tests for PHP 5.6 (no scalar/return types, no ??,
+ no short list syntax)
+
+---
+ ext/mysqli/tests/fake_server.inc | 42 ++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/ext/mysqli/tests/fake_server.inc b/ext/mysqli/tests/fake_server.inc
+index 8a9a045..1be0ddc 100644
+--- a/ext/mysqli/tests/fake_server.inc
++++ b/ext/mysqli/tests/fake_server.inc
+@@ -94,7 +94,7 @@ function my_mysqli_data_fields()
+     ];
+ }
+ 
+-function my_mysqli_data_field(string $field): array
++function my_mysqli_data_field($field)
+ {
+     $fields = my_mysqli_data_fields();
+     if (!isset($fields[$field])) {
+@@ -107,7 +107,7 @@ function my_mysqli_data_field(string $field): array
+ 
+ class my_mysqli_fake_packet_item
+ {
+-    public function __construct($name, string $value, bool $is_hex = true)
++    public function __construct($name, $value, $is_hex = true)
+     {
+         $this->name   = $name;
+         $this->value  = $value;
+@@ -119,7 +119,7 @@ class my_mysqli_fake_packet
+ {
+     private $data = array();
+ 
+-    public function __get(string $name)
++    public function __get($name)
+     {
+         foreach ($this->data as $item) {
+             if ($item->name === $name) {
+@@ -129,7 +129,7 @@ class my_mysqli_fake_packet
+         return null;
+     }
+ 
+-    public function __set(string $name, $value)
++    public function __set($name, $value)
+     {
+         if ($value instanceof my_mysqli_fake_packet_item) {
+             if ($value->name === null) {
+@@ -161,7 +161,7 @@ class my_mysqli_fake_packet
+ 
+ class my_mysqli_fake_packet_generator
+ {
+-    public static function create_packet_item($value, bool $is_hex = false, string $format = 'v')
++    public static function create_packet_item($value, $is_hex = false, $format = 'v')
+     {
+         if (is_string($value)) {
+             $packed_value = $value;
+@@ -353,7 +353,7 @@ class my_mysqli_fake_packet_generator
+         return $pr;
+     }
+ 
+-    public function server_stmt_prepare_data_response(string $field_name)
++    public function server_stmt_prepare_data_response($field_name)
+     {
+         $pr1 = $this->server_stmt_prepare_response_start('0200');
+ 
+@@ -416,7 +416,7 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3, $pr4, $pr5];
+     }
+ 
+-    private function server_execute_data_response_start(string $field_name)
++    private function server_execute_data_response_start($field_name)
+     {
+         $pr1 = new my_mysqli_fake_packet();
+         $pr1->packet_length = "010000";
+@@ -493,9 +493,9 @@ class my_mysqli_fake_packet_generator
+         return $pr6;
+     }
+ 
+-    public function server_stmt_execute_data_response(string $field_name)
++    public function server_stmt_execute_data_response($field_name)
+     {
+-        [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
++        list($field, $pr1, $pr2, $pr3, $pr4) = $this->server_execute_data_response_start($field_name);
+ 
+         $pr5 = new my_mysqli_fake_packet();
+         $pr5->packet_length = $field['stmt_data_packet_length'];
+@@ -509,9 +509,9 @@ class my_mysqli_fake_packet_generator
+         return [$pr1, $pr2, $pr3, $pr4, $pr5, $this->server_execute_data_response_end()];
+     }
+ 
+-    public function server_query_execute_data_response(string $field_name)
++    public function server_query_execute_data_response($field_name)
+     {
+-        [$field, $pr1, $pr2, $pr3, $pr4] = $this->server_execute_data_response_start($field_name);
++        list($field, $pr1, $pr2, $pr3, $pr4) = $this->server_execute_data_response_start($field_name);
+ 
+         $pr5 = new my_mysqli_fake_packet();
+         $pr5->packet_length = $field['query_data_packet_length'];
+@@ -540,7 +540,7 @@ class my_mysqli_fake_server_conn
+         }
+     }
+ 
+-    public function packets_to_bytes(array $packets)
++    public function packets_to_bytes($packets)
+     {
+         $func = function($s) {
+ 	    return $s->to_bytes();
+@@ -594,7 +594,7 @@ class my_mysqli_fake_server_conn
+     }
+ 
+ 
+-    public function send_server_stmt_prepare_data_response(string $field_name)
++    public function send_server_stmt_prepare_data_response($field_name)
+     {
+         $packets = $this->packet_generator->server_stmt_prepare_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Stmt prepare data $field_name");
+@@ -606,13 +606,13 @@ class my_mysqli_fake_server_conn
+         $this->send($this->packets_to_bytes($packets), "Stmt execute items");
+     }
+ 
+-    public function send_server_stmt_execute_data_response(string $field_name)
++    public function send_server_stmt_execute_data_response($field_name)
+     {
+         $packets = $this->packet_generator->server_stmt_execute_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Stmt execute data $field_name");
+     }
+ 
+-    public function send_server_query_execute_data_response(string $field_name)
++    public function send_server_query_execute_data_response($field_name)
+     {
+         $packets = $this->packet_generator->server_query_execute_data_response($field_name);
+         $this->send($this->packets_to_bytes($packets), "Query execute data $field_name");
+@@ -621,13 +621,13 @@ class my_mysqli_fake_server_conn
+ 
+ class my_mysqli_fake_server_process
+ {
+-    public function __construct($process, array $pipes)
++    public function __construct($process, $pipes)
+     {
+ 	    $this->process = $process;
+ 	    $this->pipes = $pipes;
+     }
+ 
+-    public function terminate(bool $wait = false)
++    public function terminate($wait = false)
+     {
+         if ($wait) {
+             $this->wait();
+@@ -713,8 +713,8 @@ function my_mysqli_test_stmt_response_row_over_read_string(my_mysqli_fake_server
+ 
+ function my_mysqli_test_stmt_response_row_over_read_two_fields(
+     my_mysqli_fake_server_conn $conn,
+-    string $field_name,
+-    string $row_field1_len = '06'
++    $field_name,
++    $row_field1_len = '06'
+ ) {
+     $rh = $conn->packet_generator->server_stmt_execute_data_response($field_name);
+ 
+@@ -817,7 +817,7 @@ function my_mysqli_test_query_response_row_read_two_fields(my_mysqli_fake_server
+     }
+ }
+ 
+-function run_fake_server(string $test_function, $port = 33305)
++function run_fake_server($test_function, $port = 33305)
+ {
+     $address = '127.0.0.1';
+ 
+@@ -863,5 +863,5 @@ function run_fake_server_in_background($test_function, $port = 33305)
+ }
+ 
+ if (isset($argv) && $argc > 2 && $argv[1] == 'mysqli_fake_server') {
+-    run_fake_server($argv[2], $argv[3] ?? '33305');
++    run_fake_server($argv[2], isset($argv[3]) ? $argv[3] : '33305');
+ }

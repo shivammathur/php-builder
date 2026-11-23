@@ -1,0 +1,31 @@
+From 593123b509edc2a6552320998ed7c810b0b7640e Mon Sep 17 00:00:00 2001
+From: Jakub Zelenka <bukka@php.net>
+Date: Mon, 26 Oct 2026 18:54:31 +0100
+Subject: [PATCH] Fix GHSA-5j3f-64r7-f564: PATH_INFO underflow in CGI
+ init_request_info()
+
+When the suffix stripped from SCRIPT_FILENAME (or PATH_TRANSLATED) is
+longer than PATH_INFO, the re-derived PATH_INFO pointed before the value
+and was then read, written and copied from. Only rewrite PATH_INFO when
+it is longer than the stripped suffix, as FPM has done since the
+CVE-2019-11043 fix.
+
+(cherry picked from commit 964cdcfa5adfa577cde97df89fc8fda04815694d)
+(cherry picked from commit 75143f7bbff6993e082b5369de296696c84d4bea)
+
+diff --git a/sapi/cgi/cgi_main.c b/sapi/cgi/cgi_main.c
+index ccb873aed8412c387e15271e978bea38171e5889..276f3074d96d5b04954db8ec5350e9754eeda8f4 100644
+--- a/sapi/cgi/cgi_main.c
++++ b/sapi/cgi/cgi_main.c
+@@ -1269,9 +1269,9 @@ static void init_request_info(fcgi_request *request TSRMLS_DC)
+ 						 */
+ 						int slen = len - strlen(pt);
+ 						int pilen = env_path_info ? strlen(env_path_info) : 0;
+-						char *path_info = env_path_info ? env_path_info + pilen - slen : NULL;
++						char *path_info = (env_path_info && pilen > slen) ? env_path_info + pilen - slen : NULL;
+ 
+-						if (orig_path_info != path_info) {
++						if (path_info && orig_path_info != path_info) {
+ 							if (orig_path_info) {
+ 								char old;
+ 

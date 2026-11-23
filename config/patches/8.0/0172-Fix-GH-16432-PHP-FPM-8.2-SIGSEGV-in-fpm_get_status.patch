@@ -1,0 +1,102 @@
+From: Jakub Zelenka <bukka@php.net>
+Date: Wed, 23 Oct 2024 21:57:31 +0200
+Subject: Fix GH-16432: PHP-FPM 8.2 SIGSEGV in fpm_get_status
+
+---
+ NEWS                                           |  5 +++
+ sapi/fpm/fpm/fpm_status.c                      |  5 ++-
+ sapi/fpm/tests/gh16432-status-high-nprocs.phpt | 46 ++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 1 deletion(-)
+ create mode 100644 sapi/fpm/tests/gh16432-status-high-nprocs.phpt
+
+diff --git a/NEWS b/NEWS
+index 20b1e25..0267842 100644
+--- a/NEWS
++++ b/NEWS
+@@ -1,6 +1,11 @@
+ PHP                                                                        NEWS
+ |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+ 
++Backported from 8.2.27
++
++- FPM:
++  . Fixed GH-16432 (PHP-FPM 8.2 SIGSEGV in fpm_get_status). (Jakub Zelenka)
++
+ Backported from 8.1.27
+ 
+ - FPM:
+diff --git a/sapi/fpm/fpm/fpm_status.c b/sapi/fpm/fpm/fpm_status.c
+index a7173d3..dff766b 100644
+--- a/sapi/fpm/fpm/fpm_status.c
++++ b/sapi/fpm/fpm/fpm_status.c
+@@ -61,7 +61,8 @@ int fpm_status_export_to_zval(zval *status)
+ 
+ 	/* copy the scoreboard not to bother other processes */
+ 	scoreboard = *scoreboard_p;
+-	struct fpm_scoreboard_proc_s procs[scoreboard.nprocs];
++	struct fpm_scoreboard_proc_s *procs = safe_emalloc(
++			sizeof(struct fpm_scoreboard_proc_s), scoreboard.nprocs, 0);
+ 
+ 	struct fpm_scoreboard_proc_s *proc_p;
+ 	for(i=0; i<scoreboard.nprocs; i++) {
+@@ -130,6 +131,8 @@ int fpm_status_export_to_zval(zval *status)
+ 		add_next_index_zval(&fpm_proc_stats, &fpm_proc_stat);
+ 	}
+ 	add_assoc_zval(status, "procs", &fpm_proc_stats);
++	efree(procs);
++
+ 	return 0;
+ }
+ /* }}} */
+diff --git a/sapi/fpm/tests/gh16432-status-high-nprocs.phpt b/sapi/fpm/tests/gh16432-status-high-nprocs.phpt
+new file mode 100644
+index 0000000..11f1be2
+--- /dev/null
++++ b/sapi/fpm/tests/gh16432-status-high-nprocs.phpt
+@@ -0,0 +1,46 @@
++--TEST--
++FPM: GH-16432 - fpm_get_status segfault on high nprocs
++--SKIPIF--
++<?php include "skipif.inc"; ?>
++--FILE--
++<?php
++
++require_once "tester.inc";
++
++$cfg = <<<EOT
++[global]
++error_log = {{FILE:LOG}}
++log_level = notice
++[unconfined]
++listen = {{ADDR}}
++pm = dynamic
++pm.max_children = 12800
++pm.start_servers = 1
++pm.min_spare_servers = 1
++pm.max_spare_servers = 1
++catch_workers_output = yes
++EOT;
++
++$code = <<<EOT
++<?php
++var_dump(empty(fpm_get_status()));
++EOT;
++
++$tester = new FPM\Tester($cfg, $code);
++[$sourceFilePath, $scriptName] = $tester->createSourceFileAndScriptName();
++$tester->start();
++$tester->expectLogStartNotices();
++$tester->request()->expectBody('bool(false)');
++$tester->terminate();
++$tester->expectLogTerminatingNotices();
++$tester->close();
++
++?>
++Done
++--EXPECT--
++Done
++--CLEAN--
++<?php
++require_once "tester.inc";
++FPM\Tester::clean();
++?>

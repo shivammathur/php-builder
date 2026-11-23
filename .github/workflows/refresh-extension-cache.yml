@@ -1,0 +1,105 @@
+name: Refresh PHP extension cache
+run-name: Refresh PHP ${{ inputs.php-version }} cache (${{ inputs.extensions }})
+
+on:
+  workflow_dispatch:
+    inputs:
+      php-version:
+        description: 'PHP version whose published extension cache should be refreshed'
+        required: true
+      extensions:
+        description: 'Space or comma separated extensions to rebuild'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: php-release-${{ inputs.php-version }}
+  cancel-in-progress: false
+
+env:
+  PHP_LIST: ${{ inputs.php-version }}
+  EXTENSIONS_TO_REFRESH: ${{ inputs.extensions }}
+
+jobs:
+  get-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.container_os_matrix }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate requested extensions
+        shell: bash
+        run: |
+          [[ "$PHP_LIST" =~ ^[0-9]+\.[0-9]+$ ]]
+          source scripts/extensions-cache.sh
+          cache_read_config "config/extensions/$PHP_LIST"
+          read -r -a requested <<<"${EXTENSIONS_TO_REFRESH//,/ }"
+          test "${#requested[@]}" -gt 0
+          for name in "${requested[@]}"; do
+            [[ "$name" =~ ^[a-zA-Z0-9_]+$ ]] && test -n "${cache_configs[$name]+set}" || {
+              echo "Unknown extension: $name" >&2
+              exit 1
+            }
+          done
+      - name: Get matrix
+        id: matrix
+        run: bash scripts/get-matrix.sh
+        env:
+          COMMIT: --build-all
+          CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie
+          RUNNER_OS_LIST: ubuntu-22.04 ubuntu-24.04 ubuntu-22.04-arm ubuntu-24.04-arm
+          CONTAINER_BASE: ubuntu-24.04
+          CONTAINER_BASE_ARM: ubuntu-24.04-arm
+          SAPI_LIST: cli
+          BUILD_LIST: nts zts
+
+  refresh:
+    needs: get-matrix
+    runs-on: ${{ matrix.container-base }}
+    container: ${{ matrix.container }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.get-matrix.outputs.matrix) }}
+    env:
+      PHP_VERSION: ${{ matrix.php-version }}
+      BUILD: ${{ matrix.build }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      EXTENSIONS_CACHE: 'true'
+      EXTENSIONS_CACHE_ONLY: 'true'
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install build requirements
+        run: bash scripts/install-requirements.sh
+      - name: Stage published PHP build
+        run: bash scripts/stage-extension-cache-base.sh
+      - name: Rebuild selected extensions and verify cache reuse
+        run: bash scripts/build.sh build_extensions
+      - name: Upload refreshed cache
+        uses: actions/upload-artifact@v7
+        with:
+          name: cache-${{ matrix.build }}-${{ matrix.dist }}-${{ matrix.dist-version }}
+          path: /tmp/php_${{ matrix.php-version }}*extensions-cache+*.tar.zst
+          if-no-files-found: error
+          compression-level: 0
+
+  publish:
+    needs: [get-matrix, refresh]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: cache-*
+          path: builds
+      - name: Publish refreshed caches
+        run: bash scripts/release.sh
+        env:
+          EXTENSIONS_CACHE_ONLY: 'true'
+          GITHUB_MESSAGE: --build-all
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

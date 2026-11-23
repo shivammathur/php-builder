@@ -1,0 +1,42 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 16:48:02 +0100
+Subject: Compare with the system libgd rotation in the bug79068 test
+
+bug79068.png was rendered by the bundled libgd and the system libgd
+rotates the image to other dimensions, so with the system libgd the result
+is compared with the rotation of an image that imageaffine() has not seen.
+Upstream changed the test to use imagegetinterpolation(), which is new in
+PHP 8.0.
+---
+ ext/gd/tests/bug79068.phpt | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
+
+diff --git a/ext/gd/tests/bug79068.phpt b/ext/gd/tests/bug79068.phpt
+index 391424b..610d703 100644
+--- a/ext/gd/tests/bug79068.phpt
++++ b/ext/gd/tests/bug79068.phpt
+@@ -15,7 +15,23 @@ imagesetinterpolation($src, IMG_BSPLINE);
+ imageaffine($src, [1, 1, 1, 1, 1, 1]);
+ $dst = imagerotate($src, 80, 0xffffff);
+ 
+-test_image_equals_file(__DIR__ . '/bug79068.png', $dst);
++if (GD_BUNDLED) {
++	test_image_equals_file(__DIR__ . '/bug79068.png', $dst);
++} else {
++	// bug79068.png was rendered by the bundled libgd; the system libgd rotates
++	// to other dimensions, so compare with the rotation of an untouched image
++	$ref = imagecreatetruecolor(100, 100);
++	imagefilledrectangle($ref, 0, 0, 99, 99, 0xffffff);
++	imageline($ref, 10, 10, 90, 90, 0x000000);
++	imagesetinterpolation($ref, IMG_BSPLINE);
++	$filename = __DIR__ . '/bug79068.ref.png';
++	imagepng(imagerotate($ref, 80, 0xffffff), $filename);
++	test_image_equals_file($filename, $dst);
++}
++?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . '/bug79068.ref.png');
+ ?>
+ --EXPECT--
+ The images are equal.

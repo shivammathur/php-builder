@@ -1,0 +1,57 @@
+From: Stanislav Malyshev <stas@php.net>
+Date: Mon, 11 Nov 2019 22:30:08 -0800
+Subject: Fix bug #78804 - Segmentation fault in Locale::filterMatches
+
+PHP 7.0 never got this change (PHP 7.2.26):
+Locale::filterMatches('en-US', 'und', true) crashes. The NEWS entry is
+left out.
+
+(cherry picked from commit 2c9926f156b2be6aa4f69a169d028c1ebc1eaa34)
+---
+ ext/intl/locale/locale_methods.c |  4 ++--
+ ext/intl/tests/bug78804.phpt     | 13 +++++++++++++
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+ create mode 100644 ext/intl/tests/bug78804.phpt
+
+diff --git a/ext/intl/locale/locale_methods.c b/ext/intl/locale/locale_methods.c
+index 557ce8b..b1ff2d9 100644
+--- a/ext/intl/locale/locale_methods.c
++++ b/ext/intl/locale/locale_methods.c
+@@ -1296,7 +1296,7 @@ PHP_FUNCTION(locale_filter_matches)
+ 	if( boolCanonical ){
+ 		/* canonicalize loc_range */
+ 		can_loc_range=get_icu_value_internal( loc_range , LOC_CANONICALIZE_TAG , &result , 0);
+-		if( result ==0) {
++		if( result <=0) {
+ 			intl_error_set( NULL, status,
+ 				"locale_filter_matches : unable to canonicalize loc_range" , 0 );
+ 			RETURN_FALSE;
+@@ -1304,7 +1304,7 @@ PHP_FUNCTION(locale_filter_matches)
+ 
+ 		/* canonicalize lang_tag */
+ 		can_lang_tag = get_icu_value_internal( lang_tag , LOC_CANONICALIZE_TAG , &result ,  0);
+-		if( result ==0) {
++		if( result <=0) {
+ 			intl_error_set( NULL, status,
+ 				"locale_filter_matches : unable to canonicalize lang_tag" , 0 );
+ 			RETURN_FALSE;
+diff --git a/ext/intl/tests/bug78804.phpt b/ext/intl/tests/bug78804.phpt
+new file mode 100644
+index 0000000..b0d58ec
+--- /dev/null
++++ b/ext/intl/tests/bug78804.phpt
+@@ -0,0 +1,13 @@
++--TEST--
++Bug #78804: Segmentation fault in Locale::filterMatches
++--FILE--
++<?php
++
++if (Locale::filterMatches('en-US', 'und', true)) {
++    echo 'Matches';
++} else {
++    echo 'Not matches';
++}
++?>
++--EXPECT--
++Not matches
+\ No newline at end of file

@@ -1,0 +1,24 @@
+From: Anatol Belski <ab@php.net>
+Date: Sat, 27 May 2017 22:45:58 +0200
+Subject: Fix test
+
+The lock flag is not set to '-' in the test, so there's no such run.
+
+PHP 5.6 never got this change of the dba_qdbm test (PHP 7.2.0).
+
+(cherry picked from commit ea0cbae9f0d1f3b36ae7f1f9d561e7e61e75b404)
+---
+ ext/dba/tests/dba_qdbm.phpt | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/ext/dba/tests/dba_qdbm.phpt b/ext/dba/tests/dba_qdbm.phpt
+index e2205ba..898cb63 100644
+--- a/ext/dba/tests/dba_qdbm.phpt
++++ b/ext/dba/tests/dba_qdbm.phpt
+@@ -31,6 +31,4 @@ array(3) {
+   ["key5"]=>
+   string(23) "The last content string"
+ }
+-
+-Warning: dba_popen(%stest0.dbm,r-): Locking cannot be disabled for handler qdbm in %sdba_handler.inc on line %d
+ ===DONE===

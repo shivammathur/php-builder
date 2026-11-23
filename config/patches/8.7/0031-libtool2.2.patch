@@ -25,13 +25,9 @@ index 7ebd1c8e06d..4f1939eec1d 100644
  CLEAN_FILES="$FILES *.o *.lo *.la .libs/ build/ modules/ \
    config.nice configure configure.ac \
    config.h config.h.in conftest* libtool config.cache autom4te.cache/ \
-@@ -149,6 +151,7 @@ phpize_copy_files()
+@@ -149,2 +151,3 @@ phpize_copy_files()
    test -d build || mkdir build
- 
-   (cd "$phpdir" && cp $FILES_BUILD "$builddir"/build)
-+  (cd "$aclocaldir" && cp $LIBTOOL_FILES "$builddir"/build)
-   (cd "$phpdir" && cp $FILES "$builddir")
- }
++  (cd "$aclocaldir" && cp -f $LIBTOOL_FILES "$builddir"/build) || exit 1
  
 -- 
 2.50.1 (Apple Git-155)

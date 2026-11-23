@@ -41,3 +41,13 @@
 0041-Disable-garbage-collection-routine.patch
 0042-Add-missing-header-includes.patch
 0043-Add-enable-rtld-deepbind-configure-flag.patch
+0044-Quote-the-MAIL-sendmail_path-in-run-tests.php.patch
+0045-Load-the-shared-phar-extension-by-path-in-opcache-CL.patch
+0046-Load-the-shared-readline-extension-in-CLI-option-tes.patch
+0047-Load-the-shared-mbstring-extension-in-rfc1867-OOM-te.patch
+0048-Skip-gd-tests-that-need-the-bundled-libgd.patch
+0049-Skip-enchant-bug13181-test-without-the-en-dictionary.patch
+0050-Accept-the-system-tzdata-version-in-timezone_version.patch
+0051-Backport-gd-test-expectations-from-PHP-8.6.patch
+0052-Don-t-use-libimagequant-in-imagetruecolortopalette.patch
+0053-ext-soap-fix-DTD-node-being-matched-as-an-element.patch

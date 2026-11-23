@@ -1,0 +1,58 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 09:59:16 +0100
+Subject: Remove Canada/East-Saskatchewan from the time zone abbreviations
+
+timezonemap.h is from the bundled timezone database 2016.10 and still
+lists Canada/East-Saskatchewan, which tzdata dropped in 2017c, so
+timezone_abbreviations_list() returns a time zone that the system tzdata
+does not have (ext/date/tests/bug51819.phpt). Upstream regenerated the
+file in commit 8e3260376c6 ("Update timezonemap.h, which needs to match
+the bundled TZ db", PHP 7.0.26); only the removal of this zone is taken.
+---
+ ext/date/lib/timezonemap.h | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/ext/date/lib/timezonemap.h b/ext/date/lib/timezonemap.h
+index 4147190..1683663 100644
+--- a/ext/date/lib/timezonemap.h
++++ b/ext/date/lib/timezonemap.h
+@@ -693,7 +693,6 @@
+ 	{ "cst",   0, -21600, "America/Thunder_Bay"           },
+ 	{ "cst",   0, -21600, "America/Winnipeg"              },
+ 	{ "cst",   0, -21600, "Canada/Central"                },
+-	{ "cst",   0, -21600, "Canada/East-Saskatchewan"      },
+ 	{ "cst",   0, -21600, "Canada/Saskatchewan"           },
+ 	{ "cst",   0, -21600, "Mexico/BajaSur"                },
+ 	{ "cst",   0, -21600, "Mexico/General"                },
+@@ -1198,7 +1197,6 @@
+ 	{ "mdt",   1, -21600, "America/Shiprock"              },
+ 	{ "mdt",   1, -21600, "America/Swift_Current"         },
+ 	{ "mdt",   1, -21600, "America/Yellowknife"           },
+-	{ "mdt",   1, -21600, "Canada/East-Saskatchewan"      },
+ 	{ "mdt",   1, -21600, "Canada/Mountain"               },
+ 	{ "mdt",   1, -21600, "Canada/Saskatchewan"           },
+ 	{ "mdt",   1, -21600, "Mexico/BajaSur"                },
+@@ -1233,7 +1231,6 @@
+ 	{ "mpt",   1, -21600, "America/Shiprock"              },
+ 	{ "mpt",   1, -21600, "America/Swift_Current"         },
+ 	{ "mpt",   1, -21600, "America/Yellowknife"           },
+-	{ "mpt",   1, -21600, "Canada/East-Saskatchewan"      },
+ 	{ "mpt",   1, -21600, "Canada/Mountain"               },
+ 	{ "mpt",   1, -21600, "Canada/Saskatchewan"           },
+ 	{ "msd",   1,  14400, "Europe/Moscow"                 },
+@@ -1292,7 +1289,6 @@
+ 	{ "mst",   0, -25200, "America/Swift_Current"         },
+ 	{ "mst",   0, -25200, "America/Tijuana"               },
+ 	{ "mst",   0, -25200, "America/Yellowknife"           },
+-	{ "mst",   0, -25200, "Canada/East-Saskatchewan"      },
+ 	{ "mst",   0, -25200, "Canada/Mountain"               },
+ 	{ "mst",   0, -25200, "Canada/Saskatchewan"           },
+ 	{ "mst",   0, -25200, "Mexico/BajaNorte"              },
+@@ -1314,7 +1310,6 @@
+ 	{ "mwt",   1, -21600, "America/Shiprock"              },
+ 	{ "mwt",   1, -21600, "America/Swift_Current"         },
+ 	{ "mwt",   1, -21600, "America/Yellowknife"           },
+-	{ "mwt",   1, -21600, "Canada/East-Saskatchewan"      },
+ 	{ "mwt",   1, -21600, "Canada/Mountain"               },
+ 	{ "mwt",   1, -21600, "Canada/Saskatchewan"           },
+ 	{ "myt",   0,  28800, "Asia/Kuala_Lumpur"             },

@@ -1,0 +1,21 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Mon, 9 Nov 2026 16:28:56 +0100
+Subject: Quote the {MAIL:} sendmail_path in run-tests.php
+
+---
+ run-tests.php | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/run-tests.php b/run-tests.php
+index 07496d3..4031780 100755
+--- a/run-tests.php
++++ b/run-tests.php
+@@ -2167,7 +2167,7 @@ TEST $file
+     if ($test->hasSection('INI')) {
+         $ini = str_replace('{PWD}', dirname($file), $test->getSection('INI'));
+         $ini = str_replace('{TMP}', sys_get_temp_dir(), $ini);
+-        $replacement = IS_WINDOWS ? '"' . PHP_BINARY . ' -r \"while ($in = fgets(STDIN)) echo $in;\" > $1"' : 'tee $1 >/dev/null';
++        $replacement = IS_WINDOWS ? '"' . PHP_BINARY . ' -r \"while ($in = fgets(STDIN)) echo $in;\" > $1"' : '"tee $1 >/dev/null"';
+         $ini = preg_replace('/{MAIL:(\S+)}/', $replacement, $ini);
+         settings2array(preg_split("/[\n\r]+/", $ini), $ini_settings);
+ 

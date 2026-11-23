@@ -1,0 +1,23 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 21 Oct 2026 21:22:47 +0200
+Subject: fix skipif section
+
+(cherry picked from commit 0121c55e2581eb32020363c98167d074eb0f15a0)
+(cherry picked from commit a1faaa1ce45db10b4af3418a47a7729177716c78)
+---
+ ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+index d97ec66..dc17ce3 100644
+--- a/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
++++ b/ext/soap/tests/bugs/GHSA-cj93-vc83-wgqv.phpt
+@@ -10,7 +10,7 @@ all
+ --SKIPIF--
+ <?php
+ require __DIR__.'/../../../standard/tests/http/server.inc';
+-http_server_skipif();
++http_server_skipif("tcp://127.0.0.1:12342");
+ if (getenv("SKIP_SLOW_TESTS")) die('skip slow test');
+ if (!getenv("SOAP_RUN_RESOURCE_HEAVY_TESTS")) die("skip SOAP resource-heavy test");
+ if (PHP_INT_SIZE == 4) die('skip not for 32-bit systems due to memory constraints');

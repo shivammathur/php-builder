@@ -1,0 +1,33 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:21:59 +0100
+Subject: Adjust the sqlite3 tests to SQLite 3.46
+
+SQLite 3.44 and newer no longer report writable_schema as on in defensive
+mode. Backport of upstream commit 2a4775d6a73 (PHP 8.1.27).
+---
+ ext/sqlite3/tests/sqlite3_defensive.phpt | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/ext/sqlite3/tests/sqlite3_defensive.phpt b/ext/sqlite3/tests/sqlite3_defensive.phpt
+index c8826af..8760fe3 100644
+--- a/ext/sqlite3/tests/sqlite3_defensive.phpt
++++ b/ext/sqlite3/tests/sqlite3_defensive.phpt
+@@ -18,7 +18,6 @@ var_dump($db->exec('CREATE TABLE test (a, b);'));
+ 
+ // This does not generate an error!
+ var_dump($db->exec('PRAGMA writable_schema = ON;'));
+-var_dump($db->querySingle('PRAGMA writable_schema;'));
+ 
+ // Should be 1
+ var_dump($db->querySingle('SELECT COUNT(*) FROM sqlite_master;'));
+@@ -33,8 +32,7 @@ var_dump($db->querySingle('SELECT COUNT(*) FROM sqlite_master;'));
+ bool(true)
+ bool(true)
+ int(1)
+-int(1)
+ 
+ Warning: SQLite3::querySingle(): Unable to prepare statement: 1, table sqlite_master may not be modified in %s on line %d
+ bool(false)
+-int(1)
+\ No newline at end of file
++int(1)

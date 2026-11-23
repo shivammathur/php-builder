@@ -1,0 +1,269 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:05:01 +0100
+Subject: Replace the expired certificates in the tests
+
+The certificates of the SNI server tests expired in April 2026 and the
+certificate of the FTP test server in July 2026.  Generate the SNI
+certificates at run time and use the regenerated FTP certificate, as
+upstream does since PHP 8.2 (php-src 0f38bfdef2d and 011ad348683).
+---
+ ext/ftp/tests/cert.pem                     | 91 +++++++++++++++---------------
+ ext/openssl/tests/sni_server.phpt          | 29 ++++++++--
+ ext/openssl/tests/sni_server_key_cert.phpt | 45 ++++++++++++---
+ 3 files changed, 109 insertions(+), 56 deletions(-)
+
+diff --git a/ext/ftp/tests/cert.pem b/ext/ftp/tests/cert.pem
+index 2bb3061..9508018 100644
+--- a/ext/ftp/tests/cert.pem
++++ b/ext/ftp/tests/cert.pem
+@@ -1,49 +1,50 @@
+ -----BEGIN CERTIFICATE-----
+-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
++PWgM+zxSgE3x
+ -----END CERTIFICATE-----
+ -----BEGIN PRIVATE KEY-----
+-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC7RgCKzVAyLSEn
+-6QKs7S9kxRFhByxk8whIeQINrHTA+1GG6iDxyzhOBCDb/nahDDNDcy2J8OwobVXo
+-F0/dO8QmkHJngxUnYas3uC/M2sA355+LMgfFwMBmCX6bLWMHt5zuvtFry0m9QOU2
+-DXsqF48JQFChJcZHlgKOdboUeNRg4Q0PRoKal9XHAIZkqFIYCEUs3+n+ChN1k3c5
+-daddmbZGBwfCaNowfyV58Bjs+orC56Ub5HseAe7FF/u7tTKiv3tV+x4tRv1ZGgHw
+-tkjn403j7RgQwV60NWq2Fwz0QNOLIBc0oeeZe5Qv+B2rEP4wG94feXXBCKsnOvYo
+-qGjdXNTXAgMBAAECggEAD7yDISa9fWnjZlojGmrX16zjl/alWVo+sPBSJtn9+ZVk
+-tWSJHihIc+3O4Q2R5FiFGj7cbcHr5j3BwT3sPRfflKoAowgVx/hiDc2RXrJnAouZ
+-EXZDxu86e5iCpgF7V9OrATjRmjA74wZH/HHHjrLqFwnrfI8TCULmthfYag35Mqax
+-qrIEzvSuYdaGxblNe+ZfnVEDW2F9DLBGcma0ffUlJp8AvV7bpo8Rj/JovPxit/VS
+-UdwSRxwSAugctFpmcGlFkoQfxUx1WdEy8hjopLrayMjCCJvRUL4+C4zT9r9PBHOj
+-fCSbJ+ajQIoRrgaL9bURk8BFMHY8+yMUsWEYVSmFAQKBgQDtOvPkhvZsNocUB5nJ
+-ti3SXyDQ6OZQuKKHPSeDV/EvmZKeNlrQ1ZnwXLP3vkcedDOkt1nEVq/hUewpjt08
+-2MvmMwJBQEnmbTzMf43DtlXsStdP1lhYaFbU4iMM5zRfyBHDu1GPZEPXvKKpJUk0
+-M+jYIyTAP3mcZhqDKn0mPVP7VwKBgQDKFy9DtWFKxCvhFQvHx7YeZiVWJbIst/O4
+-ZyuPVAErni0hzSeCkmm7+F9hgEdPSLRcSaeTWP4L0u1cixECKboIhoNs38aft7o3
+-MdnI2RDSEKtKX2uVuhvpGDNuGpBAc8Qu8iCiv5INSC36ZhD1h++O/TiiUdgRJ3yX
+-yeG7ej+CgQKBgCR5F95e0aw5hfMSaBaXJ9xcO9Niu2ZVvMdGI7kR4EcNOXmRqczJ
+-ym0mE5VXb9/Cxd3hQq/pFAl0avbIvEMKoe62kPYvSC1hRiO6yLT6Z6N4rjncHqEZ
+-CaCZVAI72dWQEQsi1ZtSMwwMOIYA8YxRHs98N75HBA+DszfPZIZoj2zpAoGBAJHp
+-B3ElhmeLF/tdTLIj2bQ9H/wBH5H2Bvw/UU4c4vNxMzjSfRJjUAAtpgAptFLkNYTk
+-kR9sA5DZ7BMDPXaIVg9Nv5peP3SWHNc5IPtI7kIdUu9R0cW7J+e2V3vJphlC/ITA
+-wRuAoZ0BXmEKTHhae3aMEdXwrcZE8kpNsrO/4hcBAoGBAMISiPJPuxAX1UtqcxTa
+-mDJfnQ2gxRu6AK9VmXqo0X4IBxDSnTjcL0huUlS849wgsE5oTXgdYb2hn+TXM5JJ
+-NsEXLhV09X1mrk4M4LV1npd0mYxvFsO4+p+IX5YLiahInmQtq0gx3DWE8wouVFER
+-4yzfp27z8MZT8Qvr/ZI9lzWd
++MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDChB5LljS2j20S
++Xa+VHvEpsjmPtLEiuel4CDibe0v2yMBXzX+UFhHUutrMSVpLRnk2s+WJ8voBPb7j
++TICm3u5VYnOjbmWAyC5ViuGhBNdhxOMCjiJs3qEauNu+oQDS3cQeEVBHK4U05fxO
++KaXS+B3r1FvIiJUjj7yf5RfT1Rw3EvV5oDLjfgv53tfD6CdQPf3d7XR5NdkZmiP/
++GDgNBkiaW/u/8i424l1TWHTd878CdxXUhZo5Cmu2ZoJm/JsVrnJ2FdovE3N+R+0F
++tKbaZZYK60R0jFb95oSzJI11IRK+Leij+4dS2c5nlkS+7Ew3/1VlHZJt99aoD2JP
++h2Ea+56PAgMBAAECggEAWDGUFNxxYRbNsuaUbi3d1XRwAdbA+8hEcX50wBZavnWO
++NCFCB5AsHIJuIvLdREUbP3C4kd//d6GZ07BDoqVwdXlSihbLYeUhkPqLy7iIuVUO
++QoHUXP1iGV4YkCmq2HDhc2qRNfunBXGDgKMEgw+pbVxXEyjOShXpRawXLh4xkUw1
++tGdgt4WSufui+5vCEQed1zrq1Q3vImZTJkoqyHwbc/VyirZsPP5jexRtJeAoS4cc
++6IJntjN7SKQRu/S6bAm4OdX2ArCbeOZ3ss1wycENpLz4md25Sr7J+uszDQRS3JZS
++buG7N1Ihm0oY3aMGCF10Q0yEU5pKqzLaAyoBE4rF0QKBgQDzGmwyZ9chHL5Zut+5
++s5AQchY+8kIZ1Ud35VzkqlE9S8JOsDmfAP4WR4DntqIPbE2F+9tNt1+hrQztfCG3
++in1FXX3nzJe7Sk93GMPsYC+lIBTmB09weXlbP7P9J2i0jVAUpHo1Pa1C+NVy2dOk
++cU81vmVea6EJ9dBJYNVgdLeI/wKBgQDM1dXdkxibfqBqz/i4jvzywn/9yC5GEWXr
++IRUKbxwiuirylNUQSlFKrqRpxay495FnJpwSs3qxvYGWiXAGgtIy1VluWWolrqG4
++gbnL3aDrHeC8BmTcfCnjIYGl7ACBTJFH4qR1FzMt2FYm+lI0SwGrvinqbLUF5dW4
++uHzRbbHacQKBgQDqh+E+N8PqJArYEltokn04AHjJvXpb5dEPMG4QBOhfVElfFNBi
++P9jhsZYA9ccfTgL0ceg+79wI5CSGsKzun2L/mpSvHkh73dMQOQo7bwhIK809pmvT
++PL4BdFG2t2BiX7qUT6G+34PaCqoSJWfzS4V5effdwcQZEdciE5OHfNLcDQKBgQCS
++mRgPFI+v+dhlmaKws+Vk+L8Rqoszqo/+0BZ2+T5xvDuwkcRLfGThxkv1R3xuhQCT
++ipZ46+sL+k0cqBB9GHPH3dm7mFLX1Tv5CR8oQN5CZ4fICet1wYdY/0oCrf1OjLYN
++dK+u/YOrdAF0tALRWj0/5UGqfVKxfeSP57mtSYzYgQKBgQChNy3y9sFp4WcRBjWE
++2IJtTMD682rrxnJQCND6tOgYi+8hGCnbt9wJes4Z73UjTMwNDohImOaC9VImPVYC
++GdSaWzpHru18PcKExq6SFRYbZXagwCXMAXB4v17h/Vm4PsjJZFTgrnFTb5FUIMDR
++yaWMV5Lt8jgV/NINDPcq2P58Ow==
+ -----END PRIVATE KEY-----
+diff --git a/ext/openssl/tests/sni_server.phpt b/ext/openssl/tests/sni_server.phpt
+index 36a0621..098be0b 100644
+--- a/ext/openssl/tests/sni_server.phpt
++++ b/ext/openssl/tests/sni_server.phpt
+@@ -8,14 +8,26 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$caFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_ca.pem.tmp';
++$csFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs.pem.tmp';
++$ukFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk.pem.tmp';
++$usFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us.pem.tmp';
++
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveCaCert($caFile);
++$certificateGenerator->saveNewCertAsFileWithKey('cs.php.net', $csFile);
++$certificateGenerator->saveNewCertAsFileWithKey('uk.php.net', $ukFile);
++$certificateGenerator->saveNewCertAsFileWithKey('us.php.net', $usFile);
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+         'local_cert' => __DIR__ . '/domain1.pem',
+         'SNI_server_certs' => [
+-            "cs.php.net" => __DIR__ . "/sni_server_cs.pem",
+-            "uk.php.net" => __DIR__ . "/sni_server_uk.pem",
+-            "us.php.net" => __DIR__ . "/sni_server_us.pem"
++            "cs.php.net" => '%s',
++            "uk.php.net" => '%s',
++            "us.php.net" => '%s',
+         ]
+     ]]);
+ 
+@@ -26,11 +38,12 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode, $csFile, $ukFile, $usFile);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctxArr = [
+-        'cafile' => __DIR__ . '/sni_server_ca.pem',
++        'cafile' => '%s',
+         'capture_peer_cert' => true
+     ];
+ 
+@@ -52,10 +65,18 @@ $clientCode = <<<'CODE'
+     $cert = stream_context_get_options($ctx)['ssl']['peer_certificate'];
+     var_dump(openssl_x509_parse($cert)['subject']['CN']);
+ CODE;
++$clientCode = sprintf($clientCode, $caFile);
+ 
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_ca.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us.pem.tmp');
++?>
+ --EXPECTF--
+ string(%d) "cs.php.net"
+ string(%d) "uk.php.net"
+diff --git a/ext/openssl/tests/sni_server_key_cert.phpt b/ext/openssl/tests/sni_server_key_cert.phpt
+index b6adf81..29d8dbf 100644
+--- a/ext/openssl/tests/sni_server_key_cert.phpt
++++ b/ext/openssl/tests/sni_server_key_cert.phpt
+@@ -8,22 +8,37 @@ if (!function_exists("proc_open")) die("skip no proc_open");
+ ?>
+ --FILE--
+ <?php
++$caFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_ca_kc.pem.tmp';
++$csCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs_cert.pem.tmp';
++$csKeyFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs_key.pem.tmp';
++$ukCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk_cert.pem.tmp';
++$ukKeyFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk_key.pem.tmp';
++$usCertFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us_cert.pem.tmp';
++$usKeyFile = __DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us_key.pem.tmp';
++
++include 'CertificateGenerator.inc';
++$certificateGenerator = new CertificateGenerator();
++$certificateGenerator->saveCaCert($caFile);
++$certificateGenerator->saveNewCertAndKey('cs.php.net', $csCertFile, $csKeyFile);
++$certificateGenerator->saveNewCertAndKey('uk.php.net', $ukCertFile, $ukKeyFile);
++$certificateGenerator->saveNewCertAndKey('us.php.net', $usCertFile, $usKeyFile);
++
+ $serverCode = <<<'CODE'
+     $flags = STREAM_SERVER_BIND|STREAM_SERVER_LISTEN;
+     $ctx = stream_context_create(['ssl' => [
+         'local_cert' => __DIR__ . '/domain1.pem',
+         'SNI_server_certs' => [
+             "cs.php.net" => [
+-                'local_cert' => __DIR__ . "/sni_server_cs_cert.pem",
+-                'local_pk' => __DIR__ . "/sni_server_cs_key.pem"
++                'local_cert' => '%s',
++                'local_pk' => '%s',
+             ],
+             "uk.php.net" => [
+-                'local_cert' => __DIR__ . "/sni_server_uk_cert.pem",
+-                'local_pk' => __DIR__ . "/sni_server_uk_key.pem"
++                'local_cert' => '%s',
++                'local_pk' => '%s',
+             ],
+             "us.php.net" => [
+-                'local_cert' => __DIR__ . "/sni_server_us_cert.pem",
+-                'local_pk' => __DIR__ . "/sni_server_us_key.pem"
++                'local_cert' => '%s',
++                'local_pk' => '%s',
+             ],
+         ]
+     ]]);
+@@ -35,11 +50,16 @@ $serverCode = <<<'CODE'
+         @stream_socket_accept($server, 3);
+     }
+ CODE;
++$serverCode = sprintf($serverCode,
++        $csCertFile, $csKeyFile,
++        $ukCertFile, $ukKeyFile,
++        $usCertFile, $usKeyFile
++);
+ 
+ $clientCode = <<<'CODE'
+     $flags = STREAM_CLIENT_CONNECT;
+     $ctxArr = [
+-        'cafile' => __DIR__ . '/sni_server_ca.pem',
++        'cafile' => '%s',
+         'capture_peer_cert' => true
+     ];
+ 
+@@ -61,10 +81,21 @@ $clientCode = <<<'CODE'
+     $cert = stream_context_get_options($ctx)['ssl']['peer_certificate'];
+     var_dump(openssl_x509_parse($cert)['subject']['CN']);
+ CODE;
++$clientCode = sprintf($clientCode, $caFile);
+ 
+ include 'ServerClientTestCase.inc';
+ ServerClientTestCase::getInstance()->run($clientCode, $serverCode);
+ ?>
++--CLEAN--
++<?php
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_ca_kc.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs_cert.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_cs_key.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk_cert.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_uk_key.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us_cert.pem.tmp');
++@unlink(__DIR__ . DIRECTORY_SEPARATOR . 'sni_server_us_key.pem.tmp');
++?>
+ --EXPECTF--
+ string(%d) "cs.php.net"
+ string(%d) "uk.php.net"

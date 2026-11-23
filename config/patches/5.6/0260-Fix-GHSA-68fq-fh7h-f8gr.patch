@@ -1,0 +1,93 @@
+From f573dda67a2cd3f855ad14846c38654a48ddf9fc Mon Sep 17 00:00:00 2001
+From: Alexandre Daubois <alex.daubois@gmail.com>
+Date: Fri, 13 Nov 2026 08:33:23 +0100
+Subject: [PATCH] Fix GHSA-68fq-fh7h-f8gr: refuse keyless phar signature when
+ .pubkey exists
+
+The signature type is not covered by the signature, so an OpenSSL signed
+phar could be downgraded to a keyless hash algorithm.
+
+(cherry picked from commit 7050cf338092a93e7d4caa4b7dc0bb8771f52a01)
+(cherry picked from commit 5e7f71de01a61f67b19ecdf5d3becaa06de7e393)
+
+diff --git a/ext/phar/util.c b/ext/phar/util.c
+index 06e4e55da7af6f6319134c1bf1ad27df9dda3880..4d3bd5f2de6b957069053be898bf51f9bf92431c 100644
+--- a/ext/phar/util.c
++++ b/ext/phar/util.c
+@@ -1408,7 +1408,8 @@ static int phar_call_openssl_signverify(int is_sign, php_stream *fp, off_t end,
+ {
+ 	zend_fcall_info fci;
+ 	zend_fcall_info_cache fcc;
+-	zval *zdata, *zsig, *zkey, *retval_ptr, **zp[3], *openssl;
++	zval *zdata, *zsig, *zkey, *retval_ptr = NULL, **zp[3], *openssl;
++	int result = FAILURE;
+ 
+ 	MAKE_STD_ZVAL(zdata);
+ 	MAKE_STD_ZVAL(openssl);
+@@ -1489,30 +1490,22 @@ static int phar_call_openssl_signverify(int is_sign, php_stream *fp, off_t end,
+ 	zval_dtor(zkey);
+ 	efree(zkey);
+ 
+-	switch (Z_TYPE_P(retval_ptr)) {
+-		default:
+-		case IS_LONG:
+-			zval_dtor(zsig);
+-			efree(zsig);
+-			if (1 == Z_LVAL_P(retval_ptr)) {
+-				efree(retval_ptr);
+-				return SUCCESS;
+-			}
+-			efree(retval_ptr);
+-			return FAILURE;
+-		case IS_BOOL:
+-			efree(retval_ptr);
+-			if (Z_BVAL_P(retval_ptr)) {
++	/* Signing returns a boolean; verification succeeds only with integer 1. */
++	if (retval_ptr) {
++		if (is_sign) {
++			if (Z_TYPE_P(retval_ptr) == IS_BOOL && Z_BVAL_P(retval_ptr) && Z_TYPE_P(zsig) == IS_STRING) {
+ 				*signature = estrndup(Z_STRVAL_P(zsig), Z_STRLEN_P(zsig));
+ 				*signature_len = Z_STRLEN_P(zsig);
+-				zval_dtor(zsig);
+-				efree(zsig);
+-				return SUCCESS;
++				result = SUCCESS;
+ 			}
+-			zval_dtor(zsig);
+-			efree(zsig);
+-			return FAILURE;
++		} else if (Z_TYPE_P(retval_ptr) == IS_LONG && Z_LVAL_P(retval_ptr) == 1) {
++			result = SUCCESS;
++		}
++		zval_ptr_dtor(&retval_ptr);
+ 	}
++	zval_dtor(zsig);
++	efree(zsig);
++	return result;
+ }
+ /* }}} */
+ #endif /* #ifndef PHAR_HAVE_OPENSSL */
+@@ -1525,6 +1518,23 @@ int phar_verify_signature(php_stream *fp, size_t end_of_phar, php_uint32 sig_typ
+ 
+ 	php_stream_rewind(fp);
+ 
++	if (sig_type != PHAR_SIG_OPENSSL) {
++		php_stream_statbuf ssb;
++		char *pfile;
++		zend_bool has_pubkey;
++
++		spprintf(&pfile, 0, "%s.pubkey", fname);
++		has_pubkey = php_stream_stat_path_ex(pfile, PHP_STREAM_URL_STAT_QUIET, &ssb, NULL) == 0;
++		efree(pfile);
++
++		if (has_pubkey) {
++			if (error) {
++				spprintf(error, 0, "openssl public key found, but the signature does not use openssl");
++			}
++			return FAILURE;
++		}
++	}
++
+ 	switch (sig_type) {
+ 		case PHAR_SIG_OPENSSL: {
+ #ifdef PHAR_HAVE_OPENSSL

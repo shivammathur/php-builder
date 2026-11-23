@@ -1,0 +1,71 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Tue, 10 Nov 2026 15:20:58 +0100
+Subject: Adjust the curl tests to libcurl 8.14
+
+Newer libcurl words the "protocol not supported" error differently,
+rejects a URL scheme that starts with a digit, limits the lifetime of
+cookies and returns the scheme in lower case. Backport of upstream
+commits 3af76b2302c, 36d46a47321 and 25c09939029 (PHP 8.1).
+---
+ ext/curl/tests/bug77946.phpt       | 2 +-
+ ext/curl/tests/curl_basic_009.phpt | 3 ++-
+ ext/curl/tests/curl_basic_022.phpt | 6 +++---
+ ext/curl/tests/curl_basic_024.phpt | 4 ++--
+ 4 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/ext/curl/tests/bug77946.phpt b/ext/curl/tests/bug77946.phpt
+index 2a0dcd6..41a2352 100644
+--- a/ext/curl/tests/bug77946.phpt
++++ b/ext/curl/tests/bug77946.phpt
+@@ -40,4 +40,4 @@ curl_multi_close($mh);
+ --EXPECTF--
+ int(1)
+ int(1)
+-string(%d) "Protocol %Sunknown%S not supported or disabled in libcurl"
++string(%d) "Protocol %Sunknown%S %rnot supported( or disabled in libcurl)?%r"
+diff --git a/ext/curl/tests/curl_basic_009.phpt b/ext/curl/tests/curl_basic_009.phpt
+index a9aaf4c..f410886 100644
+--- a/ext/curl/tests/curl_basic_009.phpt
++++ b/ext/curl/tests/curl_basic_009.phpt
+@@ -7,7 +7,8 @@ TestFest 2009 - AFUP - Perrick Penet <perrick@noparking.net>
+ --FILE--
+ <?php
+ 
+-$url = substr(uniqid(),0,7)."://www.".uniqid().".".uniqid();
++// Make sure the scheme always starts with an alphabetic character.
++$url = 'a' . substr(uniqid(),0,6)."://www.example.com";
+ $ch = curl_init();
+ curl_setopt($ch, CURLOPT_URL, $url);
+ 
+diff --git a/ext/curl/tests/curl_basic_022.phpt b/ext/curl/tests/curl_basic_022.phpt
+index 108b290..cc76877 100644
+--- a/ext/curl/tests/curl_basic_022.phpt
++++ b/ext/curl/tests/curl_basic_022.phpt
+@@ -11,10 +11,10 @@ curl_setopt($ch, CURLOPT_COOKIELIST, 'Set-Cookie: C2=v2; expires=Thu, 31-Dec-203
+ var_dump(curl_getinfo($ch, CURLINFO_COOKIELIST));
+ 
+ ?>
+---EXPECT--
++--EXPECTF--
+ array(2) {
+   [0]=>
+-  string(38) ".php.net	TRUE	/	FALSE	2145916799	C1	v1"
++  string(38) ".php.net	TRUE	/	FALSE	%d	C1	v1"
+   [1]=>
+-  string(38) ".php.net	TRUE	/	FALSE	2145916799	C2	v2"
++  string(38) ".php.net	TRUE	/	FALSE	%d	C2	v2"
+ }
+diff --git a/ext/curl/tests/curl_basic_024.phpt b/ext/curl/tests/curl_basic_024.phpt
+index 4037a0b..a5915c5 100644
+--- a/ext/curl/tests/curl_basic_024.phpt
++++ b/ext/curl/tests/curl_basic_024.phpt
+@@ -24,7 +24,7 @@ var_dump(0 === curl_getinfo($ch, CURLINFO_PROXY_SSL_VERIFYRESULT));
+ var_dump(curl_getinfo($ch, CURLINFO_SCHEME));
+ curl_close($ch);
+ ?>
+---EXPECT--
++--EXPECTF--
+ bool(true)
+ bool(true)
+-string(4) "HTTP"
++string(4) "%r(HTTP|http)%r"

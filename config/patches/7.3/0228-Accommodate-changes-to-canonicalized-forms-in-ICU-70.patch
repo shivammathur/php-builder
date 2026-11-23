@@ -1,0 +1,31 @@
+From: Ben Ramsey <ramsey@php.net>
+Date: Wed, 20 Oct 2021 00:02:55 -0500
+Subject: Accommodate changes to canonicalized forms in ICU >= 70.1
+
+Refer to:
+https://github.com/unicode-org/icu/commit/01e1adc9e412c9c3177dc3e30d056c25d8687853
+
+Only the change of locale_filter_matches() is here, the tests are in
+0147-Adjust-the-intl-tests-to-ICU-76.patch. Without it
+locale_filter_matches("sl-IT-nedis-a-kirti-x-xyz", "sl_IT_NEDIS", true)
+returns false with ICU 70.1 and newer
+(ext/intl/tests/locale_filter_matches_icu70.phpt).
+
+(cherry picked from commit 52cda6fc43a7ed036293b6940701cdac3279fadd)
+---
+ ext/intl/locale/locale_methods.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/ext/intl/locale/locale_methods.c b/ext/intl/locale/locale_methods.c
+index fa27292..0de5c74 100644
+--- a/ext/intl/locale/locale_methods.c
++++ b/ext/intl/locale/locale_methods.c
+@@ -1326,7 +1326,7 @@ PHP_FUNCTION(locale_filter_matches)
+ 		if( token && (token==cur_lang_tag) ){
+ 			/* check if the char. after match is SEPARATOR */
+ 			chrcheck = token + (strlen(cur_loc_range));
+-			if( isIDSeparator(*chrcheck) || isEndOfTag(*chrcheck) ){
++			if( isIDSeparator(*chrcheck) || isKeywordSeparator(*chrcheck) || isEndOfTag(*chrcheck) ){
+ 				efree( cur_lang_tag );
+ 				efree( cur_loc_range );
+ 				if( can_lang_tag){

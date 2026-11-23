@@ -1,0 +1,50 @@
+From: =?utf-8?b?T25kxZllaiBTdXLDvQ==?= <ondrej@sury.org>
+Date: Wed, 11 Nov 2026 08:43:41 +0100
+Subject: Skip the gd tests that need imageantialias() with the system libgd
+
+Before PHP 7.2 imageantialias() exists only with the bundled libgd
+(upstream commit d0f14a4429e made it available with the system libgd in
+PHP 7.2.0), so skip the tests that call it when it does not exist, as
+bug28147.phpt does.
+---
+ ext/gd/tests/bug72482.phpt   | 1 +
+ ext/gd/tests/bug72482_2.phpt | 1 +
+ ext/gd/tests/bug73213.phpt   | 1 +
+ 3 files changed, 3 insertions(+)
+
+diff --git a/ext/gd/tests/bug72482.phpt b/ext/gd/tests/bug72482.phpt
+index 548921d..7834445 100644
+--- a/ext/gd/tests/bug72482.phpt
++++ b/ext/gd/tests/bug72482.phpt
+@@ -3,6 +3,7 @@ Bug #72482 (Ilegal write/read access caused by gdImageAALine overflow)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++if (!function_exists('imageantialias')) die('skip imageantialias() requires the bundled GD library before PHP 7.2');
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug72482_2.phpt b/ext/gd/tests/bug72482_2.phpt
+index a8a08fa..ba71d28 100644
+--- a/ext/gd/tests/bug72482_2.phpt
++++ b/ext/gd/tests/bug72482_2.phpt
+@@ -3,6 +3,7 @@ Bug 72482 (Ilegal write/read access caused by gdImageAALine overflow)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++if (!function_exists('imageantialias')) die('skip imageantialias() requires the bundled GD library before PHP 7.2');
+ ?>
+ --FILE--
+ <?php
+diff --git a/ext/gd/tests/bug73213.phpt b/ext/gd/tests/bug73213.phpt
+index 86c4078..fda0dad 100644
+--- a/ext/gd/tests/bug73213.phpt
++++ b/ext/gd/tests/bug73213.phpt
+@@ -3,6 +3,7 @@ Bug #73213 (Integer overflow in imageline() with antialiasing)
+ --SKIPIF--
+ <?php
+ if (!extension_loaded('gd')) die('skip gd extension not available');
++if (!function_exists('imageantialias')) die('skip imageantialias() requires the bundled GD library before PHP 7.2');
+ ?>
+ --FILE--
+ <?php
