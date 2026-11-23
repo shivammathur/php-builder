@@ -67,17 +67,19 @@ get_c23_standard_flag() {
 
 # Function to set and export build flags.
 configure_build_flags() {
-  local build_target extra_warning_flags
+  local build_target extra_warning_flags fortify_level
   build_target=${1:-php}
   extra_warning_flags="-Wall -pedantic"
   [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
+  fortify_level=2
+  [ "${ASAN:-}" = "asan" ] && fortify_level=0
 
   # Set and export FLAGS
   CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
 
-  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto") -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto") -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=$fortify_level"
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
