@@ -25,7 +25,14 @@ get() {
 }
 
 sudo_php_env() {
-  sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC "$@"
+  if [ "${asan:-}" = "asan" ]; then
+    sudo --preserve-env=UBSAN_OPTIONS,USE_ZEND_ALLOC env \
+      ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}" \
+      ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-1}" \
+      "$@"
+  else
+    sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC "$@"
+  fi
 }
 
 set_base_version_id() {
