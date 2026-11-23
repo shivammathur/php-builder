@@ -247,6 +247,15 @@ merge_sapi() {
     sed -e "s|ASAN_LIB|$asan_soname|g" -e "s|PHP_VERSION|$PHP_VERSION|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
     cp -fp config/apache2-asan.conf "$INSTALL_ROOT/etc/apache2/conf-available/php-asan-env.conf"
     cp -fp config/php-fpm-asan.env "$INSTALL_ROOT/etc/default/php-fpm$PHP_VERSION"
+    if [ -f "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf" ]; then
+      cat << 'EOF' >> "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf"
+
+env[ASAN_OPTIONS] = $ASAN_OPTIONS
+env[UBSAN_OPTIONS] = $UBSAN_OPTIONS
+env[ZEND_DONT_UNLOAD_MODULES] = $ZEND_DONT_UNLOAD_MODULES
+env[USE_ZEND_ALLOC] = $USE_ZEND_ALLOC
+EOF
+    fi
   fi
 
   # Make sure the binaries are executable.
