@@ -27,7 +27,11 @@ SCRIPTNAME=/etc/init.d/$NAME
 [ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
+if [ -r /etc/default/$NAME ]; then
+	set -a
+	. /etc/default/$NAME
+	set +a
+fi
 
 # Load the VERBOSE setting and other rcS variables
 . /lib/init/vars.sh

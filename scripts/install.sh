@@ -211,7 +211,7 @@ install() {
     wait "$to_wait" || return 1
   fi
   update_brotli_security || return 1
-  sudo rm -rf /etc/php/"$version" /tmp/php"$version"
+  sudo rm -rf /etc/php/"$version" /etc/default/php-fpm"$version" /tmp/php"$version"
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version" || return 1
   . /etc/os-release
@@ -276,6 +276,7 @@ remove() {
   sudo find /etc /usr/share/man -name "php$version*" -delete
   sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
               /usr/lib/systemd/system/php"$version"-fpm.service \
+              /etc/default/php-fpm"$version" \
               /etc/logrotate.d/php"$version"-fpm \
               /etc/php/"$version" \
               /usr/include/php/"$phpapi" \
