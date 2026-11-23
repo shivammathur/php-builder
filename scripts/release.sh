@@ -12,7 +12,7 @@ log_version() {
   local asset package_version new_version=
   for asset in "${assets[@]}"; do
     case "${asset##*/}" in
-      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz) ;;
+      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz|php_"$PHP_VERSION"-asan+*.tar.xz|php_"$PHP_VERSION"-zts-asan+*.tar.xz) ;;
       *) continue ;;
     esac
     package_version=$(set -o pipefail; tar -xJOf "$asset" --wildcards './usr/include/php/*/main/php_version.h' |

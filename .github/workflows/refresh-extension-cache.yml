@@ -64,6 +64,7 @@ jobs:
       fail-fast: false
       matrix: ${{ fromJson(needs.get-matrix.outputs.matrix) }}
     env:
+      ASAN: ${{ matrix.asan }}
       PHP_VERSION: ${{ matrix.php-version }}
       BUILD: ${{ matrix.build }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,6 +73,13 @@ jobs:
       EXTENSIONS_CACHE_ONLY: 'true'
     steps:
       - uses: actions/checkout@v6
+      - name: Configure ASAN runtime
+        if: matrix.asan == 'asan'
+        run: |
+          echo "ASAN_OPTIONS=detect_leaks=0" >> "$GITHUB_ENV"
+          echo "UBSAN_OPTIONS=halt_on_error=1" >> "$GITHUB_ENV"
+          echo "ZEND_DONT_UNLOAD_MODULES=1" >> "$GITHUB_ENV"
+          echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
       - name: Install build requirements
         run: bash scripts/install-requirements.sh
       - name: Stage published PHP build
@@ -81,7 +89,7 @@ jobs:
       - name: Upload refreshed cache
         uses: actions/upload-artifact@v7
         with:
-          name: cache-${{ matrix.build }}-${{ matrix.dist }}-${{ matrix.dist-version }}
+          name: cache-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}-${{ matrix.dist }}-${{ matrix.dist-version }}
           path: /tmp/php_${{ matrix.php-version }}*extensions-cache+*.tar.zst
           if-no-files-found: error
           compression-level: 0
