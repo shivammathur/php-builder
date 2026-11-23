@@ -392,7 +392,14 @@ fi
 # Set ASAN options.
 if [ "${ASAN:-}" = "asan" ]; then
   PHP_PKG_SUFFIX="${PHP_PKG_SUFFIX:-}-asan"
-  export PHP_PKG_SUFFIX
+  ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}"
+  export PHP_PKG_SUFFIX ASAN_OPTIONS
+  if [ "$action" != "build_sapi" ]; then
+    UBSAN_OPTIONS="${UBSAN_OPTIONS:-halt_on_error=1}"
+    ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-1}"
+    USE_ZEND_ALLOC="${USE_ZEND_ALLOC:-0}"
+    export UBSAN_OPTIONS ZEND_DONT_UNLOAD_MODULES USE_ZEND_ALLOC
+  fi
 fi
 
 # Import OS information to the environment.
