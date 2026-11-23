@@ -29,15 +29,16 @@ get_dist() {
   echo "${os%:*}" | cut -d'/' -f 2
 }
 
+is_asan_supported() {
+  [ "${1%%.*}" -ge 8 ]
+}
+
 # Build a matrix array with container, distribution, distribution version and php-version and OS
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for asan in "" "asan"; do
-        # Skip ASAN for PHP < 8.0
-        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
-          continue
-        fi
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         dist="$(get_dist "$os")"
         dist_version="$(get_dist_version "$os")"
         os_base="$(get_container_base "$os")"
@@ -52,10 +53,7 @@ for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for asan in "" "asan"; do
-        # Skip ASAN for PHP < 8.0
-        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
-          continue
-        fi
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for sapi in "${sapi_array[@]}"; do
           dist="$(get_dist "$os")"
           dist_version="$(get_dist_version "$os")"
@@ -72,10 +70,7 @@ for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for asan in "" "asan"; do
-        # Skip ASAN for PHP < 8.0
-        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
-          continue
-        fi
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\"}")
       done
     done
@@ -87,10 +82,7 @@ for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for asan in "" "asan"; do
-        # Skip ASAN for PHP < 8.0
-        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
-          continue
-        fi
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for debug in debug release; do
           dist="$(get_dist "$os")"
           dist_version="$(get_dist_version "$os")"
@@ -107,10 +99,7 @@ for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
       for asan in "" "asan"; do
-        # Skip ASAN for PHP < 8.0
-        if [[ -n "$asan" && ! "$php" =~ ^8\. ]]; then
-          continue
-        fi
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for debug in debug release; do
           test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
         done
