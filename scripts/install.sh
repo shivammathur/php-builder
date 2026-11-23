@@ -273,6 +273,11 @@ remove() {
       sudo rm -f /usr/bin/"$tool$version"
     fi
   done
+  if [ -L /etc/apache2/php-asan-envvars ] &&
+     { [ "$(readlink /etc/apache2/php-asan-envvars 2>/dev/null)" = "/etc/php/$version/apache2/asan-envvars" ] || [ ! -e /etc/apache2/php-asan-envvars ]; }; then
+    sudo rm -f /etc/apache2/php-asan-envvars
+    command -v a2disconf >/dev/null 2>&1 && sudo a2disconf php-asan-env >/dev/null 2>&1 || true
+  fi
   sudo find /etc /usr/share/man -name "php$version*" -delete
   sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
               /usr/lib/systemd/system/php"$version"-fpm.service \

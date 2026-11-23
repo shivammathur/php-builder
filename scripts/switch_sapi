@@ -69,9 +69,11 @@ service_restart() {
 
 # Function to activate the packaged Apache environment for an ASAN build.
 configure_apache_asan() {
+  local mode=${1:-apache}
   local env_file="/etc/php/$php/apache2/asan-envvars"
   local env_link="/etc/apache2/php-asan-envvars"
-  if [ -f "$env_file" ]; then
+  [ -f /etc/apache2/envvars ] || return 0
+  if [ "$mode" != "off" ] && [ -f "$env_file" ]; then
     ln -sfn "$env_file" "$env_link"
     local source_env='[ ! -f /etc/apache2/php-asan-envvars ] || . /etc/apache2/php-asan-envvars'
     grep -qxF "$source_env" /etc/apache2/envvars || echo "$source_env" >> /etc/apache2/envvars
@@ -94,7 +96,6 @@ install_apache2() {
     fi
   fi
   sed -i -e 's/60/5/' -e 's/20/5/' /etc/init.d/apache2
-  configure_apache_asan
   echo "ServerName localhost" | tee -a /etc/apache2/apache2.conf >/dev/null 2>&1
 }
 
@@ -129,6 +130,7 @@ setup_apache_apache() {
   a2disconf php"$php"-fpm || true
   a2dismod mpm_event proxy_fcgi 2>/dev/null || true
   a2enmod mpm_prefork php"$php"
+  configure_apache_asan apache
   service_restart apache2
 }
 
@@ -139,6 +141,7 @@ setup_fpm_apache() {
   a2dismod php"$php" 2>/dev/null || true
   a2enmod proxy_fcgi
   a2enconf php"$php"-fpm
+  configure_apache_asan off
   service_restart php"$php"-fpm apache2
 }
 
@@ -150,6 +153,7 @@ setup_cgi_apache() {
   a2enmod mpm_prefork actions cgi
   a2disconf php"$php"-fpm 2>/dev/null || true
   a2enconf php"$php"-cgi
+  configure_apache_asan cgi
   service_restart apache2
 }
 
@@ -205,7 +209,7 @@ fpm:nginx)
   ;;
 apache*)
   install_php_sapi apache
-  configure_apache_asan
+  configure_apache_asan apache >/dev/null 2>&1
   service_restart apache2 >/dev/null 2>&1
   ;;
 fpm)
