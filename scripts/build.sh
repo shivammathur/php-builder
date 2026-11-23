@@ -84,8 +84,10 @@ configure_build_flags() {
 
   # Add ASAN/UBSan flags
   if [ "${ASAN:-}" = "asan" ]; then
-    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
-    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-omit-frame-pointer"
+    # Disable object-size UBSan check (incompatible with Zend's zend_function union;
+    # PHP 8.2+ adds this in configure.ac, but 8.0/8.1 and separately built extensions do not).
+    CFLAGS="$CFLAGS -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer"
+    CXXFLAGS="$CXXFLAGS -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer"
     LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
     if [ "$PHP_VERSION" = "8.0" ]; then
       CFLAGS="$CFLAGS -DZEND_TRACK_ARENA_ALLOC"
