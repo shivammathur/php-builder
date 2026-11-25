@@ -49,3 +49,4 @@
 0049-Accept-the-system-tzdata-version-in-timezone_version.patch
 0050-ext-soap-fix-DTD-node-being-matched-as-an-element.patch
 0051-fix-dtd_named_like_root_request-test-for-8.5-and-new.patch
+0052-Retain-ZEND_RETURN_VALUE-for-PECL-compatibility.patch
