@@ -162,6 +162,10 @@ patch_amqp() {
       sed -i "s/INI_STR(/zend_ini_string_literal(/g" "$file"
     done
   fi
+  if [[ "$PHP_VERSION" = "8.7" ]]; then
+    # PHP 8.7 arginfo uses 0 for return-by-value after removing this macro.
+    sed -i 's/ZEND_RETURN_VALUE/0/g' amqp_*.c
+  fi
 }
 
 # Function to patch excimer source.
@@ -598,6 +602,8 @@ patch_yaml() {
   if [[ "$PHP_VERSION" = "8.7" ]]; then
     # php/php-src#23996 changed the third parameter from a callable name to an error string.
     sed -i 's/zend_is_callable(entry, 0, &name)/zend_is_callable_ex(entry, NULL, 0, \&name, NULL, NULL)/g' yaml.c
+    # PHP 8.7 arginfo uses 0 for return-by-value after removing this macro.
+    sed -i 's/ZEND_RETURN_VALUE/0/g' yaml.c
   fi
 }
 
