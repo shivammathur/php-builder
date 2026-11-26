@@ -24,59 +24,73 @@ on:
         default: 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie'
         required: false
   schedule:
-    - cron: '0 0 1-31/2 * *'
+    - cron: '0 0 * * 1,4' # Monday and Thursday, including nightly ASan
+    - cron: '0 0 * * 3,6' # Wednesday and Saturday, skipping nightly ASan
 
 permissions:
   actions: write
   contents: read
 
 env:
-  CONTAINER_OS_LIST: ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie
-  PHP_LIST: 5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5 8.6 8.7
-  PHP_SOURCE: --web-php
+  BUILD_MODE: ${{ inputs.build-mode || '--build-new' }}
+  CONTAINER_OS_LIST: ${{ inputs.container-os-versions || 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie' }}
+  PHP_LIST: ${{ inputs.php-versions || '5.6 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3 8.4 8.5 8.6 8.7' }}
+  PHP_SOURCE: ${{ inputs.php-source || '--web-php' }}
 
 jobs:
-  get-php-versions:
+  dispatch-builds:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 0 * * 1,4'
     runs-on: ubuntu-latest
-    outputs:
-      has_versions: ${{ steps.set-php-versions.outputs.has_versions }}
-      php_versions: ${{ steps.set-php-versions.outputs.php_versions }}
-
-    steps:
+    steps: &dispatch-builds
       - name: Checkout
         uses: actions/checkout@v6
 
       - name: Get PHP versions
         id: set-php-versions
         env:
-          COMMIT: ${{ github.event.head_commit.message || inputs.build-mode }}
+          COMMIT: ${{ env.BUILD_MODE }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PHP_LIST: ${{ inputs.php-versions || env.PHP_LIST }}
-          PHP_SOURCE: ${{ inputs.php-source || env.PHP_SOURCE }}
         run: bash scripts/get-php-versions.sh
 
-  dispatch-builds:
-    needs: get-php-versions
-    if: needs.get-php-versions.outputs.has_versions == 'true'
-    runs-on: ubuntu-latest
-    env:
-      INCLUDE_ASAN: ${{ github.event_name == 'schedule' || inputs.asan }}
-      BUILD_MODE: ${{ inputs.build-mode || '--build-new' }}
-      CONTAINER_OS_VERSIONS: ${{ inputs.container-os-versions || 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie' }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PHP_SOURCE: ${{ inputs.php-source || '--web-php' }}
-      PHP_VERSIONS: ${{ needs.get-php-versions.outputs.php_versions }}
-      REF: ${{ github.head_ref || github.ref_name }}
-    steps:
+      - name: Identify the nightly PHP series
+        id: nightly
+        if: env.SKIP_NIGHTLY_ASAN == 'true' && steps.set-php-versions.outputs.has_versions == 'true'
+        run: |
+          source scripts/build_partials/version.sh
+          nightly=$(get_version_from_branch master)
+          if [[ -n "$nightly" ]]; then
+            echo "series=${nightly%.*}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Could not identify the PHP nightly series. Keeping ASan enabled."
+          fi
+
       - name: Dispatch build workflows
+        if: steps.set-php-versions.outputs.has_versions == 'true'
+        env:
+          INCLUDE_ASAN: ${{ github.event_name == 'schedule' || inputs.asan }}
+          SKIP_ASAN_FOR: ${{ steps.nightly.outputs.series }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PHP_VERSIONS: ${{ steps.set-php-versions.outputs.php_versions }}
+          REF: ${{ github.ref_name }}
         run: |
           jq -r '.[]' <<< "$PHP_VERSIONS" | while read -r php_version; do
+            asan=$INCLUDE_ASAN
+            if [[ "$php_version" == "$SKIP_ASAN_FOR" ]]; then
+              asan=false
+            fi
             gh workflow run build.yml \
               --repo "$GITHUB_REPOSITORY" \
               --ref "$REF" \
-              --field asan="$INCLUDE_ASAN" \
+              --field asan="$asan" \
               --field build-mode="$BUILD_MODE" \
-              --field container-os-versions="$CONTAINER_OS_VERSIONS" \
+              --field container-os-versions="$CONTAINER_OS_LIST" \
               --field php-source="$PHP_SOURCE" \
               --field php-version="$php_version"
           done
+
+  dispatch-builds-without-nightly-asan:
+    if: github.event.schedule == '0 0 * * 3,6'
+    runs-on: ubuntu-latest
+    env:
+      SKIP_NIGHTLY_ASAN: 'true'
+    steps: *dispatch-builds
