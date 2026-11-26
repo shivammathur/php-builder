@@ -1,0 +1,23 @@
+From: Shivam Mathur <shivam_jpr@hotmail.com>
+Subject: [PATCH] Retain ZEND_RETURN_VALUE for PECL compatibility
+
+PHP master removed this 0-valued arginfo macro in php/php-src#25078.
+PECL PSR 1.2.0 still uses it, including when installed directly with pecl.
+Keep its original value in the distributed PHP 8.7 headers until the
+released extension no longer requires it. ZEND_RETURNS_VALUE is unrelated
+and must not be used as a replacement.
+
+--- a/Zend/zend_compile.h
++++ b/Zend/zend_compile.h
+@@ -575,6 +575,11 @@ struct _zend_op_array {
+ 	void *reserved[ZEND_MAX_RESERVED_RESOURCES];
+ };
+ 
++/* Temporary compatibility for PECL PSR 1.2.0 and older releases. */
++#ifndef ZEND_RETURN_VALUE
++# define ZEND_RETURN_VALUE 0
++#endif
++
+ #define INTERNAL_FUNCTION_PARAMETERS zend_execute_data *execute_data, zval *return_value
+ #define INTERNAL_FUNCTION_PARAM_PASSTHRU execute_data, return_value
+ 
