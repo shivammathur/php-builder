@@ -209,6 +209,16 @@ merge_sapi() {
     touch "$INSTALL_ROOT/usr/lib/php/$PHP_VERSION/sapi/$sapi"
   done
 
+  # PHP 8.7's enum initializer needs an explicit cast for C++ extensions.
+  if [ "$PHP_VERSION" = "8.7" ]; then
+    local module_header
+    for module_header in "$INSTALL_ROOT"/usr/include/php/*/Zend/zend_modules.h; do
+      if grep -q 'zend_module_type type;' "$module_header"; then
+        sed -i 's/\.type = 0,/.type = (zend_module_type) 0,/' "$module_header"
+      fi
+    done
+  fi
+
   # Fix directory structure for newer OS.
   # Remove var and run from the builds
   rm -rf "${INSTALL_ROOT:?}"/var "$INSTALL_ROOT"/run
