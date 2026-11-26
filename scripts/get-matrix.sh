@@ -30,7 +30,7 @@ get_dist() {
 }
 
 is_asan_supported() {
-  [ "${1%%.*}" -ge 8 ]
+  [ "${INCLUDE_ASAN:-true}" = true ] && [ "${1%%.*}" -ge 8 ]
 }
 
 # Build a matrix array with container, distribution, distribution version and php-version and OS

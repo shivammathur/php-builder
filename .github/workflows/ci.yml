@@ -7,6 +7,10 @@ on:
         description: 'Build mode: --build-all or --build-new'
         default: '--build-new'
         required: false
+      asan:
+        description: 'Include AddressSanitizer builds for PHP 8.0+'
+        type: boolean
+        default: true
       php-source:
         description: 'PHP source: --web-php or --php-src'
         default: ''
@@ -56,6 +60,7 @@ jobs:
     if: needs.get-php-versions.outputs.has_versions == 'true'
     runs-on: ubuntu-latest
     env:
+      INCLUDE_ASAN: ${{ github.event_name == 'schedule' || inputs.asan }}
       BUILD_MODE: ${{ inputs.build-mode || '--build-new' }}
       CONTAINER_OS_VERSIONS: ${{ inputs.container-os-versions || 'ubuntu:22.04 ubuntu:24.04 ubuntu:26.04 arm64v8/ubuntu:22.04 arm64v8/ubuntu:24.04 arm64v8/ubuntu:26.04 debian:12 debian:trixie' }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -69,6 +74,7 @@ jobs:
             gh workflow run build.yml \
               --repo "$GITHUB_REPOSITORY" \
               --ref "$REF" \
+              --field asan="$INCLUDE_ASAN" \
               --field build-mode="$BUILD_MODE" \
               --field container-os-versions="$CONTAINER_OS_VERSIONS" \
               --field php-source="$PHP_SOURCE" \

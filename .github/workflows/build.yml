@@ -11,6 +11,10 @@ on:
         description: 'Build mode: --build-all or --build-new'
         default: '--build-new'
         required: false
+      asan:
+        description: 'Include AddressSanitizer builds for PHP 8.0+'
+        type: boolean
+        default: true
       force-rebuild-extensions:
         description: 'Rebuild all extensions instead of reusing the release cache'
         type: boolean
@@ -60,6 +64,7 @@ jobs:
       - name: Get matrix
         id: set-matrix
         env:
+          INCLUDE_ASAN: ${{ github.event_name == 'pull_request' || inputs.asan }}
           COMMIT: ${{ github.event.head_commit.message || inputs.build-mode || '--build-all' }}
           CONTAINER_OS_LIST: ${{ inputs.container-os-versions || env.CONTAINER_OS_LIST }}
           CONTAINER_BASE: ${{ env.CONTAINER_BASE }}
