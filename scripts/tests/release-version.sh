@@ -61,9 +61,12 @@ expect_failure() {
 start_case stable-ga 8.6
 package php_8.6+ubuntu24.04.tar.xz 8.6.0
 package php_8.6-zts+ubuntu24.04_arm64.tar.xz 8.6.0
+package php_8.6-asan+ubuntu24.04.tar.xz 8.6.0
+package php_8.6-zts-asan+ubuntu24.04_arm64.tar.xz 8.6.0
 # Debug symbols and extension caches must not be treated as runtime packages.
 touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.xz
 touch builds/packages/php_8.6-extensions-cache+ubuntu24.04.tar.zst
+touch builds/packages/php_8.6-asan-extensions-cache+ubuntu24.04.tar.zst
 expect_log php-8.6.0
 
 start_case stable 8.5
@@ -85,6 +88,11 @@ expect_log 8.7.0-dev
 start_case mixed-versions 8.6
 package php_8.6+ubuntu24.04.tar.xz 8.6.0-dev
 package php_8.6-zts+ubuntu24.04.tar.xz 8.6.1-dev
+expect_failure
+
+start_case mixed-asan-versions 8.6
+package php_8.6+ubuntu24.04.tar.xz 8.6.0-dev
+package php_8.6-asan+ubuntu24.04.tar.xz 8.6.1-dev
 expect_failure
 
 start_case wrong-series 8.6
@@ -110,8 +118,9 @@ expect_failure
 
 start_case cache-only 8.6
 touch builds/packages/php_8.6-extensions-cache+ubuntu24.04.tar.zst
+touch builds/packages/php_8.6-asan-extensions-cache+ubuntu24.04.tar.zst
 EXTENSIONS_CACHE_ONLY=true bash "$repo/scripts/release.sh" > output 2>&1
 [ ! -f php8.6.log ]
 grep -q '^release upload ' "$RELEASE_CALLS"
 
-echo 'Release version checks passed (12 cases)'
+echo 'Release version checks passed (13 cases)'

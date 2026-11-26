@@ -19,7 +19,9 @@ for artifact in "${artifacts[@]}"; do
   mkdir "$work/package"
   gh run download "$PACKAGE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name "$artifact" --dir "$work/package"
   caches=("$work/package/php_$PHP_VERSION-extensions-cache+"*.tar.zst
-          "$work/package/php_$PHP_VERSION-zts-extensions-cache+"*.tar.zst)
+          "$work/package/php_$PHP_VERSION-zts-extensions-cache+"*.tar.zst
+          "$work/package/php_$PHP_VERSION-asan-extensions-cache+"*.tar.zst
+          "$work/package/php_$PHP_VERSION-zts-asan-extensions-cache+"*.tar.zst)
   [ "${#caches[@]}" -eq 1 ] || { echo "Expected one extension cache in $artifact" >&2; exit 1; }
   destination="builds/extension-caches/${caches[0]##*/}"
   [ ! -e "$destination" ] || { echo "Duplicate extension cache: $destination" >&2; exit 1; }

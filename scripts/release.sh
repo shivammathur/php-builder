@@ -12,7 +12,7 @@ log_version() {
   local asset package_version new_version=
   for asset in "${assets[@]}"; do
     case "${asset##*/}" in
-      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz) ;;
+      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz|php_"$PHP_VERSION"-asan+*.tar.xz|php_"$PHP_VERSION"-zts-asan+*.tar.xz) ;;
       *) continue ;;
     esac
     package_version=$(set -o pipefail; tar -xJOf "$asset" --wildcards './usr/include/php/*/main/php_version.h' |
@@ -51,7 +51,9 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
   assets=()
   if [ "${EXTENSIONS_CACHE_ONLY:-false}" = true ]; then
     assets=(./builds/*/php_"$PHP_VERSION"-extensions-cache+*.tar.zst
-            ./builds/*/php_"$PHP_VERSION"-zts-extensions-cache+*.tar.zst)
+            ./builds/*/php_"$PHP_VERSION"-zts-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-asan-extensions-cache+*.tar.zst
+            ./builds/*/php_"$PHP_VERSION"-zts-asan-extensions-cache+*.tar.zst)
     [ "${#assets[@]}" -gt 0 ] || { echo "No extension caches for PHP $PHP_VERSION" >&2; exit 1; }
   else
     for asset in ./builds/*/php_"$PHP_VERSION"*; do

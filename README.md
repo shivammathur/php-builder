@@ -14,6 +14,7 @@
 - [Install](#install)
 - [Extensions](#extensions)
 - [JIT](#jit)
+- [ASAN](#asan-addresssanitizer)
 - [SAPI Support](#sapi-support)
 - [Builds](#builds)
 - [Uninstall](#uninstall)
@@ -42,15 +43,16 @@ chmod a+x ./install.sh
 
 The installer takes the following options:
 ```bash
-./install.sh <php-version> <release|debug> <nts|zts>
+./install.sh <php-version> [release|debug] [nts|zts] [asan]
 ```
 
-The `php-version` is required, and `release` and `nts` are the defaults. 
+The `php-version` is required, and `release` and `nts` are the defaults.
 
 - release: No debugging symbols
 - debug: With debugging symbols
 - nts: Non Thread Safe
 - zts: Thread Safe
+- asan: AddressSanitizer build (PHP 8.0+ only)
 
 ### Examples
 
@@ -66,10 +68,18 @@ The `php-version` is required, and `release` and `nts` are the defaults.
 ./install.sh 8.4 debug zts
 ```
 
+- or, to install `PHP 8.4` with AddressSanitizer (for memory error detection):
+
+```bash
+./install.sh 8.4 asan
+```
+
 - Finally, test your PHP version:
 
 ```bash
 php -v
+# or for ASAN builds:
+ASAN_OPTIONS=detect_leaks=0 php -v
 ```
 
 **Notes:**
@@ -132,6 +142,45 @@ To disable JIT:
 switch_jit -v <php-version> -s <ALL|sapi-name> disable
 ```
 
+## ASAN (AddressSanitizer)
+
+PHP 8.0 and above versions have builds with AddressSanitizer (ASAN) and UndefinedBehaviorSanitizer (UBSan) enabled. These builds are useful for detecting memory issues.
+
+To install an ASAN build:
+
+```bash
+./install.sh 8.4 asan
+```
+
+You can combine ASAN with Thread Safe (`zts`):
+
+```bash
+# ASAN + Thread Safe
+./install.sh 8.4 zts asan
+```
+
+**Notes:**
+
+- ASAN builds are only available for PHP 8.0 and above.
+- ASAN builds are unstripped and include debug symbols by default for readable stack traces (no separate `debug` option is needed).
+- ASAN builds are compiled with `-O1 -fno-omit-frame-pointer -fno-optimize-sibling-calls` as recommended for AddressSanitizer.
+- Running PHP with ASAN will be slower than regular builds due to the instrumentation overhead.
+- Disable Zend's allocator with `USE_ZEND_ALLOC=0` so ASAN can detect errors within PHP allocations.
+- Set `ZEND_DONT_UNLOAD_MODULES=1` so extension stack frames stay symbolized in shutdown and leak reports.
+- Some bundled extensions may report leaks at shutdown; pass `ASAN_OPTIONS=detect_leaks=0` if you only want memory-error checks, or run with `php -n` / a suppression file when using `detect_leaks=1`:
+```bash
+USE_ZEND_ALLOC=0 ZEND_DONT_UNLOAD_MODULES=1 ASAN_OPTIONS=detect_leaks=0 php your_script.php
+```
+- When building your own extension with `phpize` against an ASAN build, pass sanitizer flags explicitly (`-fno-sanitize=object-size` avoids false positives on Zend's `zend_function` union):
+```bash
+phpize
+CFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+CXXFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls" \
+LDFLAGS="-fsanitize=address,undefined" \
+./configure
+make -j"$(nproc)"
+```
+
 ## SAPI support
 
 These SAPIs are installed by default:
@@ -158,7 +207,7 @@ switch_sapi -v <php-version> -s <sapi|sapi:server>
 
 ## Builds
 
-The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols.
+The following releases have `nts` and `zts` builds for the following PHP versions along with builds with and without debugging symbols. PHP 8.0+ versions also include AddressSanitizer (ASAN) builds for memory error detection.
 
 - [PHP 8.7.0-dev](https://github.com/shivammathur/php-builder/releases/tag/8.7)
 - [PHP 8.6.x](https://github.com/shivammathur/php-builder/releases/tag/8.6)

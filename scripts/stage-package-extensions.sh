@@ -8,6 +8,7 @@ set -euo pipefail
 
 suffix=
 [ "$BUILD" = zts ] && suffix=-zts
+[ "${ASAN:-}" = asan ] && suffix="${suffix}-asan"
 install_root="/tmp/debian/php$PHP_VERSION"
 debug_root="${SOURCE_DEBUG_ROOT:-/tmp/source-debug}"
 IFS=' ' read -r -a extensions <<<"${EXTENSIONS_TO_BUILD//,/ }"
@@ -23,33 +24,44 @@ for extension in "${extensions[@]}"; do
 done
 
 mapfile -t package_archives < <(find "$SOURCE_ARTIFACT_DIR" -maxdepth 1 -type f -name "php_${PHP_VERSION}${suffix}+*.tar.zst" | sort)
-mapfile -t debug_archives < <(find "$SOURCE_ARTIFACT_DIR" -maxdepth 1 -type f -name "php_${PHP_VERSION}${suffix}-dbgsym+*.tar.zst" | sort)
-if [ "${#package_archives[@]}" -ne 1 ] || [ "${#debug_archives[@]}" -ne 1 ]; then
-  echo "Expected one PHP package and one debug package for PHP $PHP_VERSION $BUILD" >&2
-  exit 1
-fi
-
-mkdir -p "$install_root" "$debug_root"
-tar -I zstd -xf "${package_archives[0]}" -C "$install_root"
-tar -I zstd -xf "${debug_archives[0]}" -C "$debug_root" ./usr/lib/debug/.build-id
-test -x "$install_root/usr/bin/php$PHP_VERSION"
-
-# The rebuilt extensions get fresh debug symbols. Discard their old symbols.
-for extension in "${extensions[@]}"; do
-  mapfile -t binaries < <(find "$install_root/usr/lib/php" -type f -name "$extension.so")
-  if [ "${#binaries[@]}" -gt 1 ]; then
-    echo "Found multiple $extension.so files in the source package" >&2
+if [ "${ASAN:-}" = asan ]; then
+  if [ "${#package_archives[@]}" -ne 1 ]; then
+    echo "Expected one PHP package for PHP $PHP_VERSION $BUILD asan" >&2
     exit 1
   fi
-  [ "${#binaries[@]}" -eq 1 ] || continue
-  build_id="$(readelf -n "${binaries[0]}" | sed -n 's/.*Build ID: //p' | head -n 1)"
-  if [ -n "$build_id" ]; then
-    old_debug="$debug_root/usr/lib/debug/.build-id/${build_id:0:2}/${build_id:2}.debug"
-    if [ -f "$old_debug" ]; then
-      rm "$old_debug"
-    fi
+else
+  mapfile -t debug_archives < <(find "$SOURCE_ARTIFACT_DIR" -maxdepth 1 -type f -name "php_${PHP_VERSION}${suffix}-dbgsym+*.tar.zst" | sort)
+  if [ "${#package_archives[@]}" -ne 1 ] || [ "${#debug_archives[@]}" -ne 1 ]; then
+    echo "Expected one PHP package and one debug package for PHP $PHP_VERSION $BUILD" >&2
+    exit 1
   fi
-done
+fi
+
+mkdir -p "$install_root"
+tar -I zstd -xf "${package_archives[0]}" -C "$install_root"
+test -x "$install_root/usr/bin/php$PHP_VERSION"
+
+if [ "${ASAN:-}" != asan ]; then
+  mkdir -p "$debug_root"
+  tar -I zstd -xf "${debug_archives[0]}" -C "$debug_root" ./usr/lib/debug/.build-id
+
+  # The rebuilt extensions get fresh debug symbols. Discard their old symbols.
+  for extension in "${extensions[@]}"; do
+    mapfile -t binaries < <(find "$install_root/usr/lib/php" -type f -name "$extension.so")
+    if [ "${#binaries[@]}" -gt 1 ]; then
+      echo "Found multiple $extension.so files in the source package" >&2
+      exit 1
+    fi
+    [ "${#binaries[@]}" -eq 1 ] || continue
+    build_id="$(readelf -n "${binaries[0]}" | sed -n 's/.*Build ID: //p' | head -n 1)"
+    if [ -n "$build_id" ]; then
+      old_debug="$debug_root/usr/lib/debug/.build-id/${build_id:0:2}/${build_id:2}.debug"
+      if [ -f "$old_debug" ]; then
+        rm "$old_debug"
+      fi
+    fi
+  done
+fi
 
 # Install PHP using the same archive extraction as scripts/install.sh. The
 # release also contains library overlays, so copying the whole tree to /

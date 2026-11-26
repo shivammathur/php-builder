@@ -24,6 +24,17 @@ get() {
   fi
 }
 
+sudo_php_env() {
+  if [ "${asan:-}" = "asan" ]; then
+    sudo --preserve-env=UBSAN_OPTIONS,USE_ZEND_ALLOC env \
+      ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}" \
+      ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-1}" \
+      "$@"
+  else
+    sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC "$@"
+  fi
+}
+
 set_base_version_id() {
   [[ "$ID" =~ ubuntu|debian ]] && return;
   if ! [ -d "$dist_info_dir" ]; then
@@ -92,10 +103,10 @@ add_prerequisites() {
 add_pear() {
   if ! [ -e /usr/bin/pear ]; then
     sudo curl -o /tmp/pear.phar -sL https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar
-    sudo php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
+    sudo_php_env php /tmp/pear.phar && sudo rm -f /tmp/pear.phar
     to_wait=()
     for script in pear pecl; do
-      sudo "$script" channel-update "$script".php.net &
+      sudo_php_env "$script" channel-update "$script".php.net &
       to_wait+=("$!")
     done
     wait "${to_wait[@]}"
@@ -186,6 +197,14 @@ extract_build() {
   fi
 }
 
+cleanup_apache_asan() {
+  if [ -L /etc/apache2/php-asan-envvars ] &&
+     { [ "$(readlink /etc/apache2/php-asan-envvars 2>/dev/null)" = "/etc/php/$version/apache2/asan-envvars" ] || [ ! -e /etc/apache2/php-asan-envvars ]; }; then
+    sudo rm -f /etc/apache2/php-asan-envvars
+    command -v a2disconf >/dev/null 2>&1 && sudo a2disconf php-asan-env >/dev/null 2>&1 || true
+  fi
+}
+
 install() {
   to_wait=()
   DIST_ID="$ID"
@@ -207,7 +226,8 @@ install() {
     wait "$to_wait" || return 1
   fi
   update_brotli_security || return 1
-  sudo rm -rf /etc/php/"$version" /tmp/php"$version"
+  sudo rm -rf /etc/php/"$version" /etc/default/php-fpm"$version" /tmp/php"$version"
+  [ "${asan:-}" = "asan" ] || cleanup_apache_asan
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version" || return 1
   . /etc/os-release
@@ -223,7 +243,9 @@ configure() {
     done
   fi
   sudo chmod 777 "$pecl_file"
-  echo system user | xargs -n1 sudo pear config-set php_ini "$pecl_file"
+  for pear_scope in system user; do
+    sudo_php_env pear config-set php_ini "$pecl_file" "$pear_scope"
+  done
   echo '' | sudo tee /tmp/pecl_config >/dev/null 2>&1
   if [ -d /run/systemd/system ]; then
     sudo systemctl daemon-reload 2>/dev/null || true
@@ -267,9 +289,11 @@ remove() {
       sudo rm -f /usr/bin/"$tool$version"
     fi
   done
+  cleanup_apache_asan
   sudo find /etc /usr/share/man -name "php$version*" -delete
   sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
               /usr/lib/systemd/system/php"$version"-fpm.service \
+              /etc/default/php-fpm"$version" \
               /etc/logrotate.d/php"$version"-fpm \
               /etc/php/"$version" \
               /usr/include/php/"$phpapi" \
@@ -313,6 +337,8 @@ for arg in "$@"; do
     debug="$arg"
   elif [[ "$arg" =~ nts|zts ]]; then
     build="$arg"
+  elif [[ "$arg" =~ asan ]]; then
+    asan="asan"
   fi
 done
 
@@ -326,11 +352,19 @@ if ! [[ $version =~ ^(5\.6|7\.[0-4]|8\.[0-7])$ ]]; then
   exit 1;
 fi
 
+if [ "${asan:-}" = "asan" ] && [ "${version%%.*}" -lt 8 ]; then
+  echo "ASAN builds require PHP 8.0 or newer" >&2
+  exit 1
+fi
+
 PHP_PKG_SUFFIX=
 if [ "${build:?}" = "zts" ]; then
   PHP_PKG_SUFFIX="-zts"
 fi
-if [ "$debug" = "debug" ]; then
+if [ "${asan:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-asan"
+fi
+if [ "$debug" = "debug" ] && [ "${asan:-}" != "asan" ]; then
   PHP_PKG_SUFFIX="$PHP_PKG_SUFFIX-dbgsym"
 fi
 . /etc/os-release

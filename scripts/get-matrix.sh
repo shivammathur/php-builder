@@ -29,14 +29,21 @@ get_dist() {
   echo "${os%:*}" | cut -d'/' -f 2
 }
 
+is_asan_supported() {
+  [ "${1%%.*}" -ge 8 ]
+}
+
 # Build a matrix array with container, distribution, distribution version and php-version and OS
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      dist="$(get_dist "$os")"
-      dist_version="$(get_dist_version "$os")"
-      os_base="$(get_container_base "$os")"
-      container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\"}")
+      for asan in "" "asan"; do
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
+        dist="$(get_dist "$os")"
+        dist_version="$(get_dist_version "$os")"
+        os_base="$(get_container_base "$os")"
+        container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"asan\": \"$asan\"}")
+      done
     done
   done
 done
@@ -45,11 +52,14 @@ done
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      for sapi in "${sapi_array[@]}"; do
-        dist="$(get_dist "$os")"
-        dist_version="$(get_dist_version "$os")"
-        os_base="$(get_container_base "$os")"
-        sapi_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"sapi\": \"$sapi\"}")
+      for asan in "" "asan"; do
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
+        for sapi in "${sapi_array[@]}"; do
+          dist="$(get_dist "$os")"
+          dist_version="$(get_dist_version "$os")"
+          os_base="$(get_container_base "$os")"
+          sapi_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"asan\": \"$asan\", \"sapi\": \"$sapi\"}")
+        done
       done
     done
   done
@@ -59,7 +69,10 @@ done
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\"}")
+      for asan in "" "asan"; do
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
+        runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\"}")
+      done
     done
   done
 done
@@ -68,11 +81,16 @@ done
 for os in "${container_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      for debug in debug release; do
-        dist="$(get_dist "$os")"
-        dist_version="$(get_dist_version "$os")"
-        os_base="$(get_container_base "$os")"
-        test_container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      for asan in "" "asan"; do
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
+        for debug in debug release; do
+          # ASAN builds ship unstripped as a single package.
+          [ "$asan" = "asan" ] && [ "$debug" = "debug" ] && continue
+          dist="$(get_dist "$os")"
+          dist_version="$(get_dist_version "$os")"
+          os_base="$(get_container_base "$os")"
+          test_container_os_json_array+=("{\"container\": \"$os\", \"container-base\": \"$os_base\", \"php-version\": \"$php\", \"dist\": \"$dist\", \"dist-version\": \"$dist_version\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
+        done
       done
     done
   done
@@ -82,8 +100,13 @@ done
 for os in "${runner_os_array[@]}"; do
   for php in "${php_array[@]}"; do
     for build in "${build_array[@]}"; do
-      for debug in debug release; do
-        test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"debug\": \"$debug\"}")
+      for asan in "" "asan"; do
+        [ -n "$asan" ] && ! is_asan_supported "$php" && continue
+        for debug in debug release; do
+          # ASAN builds ship unstripped as a single package.
+          [ "$asan" = "asan" ] && [ "$debug" = "debug" ] && continue
+          test_runner_os_json_array+=("{\"os\": \"$os\", \"php-version\": \"$php\", \"build\": \"$build\", \"asan\": \"$asan\", \"debug\": \"$debug\"}")
+        done
       done
     done
   done

@@ -67,19 +67,39 @@ get_c23_standard_flag() {
 
 # Function to set and export build flags.
 configure_build_flags() {
-  local build_target extra_warning_flags
+  local build_target extra_warning_flags fortify_level
   build_target=${1:-php}
   extra_warning_flags="-Wall -pedantic"
   [ "$build_target" = "extensions" ] && extra_warning_flags="-Wall -Wno-pedantic"
+  fortify_level=2
+  [ "${ASAN:-}" = "asan" ] && fortify_level=0
 
-  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"  
+  # Set and export FLAGS
+  CFLAGS="$(get_buildflags CFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CFLAGS=$(echo "$CFLAGS" | sed -E 's/-Werror=implicit-function-declaration//g')
   CFLAGS="$CFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
 
-  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto") -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+  CPPFLAGS="$(get_buildflags CPPFLAGS "$lto") -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=$fortify_level"
   CXXFLAGS="$(get_buildflags CXXFLAGS "$lto") $(getconf LFS_CFLAGS)"
   CXXFLAGS="$CXXFLAGS -DOPENSSL_SUPPRESS_DEPRECATED"
   LDFLAGS="$(get_buildflags LDFLAGS "$lto") -Wl,-z,now -Wl,--as-needed"
+
+  # Add ASAN/UBSan flags
+  if [ "${ASAN:-}" = "asan" ]; then
+    # Use -O1 with frame pointers and no sibling-call optimization as recommended
+    # for ASAN (cleaner stack traces, fewer optimized-away checks, lower compile RAM).
+    # Disable object-size UBSan check (incompatible with Zend's zend_function union;
+    # PHP 8.2+ adds this in configure.ac, but 8.0/8.1 and separately built extensions do not).
+    CFLAGS=$(echo "$CFLAGS" | sed -E 's/(^|[[:space:]])-O([0-3sgz]|fast)?([[:space:]]|$)/\1\3/g')
+    CXXFLAGS=$(echo "$CXXFLAGS" | sed -E 's/(^|[[:space:]])-O([0-3sgz]|fast)?([[:space:]]|$)/\1\3/g')
+    CFLAGS="$CFLAGS -O1 -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    CXXFLAGS="$CXXFLAGS -O1 -fsanitize=address,undefined -fno-sanitize=object-size -fno-omit-frame-pointer -fno-optimize-sibling-calls"
+    LDFLAGS="$LDFLAGS -fsanitize=address,undefined"
+    if [ "$PHP_VERSION" = "8.0" ]; then
+      CFLAGS="$CFLAGS -DZEND_TRACK_ARENA_ALLOC"
+      CXXFLAGS="$CXXFLAGS -DZEND_TRACK_ARENA_ALLOC"
+    fi
+  fi
 
   if [ "$build_target" = "extensions" ] && [[ "$PHP_VERSION" =~ ^(5\.6|7\.[0-4]|8\.[01])$ ]]; then
     c23_flag="$(get_c23_standard_flag)"
@@ -143,6 +163,12 @@ build_php() {
   if ! php-build -v -i "$default_ini" "$PHP_VERSION" "$prefix"; then
     echo 'Failed to build PHP'
     exit 1
+  fi
+
+  # Match PHP's arena allocation mode in separately built extensions.
+  if [ "${ASAN:-}" = asan ] && dpkg --compare-versions "$PHP_VERSION" lt 8.6; then
+    sed -i '1i#ifndef ZEND_TRACK_ARENA_ALLOC\n#define ZEND_TRACK_ARENA_ALLOC 1\n#endif' \
+      "$INSTALL_ROOT"/usr/include/php/*/main/php_config.h
   fi
   echo "::endgroup::"
 }
@@ -208,6 +234,29 @@ merge_sapi() {
   # Copy switch_sapi and switch_jit scripts
   cp -fp scripts/switch_sapi "$INSTALL_ROOT"/usr/sbin/switch_sapi
   cp -fp scripts/switch_jit "$INSTALL_ROOT"/usr/sbin/switch_jit
+
+  # Package the Apache and FPM environments only for ASAN builds.
+  if [ "${ASAN:-}" = asan ]; then
+    asan_lib=$(ldd "$INSTALL_ROOT/usr/bin/php$PHP_VERSION" | awk '/libasan\.so/ {print $3; exit}')
+    if [ ! -f "$asan_lib" ]; then
+      echo "Cannot find the ASAN runtime for PHP $PHP_VERSION" >&2
+      return 1
+    fi
+    asan_soname=$(basename "$asan_lib")
+    mkdir -p "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2" "$INSTALL_ROOT/etc/apache2/conf-available" "$INSTALL_ROOT/etc/default"
+    sed -e "s|ASAN_LIB|$asan_soname|g" -e "s|PHP_VERSION|$PHP_VERSION|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
+    cp -fp config/apache2-asan.conf "$INSTALL_ROOT/etc/apache2/conf-available/php-asan-env.conf"
+    cp -fp config/php-fpm-asan.env "$INSTALL_ROOT/etc/default/php-fpm$PHP_VERSION"
+    if [ -f "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf" ]; then
+      cat << 'EOF' >> "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf"
+
+env[ASAN_OPTIONS] = $ASAN_OPTIONS
+env[UBSAN_OPTIONS] = $UBSAN_OPTIONS
+env[ZEND_DONT_UNLOAD_MODULES] = $ZEND_DONT_UNLOAD_MODULES
+env[USE_ZEND_ALLOC] = $USE_ZEND_ALLOC
+EOF
+    fi
+  fi
 
   # Make sure the binaries are executable.
   chmod -R a+x "$INSTALL_ROOT"/usr/bin "$INSTALL_ROOT"/usr/sbin
@@ -338,6 +387,19 @@ default_ini="production"
 # Set thread-safe options.
 if [ "${BUILD:?}" = "zts" ]; then
   export PHP_PKG_SUFFIX=-zts
+fi
+
+# Set ASAN options.
+if [ "${ASAN:-}" = "asan" ]; then
+  PHP_PKG_SUFFIX="${PHP_PKG_SUFFIX:-}-asan"
+  ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0}"
+  export PHP_PKG_SUFFIX ASAN_OPTIONS
+  if [ "$action" != "build_sapi" ]; then
+    UBSAN_OPTIONS="${UBSAN_OPTIONS:-halt_on_error=1}"
+    ZEND_DONT_UNLOAD_MODULES="${ZEND_DONT_UNLOAD_MODULES:-1}"
+    USE_ZEND_ALLOC="${USE_ZEND_ALLOC:-0}"
+    export UBSAN_OPTIONS ZEND_DONT_UNLOAD_MODULES USE_ZEND_ALLOC
+  fi
 fi
 
 # Import OS information to the environment.

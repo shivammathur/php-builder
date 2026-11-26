@@ -18,7 +18,8 @@ package_php() {
   (
     arch="$(arch)"
     [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
-    strip_debug
+    # Keep debug symbols inline in ASAN builds for readable sanitizer stack traces.
+    [ "${ASAN:-}" = "asan" ] || strip_debug
     stage_library_overlays
     echo "::group::package_php"
     cd "$INSTALL_ROOT" || exit
@@ -30,6 +31,11 @@ package_php() {
     zstd -V
     tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
     mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+
+    if [ "${ASAN:-}" = "asan" ]; then
+      echo "::endgroup::"
+      exit 0
+    fi
 
     copy_debug_symbols
 
