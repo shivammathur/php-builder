@@ -209,6 +209,12 @@ merge_sapi() {
     touch "$INSTALL_ROOT/usr/lib/php/$PHP_VERSION/sapi/$sapi"
   done
 
+  # Backport php-src d670e131 for extensions built with ASAN and -Werror.
+  if [[ "${ASAN:-}" = asan && "$PHP_VERSION" =~ ^8\.[01]$ ]]; then
+    sed -i '/^# if __has_feature(address_sanitizer)$/s/$/ \&\& !defined(__SANITIZE_ADDRESS__)/' \
+      "$INSTALL_ROOT"/usr/include/php/*/Zend/zend_portability.h
+  fi
+
   # Fix directory structure for newer OS.
   # Remove var and run from the builds
   rm -rf "${INSTALL_ROOT:?}"/var "$INSTALL_ROOT"/run
