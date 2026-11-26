@@ -24,10 +24,10 @@ on:
         description: 'Build mode: --build-all or --build-new'
         default: '--build-all'
         required: false
-      force-rebuild-extensions:
-        description: 'Rebuild all extensions instead of reusing the release cache'
-        type: boolean
-        default: false
+      prior-package-run:
+        description: 'Package run providing previously built extension caches'
+        type: string
+        default: ''
         required: false
       cache-only:
         description: 'Publish only extension caches after validating the packages'
@@ -147,7 +147,7 @@ jobs:
           ARTIFACT_NAME: php-sapi-${{ matrix.sapi }}-${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
           ARTIFACT_NAMES: ${{ needs.source-artifacts.outputs.names }}
         run: |
-          if grep -Fx "$ARTIFACT_NAME" <<< "$ARTIFACT_NAMES"; then
+          if [[ "$ARTIFACT_NAME" != php-sapi-phpdbg-*-asan+* ]] && grep -Fx "$ARTIFACT_NAME" <<< "$ARTIFACT_NAMES"; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
@@ -273,6 +273,12 @@ jobs:
           SAPI_LIST: ${{ env.SAPI_LIST }}
         run: |
           mkdir -p /tmp/debian
+          # Prefer each rebuilt phpdbg archive over the earlier job-local copy.
+          if [ -d /tmp/rebuilt-artifacts ]; then
+            while IFS= read -r -d '' rebuilt; do
+              rm -f "/tmp/source-artifacts/${rebuilt##*/}"
+            done < <(find /tmp/rebuilt-artifacts -type f -name '*.zst' -print0)
+          fi
           expected_count="$(wc -w <<< "$SAPI_LIST" | xargs)"
           mapfile -t sapi_builds < <(find /tmp/source-artifacts /tmp/rebuilt-artifacts -type f -name '*.zst' 2>/dev/null | sort)
           if [ "${#sapi_builds[@]}" -ne "$expected_count" ]; then
@@ -301,12 +307,23 @@ jobs:
           PHP_VERSION: ${{ matrix.php-version }}
           PHP_SOURCE: ${{ inputs.php-source }}
 
+      - name: Fetch the previously built ASAN extension cache
+        if: matrix.asan == 'asan' && inputs.prior-package-run != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGE_RUN: ${{ inputs.prior-package-run }}
+          ARTIFACT: php${{ matrix.php-version }}-${{ matrix.build }}-asan+${{ matrix.dist }}-${{ matrix.dist-version }}
+        run: |
+          mkdir -p /tmp/previous-extensions
+          gh run download "$PACKAGE_RUN" -R "$GITHUB_REPOSITORY" -n "$ARTIFACT" -D /tmp/previous-extensions || true
+          find /tmp/previous-extensions -type f ! -name '*-extensions-cache+*.tar.zst' -delete
+
       - name: Restore or build extensions
         run: bash scripts/build.sh build_extensions
         env:
           ASAN: ${{ matrix.asan }}
           EXTENSIONS_CACHE: 'true'
-          EXTENSIONS_CACHE_REFRESH: ${{ inputs.force-rebuild-extensions || false }}
           BUILD: ${{ matrix.build }}
           SAPI_LIST: ${{ env.SAPI_LIST }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

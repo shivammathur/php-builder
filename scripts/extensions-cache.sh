@@ -425,8 +425,13 @@ cache_main() (
   # PHP 5/7 return status 254 for an empty -r program, so exit explicitly.
   timeout -k 5 30 "$cache_php" -n "${cache_core_args[@]}" -r 'exit(0);'
   if [ "${#cache_refresh[@]}" -gt 0 ] || [ "${EXTENSIONS_CACHE_REFRESH:-false}" != true ]; then
-    if ! timeout -k 5 180 gh release download "$PHP_VERSION" --repo "${GITHUB_REPOSITORY:?}" \
-        --pattern "$asset" --dir "$cache_work" || ! cache_extract "$cache_work/$asset" "$cache_work/restored"; then
+    if [ -f "/tmp/previous-extensions/$asset" ]; then
+      mv "/tmp/previous-extensions/$asset" "$cache_work/$asset"
+    else
+      timeout -k 5 180 gh release download "$PHP_VERSION" --repo "${GITHUB_REPOSITORY:?}" \
+        --pattern "$asset" --dir "$cache_work" || true
+    fi
+    if [ ! -s "$cache_work/$asset" ] || ! cache_extract "$cache_work/$asset" "$cache_work/restored"; then
       echo 'Extension cache unavailable; building as needed'
       rm -rf "$cache_work/restored"
       mkdir -p "$cache_work/restored"

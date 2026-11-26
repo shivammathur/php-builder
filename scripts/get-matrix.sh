@@ -55,6 +55,7 @@ for os in "${container_os_array[@]}"; do
       for asan in "" "asan"; do
         [ -n "$asan" ] && ! is_asan_supported "$php" && continue
         for sapi in "${sapi_array[@]}"; do
+          [[ "$sapi" = phpdbg && "$asan" = asan ]] || continue
           dist="$(get_dist "$os")"
           dist_version="$(get_dist_version "$os")"
           os_base="$(get_container_base "$os")"
