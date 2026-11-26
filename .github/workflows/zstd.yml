@@ -1,0 +1,92 @@
+name: Cache zstd
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 2 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zstd-cache
+  cancel-in-progress: false
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      checksum: ${{ steps.release.outputs.checksum }}
+      cached: ${{ steps.release.outputs.cached }}
+    steps:
+      - name: Resolve latest zstd release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          release=$(gh api repos/meta/zstd/releases/latest)
+          version=$(jq -er '.tag_name | capture("^v(?<version>[0-9]+\\.[0-9]+\\.[0-9]+)$").version' <<<"$release")
+          asset="zstd-$version.tar.gz"
+          checksum=$(jq -er --arg asset "$asset" '.assets[] | select(.name == $asset) | .digest | capture("^sha256:(?<hash>[a-f0-9]{64})$").hash' <<<"$release")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "checksum=$checksum" >> "$GITHUB_OUTPUT"
+          cached=$(curl -fsSL --retry 3 "https://github.com/$GITHUB_REPOSITORY/releases/download/zstd/version.txt" || true)
+          if [ "$cached" = "$version" ]; then echo 'cached=true' >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: version
+    if: needs.version.outputs.cached != 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['ubuntu:22.04', 'ubuntu:24.04', 'ubuntu:26.04', 'debian:12', 'debian:trixie']
+        arch: [amd64, arm64]
+    runs-on: ${{ matrix.arch == 'arm64' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    container: ${{ matrix.image }}
+    steps:
+      - name: Build and check zstd
+        id: build
+        env:
+          VERSION: ${{ needs.version.outputs.version }}
+          CHECKSUM: ${{ needs.version.outputs.checksum }}
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl gcc libc6-dev make
+          curl -fsSL --retry 3 -o zstd.tar.gz "https://github.com/meta/zstd/releases/download/v$VERSION/zstd-$VERSION.tar.gz"
+          echo "$CHECKSUM  zstd.tar.gz" | sha256sum -c -
+          tar -xzf zstd.tar.gz
+          make -C "zstd-$VERSION/programs" -j"$(nproc)" zstd
+          . /etc/os-release
+          asset="zstd-$VERSION-$ID-$VERSION_ID-$(dpkg --print-architecture)"
+          install -m 755 "zstd-$VERSION/programs/zstd" "$asset"
+          test "$("./$asset" -q --version)" = "$VERSION"
+          "./$asset" -22 -T2 --ultra -q -c < /etc/os-release > sample.zst
+          "./$asset" -dc sample.zst | cmp - /etc/os-release
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.build.outputs.asset }}
+          path: ${{ steps.build.outputs.asset }}
+          if-no-files-found: error
+
+  publish:
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: tools
+          merge-multiple: true
+      - name: Publish zstd binaries
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          gh release view zstd >/dev/null 2>&1 || gh release create zstd --title zstd --notes "" --latest=false
+          gh release upload zstd tools/zstd-* --clobber
+          echo "$VERSION" > version.txt
+          gh release upload zstd version.txt --clobber

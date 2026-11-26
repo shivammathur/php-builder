@@ -91,6 +91,9 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Install cached zstd
+        run: bash scripts/install-zstd.sh
+
       - name: Download source release packages
         shell: bash
         env:

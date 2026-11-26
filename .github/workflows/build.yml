@@ -95,6 +95,9 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Install cached zstd
+        run: bash scripts/install-zstd.sh
+
       - name: Build and package SAPI
         run: bash scripts/build.sh build_sapi "${SAPI}"
         env:
@@ -140,6 +143,9 @@ jobs:
         env:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
+
+      - name: Install cached zstd
+        run: bash scripts/install-zstd.sh
 
       - uses: actions/download-artifact@v8
         with:

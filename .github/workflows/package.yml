@@ -168,6 +168,10 @@ jobs:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
 
+      - name: Install cached zstd
+        if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
+        run: bash scripts/install-zstd.sh
+
       - name: Build and package SAPI
         if: steps.source-artifact.outputs.exists != 'true' && inputs.rebuild-missing-sapi == 'true'
         run: bash scripts/build.sh build_sapi "${SAPI}"
@@ -215,6 +219,9 @@ jobs:
         env:
           BUILD: ${{ matrix.build }}
           PHP_VERSION: ${{ matrix.php-version }}
+
+      - name: Install cached zstd
+        run: bash scripts/install-zstd.sh
 
       - name: Stage published PHP build
         if: inputs.use-release-package

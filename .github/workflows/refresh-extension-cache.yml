@@ -82,6 +82,9 @@ jobs:
           echo "USE_ZEND_ALLOC=0" >> "$GITHUB_ENV"
       - name: Install build requirements
         run: bash scripts/install-requirements.sh
+
+      - name: Install cached zstd
+        run: bash scripts/install-zstd.sh
       - name: Stage published PHP build
         run: bash scripts/stage-extension-cache-base.sh
       - name: Rebuild selected extensions and verify cache reuse
