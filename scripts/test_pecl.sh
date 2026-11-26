@@ -18,5 +18,5 @@ download_dir="$(mktemp -d)"
 trap 'rm -rf "$download_dir"' EXIT
 cd "$download_dir"
 bash "$script_dir/retry.sh" 5 5 sudo --preserve-env=ASAN_OPTIONS,UBSAN_OPTIONS,ZEND_DONT_UNLOAD_MODULES,USE_ZEND_ALLOC pecl download "$package"
-sudo pecl install -f ./uuid-*.tgz
+sudo_php_env pecl install -f ./uuid-*.tgz
 php --ri uuid

@@ -1,0 +1,9 @@
+Subject: Keep sanitizer modules separate from regular modules of the same API
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -1381 +1381,3 @@
+-dnl Expand all directory names for use in macros/constants.
++EXTENSION_DIR="$EXTENSION_DIR-asan"
++
++dnl Expand all directory names for use in macros/constants.

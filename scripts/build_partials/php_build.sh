@@ -45,6 +45,10 @@ configure_phpbuild() {
 
   # Patch series file to php-build syntax.
   patch_config_file patch_file "$patches_dir"/~series
+  if [ "${ASAN:-}" = asan ]; then
+    cp config/patches/asan-extension-dir.patch "$php_build_dir/patches/"
+    echo 'patch_file "asan-extension-dir.patch"' >> "$patches_dir/~series"
+  fi
 
   # Patch PHP version, host, build, patches and install command in the definition template.
   sed -i -e "s|BUILD_MACHINE_SYSTEM_TYPE|$(dpkg-architecture -q DEB_BUILD_GNU_TYPE)|" \

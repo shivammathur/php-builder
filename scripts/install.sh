@@ -226,7 +226,7 @@ install() {
     wait "$to_wait" || return 1
   fi
   update_brotli_security || return 1
-  sudo rm -rf /etc/php/"$version" /etc/default/php-fpm"$version" /tmp/php"$version"
+  sudo rm -rf /etc/php/"$version" /tmp/php"$version"
   [ "${asan:-}" = "asan" ] || cleanup_apache_asan
   sudo mkdir -m 777 -p /tmp/php"$version" /var/run /run/php /lib/systemd/system /usr/lib/tmpfiles.d /etc/apache2/mods-available /etc/apache2/conf-available /etc/apache2/sites-available /etc/nginx/sites-available /usr/lib/apache2/modules
   extract_build "$tar_file" /tmp/php"$version" || return 1
@@ -293,7 +293,6 @@ remove() {
   sudo find /etc /usr/share/man -name "php$version*" -delete
   sudo rm -rf /lib/systemd/system/php"$version"-fpm.service \
               /usr/lib/systemd/system/php"$version"-fpm.service \
-              /etc/default/php-fpm"$version" \
               /etc/logrotate.d/php"$version"-fpm \
               /etc/php/"$version" \
               /usr/include/php/"$phpapi" \
@@ -302,7 +301,7 @@ remove() {
               /usr/lib/cgi-bin/php"$version" \
               /usr/lib/php/php"$version"-fpm-reopenlogs \
               /usr/lib/php/"$version" \
-              /usr/lib/php/"${phpapi:?}" \
+              /usr/lib/php/"${phpapi:?}"{,-asan,-zts-asan} \
               /usr/lib/tmpfiles.d/php"$version"-fpm.conf \
               /usr/lib/libphp"$version".so \
               /usr/sbin/php-fpm"$version" \

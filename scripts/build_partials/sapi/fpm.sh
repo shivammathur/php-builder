@@ -54,6 +54,13 @@ configure_fpm() {
   cp -fp scripts/php-fpm-reopenlogs "$INSTALL_ROOT"/usr/lib/php/php"$PHP_VERSION"-fpm-reopenlogs
   chmod -R a+x "$INSTALL_ROOT"/etc/init.d/php"$PHP_VERSION"-fpm
 
+  if [ "${ASAN:-}" = asan ]; then
+    local asan_env
+    asan_env=$(paste -sd ' ' config/php-fpm-asan.env)
+    sed -i "/^Type=notify/a Environment=$asan_env" "$INSTALL_ROOT/lib/systemd/system/php$PHP_VERSION-fpm.service"
+    sed -i "/^# Read configuration variable file/i export $asan_env" "$INSTALL_ROOT/etc/init.d/php$PHP_VERSION-fpm"
+  fi
+
   # Remove the defaults.
   rm -f "$INSTALL_ROOT"/etc/init.d/php-fpm \
         "$INSTALL_ROOT"/etc/php-fpm.conf.default \

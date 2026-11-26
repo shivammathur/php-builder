@@ -1,0 +1,15 @@
+Subject: Disable the UBSan object-size check on Zend unions, as in PHP 8.2
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -1534,6 +1534,10 @@
+   AX_CHECK_COMPILE_FLAG([-fsanitize=undefined], [
+     CFLAGS="$CFLAGS -fsanitize=undefined"
+     CXXFLAGS="$CXXFLAGS -fsanitize=undefined"
++    AX_CHECK_COMPILE_FLAG([-fno-sanitize=object-size], [
++      CFLAGS="$CFLAGS -fno-sanitize=object-size"
++      CXXFLAGS="$CXXFLAGS -fno-sanitize=object-size"
++    ])
+
+     dnl Clang 17 adds stricter function pointer compatibility checks where pointer args cannot be
+     dnl cast to void*. In that case, set -fno-sanitize=function.

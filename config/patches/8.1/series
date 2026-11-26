@@ -118,3 +118,4 @@
 0118-Fix-GH-19974-fpm_status_export_to_zval-segfault-for.patch
 0119-fpm-fix-potential-null-dereference-in-fpm_status_exp.patch
 0120-Add-NEWS-entries-from-8.2.36.patch
+0121-Disable-UBSan-object-size-check.patch
