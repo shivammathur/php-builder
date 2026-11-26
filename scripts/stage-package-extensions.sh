@@ -37,8 +37,16 @@ else
   fi
 fi
 
+# Older ASAN packages can still contain these optional extensions.
+exclude=()
+if [ "${ASAN:-}" = asan ]; then
+  . scripts/extension-source.sh
+  for extension in "${asan_excluded_extensions[@]}"; do
+    exclude+=("--exclude=*/$extension.so" "--exclude=*/ext/$extension" "--exclude=*/$extension.ini" "--exclude=*-$extension.ini")
+  done
+fi
 mkdir -p "$install_root"
-tar -I zstd -xf "${package_archives[0]}" -C "$install_root"
+tar "${exclude[@]}" -I zstd -xf "${package_archives[0]}" -C "$install_root"
 test -x "$install_root/usr/bin/php$PHP_VERSION"
 
 if [ "${ASAN:-}" != asan ]; then
@@ -66,4 +74,4 @@ fi
 # Install PHP using the same archive extraction as scripts/install.sh. The
 # release also contains library overlays, so copying the whole tree to /
 # while cp is running can replace a library loaded by cp.
-tar -I zstd -xf "${package_archives[0]}" -C / --no-same-owner
+tar "${exclude[@]}" -I zstd -xf "${package_archives[0]}" -C / --no-same-owner

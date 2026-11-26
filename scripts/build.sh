@@ -497,7 +497,7 @@ elif [ "$action" = "repackage_extensions" ]; then
   INSTALL_ROOT="$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions
   EXTENSIONS_ONLY=true
   export PHP_INSTALL_ROOT EXTENSIONS_ONLY
-  mkdir -p "$INSTALL_ROOT"
+  mkdir -p "$INSTALL_ROOT$ext_dir"
   setup_custom_extensions
   INSTALL_ROOT="$PHP_INSTALL_ROOT"
   cp -af "$FAKE_ROOT"/debian/php"$PHP_VERSION"-extensions/* "$INSTALL_ROOT"/

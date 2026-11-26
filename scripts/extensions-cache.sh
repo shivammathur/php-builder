@@ -179,6 +179,7 @@ cache_dependencies() {
 
 cache_visit() {
   local name=$1 dependency
+  asan_excludes_extension "$name" && return 0
   case "${cache_states[$name]:-}" in
     done) return 0 ;;
     visiting) echo "Extension dependency cycle at $name" >&2; return 1 ;;
@@ -437,6 +438,11 @@ cache_main() (
       || { echo 'Targeted refresh requires an existing extension cache' >&2; exit 1; }
     # Preserve the rest of the cache, including metadata used by dependent modules.
     cp -a "$cache_work/restored/extensions" "$cache_work/fresh/"
+    if [ "${ASAN:-}" = asan ]; then
+      for name in "${asan_excluded_extensions[@]}"; do
+        rm -rf "${cache_work:?}/fresh/extensions/$name"
+      done
+    fi
   fi
   for name in "${cache_order[@]}"; do cache_build_extension "$name"; done
   cache_archive "$cache_work/fresh" "$output/$asset"

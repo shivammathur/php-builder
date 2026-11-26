@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+asan_excluded_extensions=(grpc phalcon)
+
+asan_excludes_extension() {
+  [[ ${ASAN:-} = asan && " ${asan_excluded_extensions[*]} " = *" $1 "* ]]
+}
+
 get_latest_git_tag() {
   local repo_url="$1"
   local repo_slug repo_owner repo_name latest_tag graph_query
@@ -57,11 +63,6 @@ resolve_extension_source() {
     if [[ ! "$ref" =~ ^[0-9][A-Za-z0-9.]*$ ]] || ! awk '{print $1}' <<<"$versions" | grep -Fxq "$ref"; then
       echo "Cannot resolve PECL version for $extension: $ref" >&2
       return 1
-    fi
-    if [[ "${ASAN:-}" = asan && "$extension" = phalcon ]]; then
-      # PECL combines the extension into one C file that exceeds 8 GiB under ASAN.
-      resolve_extension_source "$extension" https://github.com/phalcon/cphalcon "v$ref"
-      return
     fi
     jq -cn --arg repo pecl --arg package "$package" --arg version "$ref" \
       '{repo:$repo, package:$package, version:$version, ref:$version}'

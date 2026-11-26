@@ -1,3 +1,5 @@
+. scripts/extension-source.sh
+
 # Function to copy the extensions and headers to the build.
 install_extension_artifacts() {
   extension=$1
@@ -111,6 +113,7 @@ setup_custom_extensions() {
   while read -r extension_config; do
     extension_name="$(cut -d ' ' -f 2 <<<"$extension_config")"
     extension_name="${extension_name%-*}"
+    asan_excludes_extension "$extension_name" && continue
     if [ "${#requested_extensions[@]}" -gt 0 ] && [[ " ${requested_extensions[*]} " != *" $extension_name "* ]]; then
       continue
     fi
@@ -130,6 +133,7 @@ enable_custom_extensions() {
     extension=$(echo "$extension_config" | cut -d ' ' -f 2)
     extension="${extension%-*}"
 
+    asan_excludes_extension "$extension" && continue
     if is_optional_extension "$extension"; then
       package_extension "$extension"
     else

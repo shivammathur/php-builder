@@ -8,7 +8,11 @@ done < config/extensions/"$PHP_VERSION"
 
 ext_dir="$(php-config --extension-dir)"
 
+. scripts/extension-source.sh
+[[ "$ext_dir" != *-asan ]] || ASAN=asan
+
 for extension in "${extensions[@]}"; do
+  asan_excludes_extension "$extension" && continue
   if grep -qx "$extension" config/optional-extensions; then
     test -f "$ext_dir/$extension.so"
     continue

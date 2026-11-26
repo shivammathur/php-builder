@@ -163,7 +163,9 @@ jobs:
           test "${#packages[@]}" -eq 1
           tar -I zstd -tf "${packages[0]}" > /tmp/package-contents.txt
           extension_dir="$(php-config --extension-dir)"
+          source scripts/extension-source.sh
           for extension in ${EXTENSIONS_TO_BUILD//,/ }; do
+            asan_excludes_extension "$extension" && continue
             grep -Fx "./${extension_dir#/}/$extension.so" /tmp/package-contents.txt
           done
           if grep -Fq './usr/lib/debug/.build-id/' /tmp/package-contents.txt; then

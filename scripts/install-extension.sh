@@ -18,6 +18,7 @@ esac
 . scripts/patch-extensions.sh
 
 . scripts/extension-source.sh
+asan_excludes_extension "$extension" && exit 0
 
 download_git_archive() {
   local archive_url encoded_tag output
@@ -50,12 +51,6 @@ download_latest_pecl_archive() {
   release_url="https://pecl.php.net/get/$pecl_package-$latest_version.tgz"
   curl -fsSL --retry 5 --retry-all-errors -o "$pecl_package-$latest_version.tgz" "$release_url"
 }
-
-if [[ "${ASAN:-}" = asan && "$extension" = phalcon && "$repo" = pecl ]]; then
-  source=$(resolve_extension_source "$extension" "$repo" "$tag") || exit 1
-  repo=$(jq -er .repo <<<"$source") || exit 1
-  tag=$(jq -er .ref <<<"$source") || exit 1
-fi
 
 if [[ "$repo" != "pecl" && "$tag" = "latest" ]]; then
   tag="$(get_latest_git_tag "$repo")" || exit 1
