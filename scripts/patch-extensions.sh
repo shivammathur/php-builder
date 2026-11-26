@@ -126,6 +126,11 @@ patch_flock_compat_header() {
 
 # Function to patch xdebug source.
 patch_xdebug() {
+  if [ "${ASAN:-}" = asan ]; then
+    # Zend extensions share two ABI symbols. Keep Xdebug's ASAN indicators local.
+    printf '%s\n' '{ local: __odr_asan.zend_extension_entry; __odr_asan.extension_version_info; };' > xdebug-asan.map
+    export LDFLAGS="${LDFLAGS:-} -Wl,--version-script=$PWD/xdebug-asan.map"
+  fi
   patch_flock_compat_header src/lib/usefulstuff.c
   [[ "$PHP_VERSION" = "8.5" || "$PHP_VERSION" = "8.6" || "$PHP_VERSION" = "8.7" ]] && sed -i 's/80600/80700/g' config.m4
   [[ "$PHP_VERSION" = "8.7" ]] && sed -i 's/80700/80800/g' config.m4
@@ -234,6 +239,10 @@ patch_oauth() {
 
 # Function to patch grpc source.
 patch_grpc() {
+  # The PHP 8.3+ callback wrapper needs stack tracking to be present in the SDK.
+  if [[ "${ASAN:-}" = asan && -f src/php/ext/grpc/php7_wrapper.h ]]; then
+    sed -i '/^#if PHP_VERSION_ID >= 80300$/{N; /#define PHP_GRPC_CALL_FUNCTION/s/80300/80300 \&\& defined(ZEND_CHECK_STACK_LIMIT)/;}' src/php/ext/grpc/php7_wrapper.h
+  fi
   if [[ "$PHP_VERSION" = "5.6" ]]; then
     local graphcycles str_format_extension float_conversion elf_mem_image
     graphcycles=third_party/abseil-cpp/absl/synchronization/internal/graphcycles.cc
@@ -513,14 +522,23 @@ patch_pcov() {
 
 # Function to patch phalcon source.
 patch_phalcon() {
+  local model=phalcon.zep.c globals=phalcon.zep.c params=phalcon.zep.c
+  if [ -f ext/phalcon.c ]; then
+    cd ext || return 1
+    model=phalcon/mvc/model.zep.c
+    globals=phalcon.c
+    params=kernel/main.h
+    # C requires a positive array bound even for a call with zero arguments.
+    sed -i 's/zval p\[fci\.param_count\];/zval p[fci.param_count ? fci.param_count : 1];/' kernel/fcall.c
+  fi
   [[ "$PHP_VERSION" = "8.0" ]] && add_cflags -Wno-error=incompatible-pointer-types
   if [[ "$PHP_VERSION" = "7.4" || "$PHP_VERSION" = "8.0" ]]; then
-    sed -i 's#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = ZSTR_VAL(zval_get_string(&prefetchRecords));#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = zval_get_string(\&prefetchRecords);#' phalcon.zep.c
-    sed -i 's#phalcon_globals->orm.resultset_prefetch_records = ZSTR_VAL(zend_string_init(ZEND_STRL("0"), 0));#phalcon_globals->orm.resultset_prefetch_records = zend_string_init(ZEND_STRL("0"), 0);#' phalcon.zep.c
+    sed -i 's#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = ZSTR_VAL(zval_get_string(&prefetchRecords));#ZEPHIR_GLOBAL(orm).resultset_prefetch_records = zval_get_string(\&prefetchRecords);#' "$model"
+    sed -i 's#phalcon_globals->orm.resultset_prefetch_records = ZSTR_VAL(zend_string_init(ZEND_STRL("0"), 0));#phalcon_globals->orm.resultset_prefetch_records = zend_string_init(ZEND_STRL("0"), 0);#' "$globals"
   fi
   if [[ "$PHP_VERSION" =~ ^8\.[1-4]$ ]]; then
-    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest)$/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest_ptr)/' phalcon.zep.c
-    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest)$/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest_ptr)/' phalcon.zep.c
+    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest)$/# define ZEPHIR_Z_PARAM_ARRAY(dest, dest_ptr)              Z_PARAM_ARRAY(dest_ptr)/' "$params"
+    sed -i 's/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest)$/# define ZEPHIR_Z_PARAM_ARRAY_OR_NULL(dest, dest_ptr)      Z_PARAM_ARRAY_OR_NULL(dest_ptr)/' "$params"
   fi
 }
 

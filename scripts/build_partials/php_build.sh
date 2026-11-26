@@ -48,6 +48,10 @@ configure_phpbuild() {
   if [ "${ASAN:-}" = asan ]; then
     cp config/patches/asan-extension-dir.patch "$php_build_dir/patches/"
     echo 'patch_file "asan-extension-dir.patch"' >> "$patches_dir/~series"
+    if [[ "$PHP_VERSION" =~ ^8\.[0-2]$ ]]; then
+      cp config/patches/asan-phpdbg-shutdown.patch "$php_build_dir/patches/"
+      echo 'patch_file "asan-phpdbg-shutdown.patch"' >> "$patches_dir/~series"
+    fi
   fi
 
   # Patch PHP version, host, build, patches and install command in the definition template.

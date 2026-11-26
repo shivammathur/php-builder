@@ -58,6 +58,11 @@ resolve_extension_source() {
       echo "Cannot resolve PECL version for $extension: $ref" >&2
       return 1
     fi
+    if [[ "${ASAN:-}" = asan && "$extension" = phalcon ]]; then
+      # PECL combines the extension into one C file that exceeds 8 GiB under ASAN.
+      resolve_extension_source "$extension" https://github.com/phalcon/cphalcon "v$ref"
+      return
+    fi
     jq -cn --arg repo pecl --arg package "$package" --arg version "$ref" \
       '{repo:$repo, package:$package, version:$version, ref:$version}'
     return

@@ -51,6 +51,12 @@ download_latest_pecl_archive() {
   curl -fsSL --retry 5 --retry-all-errors -o "$pecl_package-$latest_version.tgz" "$release_url"
 }
 
+if [[ "${ASAN:-}" = asan && "$extension" = phalcon && "$repo" = pecl ]]; then
+  source=$(resolve_extension_source "$extension" "$repo" "$tag") || exit 1
+  repo=$(jq -er .repo <<<"$source") || exit 1
+  tag=$(jq -er .ref <<<"$source") || exit 1
+fi
+
 if [[ "$repo" != "pecl" && "$tag" = "latest" ]]; then
   tag="$(get_latest_git_tag "$repo")" || exit 1
 fi

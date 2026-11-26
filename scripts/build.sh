@@ -209,6 +209,12 @@ merge_sapi() {
     touch "$INSTALL_ROOT/usr/lib/php/$PHP_VERSION/sapi/$sapi"
   done
 
+  # Backport php-src d670e131 for extensions built with ASAN and -Werror.
+  if [[ "${ASAN:-}" = asan && "$PHP_VERSION" =~ ^8\.[01]$ ]]; then
+    sed -i '/^# if __has_feature(address_sanitizer)$/s/$/ \&\& !defined(__SANITIZE_ADDRESS__)/' \
+      "$INSTALL_ROOT"/usr/include/php/*/Zend/zend_portability.h
+  fi
+
   # Fix directory structure for newer OS.
   # Remove var and run from the builds
   rm -rf "${INSTALL_ROOT:?}"/var "$INSTALL_ROOT"/run
@@ -237,14 +243,16 @@ merge_sapi() {
 
   # Package the Apache and FPM environments only for ASAN builds.
   if [ "${ASAN:-}" = asan ]; then
-    asan_lib=$(ldd "$INSTALL_ROOT/usr/bin/php$PHP_VERSION" | awk '/libasan\.so/ {print $3; exit}')
-    if [ ! -f "$asan_lib" ]; then
-      echo "Cannot find the ASAN runtime for PHP $PHP_VERSION" >&2
+    runtime_libs=$(ldd "$INSTALL_ROOT/usr/bin/php$PHP_VERSION")
+    asan_lib=$(awk '/libasan\.so/ {print $3; exit}' <<<"$runtime_libs")
+    ubsan_lib=$(awk '/libubsan\.so/ {print $3; exit}' <<<"$runtime_libs")
+    if [ ! -f "$asan_lib" ] || [ ! -f "$ubsan_lib" ]; then
+      echo "Cannot find the ASAN and UBSan runtimes for PHP $PHP_VERSION" >&2
       return 1
     fi
-    asan_soname=$(basename "$asan_lib")
+    sanitizer_libs="${asan_lib##*/}:${ubsan_lib##*/}"
     mkdir -p "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2" "$INSTALL_ROOT/etc/apache2/conf-available"
-    sed -e "s|ASAN_LIB|$asan_soname|g" -e "s|PHP_VERSION|$PHP_VERSION|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
+    sed -e "s|SANITIZER_LIBS|$sanitizer_libs|g" -e "s|PHP_VERSION|$PHP_VERSION|g" config/apache2-asan.envvars > "$INSTALL_ROOT/etc/php/$PHP_VERSION/apache2/asan-envvars"
     cp -fp config/apache2-asan.conf "$INSTALL_ROOT/etc/apache2/conf-available/php-asan-env.conf"
     if [ -f "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf" ]; then
       cat << 'EOF' >> "$INSTALL_ROOT/etc/php/$PHP_VERSION/fpm/pool.d/www.conf"

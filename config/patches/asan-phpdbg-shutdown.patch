@@ -1,0 +1,15 @@
+Backport php-src 0cd3ebfc40c6f4aa90fad8bab05b09f274465385 to keep the allocator active during phpdbg shutdown.
+
+--- a/sapi/phpdbg/phpdbg.c
++++ b/sapi/phpdbg/phpdbg.c
+@@ -180,10 +180,4 @@ static PHP_MSHUTDOWN_FUNCTION(phpdbg) /* {{{ */
+ 	}
+ 
+-	/* hack to restore mm_heap->use_custom_heap in order to receive memory leak info */
+-	if (use_mm_wrappers) {
+-		/* ASSUMING that mm_heap->use_custom_heap is the first element of the struct ... */
+-		*(int *) zend_mm_get_heap() = 0;
+-	}
+-
+ 	if (PHPDBG_G(buffer)) {
+ 		free(PHPDBG_G(buffer));
