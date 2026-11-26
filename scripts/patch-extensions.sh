@@ -272,8 +272,16 @@ patch_grpc() {
   fi
 }
 
+# PHP 8.7 moved the default socket timeout from file globals to core globals.
+patch_default_socket_timeout() {
+  if [[ "$PHP_VERSION" = "8.7" ]] && grep -q 'zend_long default_socket_timeout;' "$(php-config --include-dir)/main/php_globals.h"; then
+    sed -i 's/FG(default_socket_timeout)/PG(default_socket_timeout)/g' "$1"
+  fi
+}
+
 # Function to patch ssh2 source.
 patch_ssh2() {
+  patch_default_socket_timeout ssh2.c
   # libssh2 1.9/1.10 lack channel signals, which ssh2 already guards with
   # PHP_SSH2_CHANNEL_SIGNAL. ssh2 1.6.0 incorrectly made this probe fatal.
   sed -i '/AC_MSG_ERROR(\[libssh2_channel_signal_ex not found;/d' config.m4
@@ -492,6 +500,7 @@ patch_imap() {
     sed -i 's/INI_STR(/zend_ini_string_literal(/g' php_imap.c
     patch_xt_offsetof_tree .
   fi
+  patch_default_socket_timeout php_imap.c
 }
 
 # Function to patch memcache source.
