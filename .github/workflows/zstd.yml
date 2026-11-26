@@ -48,19 +48,19 @@ jobs:
       - name: Build and check zstd
         id: build
         env:
-          VERSION: ${{ needs.version.outputs.version }}
+          ZSTD_VERSION: ${{ needs.version.outputs.version }}
           CHECKSUM: ${{ needs.version.outputs.checksum }}
         run: |
           apt-get update
           apt-get install -y --no-install-recommends ca-certificates curl gcc libc6-dev make
-          curl -fsSL --retry 3 -o zstd.tar.gz "https://github.com/meta/zstd/releases/download/v$VERSION/zstd-$VERSION.tar.gz"
+          curl -fsSL --retry 3 -o zstd.tar.gz "https://github.com/meta/zstd/releases/download/v$ZSTD_VERSION/zstd-$ZSTD_VERSION.tar.gz"
           echo "$CHECKSUM  zstd.tar.gz" | sha256sum -c -
           tar -xzf zstd.tar.gz
-          make -C "zstd-$VERSION/programs" -j"$(nproc)" zstd
+          make -C "zstd-$ZSTD_VERSION/programs" -j"$(nproc)" zstd
           . /etc/os-release
-          asset="zstd-$VERSION-$ID-$VERSION_ID-$(dpkg --print-architecture)"
-          install -m 755 "zstd-$VERSION/programs/zstd" "$asset"
-          test "$("./$asset" -q --version)" = "$VERSION"
+          asset="zstd-$ZSTD_VERSION-$ID-$VERSION_ID-$(dpkg --print-architecture)"
+          install -m 755 "zstd-$ZSTD_VERSION/programs/zstd" "$asset"
+          test "$("./$asset" -q --version)" = "$ZSTD_VERSION"
           "./$asset" -22 -T2 --ultra -q -c < /etc/os-release > sample.zst
           "./$asset" -dc sample.zst | cmp - /etc/os-release
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
