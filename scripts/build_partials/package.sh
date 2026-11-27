@@ -23,14 +23,9 @@ package_php() {
     stage_library_overlays
     echo "::group::package_php"
     cd "$INSTALL_ROOT" || exit
-    echo "Creating Package using XZ"
-    XZ_OPT='-e9 -T0 --memlimit-compress=75% --no-adjust' tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
-
     echo "Creating Package using ZSTD"
     zstd -V
-    tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+    tar -I 'zstd -22 -T0 --ultra' -cf "/tmp/php_$PHP_VERSION$PHP_PKG_SUFFIX+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" ./*
 
     if [ "${ASAN:-}" = "asan" ]; then
       echo "::endgroup::"
@@ -52,14 +47,9 @@ package_php() {
       done
     fi
 
-    echo "Creating Debug Package using XZ"
-    XZ_OPT='-e9 -T0 --memlimit-compress=75% --no-adjust' tar cfJ "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" ./*
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" /tmp
-
     echo "Creating Debug Package using ZSTD"
     zstd -V
-    tar cf - ./* | zstd -22 -T0 --ultra > "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst"
-    mv "php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" /tmp
+    tar -I 'zstd -22 -T0 --ultra' -cf "/tmp/php_$PHP_VERSION$PHP_PKG_SUFFIX-dbgsym+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" ./*
 
     echo "::endgroup::"
   )

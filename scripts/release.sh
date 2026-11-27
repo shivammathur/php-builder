@@ -12,10 +12,10 @@ log_version() {
   local asset package_version new_version=
   for asset in "${assets[@]}"; do
     case "${asset##*/}" in
-      php_"$PHP_VERSION"+*.tar.xz|php_"$PHP_VERSION"-zts+*.tar.xz|php_"$PHP_VERSION"-asan+*.tar.xz|php_"$PHP_VERSION"-zts-asan+*.tar.xz) ;;
+      php_"$PHP_VERSION"+*.tar.zst|php_"$PHP_VERSION"-zts+*.tar.zst|php_"$PHP_VERSION"-asan+*.tar.zst|php_"$PHP_VERSION"-zts-asan+*.tar.zst) ;;
       *) continue ;;
     esac
-    package_version=$(set -o pipefail; tar -xJOf "$asset" --wildcards './usr/include/php/*/main/php_version.h' |
+    package_version=$(set -o pipefail; tar -I zstd -xOf "$asset" --wildcards './usr/include/php/*/main/php_version.h' |
       sed -nE 's/^#define PHP_VERSION "([^"]+)"$/\1/p') || return 1
     if [[ ! "$package_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+((alpha|beta|RC)[0-9]+)?(-dev)?$ ]] ||
        [[ "$package_version" != "$PHP_VERSION".* ]]; then
@@ -56,7 +56,7 @@ for PHP_VERSION in "${PHP_VERSIONS[@]}"; do
             ./builds/*/php_"$PHP_VERSION"-zts-asan-extensions-cache+*.tar.zst)
     [ "${#assets[@]}" -gt 0 ] || { echo "No extension caches for PHP $PHP_VERSION" >&2; exit 1; }
   else
-    for asset in ./builds/*/php_"$PHP_VERSION"*; do
+    for asset in ./builds/*/php_"$PHP_VERSION"*.tar.zst; do
       assets+=("$asset")
     done
   fi

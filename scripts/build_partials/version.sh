@@ -13,7 +13,6 @@ check_stable() {
         cd "$INSTALL_ROOT"/.. || exit
         arch="$(arch)"
         [[ "$arch" = "aarch64" || "$arch" = "arm64" ]] && ARCH_SUFFIX='_arm64' || ARCH_SUFFIX=''
-        curl -fsSLO "$RELEASE/php_$PHP_VERSION${PHP_PKG_SUFFIX:-}+$ID$VERSION_ID$ARCH_SUFFIX.tar.xz" &&
         curl -fsSLO "$RELEASE/php_$PHP_VERSION${PHP_PKG_SUFFIX:-}+$ID$VERSION_ID$ARCH_SUFFIX.tar.zst" &&
         ls -la
       ); then
