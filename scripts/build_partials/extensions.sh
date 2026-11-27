@@ -25,6 +25,9 @@ install_extension_artifacts() {
 package_extension() {
   extension=$1
   install_extension_artifacts "$extension"
+  if [ "${ASAN:-}" = asan ]; then
+    rm -f "${INSTALL_ROOT:?}/etc/php/$PHP_VERSION"/*/conf.d/*-"$extension".ini
+  fi
 }
 
 # Function to enable the extensions in all SAPI.
@@ -42,7 +45,7 @@ enable_extension() {
 
 # Function to check if a custom extension should only be packaged.
 is_optional_extension() {
-  grep -qx "$1" config/optional-extensions
+  [ "${ASAN:-}" = asan ] || grep -qx "$1" config/optional-extensions
 }
 
 # Function to install a custom extension from a config entry.

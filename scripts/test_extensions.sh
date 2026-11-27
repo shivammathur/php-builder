@@ -13,8 +13,12 @@ ext_dir="$(php-config --extension-dir)"
 
 for extension in "${extensions[@]}"; do
   asan_excludes_extension "$extension" && continue
-  if grep -qx "$extension" config/optional-extensions; then
+  if [ "${ASAN:-}" = asan ] || grep -qx "$extension" config/optional-extensions; then
     test -f "$ext_dir/$extension.so"
+    if [ "${ASAN:-}" = asan ] && compgen -G "/etc/php/$PHP_VERSION/*/conf.d/*-$extension.ini" >/dev/null; then
+      echo "$extension is enabled by default in the ASAN package" >&2
+      exit 1
+    fi
     continue
   fi
 
