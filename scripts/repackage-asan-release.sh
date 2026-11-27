@@ -28,8 +28,5 @@ fi
 
 tar --delete -f "$PACKAGE" -T enabled
 echo "Removed $(wc -l < enabled) extension links"
-xz -T0 -4 -ck "$PACKAGE" > "$PACKAGE.xz" &
-xz_pid=$!
 zstd -q -T0 -12 -f "$PACKAGE" -o "$PACKAGE.zst"
-wait "$xz_pid"
-gh release upload "$PHP_VERSION" -R "$GITHUB_REPOSITORY" "$PACKAGE.xz" "$PACKAGE.zst" --clobber
+gh release upload "$PHP_VERSION" -R "$GITHUB_REPOSITORY" "$PACKAGE.zst" --clobber

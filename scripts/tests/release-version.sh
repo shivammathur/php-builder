@@ -39,7 +39,7 @@ package() {
   local archive=$1 version=$2
   mkdir -p root/usr/include/php/20260924/main
   printf '#define PHP_VERSION "%s"\n' "$version" > root/usr/include/php/20260924/main/php_version.h
-  tar -cJf "builds/packages/$archive" -C root ./usr
+  tar -I zstd -cf "builds/packages/$archive" -C root ./usr
 }
 
 expect_log() {
@@ -59,61 +59,64 @@ expect_failure() {
 }
 
 start_case stable-ga 8.6
-package php_8.6+ubuntu24.04.tar.xz 8.6.0
-package php_8.6-zts+ubuntu24.04_arm64.tar.xz 8.6.0
-package php_8.6-asan+ubuntu24.04.tar.xz 8.6.0
-package php_8.6-zts-asan+ubuntu24.04_arm64.tar.xz 8.6.0
+package php_8.6+ubuntu24.04.tar.zst 8.6.0
+package php_8.6-zts+ubuntu24.04_arm64.tar.zst 8.6.0
+package php_8.6-asan+ubuntu24.04.tar.zst 8.6.0
+package php_8.6-zts-asan+ubuntu24.04_arm64.tar.zst 8.6.0
 # Debug symbols and extension caches must not be treated as runtime packages.
-touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.xz
+touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.zst
 touch builds/packages/php_8.6-extensions-cache+ubuntu24.04.tar.zst
 touch builds/packages/php_8.6-asan-extensions-cache+ubuntu24.04.tar.zst
+# Older workflow artifacts can contain both formats.
+touch builds/packages/php_8.6+ubuntu24.04.tar.xz
 expect_log php-8.6.0
+if grep -Fq '.tar.xz' "$RELEASE_CALLS"; then exit 1; fi
 
 start_case stable 8.5
-package php_8.5+ubuntu22.04.tar.xz 8.5.13
+package php_8.5+ubuntu22.04.tar.zst 8.5.13
 expect_log php-8.5.13
 
 start_case legacy 5.6
-package php_5.6+ubuntu22.04.tar.xz 5.6.40
+package php_5.6+ubuntu22.04.tar.zst 5.6.40
 expect_log php-5.6.40
 
 start_case prerelease 8.6
-package php_8.6-zts+ubuntu24.04.tar.xz 8.6.0RC2-dev
+package php_8.6-zts+ubuntu24.04.tar.zst 8.6.0RC2-dev
 expect_log 8.6.0RC2-dev
 
 start_case master 8.7
-package php_8.7+ubuntu24.04.tar.xz 8.7.0-dev
+package php_8.7+ubuntu24.04.tar.zst 8.7.0-dev
 expect_log 8.7.0-dev
 
 start_case mixed-versions 8.6
-package php_8.6+ubuntu24.04.tar.xz 8.6.0-dev
-package php_8.6-zts+ubuntu24.04.tar.xz 8.6.1-dev
+package php_8.6+ubuntu24.04.tar.zst 8.6.0-dev
+package php_8.6-zts+ubuntu24.04.tar.zst 8.6.1-dev
 expect_failure
 
 start_case mixed-asan-versions 8.6
-package php_8.6+ubuntu24.04.tar.xz 8.6.0-dev
-package php_8.6-asan+ubuntu24.04.tar.xz 8.6.1-dev
+package php_8.6+ubuntu24.04.tar.zst 8.6.0-dev
+package php_8.6-asan+ubuntu24.04.tar.zst 8.6.1-dev
 expect_failure
 
 start_case wrong-series 8.6
-package php_8.6+ubuntu24.04.tar.xz 8.7.0-dev
+package php_8.6+ubuntu24.04.tar.zst 8.7.0-dev
 expect_failure
 
 start_case invalid-version 8.6
-package php_8.6+ubuntu24.04.tar.xz invalid
+package php_8.6+ubuntu24.04.tar.zst invalid
 expect_failure
 
 start_case missing-header 8.6
 mkdir empty
-tar -cJf builds/packages/php_8.6+ubuntu24.04.tar.xz -C empty .
+tar -I zstd -cf builds/packages/php_8.6+ubuntu24.04.tar.zst -C empty .
 expect_failure
 
 start_case corrupt-archive 8.6
-printf 'invalid archive\n' > builds/packages/php_8.6+ubuntu24.04.tar.xz
+printf 'invalid archive\n' > builds/packages/php_8.6+ubuntu24.04.tar.zst
 expect_failure
 
 start_case no-runtime 8.6
-touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.xz
+touch builds/packages/php_8.6-dbgsym+ubuntu24.04.tar.zst
 expect_failure
 
 start_case cache-only 8.6

@@ -187,9 +187,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: php${{ matrix.php-version }}-${{ matrix.build }}${{ matrix.asan && '-asan' || '' }}+${{ matrix.dist }}-${{ matrix.dist-version }}
-          path: |
-            /tmp/*.xz
-            /tmp/*.zst
+          path: /tmp/*.zst
 
       - name: Check PHP and extensions
         run: |
