@@ -2,6 +2,8 @@
 set -euo pipefail
 
 config="$PWD/config/extensions/${PHP_VERSION:?}"
+source scripts/extensions-cache.sh
+cache_read_config "$config"
 cd "${RUNNER_TEMP:?}"
 gh release download "$PHP_VERSION" -R "$GITHUB_REPOSITORY" -p "${PACKAGE:?}.zst"
 zstd -qd "$PACKAGE.zst" -o "$PACKAGE"
@@ -11,8 +13,14 @@ awk -v version="$PHP_VERSION" 'NR == FNR { split($2, ext, "-"); extra[ext[1]] = 
        name = path[7]; sub(/^[0-9]+-/, "", name); sub(/\.ini$/, "", name)
        if (name in extra) print
      }' "$config" members > enabled
-grep -Eq '^\./usr/lib/php/[0-9]+[^/]*/ds\.so$' members
-grep -Fxq "./etc/php/$PHP_VERSION/mods-available/ds.ini" members
+for extension in "${cache_names[@]}"; do
+  if ! grep -Eq "^\\./usr/lib/php/[^/]+-asan/$extension\\.so$" members; then
+    ASAN=asan asan_excludes_extension "$extension" && continue
+    echo "Missing $extension.so in $PACKAGE" >&2
+    exit 1
+  fi
+  grep -Fxq "./etc/php/$PHP_VERSION/mods-available/$extension.ini" members
+done
 if [[ ! -s enabled ]]; then
   echo 'Extra extensions are already disabled.'
   exit 0
